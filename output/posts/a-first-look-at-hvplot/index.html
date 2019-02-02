@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="A first look at HVPlot." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>A First Look At HVPlot | Visions, Voices, Data</title>
+<link href="../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/a-first-look-at-hvplot/" rel="canonical"><!--[if lt IE 9]><script src="../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="../portland-daily-climate/portland-daily-temperatures-data/" rel="prev" title="Portland Daily Temperatures Data" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="A First Look At HVPlot" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/a-first-look-at-hvplot/" property="og:url">
+<meta content="A first look at HVPlot." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2019-02-01T11:24:30-08:00" property="article:published_time">
+<meta content="exploration" property="article:tag">
+<meta content="hvplot" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="../../archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="../../categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="../../rss.xml">RSS feed</a></li>
+<li class="nav-item"><a class="nav-link" href="https://necromuralist.github.io/">Cloistered Monkey</a></li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"><input name="k8" type="hidden" value="#444444"><input name="k9" type="hidden" value="#D51920"><input name="kt" type="hidden" value="h"><input class="span2" maxlength="255" name="q" placeholder="Search…" style="margin-top: 4px;" type="text"><input style="visibility: hidden;" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href=".">A First Look At HVPlot</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2019-02-01T11:24:30-08:00" itemprop="datePublished" title="2019-02-01 11:24">2019-02-01 11:24</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgd1ee413">Introduction</a></li>
+<li><a href="#org3a5b33f">Set Up</a>
+<ul>
+<li><a href="#orgd880295">Imports</a></li>
+<li><a href="#orgf5773d2">Typing</a></li>
+<li><a href="#orga77a3ae">Constants</a></li>
+<li><a href="#org88140b8">Tables</a></li>
+</ul>
+</li>
+<li><a href="#orgf116ff3">Helpers</a>
+<ul>
+<li><a href="#org0a763cd">EmbedBokeh Class</a></li>
+<li><a href="#org50f13a8">The Timer</a></li>
+</ul>
+</li>
+<li><a href="#orge922af5">The Data</a>
+<ul>
+<li><a href="#org79cda68">Portland Crime</a></li>
+</ul>
+</li>
+<li><a href="#orgc0ba45a">Making the Plot</a>
+<ul>
+<li><a href="#org5a5170a">The Plot</a></li>
+<li><a href="#orgf1b5654">Trimmed</a></li>
+</ul>
+</li>
+<li><a href="#orga09a1d5">By Type</a></li>
+<li><a href="#orgb204d76">Looking a Little More at the Crimes</a>
+<ul>
+<li><a href="#org95af03e">By Neighborhood</a></li>
+</ul>
+</li>
+<li><a href="#org6f2daa9">Distribution</a></li>
+<li><a href="#orgc270086">Irises</a>
+<ul>
+<li><a href="#org0ba28db">Scatter Matrix</a></li>
+<li><a href="#org69e4059">Parallel Coordinates</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgd1ee413">
+<h2 id="orgd1ee413">Introduction</h2>
+<div class="outline-text-2" id="text-orgd1ee413">
+<p>This is a look at <a href="https://hvplot.pyviz.org/">HVPlot</a>, a <a href="http://holoviews.org/">HoloViews</a> based plotting adapter that works directly with <a href="https://pandas.pydata.org/">pandas</a> or other pandas-like libraries (e.g. <a href="https://dask.org/">dask</a>). I'm starting with their <a href="https://hvplot.pyviz.org/user_guide/Introduction.html">Introduction</a> but might branch out after that. We'll see.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org3a5b33f">
+<h2 id="org3a5b33f">Set Up</h2>
+<div class="outline-text-2" id="text-org3a5b33f"></div>
+<div class="outline-3" id="outline-container-orgd880295">
+<h3 id="orgd880295">Imports</h3>
+<div class="outline-text-3" id="text-orgd880295"></div>
+<div class="outline-4" id="outline-container-org220627b">
+<h4 id="org220627b">From Python</h4>
+<div class="outline-text-4" id="text-org220627b">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">load_iris</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org19da914">
+<h4 id="org19da914">From PyPi</h4>
+<div class="outline-text-4" id="text-org19da914">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org1464cdc">
+<h4 id="org1464cdc">My Stuff</h4>
+<div class="outline-text-4" id="text-org1464cdc">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">neurotic.tangles.timer</span> <span class="kn">import</span> <span class="n">Timer</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgf59b411">
+<h4 id="orgf59b411">The Bokeh Imports</h4>
+<div class="outline-text-4" id="text-orgf59b411">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">bokeh.embed</span> <span class="kn">import</span> <span class="n">autoload_static</span>
+<span class="kn">import</span> <span class="nn">bokeh.resources</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org6837887">
+<h4 id="org6837887">Set Up the HVPlot</h4>
+<div class="outline-text-4" id="text-org6837887">
+<p>I'm not sure exactly what it's doing, but this next import adds an <code>hvplot</code> method to pandas' DataFrames to do the actual plotting.</p>
+<div class="highlight">
+<pre><span></span><span class="kn">import</span> <span class="nn">holoviews</span>
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgf5773d2">
+<h3 id="orgf5773d2">Typing</h3>
+<div class="outline-text-3" id="text-orgf5773d2">
+<div class="highlight">
+<pre><span></span><span class="n">PathType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orga77a3ae">
+<h3 id="orga77a3ae">Constants</h3>
+<div class="outline-text-3" id="text-orga77a3ae">
+<div class="highlight">
+<pre><span></span><span class="n">FOLDER_PATH</span> <span class="o">=</span> <span class="s2">"../files/posts/a-first-look-at-hvplot/"</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org88140b8">
+<h3 id="org88140b8">Tables</h3>
+<div class="outline-text-3" id="text-org88140b8">
+<div class="highlight">
+<pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgf116ff3">
+<h2 id="orgf116ff3">Helpers</h2>
+<div class="outline-text-2" id="text-orgf116ff3"></div>
+<div class="outline-3" id="outline-container-org0a763cd">
+<h3 id="org0a763cd">EmbedBokeh Class</h3>
+<div class="outline-text-3" id="text-org0a763cd">
+<div class="highlight">
+<pre><span></span><span class="k">class</span> <span class="nc">EmbedBokeh</span><span class="p">:</span>
+    <span class="sd">"""Embed a bokeh figure</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">     plot: a hvplot to embed</span>
+<span class="sd">     folder_path: path to the folder to save the file</span>
+<span class="sd">     file_name: name of the file to save the javascript in</span>
+<span class="sd">     create_folder: if the folder doesn't exist create it</span>
+<span class="sd">     make_parents: if creating a folder add the missing folders in the path</span>
+<span class="sd">    """</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot</span><span class="p">:</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">overlay</span><span class="o">.</span><span class="n">NdOverlay</span><span class="p">,</span>
+                 <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">folder_path</span><span class="p">:</span> <span class="n">PathType</span><span class="p">,</span>
+                 <span class="n">create_folder</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">make_parents</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot</span> <span class="o">=</span> <span class="n">plot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_figure</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_folder</span> <span class="o">=</span> <span class="n">create_folder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_parents</span> <span class="o">=</span> <span class="n">make_parents</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_folder_path</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span> <span class="o">=</span> <span class="n">folder_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span> <span class="o">=</span> <span class="n">file_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_javascript</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bokeh_source</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_export_string</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">folder_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+        <span class="sd">"""The path to the folder to store javascript"""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_folder_path</span>
+
+    <span class="nd">@folder_path.setter</span>
+    <span class="k">def</span> <span class="nf">folder_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="sd">"""Sets the path to the javascript folder"""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_folder_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_folder</span> <span class="ow">and</span>  <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_folder_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_folder_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">make_parents</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">file_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">"""The name of the javascript file"""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span>
+
+    <span class="nd">@file_name.setter</span>
+    <span class="k">def</span> <span class="nf">file_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="sd">"""Sets the filename</span>
+
+<span class="sd">       Args:</span>
+<span class="sd">        name: name to save the javascript (without the folder)</span>
+<span class="sd">       """</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="o">=</span> <span class="s2">"{}.js"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">figure</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">bokeh</span><span class="o">.</span><span class="n">plotting</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+        <span class="sd">"""The Figure to plot"""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_figure</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_figure</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_figure</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bokeh_source</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">bokeh</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">Resources</span><span class="p">:</span>
+        <span class="sd">"""The javascript source</span>
+<span class="sd">       """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bokeh_source</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bokeh_source</span> <span class="o">=</span> <span class="n">bokeh</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">CDN</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bokeh_source</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">source</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">"""The HTML fragment to export"""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_javascript</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">autoload_static</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="p">,</span>
+                                                             <span class="bp">self</span><span class="o">.</span><span class="n">bokeh_source</span><span class="p">,</span>
+                                                             <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">javascript</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">"""javascript to save"""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_javascript</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_javascript</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">autoload_static</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="p">,</span>
+                                                             <span class="bp">self</span><span class="o">.</span><span class="n">bokeh_source</span><span class="p">,</span>
+                                                             <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_javascript</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">export_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">"""The string to embed the figure into org-mode"""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_export_string</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_export_string</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
+                <span class="sd">"""#+BEGIN_EXPORT html{}</span>
+<span class="sd">#+END_EXPORT"""</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_export_string</span>
+
+    <span class="k">def</span> <span class="nf">save_figure</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="sd">"""Saves the javascript file"""</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">),</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">javascript</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="sd">"""Creates the bokeh javascript and emits it"""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_figure</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">export_string</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="sd">"""Sets the generated (bokeh) properties back to None"""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_export_string</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_javascript</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_figure</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedBokeh</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="n">FOLDER_PATH</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org50f13a8">
+<h3 id="org50f13a8">The Timer</h3>
+<div class="outline-text-3" id="text-org50f13a8">
+<div class="highlight">
+<pre><span></span><span class="n">TIMER</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orge922af5">
+<h2 id="orge922af5">The Data</h2>
+<div class="outline-text-2" id="text-orge922af5"></div>
+<div class="outline-3" id="outline-container-org79cda68">
+<h3 id="org79cda68">Portland Crime</h3>
+<div class="outline-text-3" id="text-org79cda68">
+<p>This is taken from the <a href="https://www.portlandoregon.gov/police/71978">Portland Crime Statistics</a> page.</p>
+<div class="highlight">
+<pre><span></span><span class="n">portland_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"~/data/datasets/portland/crime-to-january-2018.csv"</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">portland_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">TIMER</span><span class="p">:</span>
+    <span class="n">crime</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">portland_path</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+Started: 2019-02-01 20:31:36.295201
+Ended: 2019-02-01 20:31:37.070487
+Elapsed: 0:00:00.775286
+
+</pre>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">crime</span><span class="o">.</span><span class="n">info</span><span class="p">())</span>
+</pre></div>
+<pre class="example">
+&lt;class 'pandas.core.frame.DataFrame'&gt;
+RangeIndex: 217224 entries, 0 to 217223
+Data columns (total 17 columns):
+Address              196626 non-null object
+Case Number          217224 non-null object
+Crime Against        217224 non-null object
+Neighborhood         210788 non-null object
+Number of Records    217224 non-null int64
+Occur Month Year     217224 non-null object
+Occur Date           217224 non-null object
+Occur Time           217224 non-null int64
+Offense Category     217224 non-null object
+Offense Count        217224 non-null int64
+Offense Type         217224 non-null object
+OpenDataLat          193352 non-null float64
+OpenDataLon          193352 non-null float64
+OpenDataX            193352 non-null float64
+OpenDataY            193352 non-null float64
+Report Date          217224 non-null object
+ReportMonthYear      217224 non-null object
+dtypes: float64(4), int64(3), object(10)
+memory usage: 28.2+ MB
+None
+</pre>
+<p>Here's a possible categorical column to use.</p>
+<div class="highlight">
+<pre><span></span><span class="n">crime</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">crime</span><span class="p">[</span><span class="s2">"Crime Against"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">"category"</span><span class="p">)</span>
+<span class="n">crime</span> <span class="o">=</span> <span class="n">crime</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"Crime Against"</span><span class="p">])</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Type</th>
+<th class="org-right" scope="col">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Property</td>
+<td class="org-right">175567</td>
+</tr>
+<tr>
+<td class="org-left">Person</td>
+<td class="org-right">32109</td>
+</tr>
+<tr>
+<td class="org-left">Society</td>
+<td class="org-right">9548</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc0ba45a">
+<h2 id="orgc0ba45a">Making the Plot</h2>
+<div class="outline-text-2" id="text-orgc0ba45a">
+<p>Holoviews is expecting you to work in a <a href="https://jupyter.org/">jupyter notebook</a> and isn't quite so easy to work with in org-mode so I'll make the plot with <code>hvplot</code> but then convert it to a <a href="https://bokeh.pydata.org/en/latest/docs/reference/plotting.html">bokeh figure</a> to embed it in this post.</p>
+</div>
+<div class="outline-3" id="outline-container-org5a5170a">
+<h3 id="org5a5170a">The Plot</h3>
+<div class="outline-text-3" id="text-org5a5170a">
+<div class="highlight">
+<pre><span></span><span class="k">with</span> <span class="n">TIMER</span><span class="p">:</span>
+    <span class="n">crime</span><span class="p">[</span><span class="s2">"date"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">crime</span><span class="p">[</span><span class="s2">"Occur Date"</span><span class="p">])</span>
+    <span class="n">crime</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="o">=</span> <span class="n">crime</span><span class="p">[</span><span class="s2">"Case Number"</span><span class="p">]</span>
+    <span class="n">crime</span> <span class="o">=</span> <span class="n">crime</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"Occur Date"</span><span class="p">,</span> <span class="s2">"Case Number"</span><span class="p">])</span>
+    <span class="n">crime_dates</span> <span class="o">=</span> <span class="n">crime</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"date"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+Started: 2019-02-01 20:31:47.668915
+Ended: 2019-02-01 20:32:09.889378
+Elapsed: 0:00:22.220463
+
+</pre>
+<div class="highlight">
+<pre><span></span><span class="n">weekly</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"W"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</pre></div>
+<script id="772db8e1-1a48-4157-9c71-2cdeba64b4cc" src="weekly_crime.js"></script>
+<p>That didn't work out is planned. It turns out that the data starts in 1972, but is mostly empty until around May of 2015. It also looks like January is missing values. I think I'll trim the data set.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgf1b5654">
+<h3 id="orgf1b5654">Trimmed</h3>
+<div class="outline-text-3" id="text-orgf1b5654">
+<div class="highlight">
+<pre><span></span><span class="n">crime_dates</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="p">[(</span><span class="n">crime_dates</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">31</span><span class="p">))</span>
+                          <span class="o">&</span> <span class="p">(</span><span class="n">crime_dates</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))]</span>
+<span class="n">weekly</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"W"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</pre></div>
+<script id="36bd73d0-3379-4f11-8490-89e0572a7ade" src="weekly_trimmed_crime.js"></script></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orga09a1d5">
+<h2 id="orga09a1d5">By Type</h2>
+<div class="outline-text-2" id="text-orga09a1d5">
+<p>HoloViews uses this rather odd way of composing figures. Instead of the object-oriented way you might expect it overrides the multiplication sign (<code>*</code> for adding to the same plot) and addition sign (<code>+</code> for adding an adjacent plot) so to plot the types I'll have to multiply their plots.</p>
+<div class="highlight">
+<pre><span></span><span class="n">types</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">crime_dates</span><span class="p">[</span><span class="n">crime_dates</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="n">name</span><span class="p">]</span>
+         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">crime_dates</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">unique</span><span class="p">()}</span>
+<span class="n">weekly_types</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"W"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">types</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+<span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">weekly_types</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="n">first</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">weekly_types</span><span class="p">[</span><span class="n">first</span><span class="p">]</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"id"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">first</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+    <span class="n">plot</span> <span class="o">*=</span> <span class="n">weekly_types</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"id"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+</pre></div>
+<script id="ab8f8249-d8a5-4af3-ab7b-7b84af3d7a31" src="weekly_crime_by_type.js"></script>
+<p>It looks like it could use more trimming, but it also looks like it's mostly property crimes, which is what you'd expect, I guess. Actually I tried another trim and it looks like it always starts at zero because of the way the resampling works, so trimming doesn't make that first anomaly go away. Maybe trimming the weekly would help.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgb204d76">
+<h2 id="orgb204d76">Looking a Little More at the Crimes</h2>
+<div class="outline-text-2" id="text-orgb204d76"></div>
+<div class="outline-3" id="outline-container-org95af03e">
+<h3 id="org95af03e">By Neighborhood</h3>
+<div class="outline-text-3" id="text-org95af03e">
+<div class="highlight">
+<pre><span></span><span class="n">top_ten</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="o">.</span><span class="n">Neighborhood</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">table</span><span class="p">(</span><span class="n">top_ten</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"Neighborhood Count"</span><span class="o">.</span><span class="n">split</span><span class="p">()))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Neighborhood</th>
+<th class="org-right" scope="col">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Downtown</td>
+<td class="org-right">10237</td>
+</tr>
+<tr>
+<td class="org-left">Hazelwood</td>
+<td class="org-right">10127</td>
+</tr>
+<tr>
+<td class="org-left">Lents</td>
+<td class="org-right">5681</td>
+</tr>
+<tr>
+<td class="org-left">Powellhurst-Gilbert</td>
+<td class="org-right">5605</td>
+</tr>
+<tr>
+<td class="org-left">Centennial</td>
+<td class="org-right">5016</td>
+</tr>
+<tr>
+<td class="org-left">Old Town/Chinatown</td>
+<td class="org-right">4966</td>
+</tr>
+<tr>
+<td class="org-left">Northwest</td>
+<td class="org-right">4648</td>
+</tr>
+<tr>
+<td class="org-left">Montavilla</td>
+<td class="org-right">4026</td>
+</tr>
+<tr>
+<td class="org-left">Pearl</td>
+<td class="org-right">3905</td>
+</tr>
+<tr>
+<td class="org-left">Lloyd</td>
+<td class="org-right">3699</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span><span class="n">neighborhoods</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="p">[</span><span class="s2">"Neighborhood"</span><span class="p">]</span>
+<span class="n">neighborhoods</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">neighborhoods</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">neighborhoods</span> <span class="o">=</span> <span class="n">neighborhoods</span><span class="p">[</span><span class="n">top_ten</span><span class="p">[</span><span class="s2">"index"</span><span class="p">]]</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"M"</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+</pre></div>
+<script id="83cc6d7d-3efe-4dc0-9765-6ab52eaedba7" src="neighborhoods.js"></script>
+<p>So the first thing to notice is that the top district ("Downtown") is missing from the legend for some reason and Downtown and Hazelwood dominate the case counts. There also doesn't seem to be any strong upward or downward trend.</p>
+<p>I live in Powelhurst-Gilbert, about a block north of Lents, and it looks like if you considered them one big neighborhood (they are adjacent), then they form the highest-crime Neighborhood, but, sticking to the arbitrariness of the boundaries, we are relegated to numbers three and four.</p>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org6f2daa9">
+<h2 id="org6f2daa9">Distribution</h2>
+<div class="outline-text-2" id="text-org6f2daa9">
+<div class="highlight">
+<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">neighborhoods</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">kde</span><span class="p">(</span>
+    <span class="n">by</span><span class="o">=</span><span class="s2">"Neighborhood"</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Distributions of Top Ten Crime Neighborhoods"</span><span class="p">)</span>
+</pre></div>
+<script id="f36dff14-b71a-4865-a1aa-7d9a69455ee1" src="neighborhoods_kde.js"></script>
+<p>I don't know what that mysterious bulge around zero is, all the neighborhoods are in the other peaks.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc270086">
+<h2 id="orgc270086">Irises</h2>
+<div class="outline-text-2" id="text-orgc270086">
+<p>Since the previous data was time-series data I thought I'd load a data set that wasn't to illustrate the use of the <code>by</code> parameter.</p>
+<div class="highlight">
+<pre><span></span><span class="n">irises</span> <span class="o">=</span> <span class="n">load_iris</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">irises</span><span class="o">.</span><span class="n">DESCR</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+.. _iris_dataset:
+
+Iris plants dataset
+--------------------
+
+**Data Set Characteristics:**
+
+    :Number of Instances: 150 (50 in each of three classes)
+    :Number of Attributes: 4 numeric, predictive attributes and the class
+    :Attribute Information:
+        - sepal length in cm
+        - sepal width in cm
+        - petal length in cm
+        - petal width in cm
+        - class:
+                - Iris-Setosa
+                - Iris-Versicolour
+                - Iris-Virginica
+                
+    :Summary Statistics:
+
+    ============== ==== ==== ======= ===== ====================
+                    Min  Max   Mean    SD   Class Correlation
+    ============== ==== ==== ======= ===== ====================
+    sepal length:   4.3  7.9   5.84   0.83    0.7826
+    sepal width:    2.0  4.4   3.05   0.43   -0.4194
+    petal length:   1.0  6.9   3.76   1.76    0.9490  (high!)
+    petal width:    0.1  2.5   1.20   0.76    0.9565  (high!)
+    ============== ==== ==== ======= ===== ====================
+
+    :Missing Attribute Values: None
+    :Class Distribution: 33.3% for each of 3 classes.
+    :Creator: R.A. Fisher
+    :Donor: Michael Marshall (MARSHALL%PLU@io.arc.nasa.gov)
+    :Date: July, 1988
+
+The famous Iris database, first used by Sir R.A. Fisher. The dataset is taken
+from Fisher's paper. Note that it's the same as in R, but not as in the UCI
+Machine Learning Repository, which has two wrong data points.
+
+This is perhaps the best known database to be found in the
+pattern recognition literature.  Fisher's paper is a classic in the field and
+is referenced frequently to this day.  (See Duda & Hart, for example.)  The
+data set contains 3 classes of 50 instances each, where each class refers to a
+type of iris plant.  One class is linearly separable from the other 2; the
+latter are NOT linearly separable from each other.
+
+.. topic:: References
+
+   - Fisher, R.A. "The use of multiple measurements in taxonomic problems"
+     Annual Eugenics, 7, Part II, 179-188 (1936); also in "Contributions to
+     Mathematical Statistics" (John Wiley, NY, 1950).
+   - Duda, R.O., & Hart, P.E. (1973) Pattern Classification and Scene Analysis.
+     (Q327.D83) John Wiley & Sons.  ISBN 0-471-22361-1.  See page 218.
+   - Dasarathy, B.V. (1980) "Nosing Around the Neighborhood: A New System
+     Structure and Classification Rule for Recognition in Partially Exposed
+     Environments".  IEEE Transactions on Pattern Analysis and Machine
+     Intelligence, Vol. PAMI-2, No. 1, 67-71.
+   - Gates, G.W. (1972) "The Reduced Nearest Neighbor Rule".  IEEE Transactions
+     on Information Theory, May 1972, 431-433.
+   - See also: 1988 MLC Proceedings, 54-64.  Cheeseman et al"s AUTOCLASS II
+     conceptual clustering system finds 3 classes in the data.
+   - Many, many more ...
+</pre>
+<div class="highlight">
+<pre><span></span><span class="n">iris_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">irises</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">irises</span><span class="o">.</span><span class="n">feature_names</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">iris_data</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+<pre class="example">
+   sepal length (cm)  sepal width (cm)  petal length (cm)  petal width (cm)
+0                5.1               3.5                1.4               0.2
+1                4.9               3.0                1.4               0.2
+2                4.7               3.2                1.3               0.2
+3                4.6               3.1                1.5               0.2
+4                5.0               3.6                1.4               0.2
+
+</pre>
+<p>I don't know where this convention came from, but you can use the <code>by</code> keyword to specify a categorical column to differentiate the data points. In this case I'll use it to differentiate the species.</p>
+<div class="highlight">
+<pre><span></span><span class="n">target</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">irises</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+<span class="n">target_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">irises</span><span class="o">.</span><span class="n">target_names</span><span class="p">))</span>
+<span class="n">iris_data</span><span class="p">[</span><span class="s2">"target"</span><span class="p">]</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">target_map</span><span class="p">[</span><span class="n">x</span><span class="p">])</span>
+</pre></div>
+<script id="410280c0-48c7-445f-9e4c-001a2b350d06" src="irises.js"></script></div>
+<div class="outline-3" id="outline-container-org0ba28db">
+<h3 id="org0ba28db">Scatter Matrix</h3>
+<div class="outline-text-3" id="text-org0ba28db">
+<div class="highlight">
+<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">hvplot</span><span class="o">.</span><span class="n">scatter_matrix</span><span class="p">(</span><span class="n">iris_data</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">"target"</span><span class="p">)</span>
+</pre></div>
+<script id="a9512677-2eb3-4fce-8188-5e9a4a22dc45" src="iris_scatter_matrix.js"></script></div>
+</div>
+<div class="outline-3" id="outline-container-org69e4059">
+<h3 id="org69e4059">Parallel Coordinates</h3>
+<div class="outline-text-3" id="text-org69e4059">
+<div class="highlight">
+<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">hvplot</span><span class="o">.</span><span class="n">parallel_coordinates</span><span class="p">(</span><span class="n">iris_data</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">)</span>
+</pre></div>
+<script id="d8e70c60-c084-47d6-81b0-a27c91b65ccc" src="iris_parallel_coordinates.js"></script></div>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="../../categories/exploration/" rel="tag">exploration</a></li>
+<li><a class="tag p-category" href="../../categories/hvplot/" rel="tag">hvplot</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="../portland-daily-climate/portland-daily-temperatures-data/" rel="prev" title="Portland Daily Temperatures Data">Previous post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="../../assets/js/all-nocdn.js"></script><!-- fancy dates -->
+<script>
+
+    moment.locale("en");
+    fancydates(0, "YYYY-MM-DD HH:mm");
+</script><!-- end fancy dates -->
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script>
+</body>
+</html>
