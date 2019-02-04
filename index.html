@@ -13,7 +13,7 @@
 <link href="rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
 <link href="https://necromuralist.github.io/Visions-Voices-Data/" rel="canonical"><!--[if lt IE 9]><script src="assets/js/html5.js"></script><![endif]-->
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script>
-<link href="posts/a-first-look-at-hvplot/" rel="prefetch" type="text/html">
+<link href="posts/libraries/customizing-holoviews/" rel="prefetch" type="text/html">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -40,10 +40,10 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
-<h1 class="p-name entry-title"><a class="u-url" href="posts/a-first-look-at-hvplot/">A First Look At HVPlot</a></h1>
+<h1 class="p-name entry-title"><a class="u-url" href="posts/libraries/customizing-holoviews/">Customizing HoloViews</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="posts/a-first-look-at-hvplot/" rel="bookmark"><time class="published dt-published" datetime="2019-02-01T11:24:30-08:00" itemprop="datePublished" title="2019-02-01 11:24">2019-02-01 11:24</time></a></p>
+<p class="dateline"><a href="posts/libraries/customizing-holoviews/" rel="bookmark"><time class="published dt-published" datetime="2019-02-02T17:07:31-08:00" itemprop="datePublished" title="2019-02-02 17:07">2019-02-02 17:07</time></a></p>
 </div>
 </header>
 <div class="e-content entry-content">
@@ -51,103 +51,516 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/a-first-look-at-hvplot/#orgd1ee413">Introduction</a></li>
-<li><a href="posts/a-first-look-at-hvplot/#org3a5b33f">Set Up</a>
+<li><a href="posts/libraries/customizing-holoviews/#org5356a79">Introduction</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#org84f808a">Set Up</a>
 <ul>
-<li><a href="posts/a-first-look-at-hvplot/#orgd880295">Imports</a></li>
-<li><a href="posts/a-first-look-at-hvplot/#orgf5773d2">Typing</a></li>
-<li><a href="posts/a-first-look-at-hvplot/#orga77a3ae">Constants</a></li>
-<li><a href="posts/a-first-look-at-hvplot/#org88140b8">Tables</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#org69e91e9">Imports</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#org3b274ea">The Timer</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#orgb9eec7b">The Embedder</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#orgeba83cc">Bokeh Backend</a></li>
 </ul>
 </li>
-<li><a href="posts/a-first-look-at-hvplot/#orgf116ff3">Helpers</a>
+<li><a href="posts/libraries/customizing-holoviews/#org514ea98">The Data</a>
 <ul>
-<li><a href="posts/a-first-look-at-hvplot/#org0a763cd">EmbedBokeh Class</a></li>
-<li><a href="posts/a-first-look-at-hvplot/#org50f13a8">The Timer</a></li>
-</ul>
-</li>
-<li><a href="posts/a-first-look-at-hvplot/#orge922af5">The Data</a>
-<ul>
-<li><a href="posts/a-first-look-at-hvplot/#org79cda68">Portland Crime</a></li>
-</ul>
-</li>
-<li><a href="posts/a-first-look-at-hvplot/#orgc0ba45a">Making the Plot</a>
-<ul>
-<li><a href="posts/a-first-look-at-hvplot/#org5a5170a">The Plot</a></li>
-<li><a href="posts/a-first-look-at-hvplot/#orgf1b5654">Trimmed</a></li>
-</ul>
-</li>
-<li><a href="posts/a-first-look-at-hvplot/#orga09a1d5">By Type</a></li>
-<li><a href="posts/a-first-look-at-hvplot/#orgb204d76">Looking a Little More at the Crimes</a>
-<ul>
-<li><a href="posts/a-first-look-at-hvplot/#org95af03e">By Neighborhood</a></li>
-</ul>
-</li>
-<li><a href="posts/a-first-look-at-hvplot/#org6f2daa9">Distribution</a></li>
-<li><a href="posts/a-first-look-at-hvplot/#orgc270086">Irises</a>
-<ul>
-<li><a href="posts/a-first-look-at-hvplot/#org0ba28db">Scatter Matrix</a></li>
-<li><a href="posts/a-first-look-at-hvplot/#org69e4059">Parallel Coordinates</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#org4445675">Plot time vs Latitude.</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#org9b17198">Take Two</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgd1ee413">
-<h2 id="orgd1ee413">Introduction</h2>
-<div class="outline-text-2" id="text-orgd1ee413">
-<p>This is a look at <a href="https://hvplot.pyviz.org/">HVPlot</a>, a <a href="http://holoviews.org/">HoloViews</a> based plotting adapter that works directly with <a href="https://pandas.pydata.org/">pandas</a> or other pandas-like libraries (e.g. <a href="https://dask.org/">dask</a>). I'm starting with their <a href="https://hvplot.pyviz.org/user_guide/Introduction.html">Introduction</a> but might branch out after that. We'll see.</p>
+<div class="outline-2" id="outline-container-org5356a79">
+<h2 id="org5356a79">Introduction</h2>
+<div class="outline-text-2" id="text-org5356a79">
+<p>This is another exploration, this time looking at what they call <a href="http://holoviews.org/getting_started/Customization.html">Customization</a>. In my introduction post when I made a scatter plot with a hover tool I first had to make the Scatter element and then add the hover tool as part of the options. HoloViews does this to try and emphasize a separation of content and presentation. When making the Scatter element I was supposed to only be thinking about the data that I wanted to add, then when working with the options I was turning to focus on the aesthetics.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org3a5b33f">
-<h2 id="org3a5b33f">Set Up</h2>
-<div class="outline-text-2" id="text-org3a5b33f"></div>
-<div class="outline-3" id="outline-container-orgd880295">
-<h3 id="orgd880295">Imports</h3>
-<div class="outline-text-3" id="text-orgd880295"></div>
-<div class="outline-4" id="outline-container-org220627b">
-<h4 id="org220627b">From Python</h4>
-<div class="outline-text-4" id="text-org220627b">
+<div class="outline-2" id="outline-container-org84f808a">
+<h2 id="org84f808a">Set Up</h2>
+<div class="outline-text-2" id="text-org84f808a"></div>
+<div class="outline-3" id="outline-container-org69e91e9">
+<h3 id="org69e91e9">Imports</h3>
+<div class="outline-text-3" id="text-org69e91e9"></div>
+<div class="outline-4" id="outline-container-org129d6bd">
+<h4 id="org129d6bd">Python</h4>
+<div class="outline-text-4" id="text-org129d6bd">
 <div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">load_iris</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
-<span class="kn">import</span> <span class="nn">textwrap</span>
+<pre><span></span>from datetime import datetime
+from functools import partial
+from pathlib import Path
+import os
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org19da914">
-<h4 id="org19da914">From PyPi</h4>
-<div class="outline-text-4" id="text-org19da914">
+<div class="outline-4" id="outline-container-org49603f7">
+<h4 id="org49603f7">PyPi</h4>
+</div>
+<div class="outline-4" id="outline-container-orgf9a98fc">
+<h4 id="orgf9a98fc">Related Projects</h4>
+<div class="outline-text-4" id="text-orgf9a98fc">
 <div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+<pre><span></span>from neurotic.tangles.timer import Timer
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org42ab201">
+<h4 id="org42ab201">This Project</h4>
+<div class="outline-text-4" id="text-org42ab201">
+<div class="highlight">
+<pre><span></span>from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org3b274ea">
+<h3 id="org3b274ea">The Timer</h3>
+<div class="outline-text-3" id="text-org3b274ea">
+<div class="highlight">
+<pre><span></span>TIMER = Timer()
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgb9eec7b">
+<h3 id="orgb9eec7b">The Embedder</h3>
+<div class="outline-text-3" id="text-orgb9eec7b">
+<div class="highlight">
+<pre><span></span>files_path = Path("../../files/posts/libraries/customizing-holoviews/")
+Embed = partial(
+    EmbedBokeh,
+    folder_path=files_path)
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgeba83cc">
+<h3 id="orgeba83cc">Bokeh Backend</h3>
+<div class="outline-text-3" id="text-orgeba83cc">
+<p>When I ran the code further down in the notebook to render the javascript I was getting this error:</p>
+<pre class="example">
+ValueError: autoload_static expects a single Model or Document
+</pre>
+<p>It was because I forgot the next step and it was defaulting to Matplotlib for some reason.</p>
+<div class="highlight">
+<pre><span></span>holoviews.extension("bokeh")
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org514ea98">
+<h2 id="org514ea98">The Data</h2>
+<div class="outline-text-2" id="text-org514ea98">
+<div class="highlight">
+<pre><span></span>load_dotenv()
+</pre></div>
+<div class="highlight">
+<pre><span></span>path = Path(os.environ.get("PORTLAND_CRIME")).expanduser()
+assert path.exists()
+with TIMER:
+    data = pandas.read_csv(path)
+</pre></div>
+<pre class="example">
+Started: 2019-02-02 18:46:58.097693
+Ended: 2019-02-02 18:46:58.937793
+Elapsed: 0:00:00.840100
+
+</pre>
+<div class="highlight">
+<pre><span></span>print(data.info())
+</pre></div>
+<pre class="example">
+&lt;class 'pandas.core.frame.DataFrame'&gt;
+RangeIndex: 217224 entries, 0 to 217223
+Data columns (total 17 columns):
+Address              196626 non-null object
+Case Number          217224 non-null object
+Crime Against        217224 non-null object
+Neighborhood         210788 non-null object
+Number of Records    217224 non-null int64
+Occur Month Year     217224 non-null object
+Occur Date           217224 non-null object
+Occur Time           217224 non-null int64
+Offense Category     217224 non-null object
+Offense Count        217224 non-null int64
+Offense Type         217224 non-null object
+OpenDataLat          193352 non-null float64
+OpenDataLon          193352 non-null float64
+OpenDataX            193352 non-null float64
+OpenDataY            193352 non-null float64
+Report Date          217224 non-null object
+ReportMonthYear      217224 non-null object
+dtypes: float64(4), int64(3), object(10)
+memory usage: 28.2+ MB
+None
+</pre>
+<div class="highlight">
+<pre><span></span>date = (data["Occur Date"]
+        + " "
+        + data["Occur Time"].astype(str).str.zfill(4))
+data["date"] = pandas.to_datetime(date, format="%m/%d/%Y %H%M")
+
+print(data.date[:5])
+</pre></div>
+<pre class="example">
+0   2017-08-26 00:00:00
+1   2017-08-29 16:00:00
+2   2017-08-12 19:00:00
+3   2017-08-27 01:00:00
+4   2017-07-24 09:03:00
+Name: date, dtype: datetime64[ns]
+
+</pre>
+<div class="highlight">
+<pre><span></span>data = data[(data.date &gt;= datetime(2015, 5, 31))
+            & (data.date &lt; datetime(2019, 1, 1))]
+</pre></div>
+<div class="highlight">
+<pre><span></span>selection = data[data.date &gt; datetime(2018, 12, 24)].sort_values("date")
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-org4445675">
+<h3 id="org4445675">Plot time vs Latitude.</h3>
+<div class="outline-text-3" id="text-org4445675">
+<p>First we get our content.</p>
+<div class="highlight">
+<pre><span></span>curve = holoviews.Curve(selection, ("date", "Date-Time"), ("OpenDataLat", "Latitude"))
+timestamps = holoviews.Spikes(selection, ("date", "Date-Time"), [])
+layout = curve + timestamps
+</pre></div>
+<p>Now we make our presentation.</p>
+<script id="80ce2562-7cca-4f31-a74a-98942d77a03b" src="posts/libraries/customizing-holoviews/latitude_time_1.js"></script></div>
+</div>
+<div class="outline-3" id="outline-container-org9b17198">
+<h3 id="org9b17198">Take Two</h3>
+<div class="outline-text-3" id="text-org9b17198">
+<p>Although the defaults give us a plot that's hard to read, by adjusting the width of the plot we can make it something more interpretable.</p>
+<div class="highlight">
+<pre><span></span>layout = layout.opts(
+    opts.Curve(height=200, width=900, xaxis=None, color="red", line_width=1.5, tools=["hover"]),
+    opts.Spikes(height=150, width=900, xaxis=None, color="grey")
+).cols(1)
+</pre></div>
+<script id="9453cc0e-bdec-4716-874a-a8d149b9e6dd" src="posts/libraries/customizing-holoviews/latitude_time_2.js"></script></div>
+</div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="posts/libraries/holoviews-introduction/">HoloViews Introduction</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="posts/libraries/holoviews-introduction/" rel="bookmark"><time class="published dt-published" datetime="2019-02-02T14:15:01-08:00" itemprop="datePublished" title="2019-02-02 14:15">2019-02-02 14:15</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="posts/libraries/holoviews-introduction/#org3ceca10">Introduction</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#orgfb5b90d">Set Up</a>
+<ul>
+<li><a href="posts/libraries/holoviews-introduction/#org024152c">Imports</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#orgf2fbf49">This Project</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#org2b80afd">The HoloViews Backend</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#org15f3d10">A Partial Bokeh Embedder</a></li>
+</ul>
+</li>
+<li><a href="posts/libraries/holoviews-introduction/#orga4c0273">The Data Set</a>
+<ul>
+<li><a href="posts/libraries/holoviews-introduction/#orgdaf6f29">Load It</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#orgc6826d2">Make The DataFrame</a></li>
+</ul>
+</li>
+<li><a href="posts/libraries/holoviews-introduction/#org142427b">A Plot</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#org15db8ab">Adding To the Layout</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org3ceca10">
+<h2 id="org3ceca10">Introduction</h2>
+<div class="outline-text-2" id="text-org3ceca10">
+<p>Having taken an initial look at HVPlot, I'm going to look at <a href="http://holoviews.org/">HoloViews</a> which acts as an intermediate layer between the main plotting libraries like bokeh and matplotlib and the upper layer given by HVPlot. I haven't used it before so I'm not really sure when you would use what. I guess <code>HVPlot</code> gives you access to the <code>pandas</code> plots in bokeh without a lot of work, which is nice, although I noticed that the plots tended to be missing things sometimes (like the Hover tool) so if you want to add more back in you probably have to understand <code>HoloViews</code> which itself sometimes doesn't give you what you want (like the ability to render it in org-mode posts) so you still need bokeh too, sometimes. And of course I'm only using the static-page versions of everything, not the features that work with a bokeh or jupyter server. But I guess that's for later.</p>
+<p>I'm going to be working from the <a href="http://holoviews.org/getting_started/Introduction.html">Introduction</a> of their Getting Started guide.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgfb5b90d">
+<h2 id="orgfb5b90d">Set Up</h2>
+<div class="outline-text-2" id="text-orgfb5b90d"></div>
+<div class="outline-3" id="outline-container-org024152c">
+<h3 id="org024152c">Imports</h3>
+<div class="outline-text-3" id="text-org024152c"></div>
+<div class="outline-4" id="outline-container-org0f16025">
+<h4 id="org0f16025">Python</h4>
+<div class="outline-text-4" id="text-org0f16025">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgf9f9560">
+<h4 id="orgf9f9560">From PiPy</h4>
+<div class="outline-text-4" id="text-orgf9f9560">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">holoviews</span> <span class="kn">import</span> <span class="n">opts</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">fetch_california_housing</span>
+<span class="kn">import</span> <span class="nn">holoviews</span>
 <span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">pandas</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org1464cdc">
-<h4 id="org1464cdc">My Stuff</h4>
-<div class="outline-text-4" id="text-org1464cdc">
+</div>
+<div class="outline-3" id="outline-container-orgf2fbf49">
+<h3 id="orgf2fbf49">This Project</h3>
+<div class="outline-text-3" id="text-orgf2fbf49">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org2b80afd">
+<h3 id="org2b80afd">The HoloViews Backend</h3>
+<div class="outline-text-3" id="text-org2b80afd">
+<p>If you use <code>HVPlot</code> you don't need to set the backend (because it defaults to 'bokeh', I think) but this is going to be about <code>HoloViews</code> so I'm going to do it their way, rather than relying on all the <code>pandas</code> methods.</p>
+<div class="highlight">
+<pre><span></span><span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org15f3d10">
+<h3 id="org15f3d10">A Partial Bokeh Embedder</h3>
+<div class="outline-text-3" id="text-org15f3d10">
+<p>Since the output folder is always the same I'm going to bind it to the EmbedBokeh definition.</p>
+<div class="highlight">
+<pre><span></span><span class="n">plot_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/holoviews-introduction/"</span><span class="p">)</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedBokeh</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="n">plot_path</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orga4c0273">
+<h2 id="orga4c0273">The Data Set</h2>
+<div class="outline-text-2" id="text-orga4c0273"></div>
+<div class="outline-3" id="outline-container-orgdaf6f29">
+<h3 id="orgdaf6f29">Load It</h3>
+<div class="outline-text-3" id="text-orgdaf6f29">
+<p>Sklearn downloads it as a 'bunch' so we need to get it in that form first and then turn it into a data frame (I'm sure there's a way to skip this step but this is the way I already know how to do it).</p>
+<div class="highlight">
+<pre><span></span><span class="n">folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"~/data/datasets/california-housing"</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">folder</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+<span class="n">bunch</span> <span class="o">=</span> <span class="n">fetch_california_housing</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">bunch</span><span class="o">.</span><span class="n">DESCR</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+/home/hades/data/datasets/california-housing
+.. _california_housing_dataset:
+
+California Housing dataset
+--------------------------
+
+**Data Set Characteristics:**
+
+    :Number of Instances: 20640
+
+    :Number of Attributes: 8 numeric, predictive attributes and the target
+
+    :Attribute Information:
+        - MedInc        median income in block
+        - HouseAge      median house age in block
+        - AveRooms      average number of rooms
+        - AveBedrms     average number of bedrooms
+        - Population    block population
+        - AveOccup      average house occupancy
+        - Latitude      house block latitude
+        - Longitude     house block longitude
+
+    :Missing Attribute Values: None
+
+This dataset was obtained from the StatLib repository.
+http://lib.stat.cmu.edu/datasets/
+
+The target variable is the median house value for California districts.
+
+This dataset was derived from the 1990 U.S. census, using one row per census
+block group. A block group is the smallest geographical unit for which the U.S.
+Census Bureau publishes sample data (a block group typically has a population
+of 600 to 3,000 people).
+
+It can be downloaded/loaded using the
+:func:`sklearn.datasets.fetch_california_housing` function.
+
+.. topic:: References
+
+    - Pace, R. Kelley and Ronald Barry, Sparse Spatial Autoregressions,
+      Statistics and Probability Letters, 33 (1997) 291-297
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-orgc6826d2">
+<h3 id="orgc6826d2">Make The DataFrame</h3>
+<div class="outline-text-3" id="text-orgc6826d2">
+<div class="highlight">
+<pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">bunch</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">bunch</span><span class="o">.</span><span class="n">feature_names</span><span class="p">)</span>
+<span class="n">data</span><span class="p">[</span><span class="s2">"median_value"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bunch</span><span class="o">.</span><span class="n">target</span>
+<span class="k">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+<pre class="example">
+   MedInc  HouseAge  AveRooms  AveBedrms  Population  AveOccup  Latitude  \
+0  8.3252      41.0  6.984127   1.023810       322.0  2.555556     37.88   
+1  8.3014      21.0  6.238137   0.971880      2401.0  2.109842     37.86   
+2  7.2574      52.0  8.288136   1.073446       496.0  2.802260     37.85   
+3  5.6431      52.0  5.817352   1.073059       558.0  2.547945     37.85   
+4  3.8462      52.0  6.281853   1.081081       565.0  2.181467     37.85   
+
+   Longitude  median_value  
+0    -122.23         4.526  
+1    -122.22         3.585  
+2    -122.24         3.521  
+3    -122.25         3.413  
+4    -122.25         3.422  
+</pre></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org142427b">
+<h2 id="org142427b">A Plot</h2>
+<div class="outline-text-2" id="text-org142427b">
+<p>Our target is the median value of the house. Does that correlate with median income?</p>
+<div class="highlight">
+<pre><span></span><span class="n">scatter</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">data</span><span class="p">,</span>
+                            <span class="p">(</span><span class="s2">"MedInc"</span><span class="p">,</span> <span class="s2">"Median Income"</span><span class="p">),</span>
+                            <span class="p">(</span><span class="s2">"median_value"</span><span class="p">,</span> <span class="s2">"Median Value"</span><span class="p">),</span>
+                            <span class="n">label</span><span class="o">=</span><span class="s2">"California Housing"</span><span class="p">)</span>
+</pre></div>
+<p>After setting up the basic plot we can do things to affect the appearance like setting the color or adding tools.</p>
+<div class="highlight">
+<pre><span></span><span class="n">scatter</span> <span class="o">=</span> <span class="n">scatter</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">"red"</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s2">"hover"</span><span class="p">]))</span>
+</pre></div>
+<script id="bfbe3866-7981-492f-b2f8-918396abac02" src="posts/libraries/holoviews-introduction/income_vs_value.js"></script></div>
+</div>
+<div class="outline-2" id="outline-container-org15db8ab">
+<h2 id="org15db8ab">Adding To the Layout</h2>
+<div class="outline-text-2" id="text-org15db8ab">
+<p>What if we want to add a distrbution to the plot? HoloViews uses the <code>+</code> operator to indicate that you want to append a plot to another one.</p>
+<div class="highlight">
+<pre><span></span><span class="n">layout</span> <span class="o">=</span> <span class="n">scatter</span> <span class="o">+</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Histogram</span><span class="p">(</span>
+    <span class="n">numpy</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">HouseAge</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">24</span><span class="p">),</span> <span class="n">kdims</span><span class="o">=</span><span class="p">[</span><span class="s2">"HouseAge"</span><span class="p">])</span>
+<span class="n">layout</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">Histogram</span><span class="p">(</span><span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s2">"hover"</span><span class="p">]))</span>
+</pre></div>
+<script id="728203cb-7d9b-4ecd-aeb0-a30aec6a7655" src="posts/libraries/holoviews-introduction/income_vs_value_with_house_age.js"></script></div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="posts/libraries/a-first-look-at-hvplot/">A First Look At HVPlot</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="posts/libraries/a-first-look-at-hvplot/" rel="bookmark"><time class="published dt-published" datetime="2019-02-01T11:24:30-08:00" itemprop="datePublished" title="2019-02-01 11:24">2019-02-01 11:24</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org0596422">Introduction</a></li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org77dd9dd">Set Up</a>
+<ul>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org1df7a4e">Imports</a></li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org93522df">Typing</a></li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#orgdf00c6a">Constants</a></li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org4c47af0">Tables</a></li>
+</ul>
+</li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org2b071c2">Helpers</a>
+<ul>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org69233fd">EmbedBokeh Class</a></li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#orgfe0090b">The Timer</a></li>
+</ul>
+</li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org56ae3d7">The Data</a>
+<ul>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org9dc3de1">Portland Crime</a></li>
+</ul>
+</li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#orgab0f6b8">Making the Plot</a>
+<ul>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org1fb267c">The Plot</a></li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org8e455d9">Trimmed</a></li>
+</ul>
+</li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#orgd842ffd">By Type</a></li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#orgbe243b0">Looking a Little More at the Crimes</a>
+<ul>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org947342f">By Neighborhood</a></li>
+</ul>
+</li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org66388a4">Distribution</a></li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org7bf5f33">Irises</a>
+<ul>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#orga3c16ff">Scatter Matrix</a></li>
+<li><a href="posts/libraries/a-first-look-at-hvplot/#org68363db">Parallel Coordinates</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org0596422">
+<h2 id="org0596422">Introduction</h2>
+<div class="outline-text-2" id="text-org0596422">
+<p>This is a look at <a href="https://hvplot.pyviz.org/">HVPlot</a>, a <a href="http://holoviews.org/">HoloViews</a> based plotting adapter that works directly with <a href="https://pandas.pydata.org/">pandas</a> or other pandas-like libraries (e.g. <a href="https://dask.org/">dask</a>). I'm starting with their <a href="https://hvplot.pyviz.org/user_guide/Introduction.html">Introduction</a> but might branch out after that. We'll see.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org77dd9dd">
+<h2 id="org77dd9dd">Set Up</h2>
+<div class="outline-text-2" id="text-org77dd9dd"></div>
+<div class="outline-3" id="outline-container-org1df7a4e">
+<h3 id="org1df7a4e">Imports</h3>
+<div class="outline-text-3" id="text-org1df7a4e"></div>
+<div class="outline-4" id="outline-container-org37cc4a7">
+<h4 id="org37cc4a7">From Python</h4>
+<div class="outline-text-4" id="text-org37cc4a7">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgbc464e1">
+<h4 id="orgbc464e1">From PyPi</h4>
+<div class="outline-text-4" id="text-orgbc464e1">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">load_iris</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org584bf08">
+<h4 id="org584bf08">My Stuff</h4>
+<div class="outline-text-4" id="text-org584bf08">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">neurotic.tangles.timer</span> <span class="kn">import</span> <span class="n">Timer</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgf59b411">
-<h4 id="orgf59b411">The Bokeh Imports</h4>
-<div class="outline-text-4" id="text-orgf59b411">
+<div class="outline-4" id="outline-container-orgccbead3">
+<h4 id="orgccbead3">The Bokeh Imports</h4>
+<div class="outline-text-4" id="text-orgccbead3">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">bokeh.embed</span> <span class="kn">import</span> <span class="n">autoload_static</span>
 <span class="kn">import</span> <span class="nn">bokeh.resources</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org6837887">
-<h4 id="org6837887">Set Up the HVPlot</h4>
-<div class="outline-text-4" id="text-org6837887">
+<div class="outline-4" id="outline-container-org5a56526">
+<h4 id="org5a56526">Set Up the HVPlot</h4>
+<div class="outline-text-4" id="text-org5a56526">
 <p>I'm not sure exactly what it's doing, but this next import adds an <code>hvplot</code> method to pandas' DataFrames to do the actual plotting.</p>
 <div class="highlight">
 <pre><span></span><span class="kn">import</span> <span class="nn">holoviews</span>
@@ -156,37 +569,37 @@
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgf5773d2">
-<h3 id="orgf5773d2">Typing</h3>
-<div class="outline-text-3" id="text-orgf5773d2">
+<div class="outline-3" id="outline-container-org93522df">
+<h3 id="org93522df">Typing</h3>
+<div class="outline-text-3" id="text-org93522df">
 <div class="highlight">
 <pre><span></span><span class="n">PathType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orga77a3ae">
-<h3 id="orga77a3ae">Constants</h3>
-<div class="outline-text-3" id="text-orga77a3ae">
+<div class="outline-3" id="outline-container-orgdf00c6a">
+<h3 id="orgdf00c6a">Constants</h3>
+<div class="outline-text-3" id="text-orgdf00c6a">
 <div class="highlight">
-<pre><span></span><span class="n">FOLDER_PATH</span> <span class="o">=</span> <span class="s2">"../files/posts/a-first-look-at-hvplot/"</span>
+<pre><span></span><span class="n">FOLDER_PATH</span> <span class="o">=</span> <span class="s2">"../files/posts/libraries/a-first-look-at-hvplot/"</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org88140b8">
-<h3 id="org88140b8">Tables</h3>
-<div class="outline-text-3" id="text-org88140b8">
+<div class="outline-3" id="outline-container-org4c47af0">
+<h3 id="org4c47af0">Tables</h3>
+<div class="outline-text-3" id="text-org4c47af0">
 <div class="highlight">
 <pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgf116ff3">
-<h2 id="orgf116ff3">Helpers</h2>
-<div class="outline-text-2" id="text-orgf116ff3"></div>
-<div class="outline-3" id="outline-container-org0a763cd">
-<h3 id="org0a763cd">EmbedBokeh Class</h3>
-<div class="outline-text-3" id="text-org0a763cd">
+<div class="outline-2" id="outline-container-org2b071c2">
+<h2 id="org2b071c2">Helpers</h2>
+<div class="outline-text-2" id="text-org2b071c2"></div>
+<div class="outline-3" id="outline-container-org69233fd">
+<h3 id="org69233fd">EmbedBokeh Class</h3>
+<div class="outline-text-3" id="text-org69233fd">
 <div class="highlight">
 <pre><span></span><span class="k">class</span> <span class="nc">EmbedBokeh</span><span class="p">:</span>
     <span class="sd">"""Embed a bokeh figure</span>
@@ -313,21 +726,21 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org50f13a8">
-<h3 id="org50f13a8">The Timer</h3>
-<div class="outline-text-3" id="text-org50f13a8">
+<div class="outline-3" id="outline-container-orgfe0090b">
+<h3 id="orgfe0090b">The Timer</h3>
+<div class="outline-text-3" id="text-orgfe0090b">
 <div class="highlight">
 <pre><span></span><span class="n">TIMER</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge922af5">
-<h2 id="orge922af5">The Data</h2>
-<div class="outline-text-2" id="text-orge922af5"></div>
-<div class="outline-3" id="outline-container-org79cda68">
-<h3 id="org79cda68">Portland Crime</h3>
-<div class="outline-text-3" id="text-org79cda68">
+<div class="outline-2" id="outline-container-org56ae3d7">
+<h2 id="org56ae3d7">The Data</h2>
+<div class="outline-text-2" id="text-org56ae3d7"></div>
+<div class="outline-3" id="outline-container-org9dc3de1">
+<h3 id="org9dc3de1">Portland Crime</h3>
+<div class="outline-text-3" id="text-org9dc3de1">
 <p>This is taken from the <a href="https://www.portlandoregon.gov/police/71978">Portland Crime Statistics</a> page.</p>
 <div class="highlight">
 <pre><span></span><span class="n">portland_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"~/data/datasets/portland/crime-to-january-2018.csv"</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
@@ -336,9 +749,9 @@
     <span class="n">crime</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">portland_path</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
-Started: 2019-02-01 20:31:36.295201
-Ended: 2019-02-01 20:31:37.070487
-Elapsed: 0:00:00.775286
+Started: 2019-02-02 18:38:59.025251
+Ended: 2019-02-02 18:39:00.170796
+Elapsed: 0:00:01.145545
 
 </pre>
 <div class="highlight">
@@ -402,14 +815,14 @@ None
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc0ba45a">
-<h2 id="orgc0ba45a">Making the Plot</h2>
-<div class="outline-text-2" id="text-orgc0ba45a">
+<div class="outline-2" id="outline-container-orgab0f6b8">
+<h2 id="orgab0f6b8">Making the Plot</h2>
+<div class="outline-text-2" id="text-orgab0f6b8">
 <p>Holoviews is expecting you to work in a <a href="https://jupyter.org/">jupyter notebook</a> and isn't quite so easy to work with in org-mode so I'll make the plot with <code>hvplot</code> but then convert it to a <a href="https://bokeh.pydata.org/en/latest/docs/reference/plotting.html">bokeh figure</a> to embed it in this post.</p>
 </div>
-<div class="outline-3" id="outline-container-org5a5170a">
-<h3 id="org5a5170a">The Plot</h3>
-<div class="outline-text-3" id="text-org5a5170a">
+<div class="outline-3" id="outline-container-org1fb267c">
+<h3 id="org1fb267c">The Plot</h3>
+<div class="outline-text-3" id="text-org1fb267c">
 <div class="highlight">
 <pre><span></span><span class="k">with</span> <span class="n">TIMER</span><span class="p">:</span>
     <span class="n">crime</span><span class="p">[</span><span class="s2">"date"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">crime</span><span class="p">[</span><span class="s2">"Occur Date"</span><span class="p">])</span>
@@ -426,24 +839,24 @@ Elapsed: 0:00:22.220463
 <div class="highlight">
 <pre><span></span><span class="n">weekly</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"W"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
 </pre></div>
-<script id="772db8e1-1a48-4157-9c71-2cdeba64b4cc" src="posts/a-first-look-at-hvplot/weekly_crime.js"></script>
+<script id="772db8e1-1a48-4157-9c71-2cdeba64b4cc" src="posts/libraries/a-first-look-at-hvplot/weekly_crime.js"></script>
 <p>That didn't work out is planned. It turns out that the data starts in 1972, but is mostly empty until around May of 2015. It also looks like January is missing values. I think I'll trim the data set.</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgf1b5654">
-<h3 id="orgf1b5654">Trimmed</h3>
-<div class="outline-text-3" id="text-orgf1b5654">
+<div class="outline-3" id="outline-container-org8e455d9">
+<h3 id="org8e455d9">Trimmed</h3>
+<div class="outline-text-3" id="text-org8e455d9">
 <div class="highlight">
 <pre><span></span><span class="n">crime_dates</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="p">[(</span><span class="n">crime_dates</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">31</span><span class="p">))</span>
                           <span class="o">&</span> <span class="p">(</span><span class="n">crime_dates</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))]</span>
 <span class="n">weekly</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"W"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
 </pre></div>
-<script id="36bd73d0-3379-4f11-8490-89e0572a7ade" src="posts/a-first-look-at-hvplot/weekly_trimmed_crime.js"></script></div>
+<script id="36bd73d0-3379-4f11-8490-89e0572a7ade" src="posts/libraries/a-first-look-at-hvplot/weekly_trimmed_crime.js"></script></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orga09a1d5">
-<h2 id="orga09a1d5">By Type</h2>
-<div class="outline-text-2" id="text-orga09a1d5">
+<div class="outline-2" id="outline-container-orgd842ffd">
+<h2 id="orgd842ffd">By Type</h2>
+<div class="outline-text-2" id="text-orgd842ffd">
 <p>HoloViews uses this rather odd way of composing figures. Instead of the object-oriented way you might expect it overrides the multiplication sign (<code>*</code> for adding to the same plot) and addition sign (<code>+</code> for adding an adjacent plot) so to plot the types I'll have to multiply their plots.</p>
 <div class="highlight">
 <pre><span></span><span class="n">types</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">crime_dates</span><span class="p">[</span><span class="n">crime_dates</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="n">name</span><span class="p">]</span>
@@ -456,16 +869,16 @@ Elapsed: 0:00:22.220463
 <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
     <span class="n">plot</span> <span class="o">*=</span> <span class="n">weekly_types</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"id"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
 </pre></div>
-<script id="ab8f8249-d8a5-4af3-ab7b-7b84af3d7a31" src="posts/a-first-look-at-hvplot/weekly_crime_by_type.js"></script>
+<script id="ab8f8249-d8a5-4af3-ab7b-7b84af3d7a31" src="posts/libraries/a-first-look-at-hvplot/weekly_crime_by_type.js"></script>
 <p>It looks like it could use more trimming, but it also looks like it's mostly property crimes, which is what you'd expect, I guess. Actually I tried another trim and it looks like it always starts at zero because of the way the resampling works, so trimming doesn't make that first anomaly go away. Maybe trimming the weekly would help.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgb204d76">
-<h2 id="orgb204d76">Looking a Little More at the Crimes</h2>
-<div class="outline-text-2" id="text-orgb204d76"></div>
-<div class="outline-3" id="outline-container-org95af03e">
-<h3 id="org95af03e">By Neighborhood</h3>
-<div class="outline-text-3" id="text-org95af03e">
+<div class="outline-2" id="outline-container-orgbe243b0">
+<h2 id="orgbe243b0">Looking a Little More at the Crimes</h2>
+<div class="outline-text-2" id="text-orgbe243b0"></div>
+<div class="outline-3" id="outline-container-org947342f">
+<h3 id="org947342f">By Neighborhood</h3>
+<div class="outline-text-3" id="text-org947342f">
 <div class="highlight">
 <pre><span></span><span class="n">top_ten</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="o">.</span><span class="n">Neighborhood</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
 <span class="k">print</span><span class="p">(</span><span class="n">table</span><span class="p">(</span><span class="n">top_ten</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"Neighborhood Count"</span><span class="o">.</span><span class="n">split</span><span class="p">()))</span>
@@ -530,27 +943,27 @@ Elapsed: 0:00:22.220463
 <div class="highlight">
 <pre><span></span><span class="n">neighborhoods</span> <span class="o">=</span> <span class="n">neighborhoods</span><span class="p">[</span><span class="n">top_ten</span><span class="p">[</span><span class="s2">"index"</span><span class="p">]]</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"M"</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 </pre></div>
-<script id="83cc6d7d-3efe-4dc0-9765-6ab52eaedba7" src="posts/a-first-look-at-hvplot/neighborhoods.js"></script>
+<script id="83cc6d7d-3efe-4dc0-9765-6ab52eaedba7" src="posts/libraries/a-first-look-at-hvplot/neighborhoods.js"></script>
 <p>So the first thing to notice is that the top district ("Downtown") is missing from the legend for some reason and Downtown and Hazelwood dominate the case counts. There also doesn't seem to be any strong upward or downward trend.</p>
 <p>I live in Powelhurst-Gilbert, about a block north of Lents, and it looks like if you considered them one big neighborhood (they are adjacent), then they form the highest-crime Neighborhood, but, sticking to the arbitrariness of the boundaries, we are relegated to numbers three and four.</p>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org6f2daa9">
-<h2 id="org6f2daa9">Distribution</h2>
-<div class="outline-text-2" id="text-org6f2daa9">
+<div class="outline-2" id="outline-container-org66388a4">
+<h2 id="org66388a4">Distribution</h2>
+<div class="outline-text-2" id="text-org66388a4">
 <div class="highlight">
 <pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">neighborhoods</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">kde</span><span class="p">(</span>
     <span class="n">by</span><span class="o">=</span><span class="s2">"Neighborhood"</span><span class="p">,</span>
     <span class="n">title</span><span class="o">=</span><span class="s2">"Distributions of Top Ten Crime Neighborhoods"</span><span class="p">)</span>
 </pre></div>
-<script id="f36dff14-b71a-4865-a1aa-7d9a69455ee1" src="posts/a-first-look-at-hvplot/neighborhoods_kde.js"></script>
+<script id="f36dff14-b71a-4865-a1aa-7d9a69455ee1" src="posts/libraries/a-first-look-at-hvplot/neighborhoods_kde.js"></script>
 <p>I don't know what that mysterious bulge around zero is, all the neighborhoods are in the other peaks.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc270086">
-<h2 id="orgc270086">Irises</h2>
-<div class="outline-text-2" id="text-orgc270086">
+<div class="outline-2" id="outline-container-org7bf5f33">
+<h2 id="org7bf5f33">Irises</h2>
+<div class="outline-text-2" id="text-org7bf5f33">
 <p>Since the previous data was time-series data I thought I'd load a data set that wasn't to illustrate the use of the <code>by</code> parameter.</p>
 <div class="highlight">
 <pre><span></span><span class="n">irises</span> <span class="o">=</span> <span class="n">load_iris</span><span class="p">()</span>
@@ -640,22 +1053,22 @@ latter are NOT linearly separable from each other.
 <span class="n">target_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">irises</span><span class="o">.</span><span class="n">target_names</span><span class="p">))</span>
 <span class="n">iris_data</span><span class="p">[</span><span class="s2">"target"</span><span class="p">]</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">target_map</span><span class="p">[</span><span class="n">x</span><span class="p">])</span>
 </pre></div>
-<script id="410280c0-48c7-445f-9e4c-001a2b350d06" src="posts/a-first-look-at-hvplot/irises.js"></script></div>
-<div class="outline-3" id="outline-container-org0ba28db">
-<h3 id="org0ba28db">Scatter Matrix</h3>
-<div class="outline-text-3" id="text-org0ba28db">
+<script id="410280c0-48c7-445f-9e4c-001a2b350d06" src="posts/libraries/a-first-look-at-hvplot/irises.js"></script></div>
+<div class="outline-3" id="outline-container-orga3c16ff">
+<h3 id="orga3c16ff">Scatter Matrix</h3>
+<div class="outline-text-3" id="text-orga3c16ff">
 <div class="highlight">
 <pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">hvplot</span><span class="o">.</span><span class="n">scatter_matrix</span><span class="p">(</span><span class="n">iris_data</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">"target"</span><span class="p">)</span>
 </pre></div>
-<script id="a9512677-2eb3-4fce-8188-5e9a4a22dc45" src="posts/a-first-look-at-hvplot/iris_scatter_matrix.js"></script></div>
+<script id="a9512677-2eb3-4fce-8188-5e9a4a22dc45" src="posts/libraries/a-first-look-at-hvplot/iris_scatter_matrix.js"></script></div>
 </div>
-<div class="outline-3" id="outline-container-org69e4059">
-<h3 id="org69e4059">Parallel Coordinates</h3>
-<div class="outline-text-3" id="text-org69e4059">
+<div class="outline-3" id="outline-container-org68363db">
+<h3 id="org68363db">Parallel Coordinates</h3>
+<div class="outline-text-3" id="text-org68363db">
 <div class="highlight">
 <pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">hvplot</span><span class="o">.</span><span class="n">parallel_coordinates</span><span class="p">(</span><span class="n">iris_data</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">)</span>
 </pre></div>
-<script id="d8e70c60-c084-47d6-81b0-a27c91b65ccc" src="posts/a-first-look-at-hvplot/iris_parallel_coordinates.js"></script></div>
+<script id="d8e70c60-c084-47d6-81b0-a27c91b65ccc" src="posts/libraries/a-first-look-at-hvplot/iris_parallel_coordinates.js"></script></div>
 </div>
 </div>
 </div>
