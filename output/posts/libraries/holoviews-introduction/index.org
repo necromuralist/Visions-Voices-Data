@@ -1,0 +1,176 @@
+#+BEGIN_COMMENT
+.. title: HoloViews Introduction
+.. slug: holoviews-introduction
+.. date: 2019-02-02 14:15:01 UTC-08:00
+.. tags: holoviews,visualization,exploration
+.. category: HoloViews
+.. link: 
+.. description: A look an the HoloViews Introduction.
+.. type: text
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+#+BEGIN_SRC python :session holoviews :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Introduction
+  Having taken an initial look at HVPlot, I'm going to look at [[http://holoviews.org/][HoloViews]] which acts as an intermediate layer between the main plotting libraries like bokeh and matplotlib and the upper layer given by HVPlot. I haven't used it before so I'm not really sure when you would use what. I guess =HVPlot= gives you access to the =pandas= plots in bokeh without a lot of work, which is nice, although I noticed that the plots tended to be missing things sometimes (like the Hover tool) so if you want to add more back in you probably have to understand =HoloViews= which itself sometimes doesn't give you what you want (like the ability to render it in org-mode posts) so you still need bokeh too, sometimes. And of course I'm only using the static-page versions of everything, not the features that work with a bokeh or jupyter server. But I guess that's for later.
+
+  I'm going to be working from the [[http://holoviews.org/getting_started/Introduction.html][Introduction]] of their Getting Started guide.
+* Set Up
+** Imports
+*** Python
+#+BEGIN_SRC python :session holoviews :results none
+from functools import partial
+from pathlib import Path
+#+END_SRC
+*** From PiPy
+#+BEGIN_SRC python :session holoviews :results none
+from holoviews import opts
+from sklearn.datasets import fetch_california_housing
+import holoviews
+import numpy
+import pandas
+#+END_SRC
+** This Project
+#+BEGIN_SRC python :session holoviews :results none
+from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+#+END_SRC
+** The HoloViews Backend
+   If you use =HVPlot= you don't need to set the backend (because it defaults to 'bokeh', I think) but this is going to be about =HoloViews= so I'm going to do it their way, rather than relying on all the =pandas= methods.
+
+#+BEGIN_SRC python :session holoviews :results none
+holoviews.extension("bokeh")
+#+END_SRC
+** A Partial Bokeh Embedder
+   Since the output folder is always the same I'm going to bind it to the EmbedBokeh definition.
+
+#+BEGIN_SRC python :session holoviews :results none
+plot_path = Path("../../files/posts/libraries/holoviews-introduction/")
+Embed = partial(EmbedBokeh, folder_path=plot_path)
+#+END_SRC
+* The Data Set
+** Load It
+   Sklearn downloads it as a 'bunch' so we need to get it in that form first and then turn it into a data frame (I'm sure there's a way to skip this step but this is the way I already know how to do it).
+#+BEGIN_SRC python :session holoviews :results output :exports both
+folder = Path("~/data/datasets/california-housing").expanduser()
+assert folder.is_dir()
+print(folder)
+bunch = fetch_california_housing(folder)
+print(bunch.DESCR)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+/home/hades/data/datasets/california-housing
+.. _california_housing_dataset:
+
+California Housing dataset
+--------------------------
+
+,**Data Set Characteristics:**
+
+    :Number of Instances: 20640
+
+    :Number of Attributes: 8 numeric, predictive attributes and the target
+
+    :Attribute Information:
+        - MedInc        median income in block
+        - HouseAge      median house age in block
+        - AveRooms      average number of rooms
+        - AveBedrms     average number of bedrooms
+        - Population    block population
+        - AveOccup      average house occupancy
+        - Latitude      house block latitude
+        - Longitude     house block longitude
+
+    :Missing Attribute Values: None
+
+This dataset was obtained from the StatLib repository.
+http://lib.stat.cmu.edu/datasets/
+
+The target variable is the median house value for California districts.
+
+This dataset was derived from the 1990 U.S. census, using one row per census
+block group. A block group is the smallest geographical unit for which the U.S.
+Census Bureau publishes sample data (a block group typically has a population
+of 600 to 3,000 people).
+
+It can be downloaded/loaded using the
+:func:`sklearn.datasets.fetch_california_housing` function.
+
+.. topic:: References
+
+    - Pace, R. Kelley and Ronald Barry, Sparse Spatial Autoregressions,
+      Statistics and Probability Letters, 33 (1997) 291-297
+#+end_example
+
+** Make The DataFrame
+
+#+BEGIN_SRC python :session holoviews :results output :exports both
+data = pandas.DataFrame(bunch.data, columns=bunch.feature_names)
+data["median_value"] = bunch.target
+print(data.head())
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+   MedInc  HouseAge  AveRooms  AveBedrms  Population  AveOccup  Latitude  \
+0  8.3252      41.0  6.984127   1.023810       322.0  2.555556     37.88   
+1  8.3014      21.0  6.238137   0.971880      2401.0  2.109842     37.86   
+2  7.2574      52.0  8.288136   1.073446       496.0  2.802260     37.85   
+3  5.6431      52.0  5.817352   1.073059       558.0  2.547945     37.85   
+4  3.8462      52.0  6.281853   1.081081       565.0  2.181467     37.85   
+
+   Longitude  median_value  
+0    -122.23         4.526  
+1    -122.22         3.585  
+2    -122.24         3.521  
+3    -122.25         3.413  
+4    -122.25         3.422  
+#+end_example
+
+* A Plot
+
+Our target is the median value of the house. Does that correlate with median income?
+
+#+BEGIN_SRC python :session holoviews :results none
+scatter = holoviews.Scatter(data,
+                            ("MedInc", "Median Income"),
+                            ("median_value", "Median Value"),
+                            label="California Housing")
+#+END_SRC
+
+After setting up the basic plot we can do things to affect the appearance like setting the color or adding tools.
+#+BEGIN_SRC python :session holoviews :results none
+scatter = scatter.opts(opts.Scatter(color="red", tools=["hover"]))
+#+END_SRC
+
+#+BEGIN_SRC python :session holoviews :results output raw :exports results
+Embed(scatter, "income_vs_value")()
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_EXPORT html
+<script src="income_vs_value.js" id="bfbe3866-7981-492f-b2f8-918396abac02"></script>
+#+END_EXPORT
+
+* Adding To the Layout
+  What if we want to add a distrbution to the plot? HoloViews uses the =+= operator to indicate that you want to append a plot to another one.
+
+#+BEGIN_SRC python :session holoviews :results none
+layout = scatter + holoviews.Histogram(
+    numpy.histogram(data.HouseAge, bins=24), kdims=["HouseAge"])
+layout = layout.opts(opts.Histogram(tools=["hover"]))
+#+END_SRC
+
+#+BEGIN_SRC python :session holoviews :results output raw :exports results
+Embed(layout, "income_vs_value_with_house_age")()
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_EXPORT html
+<script src="income_vs_value_with_house_age.js" id="728203cb-7d9b-4ecd-aeb0-a30aec6a7655"></script>
+#+END_EXPORT
