@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content='Looking at HoloViews "Customization".' name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Customizing HoloViews | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="../holoviews-introduction/" rel="prev" title="HoloViews Introduction" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Customizing HoloViews" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/" property="og:url">
+<meta content='Looking at HoloViews "Customization".' property="og:description">
+<meta content="article" property="og:type">
+<meta content="2019-02-02T17:07:31-08:00" property="article:published_time">
+<meta content="exploration" property="article:tag">
+<meta content="holoviews" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="../../../archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../rss.xml">RSS feed</a></li>
+<li class="nav-item"><a class="nav-link" href="https://necromuralist.github.io/">Cloistered Monkey</a></li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"><input name="k8" type="hidden" value="#444444"><input name="k9" type="hidden" value="#D51920"><input name="kt" type="hidden" value="h"><input class="span2" maxlength="255" name="q" placeholder="Search…" style="margin-top: 4px;" type="text"><input style="visibility: hidden;" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href=".">Customizing HoloViews</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2019-02-02T17:07:31-08:00" itemprop="datePublished" title="2019-02-02 17:07">2019-02-02 17:07</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org5356a79">Introduction</a></li>
+<li><a href="#org84f808a">Set Up</a>
+<ul>
+<li><a href="#org69e91e9">Imports</a></li>
+<li><a href="#org3b274ea">The Timer</a></li>
+<li><a href="#orgb9eec7b">The Embedder</a></li>
+<li><a href="#orgeba83cc">Bokeh Backend</a></li>
+</ul>
+</li>
+<li><a href="#org514ea98">The Data</a>
+<ul>
+<li><a href="#org4445675">Plot time vs Latitude.</a></li>
+<li><a href="#org9b17198">Take Two</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org5356a79">
+<h2 id="org5356a79">Introduction</h2>
+<div class="outline-text-2" id="text-org5356a79">
+<p>This is another exploration, this time looking at what they call <a href="http://holoviews.org/getting_started/Customization.html">Customization</a>. In my introduction post when I made a scatter plot with a hover tool I first had to make the Scatter element and then add the hover tool as part of the options. HoloViews does this to try and emphasize a separation of content and presentation. When making the Scatter element I was supposed to only be thinking about the data that I wanted to add, then when working with the options I was turning to focus on the aesthetics.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org84f808a">
+<h2 id="org84f808a">Set Up</h2>
+<div class="outline-text-2" id="text-org84f808a"></div>
+<div class="outline-3" id="outline-container-org69e91e9">
+<h3 id="org69e91e9">Imports</h3>
+<div class="outline-text-3" id="text-org69e91e9"></div>
+<div class="outline-4" id="outline-container-org129d6bd">
+<h4 id="org129d6bd">Python</h4>
+<div class="outline-text-4" id="text-org129d6bd">
+<div class="highlight">
+<pre><span></span>from datetime import datetime
+from functools import partial
+from pathlib import Path
+import os
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org49603f7">
+<h4 id="org49603f7">PyPi</h4>
+</div>
+<div class="outline-4" id="outline-container-orgf9a98fc">
+<h4 id="orgf9a98fc">Related Projects</h4>
+<div class="outline-text-4" id="text-orgf9a98fc">
+<div class="highlight">
+<pre><span></span>from neurotic.tangles.timer import Timer
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org42ab201">
+<h4 id="org42ab201">This Project</h4>
+<div class="outline-text-4" id="text-org42ab201">
+<div class="highlight">
+<pre><span></span>from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org3b274ea">
+<h3 id="org3b274ea">The Timer</h3>
+<div class="outline-text-3" id="text-org3b274ea">
+<div class="highlight">
+<pre><span></span>TIMER = Timer()
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgb9eec7b">
+<h3 id="orgb9eec7b">The Embedder</h3>
+<div class="outline-text-3" id="text-orgb9eec7b">
+<div class="highlight">
+<pre><span></span>files_path = Path("../../files/posts/libraries/customizing-holoviews/")
+Embed = partial(
+    EmbedBokeh,
+    folder_path=files_path)
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgeba83cc">
+<h3 id="orgeba83cc">Bokeh Backend</h3>
+<div class="outline-text-3" id="text-orgeba83cc">
+<p>When I ran the code further down in the notebook to render the javascript I was getting this error:</p>
+<pre class="example">
+ValueError: autoload_static expects a single Model or Document
+</pre>
+<p>It was because I forgot the next step and it was defaulting to Matplotlib for some reason.</p>
+<div class="highlight">
+<pre><span></span>holoviews.extension("bokeh")
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org514ea98">
+<h2 id="org514ea98">The Data</h2>
+<div class="outline-text-2" id="text-org514ea98">
+<div class="highlight">
+<pre><span></span>load_dotenv()
+</pre></div>
+<div class="highlight">
+<pre><span></span>path = Path(os.environ.get("PORTLAND_CRIME")).expanduser()
+assert path.exists()
+with TIMER:
+    data = pandas.read_csv(path)
+</pre></div>
+<pre class="example">
+Started: 2019-02-02 18:46:58.097693
+Ended: 2019-02-02 18:46:58.937793
+Elapsed: 0:00:00.840100
+
+</pre>
+<div class="highlight">
+<pre><span></span>print(data.info())
+</pre></div>
+<pre class="example">
+&lt;class 'pandas.core.frame.DataFrame'&gt;
+RangeIndex: 217224 entries, 0 to 217223
+Data columns (total 17 columns):
+Address              196626 non-null object
+Case Number          217224 non-null object
+Crime Against        217224 non-null object
+Neighborhood         210788 non-null object
+Number of Records    217224 non-null int64
+Occur Month Year     217224 non-null object
+Occur Date           217224 non-null object
+Occur Time           217224 non-null int64
+Offense Category     217224 non-null object
+Offense Count        217224 non-null int64
+Offense Type         217224 non-null object
+OpenDataLat          193352 non-null float64
+OpenDataLon          193352 non-null float64
+OpenDataX            193352 non-null float64
+OpenDataY            193352 non-null float64
+Report Date          217224 non-null object
+ReportMonthYear      217224 non-null object
+dtypes: float64(4), int64(3), object(10)
+memory usage: 28.2+ MB
+None
+</pre>
+<div class="highlight">
+<pre><span></span>date = (data["Occur Date"]
+        + " "
+        + data["Occur Time"].astype(str).str.zfill(4))
+data["date"] = pandas.to_datetime(date, format="%m/%d/%Y %H%M")
+
+print(data.date[:5])
+</pre></div>
+<pre class="example">
+0   2017-08-26 00:00:00
+1   2017-08-29 16:00:00
+2   2017-08-12 19:00:00
+3   2017-08-27 01:00:00
+4   2017-07-24 09:03:00
+Name: date, dtype: datetime64[ns]
+
+</pre>
+<div class="highlight">
+<pre><span></span>data = data[(data.date &gt;= datetime(2015, 5, 31))
+            & (data.date &lt; datetime(2019, 1, 1))]
+</pre></div>
+<div class="highlight">
+<pre><span></span>selection = data[data.date &gt; datetime(2018, 12, 24)].sort_values("date")
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-org4445675">
+<h3 id="org4445675">Plot time vs Latitude.</h3>
+<div class="outline-text-3" id="text-org4445675">
+<p>First we get our content.</p>
+<div class="highlight">
+<pre><span></span>curve = holoviews.Curve(selection, ("date", "Date-Time"), ("OpenDataLat", "Latitude"))
+timestamps = holoviews.Spikes(selection, ("date", "Date-Time"), [])
+layout = curve + timestamps
+</pre></div>
+<p>Now we make our presentation.</p>
+<script id="80ce2562-7cca-4f31-a74a-98942d77a03b" src="latitude_time_1.js"></script></div>
+</div>
+<div class="outline-3" id="outline-container-org9b17198">
+<h3 id="org9b17198">Take Two</h3>
+<div class="outline-text-3" id="text-org9b17198">
+<p>Although the defaults give us a plot that's hard to read, by adjusting the width of the plot we can make it something more interpretable.</p>
+<div class="highlight">
+<pre><span></span>layout = layout.opts(
+    opts.Curve(height=200, width=900, xaxis=None, color="red", line_width=1.5, tools=["hover"]),
+    opts.Spikes(height=150, width=900, xaxis=None, color="grey")
+).cols(1)
+</pre></div>
+<script id="9453cc0e-bdec-4716-874a-a8d149b9e6dd" src="latitude_time_2.js"></script></div>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="../../../categories/exploration/" rel="tag">exploration</a></li>
+<li><a class="tag p-category" href="../../../categories/holoviews/" rel="tag">holoviews</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="../holoviews-introduction/" rel="prev" title="HoloViews Introduction">Previous post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="../../../assets/js/all-nocdn.js"></script><!-- fancy dates -->
+<script>
+
+    moment.locale("en");
+    fancydates(0, "YYYY-MM-DD HH:mm");
+</script><!-- end fancy dates -->
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script>
+</body>
+</html>
