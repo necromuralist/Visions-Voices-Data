@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="Checking out bokeh interactive legends." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Interactive Bokeh Legends | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
+</script>
+<meta content="Cloistered Monkey" name="author">
+<link href="../customizing-holoviews/" rel="prev" title="Customizing HoloViews" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Interactive Bokeh Legends" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/" property="og:url">
+<meta content="Checking out bokeh interactive legends." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2019-02-23T19:15:50-08:00" property="article:published_time">
+<meta content="bokeh" property="article:tag">
+<meta content="interactivity" property="article:tag">
+<meta content="legends" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="../../../archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../rss.xml">RSS feed</a></li>
+<li class="nav-item"><a class="nav-link" href="https://necromuralist.github.io/">Cloistered Monkey</a></li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"><input name="k8" type="hidden" value="#444444"><input name="k9" type="hidden" value="#D51920"><input name="kt" type="hidden" value="h"><input class="span2" maxlength="255" name="q" placeholder="Search…" style="margin-top: 4px;" type="text"><input style="visibility: hidden;" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href=".">Interactive Bokeh Legends</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2019-02-23T19:15:50-08:00" itemprop="datePublished" title="2019-02-23 19:15">2019-02-23 19:15</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orge8a525c">Introduction</a></li>
+<li><a href="#org126013e">Set Up</a>
+<ul>
+<li><a href="#org7b00497">Imports</a></li>
+<li><a href="#orgd3726b6">The Embedder</a></li>
+</ul>
+</li>
+<li><a href="#orgb7d14a7">Hide Plots</a>
+<ul>
+<li><a href="#org9d5c026">Output The Plot</a></li>
+</ul>
+</li>
+<li><a href="#org5756225">Fade Plots</a>
+<ul>
+<li><a href="#org987dd6b">Output The Plot</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orge8a525c">
+<h2 id="orge8a525c">Introduction</h2>
+<div class="outline-text-2" id="text-orge8a525c">
+<p>This is a reproduction of the <a href="https://bokeh.pydata.org/en/latest/docs/user_guide/interaction/legends.html">bokeh interactive legends example</a>.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org126013e">
+<h2 id="org126013e">Set Up</h2>
+<div class="outline-text-2" id="text-org126013e"></div>
+<div class="outline-3" id="outline-container-org7b00497">
+<h3 id="org7b00497">Imports</h3>
+<div class="outline-text-3" id="text-org7b00497"></div>
+<div class="outline-4" id="outline-container-org9f515c0">
+<h4 id="org9f515c0">Python</h4>
+<div class="outline-text-4" id="text-org9f515c0">
+<div class="highlight">
+<pre><span></span>from functools import partial
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orge9e08d9">
+<h4 id="orge9e08d9">PyPi</h4>
+<div class="outline-text-4" id="text-orge9e08d9">
+<div class="highlight">
+<pre><span></span>from bokeh.palettes import Spectral4
+from bokeh.plotting import figure
+from bokeh.sampledata.stocks import AAPL, IBM, MSFT, GOOG
+import holoviews
+import pandas
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org7f0e6d2">
+<h4 id="org7f0e6d2">My Stuff</h4>
+<div class="outline-text-4" id="text-org7f0e6d2">
+<div class="highlight">
+<pre><span></span>from neurotic.tangles.timer import Timer
+from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgb4418c4">
+<h4 id="orgb4418c4">The Bokeh Imports</h4>
+<div class="outline-text-4" id="text-orgb4418c4">
+<div class="highlight">
+<pre><span></span>from bokeh.embed import autoload_static
+import bokeh.resources
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgd3726b6">
+<h3 id="orgd3726b6">The Embedder</h3>
+<div class="outline-text-3" id="text-orgd3726b6">
+<div class="highlight">
+<pre><span></span>files_path = Path("../../files/posts/libraries/interactive-bokeh-legends/")
+Embed = partial(
+    EmbedBokeh,
+    folder_path=files_path)
+</pre></div>
+<div class="highlight">
+<pre><span></span>holoviews.extension("bokeh")
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgb7d14a7">
+<h2 id="orgb7d14a7">Hide Plots</h2>
+<div class="outline-text-2" id="text-orgb7d14a7">
+<div class="highlight">
+<pre><span></span>plot = figure(plot_width=800, plot_height=400, 
+              x_axis_type="datetime", 
+              tools="hover,pan,wheel_zoom,box_zoom,reset")
+plot.title.text = "Some Stock Prices (Click On the Legend To Hide Plots)"
+</pre></div>
+<div class="highlight">
+<pre><span></span>for data, name, color in zip([AAPL, IBM, MSFT, GOOG], "Apple IBM Microsoft Google".split(), Spectral4):
+    frame = pandas.DataFrame(data)
+    frame["date"] = pandas.to_datetime(frame["date"])
+    plot.line(frame["date"], frame["close"], line_width=2, color=color, alpha=0.8, legend=name)
+plot.legend.location = "top_left"
+plot.legend.click_policy = "hide"
+plot.title.text_font_size = "14pt"
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-org9d5c026">
+<h3 id="org9d5c026">Output The Plot</h3>
+<div class="outline-text-3" id="text-org9d5c026">
+<script id="11761887-e983-4882-8f9e-2ea31dcf69b0" src="interactive_legend.js">
+</script></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org5756225">
+<h2 id="org5756225">Fade Plots</h2>
+<div class="outline-text-2" id="text-org5756225">
+<div class="highlight">
+<pre><span></span>fade_plot = figure(plot_width=800, plot_height=400, 
+                   x_axis_type="datetime", 
+                   tools="hover,pan,wheel_zoom,box_zoom,reset")
+fade_plot.title.text = "Some Stock Prices (Click On the Legend To Mute Plots)"
+fade_plot.title.text_font_size = "14pt"
+</pre></div>
+<div class="highlight">
+<pre><span></span>for data, name, color in zip([AAPL, IBM, MSFT, GOOG], "Apple IBM Microsoft Google".split(), Spectral4):
+    frame = pandas.DataFrame(data)
+    frame["date"] = pandas.to_datetime(frame["date"])
+    fade_plot.line(frame["date"], frame["close"], line_width=2, color=color, muted_alpha=0.2, muted_color=color, alpha=0.8, legend=name)
+fade_plot.legend.location = "top_left"
+fade_plot.legend.click_policy = "mute"
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-org987dd6b">
+<h3 id="org987dd6b">Output The Plot</h3>
+<div class="outline-text-3" id="text-org987dd6b">
+<script id="684bd0ee-2d92-45ff-b123-7b90d171bf2c" src="interactive_muted_legend.js">
+</script></div>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="../../../categories/bokeh/" rel="tag">bokeh</a></li>
+<li><a class="tag p-category" href="../../../categories/interactivity/" rel="tag">interactivity</a></li>
+<li><a class="tag p-category" href="../../../categories/legends/" rel="tag">legends</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="../customizing-holoviews/" rel="prev" title="Customizing HoloViews">Previous post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="../../../assets/js/all-nocdn.js">
+</script>
+<script>
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script>
+</body>
+</html>
