@@ -11,7 +11,7 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 2
-#+BEGIN_SRC ipython :session holoviews :results none :exports none
+#+BEGIN_SRC python :session holoviews :results none :exports none
 %load_ext autoreload
 %autoreload 2
 #+END_SRC
@@ -20,33 +20,33 @@
 * Set Up
 ** Imports
 *** Python
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 from datetime import datetime
 from functools import partial
 from pathlib import Path
 import os
 #+END_SRC
 *** PyPi
-#+BEGIN_SRC ipython :session holoviews :results none :exports none
+#+BEGIN_SRC python :session holoviews :results none :exports none
 from dotenv import load_dotenv
 from holoviews import opts
 import holoviews
 import pandas
 #+END_SRC
 *** Related Projects
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 from neurotic.tangles.timer import Timer
 #+END_SRC
 *** This Project
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 #+END_SRC
 ** The Timer
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 TIMER = Timer()
 #+END_SRC
 ** The Embedder
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 files_path = Path("../../files/posts/libraries/customizing-holoviews/")
 Embed = partial(
     EmbedBokeh,
@@ -62,15 +62,15 @@ ValueError: autoload_static expects a single Model or Document
 
 It was because I forgot the next step and it was defaulting to Matplotlib for some reason.
 
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 holoviews.extension("bokeh")
 #+END_SRC
 * The Data
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 load_dotenv()
 #+END_SRC
 
-#+BEGIN_SRC ipython :session holoviews :results output :exports both
+#+BEGIN_SRC python :session holoviews :results output :exports both
 path = Path(os.environ.get("PORTLAND_CRIME")).expanduser()
 assert path.exists()
 with TIMER:
@@ -82,7 +82,7 @@ with TIMER:
 : Ended: 2019-02-02 18:46:58.937793
 : Elapsed: 0:00:00.840100
 
-#+BEGIN_SRC ipython :session holoviews :results output :exports both
+#+BEGIN_SRC python :session holoviews :results output :exports both
 print(data.info())
 #+END_SRC
 
@@ -113,7 +113,7 @@ memory usage: 28.2+ MB
 None
 #+end_example
 
-#+BEGIN_SRC ipython :session holoviews :results output :exports both
+#+BEGIN_SRC python :session holoviews :results output :exports both
 date = (data["Occur Date"]
         + " "
         + data["Occur Time"].astype(str).str.zfill(4))
@@ -131,18 +131,18 @@ print(data.date[:5])
 : Name: date, dtype: datetime64[ns]
 
 
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 data = data[(data.date >= datetime(2015, 5, 31))
             & (data.date < datetime(2019, 1, 1))]
 #+END_SRC
 
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 selection = data[data.date > datetime(2018, 12, 24)].sort_values("date")
 #+END_SRC
 ** Plot time vs Latitude.
    First we get our content.
 
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 curve = holoviews.Curve(selection, ("date", "Date-Time"), ("OpenDataLat", "Latitude"))
 timestamps = holoviews.Spikes(selection, ("date", "Date-Time"), [])
 layout = curve + timestamps
@@ -150,7 +150,7 @@ layout = curve + timestamps
 
 Now we make our presentation.
 
-#+BEGIN_SRC ipython :session holoviews :results output raw :exports results
+#+BEGIN_SRC python :session holoviews :results output raw :exports results
 Embed(layout, "latitude_time_1")()
 #+END_SRC
 
@@ -161,14 +161,14 @@ Embed(layout, "latitude_time_1")()
 
 ** Take Two
    Although the defaults give us a plot that's hard to read, by adjusting the width of the plot we can make it something more interpretable.
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 layout = layout.opts(
     opts.Curve(height=200, width=900, xaxis=None, color="red", line_width=1.5, tools=["hover"]),
     opts.Spikes(height=150, width=900, xaxis=None, color="grey")
 ).cols(1)
 #+END_SRC
 
-#+BEGIN_SRC ipython :session holoviews :results output raw :exports results
+#+BEGIN_SRC python :session holoviews :results output raw :exports results
 Embed(layout, "latitude_time_2")()
 #+END_SRC
 

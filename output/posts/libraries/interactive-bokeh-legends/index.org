@@ -1,0 +1,107 @@
+#+BEGIN_COMMENT
+.. title: Interactive Bokeh Legends
+.. slug: interactive-bokeh-legends
+.. date: 2019-02-23 19:15:50 UTC-08:00
+.. tags: bokeh,legends,interactivity
+.. category: Bokeh
+.. link: 
+.. description: Checking out bokeh interactive legends.
+.. type: text
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+* Introduction
+  This is a reproduction of the [[https://bokeh.pydata.org/en/latest/docs/user_guide/interaction/legends.html][bokeh interactive legends example]].
+* Set Up
+** Imports
+*** Python
+#+begin_src ipython :session bokeh :results none
+from functools import partial
+#+end_src
+*** PyPi
+#+begin_src ipython :session bokeh :results none
+from bokeh.palettes import Spectral4
+from bokeh.plotting import figure
+from bokeh.sampledata.stocks import AAPL, IBM, MSFT, GOOG
+import holoviews
+import pandas
+#+end_src
+*** My Stuff
+#+BEGIN_SRC ipython :session bokeh :results none
+from neurotic.tangles.timer import Timer
+from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+#+END_SRC
+
+*** The Bokeh Imports
+#+BEGIN_SRC ipython :session bokeh :results none
+from bokeh.embed import autoload_static
+import bokeh.resources
+#+END_SRC
+** The Embedder
+#+BEGIN_SRC ipython :session bokeh :results none
+files_path = Path("../../files/posts/libraries/interactive-bokeh-legends/")
+Embed = partial(
+    EmbedBokeh,
+    folder_path=files_path)
+#+END_SRC
+#+BEGIN_SRC ipython :session bokeh :results none
+holoviews.extension("bokeh")
+#+END_SRC
+
+* Hide Plots
+#+begin_src ipython :session bokeh :results none
+plot = figure(plot_width=800, plot_height=400, 
+              x_axis_type="datetime", 
+              tools="hover,pan,wheel_zoom,box_zoom,reset")
+plot.title.text = "Some Stock Prices (Click On the Legend To Hide Plots)"
+#+end_src
+
+#+begin_src ipython :session bokeh :results none
+for data, name, color in zip([AAPL, IBM, MSFT, GOOG], "Apple IBM Microsoft Google".split(), Spectral4):
+    frame = pandas.DataFrame(data)
+    frame["date"] = pandas.to_datetime(frame["date"])
+    plot.line(frame["date"], frame["close"], line_width=2, color=color, alpha=0.8, legend=name)
+plot.legend.location = "top_left"
+plot.legend.click_policy = "hide"
+plot.title.text_font_size = "14pt"
+#+end_src
+** Output The Plot
+#+begin_src ipython :session bokeh :results output raw :exports results
+embed = Embed(plot, "interactive_legend")
+embed._figure = plot
+embed()
+#+end_src
+
+#+RESULTS:
+#+BEGIN_EXPORT html
+<script src="interactive_legend.js" id="11761887-e983-4882-8f9e-2ea31dcf69b0"></script>
+#+END_EXPORT
+* Fade Plots
+#+begin_src ipython :session bokeh :results none
+fade_plot = figure(plot_width=800, plot_height=400, 
+                   x_axis_type="datetime", 
+                   tools="hover,pan,wheel_zoom,box_zoom,reset")
+fade_plot.title.text = "Some Stock Prices (Click On the Legend To Mute Plots)"
+fade_plot.title.text_font_size = "14pt"
+#+end_src
+
+#+begin_src ipython :session bokeh :results none
+for data, name, color in zip([AAPL, IBM, MSFT, GOOG], "Apple IBM Microsoft Google".split(), Spectral4):
+    frame = pandas.DataFrame(data)
+    frame["date"] = pandas.to_datetime(frame["date"])
+    fade_plot.line(frame["date"], frame["close"], line_width=2, color=color, muted_alpha=0.2, muted_color=color, alpha=0.8, legend=name)
+fade_plot.legend.location = "top_left"
+fade_plot.legend.click_policy = "mute"
+#+end_src
+** Output The Plot
+#+begin_src ipython :session bokeh :results output raw :exports results
+embed = Embed(fade_plot, "interactive_muted_legend")
+embed._figure = fade_plot
+embed()
+#+end_src
+
+#+RESULTS:
+#+BEGIN_EXPORT html
+<script src="interactive_muted_legend.js" id="684bd0ee-2d92-45ff-b123-7b90d171bf2c"></script>
+#+END_EXPORT
