@@ -12,7 +12,8 @@
 <meta content="Nikola (getnikola.com)" name="generator">
 <link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
 <link href="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
+</script>
 <meta content="Cloistered Monkey" name="author">
 <link href="../../kaggle-on-time-series-visualization/" rel="prev" title="Kaggle On Time-Series Visualization" type="text/html">
 <link href="../../libraries/a-first-look-at-hvplot/" rel="next" title="A First Look At HVPlot" type="text/html">
@@ -64,100 +65,103 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgdf913d6">Introduction</a></li>
-<li><a href="#org8b902eb">Set Up</a></li>
-<li><a href="#orgeb1a321">Loading the Data</a></li>
-<li><a href="#org75c5178">Cleaning</a></li>
-<li><a href="#org9d15463">Figuring Out the Missing Date</a></li>
-<li><a href="#org0e5dc98">Pivot the Metric Column</a></li>
-<li><a href="#org83b5ff0">Updating the Columns</a></li>
-<li><a href="#org26e3caa">Save the Message Pack</a></li>
-<li><a href="#orgadc76ed">Looking at Some Plots</a></li>
+<li><a href="#orge5642a9">Introduction</a></li>
+<li><a href="#orgd83b347">Set Up</a></li>
+<li><a href="#org4f08676">Loading the Data</a></li>
+<li><a href="#orga567979">Cleaning</a></li>
+<li><a href="#orgcdc82b1">Figuring Out the Missing Date</a></li>
+<li><a href="#orgace35a6">Pivot the Metric Column</a></li>
+<li><a href="#org54b06bc">Updating the Columns</a></li>
+<li><a href="#org28ad4a8">Save the Message Pack</a></li>
+<li><a href="#org59c3adc">Looking at Some Plots</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgdf913d6">
-<h2 id="orgdf913d6">Introduction</h2>
-<div class="outline-text-2" id="text-orgdf913d6">
+<div class="outline-2" id="outline-container-orge5642a9">
+<h2 id="orge5642a9">Introduction</h2>
+<div class="outline-text-2" id="text-orge5642a9">
 <p>I'm going to work with the Daily Temperatures data set for Portland, Oregon (measured at the airport) taken from the <a href="https://w2.weather.gov/climate/local_data.php?wfo=pqr">National Weather Service</a>. I cleaned it up a little already, removing the extra header rows and adding a missing column header (<code>Metric</code>) but the data is arranged with the year and month as a column and then each day is given its own column, which isn't how I want to work with it, so I'm going to transform it a little to make it more like what I expect it to look like.}</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org8b902eb">
-<h2 id="org8b902eb">Set Up</h2>
-<div class="outline-text-2" id="text-org8b902eb"></div>
-<div class="outline-3" id="outline-container-org1611f01">
-<h3 id="org1611f01">Imports</h3>
-<div class="outline-text-3" id="text-org1611f01"></div>
-<div class="outline-4" id="outline-container-org9ed0524">
-<h4 id="org9ed0524">Python</h4>
-<div class="outline-text-4" id="text-org9ed0524">
+<div class="outline-2" id="outline-container-orgd83b347">
+<h2 id="orgd83b347">Set Up</h2>
+<div class="outline-text-2" id="text-orgd83b347"></div>
+<div class="outline-3" id="outline-container-orga20a174">
+<h3 id="orga20a174">Imports</h3>
+<div class="outline-text-3" id="text-orga20a174"></div>
+<div class="outline-4" id="outline-container-org2ba65ed">
+<h4 id="org2ba65ed">Python</h4>
+<div class="outline-text-4" id="text-org2ba65ed">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>from datetime import datetime
-from pathlib import Path
-from typing import Union
-import os
+<pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">os</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgb48a25d">
-<h4 id="orgb48a25d">From PyPi</h4>
-<div class="outline-text-4" id="text-orgb48a25d">
+<div class="outline-4" id="outline-container-orgde9675f">
+<h4 id="orgde9675f">From PyPi</h4>
+<div class="outline-text-4" id="text-orgde9675f">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>from dotenv import load_dotenv
-import matplotlib.pyplot as pyplot
-import pandas
-import seaborn
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org169096e">
-<h3 id="org169096e">Plotting</h3>
-<div class="outline-text-3" id="text-org169096e">
-<div class="highlight">
-<pre><span></span>get_ipython().run_line_magic('matplotlib', 'inline')
-get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
-seaborn.set(style="whitegrid",
-            rc={"axes.grid": False,
-                "font.family": ["sans-serif"],
-                "font.sans-serif": ["Open Sans", "Latin Modern Sans", "Lato"],
-                "figure.figsize": (8, 6)},
-            font_scale=1)
+<pre><span></span><span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">pyplot</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+<span class="kn">import</span> <span class="nn">seaborn</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgeb1a321">
-<h2 id="orgeb1a321">Loading the Data</h2>
-<div class="outline-text-2" id="text-orgeb1a321">
+<div class="outline-3" id="outline-container-org3af0861">
+<h3 id="org3af0861">Plotting</h3>
+<div class="outline-text-3" id="text-org3af0861">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>load_dotenv()
-path = Path(os.environ.get("CSV")).expanduser()
-print(path)
-assert path.is_file()
+<pre><span></span><span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">run_line_magic</span><span class="p">(</span><span class="s1">'matplotlib'</span><span class="p">,</span> <span class="s1">'inline'</span><span class="p">)</span>
+<span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">run_line_magic</span><span class="p">(</span><span class="s1">'config'</span><span class="p">,</span> <span class="s2">"InlineBackend.figure_format = 'retina'"</span><span class="p">)</span>
+<span class="n">seaborn</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s2">"whitegrid"</span><span class="p">,</span>
+            <span class="n">rc</span><span class="o">=</span><span class="p">{</span><span class="s2">"axes.grid"</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                <span class="s2">"font.family"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"sans-serif"</span><span class="p">],</span>
+                <span class="s2">"font.sans-serif"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"Open Sans"</span><span class="p">,</span> <span class="s2">"Latin Modern Sans"</span><span class="p">,</span> <span class="s2">"Lato"</span><span class="p">],</span>
+                <span class="s2">"figure.figsize"</span><span class="p">:</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">)},</span>
+            <span class="n">font_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org4f08676">
+<h2 id="org4f08676">Loading the Data</h2>
+<div class="outline-text-2" id="text-org4f08676">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
+<div class="highlight">
+<pre><span></span><span class="n">load_dotenv</span><span class="p">()</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CSV"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
 </pre></div>
 <pre class="example">
 /home/hades/data/datasets/necromuralist/daily-climate-data/portland_1940_to_april_2018.csv
 
 </pre></div>
-<div class="outline-3" id="outline-container-org3c57d46">
-<h3 id="org3c57d46">Some Preparation</h3>
-<div class="outline-text-3" id="text-org3c57d46">
+<div class="outline-3" id="outline-container-orgf270d81">
+<h3 id="orgf270d81">Some Preparation</h3>
+<div class="outline-text-3" id="text-orgf270d81">
 <p>The first thing to work with is that there are three characters representing "missing" data (that I noticed) - <i>M</i>, <i>T</i>, and <i>-</i> - that we have to tell pandas about when we use <a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_csv.html">read_csv</a>.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>missing = ["M", "T", "-"]
+<pre><span></span><span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"M"</span><span class="p">,</span> <span class="s2">"T"</span><span class="p">,</span> <span class="s2">"-"</span><span class="p">]</span>
 </pre></div>
 <p>I was going to load the measurement type (e.g. "TX"), but I realized that I was planning to turn those into column headers so maybe it's not a good idea.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>data = pandas.read_csv(path, na_values=missing)
-print(data.shape)
+<pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">na_values</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 (3756, 35)
 
 </pre>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>print(data.columns)
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 Index(['YR', 'MO', 'Metric', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
@@ -166,8 +170,9 @@ Index(['YR', 'MO', 'Metric', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
       dtype='object')
 
 </pre>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>print(data.info())
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">info</span><span class="p">())</span>
 </pre></div>
 <pre class="example">
 &lt;class 'pandas.core.frame.DataFrame'&gt;
@@ -213,14 +218,15 @@ memory usage: 1.0+ MB
 None
 </pre>
 <p>For some reason column <code>7</code> wasn't converted to a float.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>for index, row in enumerate(data["7"]):
-    try:
-        float(row)
-    except Exception as error:
-        print(error)
-        print("Row: {}".format(index))
-        print("Value: {}".format(row))
+<pre><span></span><span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"7"</span><span class="p">]):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">"Row: {}"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">"Value: {}"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
 </pre></div>
 <pre class="example">
 could not convert string to float: 
@@ -229,10 +235,11 @@ Value:
 
 </pre>
 <p>It turns out that this one row also had a space (' ') for one of the values. Strange.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>missing.append(" ")
-data = pandas.read_csv(path, na_values=missing)
-print(data.info())
+<pre><span></span><span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">" "</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">na_values</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">info</span><span class="p">())</span>
 </pre></div>
 <pre class="example">
 &lt;class 'pandas.core.frame.DataFrame'&gt;
@@ -279,30 +286,32 @@ None
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org75c5178">
-<h2 id="org75c5178">Cleaning</h2>
-<div class="outline-text-2" id="text-org75c5178"></div>
-<div class="outline-3" id="outline-container-org1ce6ef9">
-<h3 id="org1ce6ef9">Drop the Last Column</h3>
-<div class="outline-text-3" id="text-org1ce6ef9">
+<div class="outline-2" id="outline-container-orga567979">
+<h2 id="orga567979">Cleaning</h2>
+<div class="outline-text-2" id="text-orga567979"></div>
+<div class="outline-3" id="outline-container-org0ad4c53">
+<h3 id="org0ad4c53">Drop the Last Column</h3>
+<div class="outline-text-3" id="text-org0ad4c53">
 <p>Besides the fact that the last column is a calculated one, the fact that it's ambiguous (I guess you can tell by how big it is whether it's a Total, but still) makes me think I should get rid of the last column (using <a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.drop.html">drop</a>).</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>cleaned = data.drop(data.columns[-1], axis="columns")
-print(cleaned.shape)
-assert len(cleaned.columns) == len(data.columns) - 1
+<pre><span></span><span class="n">cleaned</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">cleaned</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cleaned</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
 </pre></div>
 <pre class="example">
 (3756, 34)
 
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-org3f2cffd">
-<h3 id="org3f2cffd">Rotate the Days</h3>
-<div class="outline-text-3" id="text-org3f2cffd">
+<div class="outline-3" id="outline-container-org89d2229">
+<h3 id="org89d2229">Rotate the Days</h3>
+<div class="outline-text-3" id="text-org89d2229">
 <p>Now I'm going to move the day-columns into row-values using <a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.melt.html">melt</a>.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>melted = pandas.melt(cleaned, id_vars=["YR", "MO", "Metric"], var_name="Day", value_name="Value")
-print(melted.head())
+<pre><span></span><span class="n">melted</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">cleaned</span><span class="p">,</span> <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">"YR"</span><span class="p">,</span> <span class="s2">"MO"</span><span class="p">,</span> <span class="s2">"Metric"</span><span class="p">],</span> <span class="n">var_name</span><span class="o">=</span><span class="s2">"Day"</span><span class="p">,</span> <span class="n">value_name</span><span class="o">=</span><span class="s2">"Value"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">melted</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </pre></div>
 <pre class="example">
      YR  MO Metric Day  Value
@@ -313,28 +322,31 @@ print(melted.head())
 4  1940  11     TX   1   52.0
 
 </pre>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>print(melted.shape)
-assert len(melted) == len(data) * 31
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">melted</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">melted</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">*</span> <span class="mi">31</span>
 </pre></div>
 <pre class="example">
 (116436, 5)
 
 </pre></div>
-<div class="outline-4" id="outline-container-orgec97105">
-<h4 id="orgec97105">Casting the Days to Integers</h4>
-<div class="outline-text-4" id="text-orgec97105">
+<div class="outline-4" id="outline-container-org9f3edd2">
+<h4 id="org9f3edd2">Casting the Days to Integers</h4>
+<div class="outline-text-4" id="text-org9f3edd2">
 <p>Although they look like integers, the <code>Day</code> column was converted from column headers so they're strings. Maybe I could have cast them at the time of the conversion, but, oh, well.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>print(type(melted.iloc[0].Day))
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">melted</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Day</span><span class="p">))</span>
 </pre></div>
 <pre class="example">
 &lt;class 'str'&gt;
 
 </pre>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>melted["Day"] = melted.Day.astype(int)
-print(type(melted.iloc[0].Day))
+<pre><span></span><span class="n">melted</span><span class="p">[</span><span class="s2">"Day"</span><span class="p">]</span> <span class="o">=</span> <span class="n">melted</span><span class="o">.</span><span class="n">Day</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">melted</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Day</span><span class="p">))</span>
 </pre></div>
 <pre class="example">
 &lt;class 'numpy.int64'&gt;
@@ -342,23 +354,25 @@ print(type(melted.iloc[0].Day))
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org8b69fc1">
-<h3 id="org8b69fc1">Make a Date Column</h3>
-<div class="outline-text-3" id="text-org8b69fc1">
+<div class="outline-3" id="outline-container-org91a9a55">
+<h3 id="org91a9a55">Make a Date Column</h3>
+<div class="outline-text-3" id="text-org91a9a55">
 <p>Now I'll make a single date column.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>melted["date"] = melted.apply(lambda row: datetime(year=row.YR,
-                                                   month=row.MO,
-                                                   day=row.Day),
-                              axis="columns")
-print(melted.head())
+<pre><span></span><span class="n">melted</span><span class="p">[</span><span class="s2">"date"</span><span class="p">]</span> <span class="o">=</span> <span class="n">melted</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">YR</span><span class="p">,</span>
+                                                   <span class="n">month</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">MO</span><span class="p">,</span>
+                                                   <span class="n">day</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">Day</span><span class="p">),</span>
+                              <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">melted</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </pre></div>
 <p>That raised an error..</p>
 <pre class="example">
 ValueError: ('day is out of range for month', 'occurred at index 105184')
 </pre>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>print(melted.iloc[105184])
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">melted</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">105184</span><span class="p">])</span>
 </pre></div>
 <pre class="example">
 YR        1941
@@ -370,27 +384,29 @@ Name: 105184, dtype: object
 
 </pre>
 <p>Okay, so here we have a problem in that not all the dates exist. Also, for some reason the '-' didn't get converted to a NaN, but one thing at a time.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>def to_datetime(row: pandas.Series) -&gt; Union[datetime, None]:
-    """Converts the row to a datetime
+<pre><span></span><span class="k">def</span> <span class="nf">to_datetime</span><span class="p">(</span><span class="n">row</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">datetime</span><span class="p">,</span> <span class="bp">None</span><span class="p">]:</span>
+    <span class="sd">"""Converts the row to a datetime</span>
 
-    Args:
-     row: row in the dataframe with year, month, and day
-    Returns:
-     row converted to datetime or None if it isn't valid
-    """
-    if not pandas.isnull(row.Value):
-        try:
-            return datetime(year=row.YR, month=row.MO, day=row.Day)
-        except ValueError as error:
-            print(error)
-    return    
+<span class="sd">    Args:</span>
+<span class="sd">     row: row in the dataframe with year, month, and day</span>
+<span class="sd">    Returns:</span>
+<span class="sd">     row converted to datetime or None if it isn't valid</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">pandas</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">Value</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">YR</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">MO</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">Day</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="k">return</span>    
 </pre></div>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>started = datetime.now()
-melted["date"] = melted.apply(to_datetime, axis="columns")
-print(melted.head())
-print("Elapsed: {}".format(datetime.now() - started))
+<pre><span></span><span class="n">started</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+<span class="n">melted</span><span class="p">[</span><span class="s2">"date"</span><span class="p">]</span> <span class="o">=</span> <span class="n">melted</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">to_datetime</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">melted</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">"Elapsed: {}"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">started</span><span class="p">))</span>
 </pre></div>
 <pre class="example">
 day is out of range for month
@@ -403,22 +419,24 @@ day is out of range for month
 Elapsed: 0:00:09.351053
 
 </pre>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>print("Fraction Missing: {:.2f}".format(
-    len(melted[melted.Value.isnull()])/len(melted)))
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="s2">"Fraction Missing: {:.2f}"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="nb">len</span><span class="p">(</span><span class="n">melted</span><span class="p">[</span><span class="n">melted</span><span class="o">.</span><span class="n">Value</span><span class="o">.</span><span class="n">isnull</span><span class="p">()])</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">melted</span><span class="p">)))</span>
 </pre></div>
 <pre class="example">
 Fraction Missing: 0.06
 
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-org26ed541">
-<h3 id="org26ed541">Drop the Missing</h3>
-<div class="outline-text-3" id="text-org26ed541">
+<div class="outline-3" id="outline-container-orgfbd480f">
+<h3 id="orgfbd480f">Drop the Missing</h3>
+<div class="outline-text-3" id="text-orgfbd480f">
 <p>Here I'll drop the dates that didn't have data.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>cleaned = melted.dropna(subset=["Value"])
-print(cleaned.head())
+<pre><span></span><span class="n">cleaned</span> <span class="o">=</span> <span class="n">melted</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">"Value"</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="n">cleaned</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </pre></div>
 <pre class="example">
      YR  MO Metric  Day  Value       date
@@ -430,13 +448,14 @@ print(cleaned.head())
 
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-orgc3f898f">
-<h3 id="orgc3f898f">Drop the Extra Date Coulmns</h3>
-<div class="outline-text-3" id="text-orgc3f898f">
+<div class="outline-3" id="outline-container-org395c528">
+<h3 id="org395c528">Drop the Extra Date Coulmns</h3>
+<div class="outline-text-3" id="text-org395c528">
 <p>Since we have a date column I'll get rid of the columns that made it up.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>cleaned = cleaned.drop(["YR", "MO", "Day"], axis="columns")
-print(cleaned.head())
+<pre><span></span><span class="n">cleaned</span> <span class="o">=</span> <span class="n">cleaned</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s2">"YR"</span><span class="p">,</span> <span class="s2">"MO"</span><span class="p">,</span> <span class="s2">"Day"</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">cleaned</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </pre></div>
 <pre class="example">
   Metric  Value       date
@@ -449,20 +468,22 @@ print(cleaned.head())
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org9d15463">
-<h2 id="org9d15463">Figuring Out the Missing Date</h2>
-<div class="outline-text-2" id="text-org9d15463">
+<div class="outline-2" id="outline-container-orgcdc82b1">
+<h2 id="orgcdc82b1">Figuring Out the Missing Date</h2>
+<div class="outline-text-2" id="text-orgcdc82b1">
 <p>One of the entries has values but no date.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>print(cleaned[cleaned.date.isnull()])
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">cleaned</span><span class="p">[</span><span class="n">cleaned</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">isnull</span><span class="p">()])</span>
 </pre></div>
 <pre class="example">
        Metric  Value date
 105427     SN   34.0  NaT
 
 </pre>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>print(melted.iloc[105427])
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">melted</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">105427</span><span class="p">])</span>
 </pre></div>
 <pre class="example">
 YR        1946
@@ -475,8 +496,9 @@ Name: 105427, dtype: object
 
 </pre>
 <p>I looked it up and 1946 isn't a leap-year, so there's no February 29, 1946. Did something get lost in translation?</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>print(data[(data.YR==1946) & (data.MO==2)])
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">data</span><span class="p">[(</span><span class="n">data</span><span class="o">.</span><span class="n">YR</span><span class="o">==</span><span class="mi">1946</span><span class="p">)</span> <span class="o">&</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">MO</span><span class="o">==</span><span class="mi">2</span><span class="p">)])</span>
 </pre></div>
 <pre class="example">
        YR  MO Metric      1      2     3      4      5      6      7  \
@@ -500,8 +522,9 @@ Name: 105427, dtype: object
 [4 rows x 35 columns]
 </pre>
 <p>It looks like there's something wrong with the snowfall measurement for that date, the other measurements don't have values.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>print(data[(data.YR==1946) & (data.MO==2) & (data.Metric=="SN")])
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">data</span><span class="p">[(</span><span class="n">data</span><span class="o">.</span><span class="n">YR</span><span class="o">==</span><span class="mi">1946</span><span class="p">)</span> <span class="o">&</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">MO</span><span class="o">==</span><span class="mi">2</span><span class="p">)</span> <span class="o">&</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">Metric</span><span class="o">==</span><span class="s2">"SN"</span><span class="p">)])</span>
 </pre></div>
 <pre class="example">
        YR  MO Metric    1    2    3    4    5    6    7      ...        23  \
@@ -515,20 +538,22 @@ Name: 105427, dtype: object
 </pre>
 <p>It was just all 0's and then there's this mysterious 34 inches of snow on the 29th of February. I'm pretty sure that's a mistake. I'll have to delete that.</p>
 <p>Although I have the index in the original <code>data</code> frame I've already done all this cleaning so I think it's easier just to drop the missing dates.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>rows, columns = cleaned.shape
-cleaned = cleaned.dropna(subset=["date"])
-assert cleaned.shape[0] == rows - 1
+<pre><span></span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">cleaned</span><span class="o">.</span><span class="n">shape</span>
+<span class="n">cleaned</span> <span class="o">=</span> <span class="n">cleaned</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">"date"</span><span class="p">])</span>
+<span class="k">assert</span> <span class="n">cleaned</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">rows</span> <span class="o">-</span> <span class="mi">1</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org0e5dc98">
-<h2 id="org0e5dc98">Pivot the Metric Column</h2>
-<div class="outline-text-2" id="text-org0e5dc98">
+<div class="outline-2" id="outline-container-orgace35a6">
+<h2 id="orgace35a6">Pivot the Metric Column</h2>
+<div class="outline-text-2" id="text-orgace35a6">
 <p>So, besides getting the dates into a column one of the points of this was to get the metric types into columns by <a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.pivot.html">pivoting</a>. I guess you could argue that this is just a category, but since each date gets all four of the values I think this makes sense.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>pivoted = cleaned.pivot(index="date", columns="Metric", values="Value")
-print(pivoted.head())
+<pre><span></span><span class="n">pivoted</span> <span class="o">=</span> <span class="n">cleaned</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">"Metric"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">"Value"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">pivoted</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </pre></div>
 <pre class="example">
 Metric        PR   SN    TN    TX
@@ -541,9 +566,10 @@ date
 
 </pre>
 <p>It looks like there's some missing precipitation data. I don't really have a solution for that. I think decisions to imput missing values should come when the data set is being used.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>for metric in ("PR", "SN", "TN", "TX"):
-    print("{} Missing: {:,}".format(metric, len(pivoted[pivoted[metric].isnull()])))
+<pre><span></span><span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"PR"</span><span class="p">,</span> <span class="s2">"SN"</span><span class="p">,</span> <span class="s2">"TN"</span><span class="p">,</span> <span class="s2">"TX"</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">"{} Missing: {:,}"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pivoted</span><span class="p">[</span><span class="n">pivoted</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()])))</span>
 </pre></div>
 <pre class="example">
 PR Missing: 3,297
@@ -553,26 +579,30 @@ TX Missing: 0
 
 </pre>
 <p>So it looks like we're okay with the temperatures but maybe not so well off with the precipitation.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>missing = pivoted[pivoted.PR.isnull()]
-missing.loc[:, "missing"] = 1
-monthly = missing.missing.resample("M")
+<pre><span></span><span class="n">missing</span> <span class="o">=</span> <span class="n">pivoted</span><span class="p">[</span><span class="n">pivoted</span><span class="o">.</span><span class="n">PR</span><span class="o">.</span><span class="n">isnull</span><span class="p">()]</span>
+<span class="n">missing</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"missing"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">monthly</span> <span class="o">=</span> <span class="n">missing</span><span class="o">.</span><span class="n">missing</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"M"</span><span class="p">)</span>
 </pre></div>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>figure, axe = pyplot.subplots()
-figure.suptitle("Missing Monthly Precipitation", weight="bold")
-counts = monthly.count()
-stem = axe.stem(counts.index, counts)
+<pre><span></span><span class="n">figure</span><span class="p">,</span> <span class="n">axe</span> <span class="o">=</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">figure</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"Missing Monthly Precipitation"</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
+<span class="n">counts</span> <span class="o">=</span> <span class="n">monthly</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="n">stem</span> <span class="o">=</span> <span class="n">axe</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">counts</span><span class="p">)</span>
 </pre></div>
 <p><img alt="missing_pr.png" src="missing_pr.png"> So, I was expecting this to be a problem that happened early and then died out, but it appears there's an ongoing problem with collecting precipitation - or maybe they use a symbol for 0 that I'm interpreting as missing?</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>yearly = missing.missing.resample("Y")
+<pre><span></span><span class="n">yearly</span> <span class="o">=</span> <span class="n">missing</span><span class="o">.</span><span class="n">missing</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"Y"</span><span class="p">)</span>
 </pre></div>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>figure, axe = pyplot.subplots()
-figure.suptitle("Missing Yearly Precipitation", weight="bold")
-counts = yearly.count()
-stem = axe.stem(counts.index, counts)
+<pre><span></span><span class="n">figure</span><span class="p">,</span> <span class="n">axe</span> <span class="o">=</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">figure</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"Missing Yearly Precipitation"</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
+<span class="n">counts</span> <span class="o">=</span> <span class="n">yearly</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="n">stem</span> <span class="o">=</span> <span class="n">axe</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">counts</span><span class="p">)</span>
 </pre></div>
 <div class="figure">
 <p><img alt="missing_yearly_pr.png" src="missing_yearly_pr.png"></p>
@@ -580,17 +610,18 @@ stem = axe.stem(counts.index, counts)
 <p>This does seem problematic, if I do anything with precipitation I'll have to figure out what's going on here.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org83b5ff0">
-<h2 id="org83b5ff0">Updating the Columns</h2>
-<div class="outline-text-2" id="text-org83b5ff0">
+<div class="outline-2" id="outline-container-org54b06bc">
+<h2 id="org54b06bc">Updating the Columns</h2>
+<div class="outline-text-2" id="text-org54b06bc">
 <p>The whole <code>TX</code>, <code>TN</code>, etc. encoding scheme seems like it causes too much mental overhead so I'm going to rename the metric columns.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>renamed = pivoted.rename(dict(PR="precipitation",
-                              SN="snowfall",
-                              TN="minimum_temperature",
-                              TX="maximum_temperature"),
-                         axis="columns")
-print(renamed.head())
+<pre><span></span><span class="n">renamed</span> <span class="o">=</span> <span class="n">pivoted</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">PR</span><span class="o">=</span><span class="s2">"precipitation"</span><span class="p">,</span>
+                              <span class="n">SN</span><span class="o">=</span><span class="s2">"snowfall"</span><span class="p">,</span>
+                              <span class="n">TN</span><span class="o">=</span><span class="s2">"minimum_temperature"</span><span class="p">,</span>
+                              <span class="n">TX</span><span class="o">=</span><span class="s2">"maximum_temperature"</span><span class="p">),</span>
+                         <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">renamed</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </pre></div>
 <pre class="example">
 Metric      precipitation  snowfall  minimum_temperature  maximum_temperature
@@ -603,38 +634,40 @@ date
 
 </pre></div>
 </div>
-<div class="outline-2" id="outline-container-org26e3caa">
-<h2 id="org26e3caa">Save the Message Pack</h2>
-<div class="outline-text-2" id="text-org26e3caa">
+<div class="outline-2" id="outline-container-org28ad4a8">
+<h2 id="org28ad4a8">Save the Message Pack</h2>
+<div class="outline-text-2" id="text-org28ad4a8">
 <p>Now that we have the cleaned-up data, I'll save it as a message pack.</p>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>pack_path = Path(os.environ.get("MESSAGE_PACK")).expanduser()
-print(pack_path)
+<pre><span></span><span class="n">pack_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"MESSAGE_PACK"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">pack_path</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 /home/hades/pCloudDrive/data/daily-climate-data/portland_1940_to_april_2018.msg
 
 </pre>
+/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>renamed.to_msgpack(pack_path)
-assert pack_path.is_file()
+<pre><span></span><span class="n">renamed</span><span class="o">.</span><span class="n">to_msgpack</span><span class="p">(</span><span class="n">pack_path</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">pack_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgadc76ed">
-<h2 id="orgadc76ed">Looking at Some Plots</h2>
-<div class="outline-text-2" id="text-orgadc76ed">
+<div class="outline-2" id="outline-container-org59c3adc">
+<h2 id="org59c3adc">Looking at Some Plots</h2>
+<div class="outline-text-2" id="text-org59c3adc">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
-<pre><span></span>maximum_temperature = renamed.maximum_temperature.resample("Y")
-medians = maximum_temperature.median()
-maxes = maximum_temperature.max()
-mins = maximum_temperature.min()
-figure, axe = pyplot.subplots()
-figure.suptitle("Portland, OR Yearly Maximum Daily Temperatures", weight="bold")
-axe.stem(maxes.index, maxes, markerfmt="ro",label="Maximum")
-axe.stem(mins.index, mins, markerfmt="go", label="Minimum")
-stem = axe.stem(medians.index, medians, label="Median")
-legend = axe.legend(bbox_to_anchor=(1, 1))
+<pre><span></span><span class="n">maximum_temperature</span> <span class="o">=</span> <span class="n">renamed</span><span class="o">.</span><span class="n">maximum_temperature</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"Y"</span><span class="p">)</span>
+<span class="n">medians</span> <span class="o">=</span> <span class="n">maximum_temperature</span><span class="o">.</span><span class="n">median</span><span class="p">()</span>
+<span class="n">maxes</span> <span class="o">=</span> <span class="n">maximum_temperature</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="n">mins</span> <span class="o">=</span> <span class="n">maximum_temperature</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+<span class="n">figure</span><span class="p">,</span> <span class="n">axe</span> <span class="o">=</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">figure</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"Portland, OR Yearly Maximum Daily Temperatures"</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
+<span class="n">axe</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">maxes</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">maxes</span><span class="p">,</span> <span class="n">markerfmt</span><span class="o">=</span><span class="s2">"ro"</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s2">"Maximum"</span><span class="p">)</span>
+<span class="n">axe</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">mins</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">markerfmt</span><span class="o">=</span><span class="s2">"go"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Minimum"</span><span class="p">)</span>
+<span class="n">stem</span> <span class="o">=</span> <span class="n">axe</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">medians</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">medians</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Median"</span><span class="p">)</span>
+<span class="n">legend</span> <span class="o">=</span> <span class="n">axe</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 </pre></div>
 <div class="figure">
 <p><img alt="median_yearly_temperature.png" src="median_yearly_temperature.png"></p>
@@ -660,14 +693,9 @@ legend = axe.legend(bbox_to_anchor=(1, 1))
 <footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
 </div>
 </div>
-<script src="../../../assets/js/all-nocdn.js"></script><!-- fancy dates -->
+<script src="../../../assets/js/all-nocdn.js">
+</script>
 <script>
-
-    moment.locale("en");
-    fancydates(0, "YYYY-MM-DD HH:mm");
-</script><!-- end fancy dates -->
-<script>
-
     baguetteBox.run('div#content', {
         ignoreClass: 'islink',
         captions: function(element) {
