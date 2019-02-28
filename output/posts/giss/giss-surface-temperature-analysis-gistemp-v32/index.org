@@ -1,0 +1,261 @@
+#+BEGIN_COMMENT
+.. title: GISS Surface Temperature Analysis (GISTEMP v32
+.. slug: giss-surface-temperature-analysis-gistemp-v32
+.. date: 2019-02-27 13:17:35 UTC-08:00
+.. tags: coursera,giss,assignment
+.. category: Assignment
+.. link: 
+.. description: Visualising NASA's surface temperature data.
+.. type: text
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+* Introduction
+  This is a look at the [[https://data.giss.nasa.gov/gistemp/][Godard Institute for Space Studies' surface temperature data]]. In particular it is the **Global-mean monthly, seasonal, and annual means** data which has data from 1880 to the present [[https://data.giss.nasa.gov/gistemp/tabledata_v3/GLB.Ts+dSST.csv][(CSV Download Link]]).
+* Set Up
+** Imports
+*** Python
+#+begin_src ipython :session giss :results none
+from pathlib import Path
+import os
+#+end_src
+*** PyPi
+#+begin_src ipython :session giss :results none
+from dotenv import load_dotenv
+import pandas
+#+end_src
+** Load Dotenv
+#+begin_src ipython :session giss :results none
+load_dotenv(".env")
+#+end_src
+* Load the Data
+** Take One
+#+begin_src ipython :session giss :results none
+path = Path(os.environ.get("GLOBAL")).expanduser()
+assert path.is_file()
+with path.open() as reader:
+    giss = pandas.read_csv(path)
+#+end_src
+#+begin_src ipython :session giss :results output :exports both
+print(giss.head())
+#+end_src
+
+#+RESULTS:
+:                                                                                           Land-Ocean: Global Means
+: Year Jan  Feb  Mar  Apr  May  Jun  Jul  Aug  Sep  Oct  Nov  Dec  J-D  D-N  DJF  MAM  JJA                       SON
+: 1880 -.29 -.18 -.11 -.19 -.11 -.23 -.20 -.09 -.16 -.23 -.20 -.22 -.18 ***  ***  -.14 -.17                     -.19
+: 1881 -.15 -.17 .04  .04  .02  -.20 -.06 -.02 -.14 -.21 -.22 -.11 -.10 -.11 -.18 .03  -.10                     -.19
+: 1882 .14  .15  .04  -.19 -.16 -.26 -.21 -.05 -.10 -.25 -.16 -.24 -.11 -.10 .06  -.10 -.17                     -.17
+: 1883 -.31 -.39 -.13 -.17 -.20 -.12 -.08 -.15 -.20 -.14 -.22 -.16 -.19 -.20 -.31 -.16 -.12                     -.19
+
+One thing to notice is that the first line got read in as columns and the columns got read in as the first row.
+
+#+begin_src ipython :session giss :results output :exports both
+print(giss.iloc[0])
+#+end_src
+
+#+RESULTS:
+: Land-Ocean: Global Means    SON
+: Name: (Year, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec, J-D, D-N, DJF, MAM, JJA), dtype: object
+
+So we're going to have to skip the first row.
+
+** Take Two
+#+begin_src ipython :session giss :results none
+path = Path(os.environ.get("GLOBAL")).expanduser()
+assert path.is_file()
+with path.open() as reader:
+    giss = pandas.read_csv(path, skiprows=1)
+#+end_src
+#+begin_src ipython :session giss :results output :exports both
+print(giss.head())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+   Year   Jan   Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov  \
+0  1880 -0.29  -.18  -.11  -.19  -.11  -.23  -.20  -.09  -.16  -.23  -.20   
+1  1881 -0.15  -.17   .04   .04   .02  -.20  -.06  -.02  -.14  -.21  -.22   
+2  1882  0.14   .15   .04  -.19  -.16  -.26  -.21  -.05  -.10  -.25  -.16   
+3  1883 -0.31  -.39  -.13  -.17  -.20  -.12  -.08  -.15  -.20  -.14  -.22   
+4  1884 -0.15  -.08  -.37  -.42  -.36  -.40  -.34  -.26  -.27  -.24  -.30   
+
+    Dec   J-D   D-N   DJF   MAM   JJA   SON  
+0  -.22  -.18   ***   ***  -.14  -.17  -.19  
+1  -.11  -.10  -.11  -.18   .03  -.10  -.19  
+2  -.24  -.11  -.10   .06  -.10  -.17  -.17  
+3  -.16  -.19  -.20  -.31  -.16  -.12  -.19  
+4  -.29  -.29  -.28  -.13  -.38  -.34  -.27  
+#+end_example
+
+#+begin_src ipython :session giss :results output :exports both
+print(giss.columns)
+#+end_src
+
+#+RESULTS:
+: Index(['Year', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+:        'Oct', 'Nov', 'Dec', 'J-D', 'D-N', 'DJF', 'MAM', 'JJA', 'SON'],
+:       dtype='object')
+
+#+begin_src ipython :session giss :results output :exports both
+print(giss.describe())
+#+end_src
+
+#+RESULTS:
+:             Year         Jan
+: count   140.0000  140.000000
+: mean   1949.5000    0.027500
+: std      40.5586    0.396867
+: min    1880.0000   -0.790000
+: 25%    1914.7500   -0.265000
+: 50%    1949.5000   -0.020000
+: 75%    1984.2500    0.290000
+: max    2019.0000    1.150000
+
+So most of the columns weren't read as numeric, probably because of the use of =***= for missing data.
+** Take Three
+#+begin_src ipython :session giss :results none
+with path.open() as reader:
+    giss = pandas.read_csv(path, skiprows=1, na_values="***")
+#+end_src
+#+begin_src ipython :session giss :results output :exports both
+print(giss.describe())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+            Year         Jan         Feb         Mar         Apr         May  \
+count   140.0000  140.000000  139.000000  139.000000  139.000000  139.000000   
+mean   1949.5000    0.027500    0.038201    0.052806    0.026187    0.016043   
+std      40.5586    0.396867    0.393732    0.387470    0.363309    0.348825   
+min    1880.0000   -0.790000   -0.610000   -0.600000   -0.600000   -0.560000   
+25%    1914.7500   -0.265000   -0.235000   -0.230000   -0.260000   -0.240000   
+50%    1949.5000   -0.020000   -0.040000   -0.020000   -0.050000   -0.050000   
+75%    1984.2500    0.290000    0.325000    0.275000    0.250000    0.260000   
+max    2019.0000    1.150000    1.330000    1.300000    1.070000    0.900000   
+
+              Jun         Jul         Aug         Sep         Oct         Nov  \
+count  139.000000  139.000000  139.000000  139.000000  139.000000  139.000000   
+mean     0.003022    0.026043    0.030863    0.041367    0.060072    0.048561   
+std      0.339148    0.317524    0.330365    0.323767    0.335174    0.341057   
+min     -0.530000   -0.540000   -0.540000   -0.530000   -0.570000   -0.540000   
+25%     -0.245000   -0.210000   -0.210000   -0.180000   -0.190000   -0.185000   
+50%     -0.070000   -0.050000   -0.050000   -0.060000    0.000000   -0.020000   
+75%      0.190000    0.195000    0.190000    0.205000    0.190000    0.180000   
+max      0.780000    0.820000    1.000000    0.880000    1.060000    1.020000   
+
+              Dec         J-D         D-N         DJF         MAM         JJA  \
+count  139.000000  139.000000  138.000000  138.000000  139.000000  139.000000   
+mean     0.021727    0.032302    0.033116    0.026449    0.031583    0.020360   
+std      0.364511    0.336896    0.338215    0.369663    0.361006    0.324987   
+min     -0.790000   -0.490000   -0.510000   -0.660000   -0.560000   -0.520000   
+25%     -0.220000   -0.200000   -0.215000   -0.240000   -0.255000   -0.220000   
+50%     -0.050000   -0.070000   -0.060000   -0.070000   -0.060000   -0.070000   
+75%      0.275000    0.215000    0.230000    0.280000    0.265000    0.195000   
+max      1.100000    0.980000    1.010000    1.190000    1.090000    0.860000   
+
+              SON  
+count  139.000000  
+mean     0.050504  
+std      0.327437  
+min     -0.490000  
+25%     -0.190000  
+50%     -0.020000  
+75%      0.190000  
+max      0.970000  
+#+end_example
+
+Actually I just looked at the "official" file given by Coursera and I downloaded the wrong one.
+* The Real Data
+  The data I was supposed to pull was the /Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'/ [[https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv][Zonal Annual Means]] which shows the different annual mean for each zone in a given year (rather than monthly global averages).
+#+begin_src ipython :session giss :results none
+zone_path = Path(os.environ.get("ZONES")).expanduser()
+assert zone_path.is_file()
+with zone_path.open() as reader:
+    giss = pandas.read_csv(reader)
+#+end_src
+
+#+begin_src ipython :session giss :results output :exports both
+print(giss.describe())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+              Year        Glob        NHem        SHem     24N-90N  \
+count   139.000000  139.000000  139.000000  139.000000  139.000000   
+mean   1949.000000    0.032302    0.056043    0.008561    0.077698   
+std      40.269923    0.336896    0.393435    0.301848    0.464606   
+min    1880.000000   -0.490000   -0.540000   -0.490000   -0.580000   
+25%    1914.500000   -0.200000   -0.220000   -0.235000   -0.280000   
+50%    1949.000000   -0.070000   -0.010000   -0.080000    0.020000   
+75%    1983.500000    0.215000    0.210000    0.265000    0.255000   
+max    2018.000000    0.980000    1.260000    0.710000    1.500000   
+
+          24S-24N     90S-24S     64N-90N     44N-64N     24N-44N     EQU-24N  \
+count  139.000000  139.000000  139.000000  139.000000  139.000000  139.000000   
+mean     0.036115   -0.018561    0.111079    0.117770    0.027698    0.027626   
+std      0.331384    0.295695    0.917715    0.516729    0.356416    0.326111   
+min     -0.650000   -0.470000   -1.640000   -0.710000   -0.590000   -0.720000   
+25%     -0.215000   -0.250000   -0.545000   -0.270000   -0.200000   -0.230000   
+50%     -0.030000   -0.100000    0.020000    0.000000   -0.070000    0.000000   
+75%      0.255000    0.230000    0.660000    0.360000    0.135000    0.240000   
+max      0.970000    0.700000    3.050000    1.440000    1.060000    0.930000   
+
+          24S-EQU     44S-24S     64S-44S     90S-64S  
+count  139.000000  139.000000  139.000000  139.000000  
+mean     0.045683    0.020432   -0.069353   -0.078129  
+std      0.343385    0.312688    0.269380    0.732359  
+min     -0.580000   -0.430000   -0.540000   -2.570000  
+25%     -0.210000   -0.220000   -0.265000   -0.490000  
+50%     -0.030000   -0.080000   -0.090000    0.050000  
+75%      0.290000    0.260000    0.180000    0.410000  
+max      1.020000    0.780000    0.450000    1.270000  
+#+end_example
+
+#+begin_src ipython :session giss :results output :exports both
+print(giss.iloc[0])
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Year       1880.00
+Glob         -0.18
+NHem         -0.31
+SHem         -0.06
+24N-90N      -0.38
+24S-24N      -0.17
+90S-24S      -0.01
+64N-90N      -0.97
+44N-64N      -0.47
+24N-44N      -0.25
+EQU-24N      -0.21
+24S-EQU      -0.13
+44S-24S      -0.04
+64S-44S       0.05
+90S-64S       0.67
+Name: 0, dtype: float64
+#+end_example
+
+* Criteria
+** Appropriate Chart Selection and Variables
+
+Did you select the appropriate chart and use the correct chart elements to visualize the nominal, ordinal, discrete, and continuous variables, as described in lecture 2.1.3? Continuous data variables should be assigned to continuous chart elements (e.g., lines between data points), whereas discrete variables should be assigned to discrete chart elements (e.g., separate bars). Furthermore, the assignment of variables to elements should follow the priorities in lecture 2.1.2.
+** Design of the Chart
+
+Does the chart effectively display the data, based on the design rules in lecture 2.3.1?
+** Content
+
+How interesting is the result? Does this represent an interesting choice of data and/or an interesting way to display the data? For example, was a streamgraph used instead of an ordinary bar chart?
+** Grading
+| Criteria                                    | Poor (1–2 points)                                                                                                     | Fair (3 points)                                                                  | Good (4 points)                                                              | Great (5 points)                                                                                         |
+|---------------------------------------------+-----------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------|
+| *Appropriate Chart Selection and Variables* | Chart is indecipherable or significantly misleading because of poor chart type or assignment of variables to elements | Major problem(s) with chart selection or assignment of elements to variables     | Minor problem(s) with chart selection or assignment of elements to variables | Chart selection is appropriate for data and its elements properly assigned to appropriate data variables |
+| *Design of the Chart*                       | No apparent attention paid to design                                                                                  | Evidence that several of the design rules should have been followed but were not | Evidence that one of the design rules should have been followed but was not  | Attention paid to all design rules                                                                       |
+| *Content*                                   | Misleading                                                                                                            | Boring                                                                           | Not boring                                                                   | Interesting                                                                                              |
+
+
+
+* Citation
+- GISTEMP Team, 2019: GISS Surface Temperature Analysis (GISTEMP). NASA Goddard Institute for Space Studies. Dataset accessed 2019-02-27 at https://data.giss.nasa.gov/gistemp/.
+- Hansen, J., R. Ruedy, M. Sato, and K. Lo, 2010: Global surface temperature change, Rev. Geophys., 48, RG4004, doi:10.1029/2010RG000345.
