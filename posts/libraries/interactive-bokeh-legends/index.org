@@ -30,34 +30,28 @@ from bokeh.sampledata.stocks import AAPL, IBM, MSFT, GOOG
 #+end_src
 
 **** Pandas And HoloViews
-     Pandas is for the data, and, although I don't think you should need it, holoviews is to set the bokeh backend. I don't know why but I was getting errors until I did this. Maybe there was some kind of contamination between my jupyter notebook sessions. Anyway, it fixed the problem I had.
+     Pandas is for the data.
 #+begin_src ipython :session bokeh :results none
-import holoviews
 import pandas
 #+end_src
 *** My Stuff
+    This is a convenience class for embedding the javascript that bokeh creates into this post.
 #+BEGIN_SRC ipython :session bokeh :results none
-from neurotic.tangles.timer import Timer
 from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 #+END_SRC
 
-*** The Bokeh Imports
-#+BEGIN_SRC ipython :session bokeh :results none
-from bokeh.embed import autoload_static
-import bokeh.resources
-#+END_SRC
 ** The Embedder
+   The =files_path= is where the javascript needs to be stored for =nikola= to copy it to the right place.
+
 #+BEGIN_SRC ipython :session bokeh :results none
 files_path = Path("../../files/posts/libraries/interactive-bokeh-legends/")
 Embed = partial(
     EmbedBokeh,
     folder_path=files_path)
 #+END_SRC
-#+BEGIN_SRC ipython :session bokeh :results none
-holoviews.extension("bokeh")
-#+END_SRC
 
 * Hide Plots
+  This creates a plot where the entry fore each line in the legend becomes a button that toggles the plot's visibility.
 #+begin_src ipython :session bokeh :results none
 plot = figure(plot_width=800, plot_height=400, 
               x_axis_type="datetime", 
@@ -86,6 +80,7 @@ embed()
 <script src="interactive_legend.js" id="11761887-e983-4882-8f9e-2ea31dcf69b0"></script>
 #+END_EXPORT
 * Fade Plots
+  Clicking on the line in the legend will change the alpha-value for the line (to make it less visible). This has the effect of keeping the hovertool working for the line, while hiding it disables the hover tool.
 #+begin_src ipython :session bokeh :results none
 fade_plot = figure(plot_width=800, plot_height=400, 
                    x_axis_type="datetime", 
