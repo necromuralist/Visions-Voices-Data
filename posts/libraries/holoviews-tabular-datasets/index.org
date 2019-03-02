@@ -1,0 +1,92 @@
+#+BEGIN_COMMENT
+.. title: HoloViews Tabular Datasets
+.. slug: holoviews-tabular-datasets
+.. date: 2019-03-01 12:54:10 UTC-08:00
+.. tags: holoviews,bokeh,tutorial
+.. category: HoloViews
+.. link: 
+.. description: Walking through the HoloViews' Getting Started - Tabular Dataset example.
+.. type: text
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+#+BEGIN_SRC ipython :session holoviews :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Introduction
+  This is a walk through the [[https://holoviews.org/getting_started/Tabular_Datasets.html][HoloViews page on Tabular Datasets]].
+* Set Up
+** Imports
+*** Python
+#+begin_src ipython :session holoviews :results none
+from functools import partial
+from pathlib import Path
+import os
+#+end_src
+*** PyPi
+#+begin_src ipython :session holoviews :results none
+from dotenv import load_dotenv
+from tabulate import tabulate
+import holoviews
+import modin.pandas as pandas
+#+end_src
+** Dotenv
+#+begin_src ipython :session holoviews :results none
+load_dotenv(".env")
+#+end_src
+** Tabulate
+#+begin_src ipython :session holoviews :results none
+orgtable = partial(tabulate, headers="keys", tablefmt="orgtbl", 
+                   showindex=False)
+#+end_src
+* Load the Data
+  The data comes from [[https://www.tycho.pitt.edu/][Project Tycho]], which provides health-related data sets for research.
+#+begin_src ipython :session holoviews :results none
+path = Path(os.environ.get("DISEASES")).expanduser()
+assert path.is_file()
+with path.open() as reader:
+    diseases = pandas.read_csv(path)
+#+end_src
+
+#+begin_src ipython :session holoviews :results output raw :exports both
+print(orgtable(diseases.head()))
+#+end_src
+
+#+RESULTS:
+| Year | Week | State   | measles | pertussis |
+|------+------+---------+---------+-----------|
+| 1928 |    1 | Alabama |    3.67 |       nan |
+| 1928 |    2 | Alabama |    6.25 |       nan |
+| 1928 |    3 | Alabama |    7.95 |       nan |
+| 1928 |    4 | Alabama |   12.58 |       nan |
+| 1928 |    5 | Alabama |    8.03 |       nan |
+
+#+begin_src ipython :session holoviews :results output :exports both
+print(len(diseases))
+print(len(diseases.State.unique()))
+print(diseases.Year.min())
+print(diseases.Year.max())
+print(diseases.Week.unique())
+#+end_src
+
+#+RESULTS:
+: 222768
+: 51
+: 1928
+: 2011
+: [ 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+:  25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
+:  49 50 51 52]
+
+The =State= column includes Washington D.C., which is why there are 51 states. It has 52 weeks of data for each year from 1928 through 2011. Since /measles/ and /pertussis/ are greater than 1 I assume that this is some kind of rate (like incidence per million), but the page doesn't say and I the article they link to doesn't seem to render in my browser (and I don't have an account to download a dataset).
+
+* Create a Dataset
+  HoloViews has a class called a Dataset that lets you declare the dependent (/value dimensions (vdims)/) and independent variables (/key dimensions (kdims)/).
+
+#+begin_src ipython :session holoviews :results none
+key_dimensions = "Year State".split()
+value_dimensions = [("measles", "Measles Incidence"), ("pertusis", "Pertusis Incidence")]
+dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
+#+end_src
