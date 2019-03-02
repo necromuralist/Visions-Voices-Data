@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="Walking through the HoloViews' Getting Started - Tabular Dataset example." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>HoloViews Tabular Datasets | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
+</script>
+<meta content="Cloistered Monkey" name="author">
+<link href="../../giss/giss-globalhemispheric-temperatures/" rel="prev" title="GISS Global/Hemispheric Temperatures" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="HoloViews Tabular Datasets" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/" property="og:url">
+<meta content="Walking through the HoloViews' Getting Started - Tabular Dataset example." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2019-03-01T12:54:10-08:00" property="article:published_time">
+<meta content="bokeh" property="article:tag">
+<meta content="holoviews" property="article:tag">
+<meta content="tutorial" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="../../../archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../rss.xml">RSS feed</a></li>
+<li class="nav-item"><a class="nav-link" href="https://necromuralist.github.io/">Cloistered Monkey</a></li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"><input name="k8" type="hidden" value="#444444"><input name="k9" type="hidden" value="#D51920"><input name="kt" type="hidden" value="h"><input class="span2" maxlength="255" name="q" placeholder="Search…" style="margin-top: 4px;" type="text"><input style="visibility: hidden;" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href=".">HoloViews Tabular Datasets</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2019-03-01T12:54:10-08:00" itemprop="datePublished" title="2019-03-01 12:54">2019-03-01 12:54</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org1d1d34f">Introduction</a></li>
+<li><a href="#org779d8d0">Set Up</a>
+<ul>
+<li><a href="#org4df6b2f">Imports</a></li>
+<li><a href="#org4fb851a">Dotenv</a></li>
+<li><a href="#org8b45fd6">Tabulate</a></li>
+</ul>
+</li>
+<li><a href="#org0dc26e7">Load the Data</a></li>
+<li><a href="#org8b8388b">Create a Dataset</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org1d1d34f">
+<h2 id="org1d1d34f">Introduction</h2>
+<div class="outline-text-2" id="text-org1d1d34f">
+<p>This is a walk through the <a href="https://holoviews.org/getting_started/Tabular_Datasets.html">HoloViews page on Tabular Datasets</a>.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org779d8d0">
+<h2 id="org779d8d0">Set Up</h2>
+<div class="outline-text-2" id="text-org779d8d0"></div>
+<div class="outline-3" id="outline-container-org4df6b2f">
+<h3 id="org4df6b2f">Imports</h3>
+<div class="outline-text-3" id="text-org4df6b2f"></div>
+<div class="outline-4" id="outline-container-org3ee3bc9">
+<h4 id="org3ee3bc9">Python</h4>
+<div class="outline-text-4" id="text-org3ee3bc9">
+<div class="highlight">
+<pre><span></span>from functools import partial
+from pathlib import Path
+import os
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org9e7c6c5">
+<h4 id="org9e7c6c5">PyPi</h4>
+<div class="outline-text-4" id="text-org9e7c6c5">
+<div class="highlight">
+<pre><span></span>from dotenv import load_dotenv
+from tabulate import tabulate
+import holoviews
+import modin.pandas as pandas
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org4fb851a">
+<h3 id="org4fb851a">Dotenv</h3>
+<div class="outline-text-3" id="text-org4fb851a">
+<div class="highlight">
+<pre><span></span>load_dotenv(".env")
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org8b45fd6">
+<h3 id="org8b45fd6">Tabulate</h3>
+<div class="outline-text-3" id="text-org8b45fd6">
+<div class="highlight">
+<pre><span></span>orgtable = partial(tabulate, headers="keys", tablefmt="orgtbl", 
+                   showindex=False)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org0dc26e7">
+<h2 id="org0dc26e7">Load the Data</h2>
+<div class="outline-text-2" id="text-org0dc26e7">
+<p>The data comes from <a href="https://www.tycho.pitt.edu/">Project Tycho</a>, which provides health-related data sets for research.</p>
+<div class="highlight">
+<pre><span></span>path = Path(os.environ.get("DISEASES")).expanduser()
+assert path.is_file()
+with path.open() as reader:
+    diseases = pandas.read_csv(path)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(orgtable(diseases.head()))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-right">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-right" scope="col">Year</th>
+<th class="org-right" scope="col">Week</th>
+<th class="org-left" scope="col">State</th>
+<th class="org-right" scope="col">measles</th>
+<th class="org-right" scope="col">pertussis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">1928</td>
+<td class="org-right">1</td>
+<td class="org-left">Alabama</td>
+<td class="org-right">3.67</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-right">1928</td>
+<td class="org-right">2</td>
+<td class="org-left">Alabama</td>
+<td class="org-right">6.25</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-right">1928</td>
+<td class="org-right">3</td>
+<td class="org-left">Alabama</td>
+<td class="org-right">7.95</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-right">1928</td>
+<td class="org-right">4</td>
+<td class="org-left">Alabama</td>
+<td class="org-right">12.58</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-right">1928</td>
+<td class="org-right">5</td>
+<td class="org-left">Alabama</td>
+<td class="org-right">8.03</td>
+<td class="org-right">nan</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span>print(len(diseases))
+print(len(diseases.State.unique()))
+print(diseases.Year.min())
+print(diseases.Year.max())
+print(diseases.Week.unique())
+</pre></div>
+<pre class="example">
+222768
+51
+1928
+2011
+[ 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+ 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
+ 49 50 51 52]
+
+</pre>
+<p>The <code>State</code> column includes Washington D.C., which is why there are 51 states. It has 52 weeks of data for each year from 1928 through 2011. Since <i>measles</i> and <i>pertussis</i> are greater than 1 I assume that this is some kind of rate (like incidence per million), but the page doesn't say and I the article they link to doesn't seem to render in my browser (and I don't have an account to download a dataset).</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org8b8388b">
+<h2 id="org8b8388b">Create a Dataset</h2>
+<div class="outline-text-2" id="text-org8b8388b">
+<p>HoloViews has a class called a Dataset that lets you declare the dependent (<i>value dimensions (vdims)</i>) and independent variables (<i>key dimensions (kdims)</i>).</p>
+<div class="highlight">
+<pre><span></span>key_dimensions = "Year State".split()
+value_dimensions = [("measles", "Measles Incidence"), ("pertusis", "Pertusis Incidence")]
+dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
+</pre></div>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="../../../categories/bokeh/" rel="tag">bokeh</a></li>
+<li><a class="tag p-category" href="../../../categories/holoviews/" rel="tag">holoviews</a></li>
+<li><a class="tag p-category" href="../../../categories/tutorial/" rel="tag">tutorial</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="../../giss/giss-globalhemispheric-temperatures/" rel="prev" title="GISS Global/Hemispheric Temperatures">Previous post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="../../../assets/js/all-nocdn.js">
+</script><!-- fancy dates -->
+<script>
+    moment.locale("en");
+    fancydates(0, "YYYY-MM-DD HH:mm");
+</script><!-- end fancy dates -->
+<script>
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script>
+</body>
+</html>
