@@ -16,6 +16,7 @@
 </script>
 <meta content="Cloistered Monkey" name="author">
 <link href="../../giss/giss-globalhemispheric-temperatures/" rel="prev" title="GISS Global/Hemispheric Temperatures" type="text/html">
+<link href="../holoviews-tabular-data-take-two/" rel="next" title="HoloViews Tabular Data Take Two" type="text/html">
 <meta content="Visions, Voices, Data" property="og:site_name">
 <meta content="HoloViews Tabular Datasets" property="og:title">
 <meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/" property="og:url">
@@ -64,34 +65,41 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org1d1d34f">Introduction</a></li>
-<li><a href="#org779d8d0">Set Up</a>
+<li><a href="#orgdf5ecc8">Introduction</a></li>
+<li><a href="#orge83918b">Set Up</a>
 <ul>
-<li><a href="#org4df6b2f">Imports</a></li>
-<li><a href="#org4fb851a">Dotenv</a></li>
-<li><a href="#org8b45fd6">Tabulate</a></li>
+<li><a href="#orgaba6372">Imports</a></li>
+<li><a href="#orgdf13e31">Holoviews Bokeh</a></li>
+<li><a href="#org8b744df">The Embedder</a></li>
+<li><a href="#org36a957e">Dotenv</a></li>
+<li><a href="#orgf175a43">Tabulate</a></li>
 </ul>
 </li>
-<li><a href="#org0dc26e7">Load the Data</a></li>
-<li><a href="#org8b8388b">Create a Dataset</a></li>
+<li><a href="#org8b922b3">Load the Data</a></li>
+<li><a href="#org18921b2">Create a Dataset</a>
+<ul>
+<li><a href="#orgc6c0fa0">Aggregate The Data</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org1d1d34f">
-<h2 id="org1d1d34f">Introduction</h2>
-<div class="outline-text-2" id="text-org1d1d34f">
-<p>This is a walk through the <a href="https://holoviews.org/getting_started/Tabular_Datasets.html">HoloViews page on Tabular Datasets</a>.</p>
+<div class="outline-2" id="outline-container-orgdf5ecc8">
+<h2 id="orgdf5ecc8">Introduction</h2>
+<div class="outline-text-2" id="text-orgdf5ecc8">
+<p>This is a walk through the <a href="https://holoviews.org/getting_started/Tabular_Datasets.html">HoloViews page on Tabular Datasets</a>. The data-set was created by the Wall Street Journal using Project Tycho, but I'm getting it from the <a href="https://github.com/pyviz/holoviews">HoloViews github repository</a>. The Wall Street Journal page is <a href="https://graphics.wsj.com/infectious-diseases-and-vaccines/#b02g20t20w15">here</a>. Unfortunately it has mixed content types (https and http) as well as some other problems which prevent Firefox and Chrome-based browsers from rendering it the visualization so I don't know what it actually looks like. Given that it's a commercial site I'm assuming it's an old page that they don't care about anymore.</p>
+<p><b>Warning:</b> I originally did this with <code>modin</code> and it wouldn't plot correctly. Save it for pre-processing and just use the real <code>pandas</code> when plotting.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org779d8d0">
-<h2 id="org779d8d0">Set Up</h2>
-<div class="outline-text-2" id="text-org779d8d0"></div>
-<div class="outline-3" id="outline-container-org4df6b2f">
-<h3 id="org4df6b2f">Imports</h3>
-<div class="outline-text-3" id="text-org4df6b2f"></div>
-<div class="outline-4" id="outline-container-org3ee3bc9">
-<h4 id="org3ee3bc9">Python</h4>
-<div class="outline-text-4" id="text-org3ee3bc9">
+<div class="outline-2" id="outline-container-orge83918b">
+<h2 id="orge83918b">Set Up</h2>
+<div class="outline-text-2" id="text-orge83918b"></div>
+<div class="outline-3" id="outline-container-orgaba6372">
+<h3 id="orgaba6372">Imports</h3>
+<div class="outline-text-3" id="text-orgaba6372"></div>
+<div class="outline-4" id="outline-container-org7d76147">
+<h4 id="org7d76147">Python</h4>
+<div class="outline-text-4" id="text-org7d76147">
 <div class="highlight">
 <pre><span></span>from functools import partial
 from pathlib import Path
@@ -99,29 +107,63 @@ import os
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org9e7c6c5">
-<h4 id="org9e7c6c5">PyPi</h4>
-<div class="outline-text-4" id="text-org9e7c6c5">
+<div class="outline-4" id="outline-container-orgd8c15a2">
+<h4 id="orgd8c15a2">PyPi</h4>
+<div class="outline-text-4" id="text-orgd8c15a2">
 <div class="highlight">
-<pre><span></span>from dotenv import load_dotenv
+<pre><span></span>from bokeh.io import output_notebook
+from dotenv import load_dotenv
+from holoviews import opts
 from tabulate import tabulate
 import holoviews
-import modin.pandas as pandas
+import numpy
+import pandas
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org2eb19da">
+<h4 id="org2eb19da">My Projects</h4>
+<div class="outline-text-4" id="text-org2eb19da">
+<div class="highlight">
+<pre><span></span>from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org4fb851a">
-<h3 id="org4fb851a">Dotenv</h3>
-<div class="outline-text-3" id="text-org4fb851a">
+<div class="outline-3" id="outline-container-orgdf13e31">
+<h3 id="orgdf13e31">Holoviews Bokeh</h3>
+<div class="outline-text-3" id="text-orgdf13e31">
+<p>I don't know why but you have to specify that you're using <code>bokeh</code>, even though it looks like it's working when you don't.</p>
+<div class="highlight">
+<pre><span></span>holoviews.extension("bokeh")
+output_notebook()
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org8b744df">
+<h3 id="org8b744df">The Embedder</h3>
+<div class="outline-text-3" id="text-org8b744df">
+<div class="highlight">
+<pre><span></span>files_path = Path("../../files/posts/libraries/holoviews-tabular-datasets/")
+Embed = partial(
+    EmbedBokeh,
+    folder_path=files_path)
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org36a957e">
+<h3 id="org36a957e">Dotenv</h3>
+<div class="outline-text-3" id="text-org36a957e">
+<p>I have the path to the data-set in a <code>.env</code> file so I'll load it into the environment dictionary.</p>
 <div class="highlight">
 <pre><span></span>load_dotenv(".env")
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org8b45fd6">
-<h3 id="org8b45fd6">Tabulate</h3>
-<div class="outline-text-3" id="text-org8b45fd6">
+<div class="outline-3" id="outline-container-orgf175a43">
+<h3 id="orgf175a43">Tabulate</h3>
+<div class="outline-text-3" id="text-orgf175a43">
+<p>This will print a table that org knows how to render.</p>
 <div class="highlight">
 <pre><span></span>orgtable = partial(tabulate, headers="keys", tablefmt="orgtbl", 
                    showindex=False)
@@ -129,10 +171,10 @@ import modin.pandas as pandas
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org0dc26e7">
-<h2 id="org0dc26e7">Load the Data</h2>
-<div class="outline-text-2" id="text-org0dc26e7">
-<p>The data comes from <a href="https://www.tycho.pitt.edu/">Project Tycho</a>, which provides health-related data sets for research.</p>
+<div class="outline-2" id="outline-container-org8b922b3">
+<h2 id="org8b922b3">Load the Data</h2>
+<div class="outline-text-2" id="text-org8b922b3">
+<p>The data comes from <a href="https://www.tycho.pitt.edu/">Project Tycho</a>, which provides health-related data sets for research. The <code>.env</code> file assumes that I cloned the <code>HoloViews</code> repository so that I can load the data from it.</p>
 <div class="highlight">
 <pre><span></span>path = Path(os.environ.get("DISEASES")).expanduser()
 assert path.is_file()
@@ -216,15 +258,47 @@ print(diseases.Week.unique())
 <p>The <code>State</code> column includes Washington D.C., which is why there are 51 states. It has 52 weeks of data for each year from 1928 through 2011. Since <i>measles</i> and <i>pertussis</i> are greater than 1 I assume that this is some kind of rate (like incidence per million), but the page doesn't say and I the article they link to doesn't seem to render in my browser (and I don't have an account to download a dataset).</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org8b8388b">
-<h2 id="org8b8388b">Create a Dataset</h2>
-<div class="outline-text-2" id="text-org8b8388b">
+<div class="outline-2" id="outline-container-org18921b2">
+<h2 id="org18921b2">Create a Dataset</h2>
+<div class="outline-text-2" id="text-org18921b2">
 <p>HoloViews has a class called a Dataset that lets you declare the dependent (<i>value dimensions (vdims)</i>) and independent variables (<i>key dimensions (kdims)</i>).</p>
 <div class="highlight">
 <pre><span></span>key_dimensions = "Year State".split()
-value_dimensions = [("measles", "Measles Incidence"), ("pertusis", "Pertusis Incidence")]
+value_dimensions = [("measles", "Measles Incidence"), ("pertussis", "Pertusis Incidence")]
 dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
 </pre></div>
+<p>The <code>value_dimensions</code> list has tuples - these take the form <code>(&lt;column-name&gt;, &lt;output-name&gt;)</code> so when you make a plot it will use the <code>&lt;output-name&gt;</code> for any labels that are created.</p>
+</div>
+<div class="outline-3" id="outline-container-orgc6c0fa0">
+<h3 id="orgc6c0fa0">Aggregate The Data</h3>
+<div class="outline-text-3" id="text-orgc6c0fa0">
+<p>The one column that I didn't add is the <code>Week</code> column. The <code>Dataset</code> has a rather confusing <code>aggregate</code> method (confusing because you only pass in the function to aggregate with) that apparently knows how to use the <code>key_dimensions</code> variables we passed in to figure out what to aggregate.</p>
+<div class="highlight">
+<pre><span></span>dataset = dataset.aggregate(function=numpy.mean)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(dataset)
+print(dataset.shape)
+</pre></div>
+<pre class="example">
+:Dataset   [Year,State]   (measles,pertussis)
+(4284, 4)
+
+</pre>
+<div class="highlight">
+<pre><span></span>layout = (dataset.to(holoviews.Curve, "Year", "measles")
+          + dataset.to(holoviews.Curve, "Year", "pertussis")).cols(1)
+layout.opts(opts.Curve(width=600, height=300, framewise=True, tools=["hover"]))
+</pre></div>
+<div class="highlight">
+<pre><span></span>Embed(layout, "measles_pertusis")()
+</pre></div>
+<script id="e0b8360d-329e-4304-bd8b-0b14a6a80f57" src="measles_pertusis.js">
+</script>
+<p>Two things to note. One is that HoloViews picked up the nicer names without us having to specify them. Another is that only Alabama is displayed. In the demonstration HoloViews created a drop-down menu to select a state but it didn't do it here. Maybe you need to run it in a jupyter notebook…</p>
+<p>Actually, I think it might be a conflict with <code>nikola</code>, this is a page saved from a jupyter notebook without any nikola pre-processing:</p>
+<p><a href="diseases.html">diseases.html</a></p>
+</div>
 </div>
 </div>
 </div>
@@ -237,6 +311,7 @@ dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
 </ul>
 <ul class="pager hidden-print">
 <li class="previous"><a href="../../giss/giss-globalhemispheric-temperatures/" rel="prev" title="GISS Global/Hemispheric Temperatures">Previous post</a></li>
+<li class="next"><a href="../holoviews-tabular-data-take-two/" rel="next" title="HoloViews Tabular Data Take Two">Next post</a></li>
 </ul>
 </nav>
 </aside>
@@ -246,11 +321,7 @@ dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
 </div>
 </div>
 <script src="../../../assets/js/all-nocdn.js">
-</script><!-- fancy dates -->
-<script>
-    moment.locale("en");
-    fancydates(0, "YYYY-MM-DD HH:mm");
-</script><!-- end fancy dates -->
+</script>
 <script>
     baguetteBox.run('div#content', {
         ignoreClass: 'islink',
