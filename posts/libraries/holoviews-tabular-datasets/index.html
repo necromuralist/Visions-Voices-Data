@@ -65,124 +65,124 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgdf5ecc8">Introduction</a></li>
-<li><a href="#orge83918b">Set Up</a>
+<li><a href="#org6fba278">Introduction</a></li>
+<li><a href="#org4cf2f04">Set Up</a>
 <ul>
-<li><a href="#orgaba6372">Imports</a></li>
-<li><a href="#orgdf13e31">Holoviews Bokeh</a></li>
-<li><a href="#org8b744df">The Embedder</a></li>
-<li><a href="#org36a957e">Dotenv</a></li>
-<li><a href="#orgf175a43">Tabulate</a></li>
+<li><a href="#org0e299f9">Imports</a></li>
+<li><a href="#org6b64702">Holoviews Bokeh</a></li>
+<li><a href="#org772c16d">The Embedder</a></li>
+<li><a href="#org89aa71b">Dotenv</a></li>
+<li><a href="#org9f55838">Tabulate</a></li>
 </ul>
 </li>
-<li><a href="#org8b922b3">Load the Data</a></li>
-<li><a href="#org18921b2">Create a Dataset</a>
+<li><a href="#org47e989a">Load the Data</a></li>
+<li><a href="#org48f6cf9">Create a Dataset</a>
 <ul>
-<li><a href="#orgc6c0fa0">Aggregate The Data</a></li>
+<li><a href="#org4314bba">Aggregate The Data</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgdf5ecc8">
-<h2 id="orgdf5ecc8">Introduction</h2>
-<div class="outline-text-2" id="text-orgdf5ecc8">
+<div class="outline-2" id="outline-container-org6fba278">
+<h2 id="org6fba278">Introduction</h2>
+<div class="outline-text-2" id="text-org6fba278">
 <p>This is a walk through the <a href="https://holoviews.org/getting_started/Tabular_Datasets.html">HoloViews page on Tabular Datasets</a>. The data-set was created by the Wall Street Journal using Project Tycho, but I'm getting it from the <a href="https://github.com/pyviz/holoviews">HoloViews github repository</a>. The Wall Street Journal page is <a href="https://graphics.wsj.com/infectious-diseases-and-vaccines/#b02g20t20w15">here</a>. Unfortunately it has mixed content types (https and http) as well as some other problems which prevent Firefox and Chrome-based browsers from rendering it the visualization so I don't know what it actually looks like. Given that it's a commercial site I'm assuming it's an old page that they don't care about anymore.</p>
 <p><b>Warning:</b> I originally did this with <code>modin</code> and it wouldn't plot correctly. Save it for pre-processing and just use the real <code>pandas</code> when plotting.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge83918b">
-<h2 id="orge83918b">Set Up</h2>
-<div class="outline-text-2" id="text-orge83918b"></div>
-<div class="outline-3" id="outline-container-orgaba6372">
-<h3 id="orgaba6372">Imports</h3>
-<div class="outline-text-3" id="text-orgaba6372"></div>
-<div class="outline-4" id="outline-container-org7d76147">
-<h4 id="org7d76147">Python</h4>
-<div class="outline-text-4" id="text-org7d76147">
+<div class="outline-2" id="outline-container-org4cf2f04">
+<h2 id="org4cf2f04">Set Up</h2>
+<div class="outline-text-2" id="text-org4cf2f04"></div>
+<div class="outline-3" id="outline-container-org0e299f9">
+<h3 id="org0e299f9">Imports</h3>
+<div class="outline-text-3" id="text-org0e299f9"></div>
+<div class="outline-4" id="outline-container-orgf970809">
+<h4 id="orgf970809">Python</h4>
+<div class="outline-text-4" id="text-orgf970809">
 <div class="highlight">
-<pre><span></span>from functools import partial
-from pathlib import Path
-import os
+<pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">os</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgd8c15a2">
-<h4 id="orgd8c15a2">PyPi</h4>
-<div class="outline-text-4" id="text-orgd8c15a2">
+<div class="outline-4" id="outline-container-orgbd75365">
+<h4 id="orgbd75365">PyPi</h4>
+<div class="outline-text-4" id="text-orgbd75365">
 <div class="highlight">
-<pre><span></span>from bokeh.io import output_notebook
-from dotenv import load_dotenv
-from holoviews import opts
-from tabulate import tabulate
-import holoviews
-import numpy
-import pandas
+<pre><span></span><span class="kn">from</span> <span class="nn">bokeh.io</span> <span class="kn">import</span> <span class="n">output_notebook</span>
+<span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">from</span> <span class="nn">holoviews</span> <span class="kn">import</span> <span class="n">opts</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+<span class="kn">import</span> <span class="nn">holoviews</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org2eb19da">
-<h4 id="org2eb19da">My Projects</h4>
-<div class="outline-text-4" id="text-org2eb19da">
+<div class="outline-4" id="outline-container-org9ff46be">
+<h4 id="org9ff46be">My Projects</h4>
+<div class="outline-text-4" id="text-org9ff46be">
 <div class="highlight">
-<pre><span></span>from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+<pre><span></span><span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgdf13e31">
-<h3 id="orgdf13e31">Holoviews Bokeh</h3>
-<div class="outline-text-3" id="text-orgdf13e31">
+<div class="outline-3" id="outline-container-org6b64702">
+<h3 id="org6b64702">Holoviews Bokeh</h3>
+<div class="outline-text-3" id="text-org6b64702">
 <p>I don't know why but you have to specify that you're using <code>bokeh</code>, even though it looks like it's working when you don't.</p>
 <div class="highlight">
-<pre><span></span>holoviews.extension("bokeh")
-output_notebook()
+<pre><span></span><span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">)</span>
+<span class="n">output_notebook</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org8b744df">
-<h3 id="org8b744df">The Embedder</h3>
-<div class="outline-text-3" id="text-org8b744df">
+<div class="outline-3" id="outline-container-org772c16d">
+<h3 id="org772c16d">The Embedder</h3>
+<div class="outline-text-3" id="text-org772c16d">
 <div class="highlight">
-<pre><span></span>files_path = Path("../../files/posts/libraries/holoviews-tabular-datasets/")
-Embed = partial(
-    EmbedBokeh,
-    folder_path=files_path)
+<pre><span></span><span class="n">files_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/holoviews-tabular-datasets/"</span><span class="p">)</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+    <span class="n">EmbedBokeh</span><span class="p">,</span>
+    <span class="n">folder_path</span><span class="o">=</span><span class="n">files_path</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org36a957e">
-<h3 id="org36a957e">Dotenv</h3>
-<div class="outline-text-3" id="text-org36a957e">
+<div class="outline-3" id="outline-container-org89aa71b">
+<h3 id="org89aa71b">Dotenv</h3>
+<div class="outline-text-3" id="text-org89aa71b">
 <p>I have the path to the data-set in a <code>.env</code> file so I'll load it into the environment dictionary.</p>
 <div class="highlight">
-<pre><span></span>load_dotenv(".env")
+<pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">".env"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgf175a43">
-<h3 id="orgf175a43">Tabulate</h3>
-<div class="outline-text-3" id="text-orgf175a43">
+<div class="outline-3" id="outline-container-org9f55838">
+<h3 id="org9f55838">Tabulate</h3>
+<div class="outline-text-3" id="text-org9f55838">
 <p>This will print a table that org knows how to render.</p>
 <div class="highlight">
-<pre><span></span>orgtable = partial(tabulate, headers="keys", tablefmt="orgtbl", 
-                   showindex=False)
+<pre><span></span><span class="n">orgtable</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> 
+                   <span class="n">showindex</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org8b922b3">
-<h2 id="org8b922b3">Load the Data</h2>
-<div class="outline-text-2" id="text-org8b922b3">
+<div class="outline-2" id="outline-container-org47e989a">
+<h2 id="org47e989a">Load the Data</h2>
+<div class="outline-text-2" id="text-org47e989a">
 <p>The data comes from <a href="https://www.tycho.pitt.edu/">Project Tycho</a>, which provides health-related data sets for research. The <code>.env</code> file assumes that I cloned the <code>HoloViews</code> repository so that I can load the data from it.</p>
 <div class="highlight">
-<pre><span></span>path = Path(os.environ.get("DISEASES")).expanduser()
-assert path.is_file()
-with path.open() as reader:
-    diseases = pandas.read_csv(path)
+<pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"DISEASES"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+    <span class="n">diseases</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 </pre></div>
 <div class="highlight">
-<pre><span></span>print(orgtable(diseases.head()))
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">orgtable</span><span class="p">(</span><span class="n">diseases</span><span class="o">.</span><span class="n">head</span><span class="p">()))</span>
 </pre></div>
 <table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
 <colgroup>
@@ -239,11 +239,11 @@ with path.open() as reader:
 </tbody>
 </table>
 <div class="highlight">
-<pre><span></span>print(len(diseases))
-print(len(diseases.State.unique()))
-print(diseases.Year.min())
-print(diseases.Year.max())
-print(diseases.Week.unique())
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">diseases</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">diseases</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="n">unique</span><span class="p">()))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">diseases</span><span class="o">.</span><span class="n">Year</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+<span class="k">print</span><span class="p">(</span><span class="n">diseases</span><span class="o">.</span><span class="n">Year</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+<span class="k">print</span><span class="p">(</span><span class="n">diseases</span><span class="o">.</span><span class="n">Week</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
 </pre></div>
 <pre class="example">
 222768
@@ -258,27 +258,27 @@ print(diseases.Week.unique())
 <p>The <code>State</code> column includes Washington D.C., which is why there are 51 states. It has 52 weeks of data for each year from 1928 through 2011. Since <i>measles</i> and <i>pertussis</i> are greater than 1 I assume that this is some kind of rate (like incidence per million), but the page doesn't say and I the article they link to doesn't seem to render in my browser (and I don't have an account to download a dataset).</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org18921b2">
-<h2 id="org18921b2">Create a Dataset</h2>
-<div class="outline-text-2" id="text-org18921b2">
+<div class="outline-2" id="outline-container-org48f6cf9">
+<h2 id="org48f6cf9">Create a Dataset</h2>
+<div class="outline-text-2" id="text-org48f6cf9">
 <p>HoloViews has a class called a Dataset that lets you declare the dependent (<i>value dimensions (vdims)</i>) and independent variables (<i>key dimensions (kdims)</i>).</p>
 <div class="highlight">
-<pre><span></span>key_dimensions = "Year State".split()
-value_dimensions = [("measles", "Measles Incidence"), ("pertussis", "Pertusis Incidence")]
-dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
+<pre><span></span><span class="n">key_dimensions</span> <span class="o">=</span> <span class="s2">"Year State"</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+<span class="n">value_dimensions</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"measles"</span><span class="p">,</span> <span class="s2">"Measles Incidence"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"pertussis"</span><span class="p">,</span> <span class="s2">"Pertusis Incidence"</span><span class="p">)]</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">diseases</span><span class="p">,</span> <span class="n">key_dimensions</span><span class="p">,</span> <span class="n">value_dimensions</span><span class="p">)</span>
 </pre></div>
 <p>The <code>value_dimensions</code> list has tuples - these take the form <code>(&lt;column-name&gt;, &lt;output-name&gt;)</code> so when you make a plot it will use the <code>&lt;output-name&gt;</code> for any labels that are created.</p>
 </div>
-<div class="outline-3" id="outline-container-orgc6c0fa0">
-<h3 id="orgc6c0fa0">Aggregate The Data</h3>
-<div class="outline-text-3" id="text-orgc6c0fa0">
+<div class="outline-3" id="outline-container-org4314bba">
+<h3 id="org4314bba">Aggregate The Data</h3>
+<div class="outline-text-3" id="text-org4314bba">
 <p>The one column that I didn't add is the <code>Week</code> column. The <code>Dataset</code> has a rather confusing <code>aggregate</code> method (confusing because you only pass in the function to aggregate with) that apparently knows how to use the <code>key_dimensions</code> variables we passed in to figure out what to aggregate.</p>
 <div class="highlight">
-<pre><span></span>dataset = dataset.aggregate(function=numpy.mean)
+<pre><span></span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
 </pre></div>
 <div class="highlight">
-<pre><span></span>print(dataset)
-print(dataset.shape)
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 :Dataset   [Year,State]   (measles,pertussis)
@@ -286,12 +286,12 @@ print(dataset.shape)
 
 </pre>
 <div class="highlight">
-<pre><span></span>layout = (dataset.to(holoviews.Curve, "Year", "measles")
-          + dataset.to(holoviews.Curve, "Year", "pertussis")).cols(1)
-layout.opts(opts.Curve(width=600, height=300, framewise=True, tools=["hover"]))
+<pre><span></span><span class="n">layout</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">holoviews</span><span class="o">.</span><span class="n">Curve</span><span class="p">,</span> <span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"measles"</span><span class="p">)</span>
+          <span class="o">+</span> <span class="n">dataset</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">holoviews</span><span class="o">.</span><span class="n">Curve</span><span class="p">,</span> <span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"pertussis"</span><span class="p">))</span><span class="o">.</span><span class="n">cols</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">layout</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">framewise</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s2">"hover"</span><span class="p">]))</span>
 </pre></div>
 <div class="highlight">
-<pre><span></span>Embed(layout, "measles_pertusis")()
+<pre><span></span><span class="n">Embed</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="s2">"measles_pertusis"</span><span class="p">)()</span>
 </pre></div>
 <script id="e0b8360d-329e-4304-bd8b-0b14a6a80f57" src="measles_pertusis.js">
 </script>
