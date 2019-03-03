@@ -1,5 +1,397 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2019 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Sun, 03 Mar 2019 00:23:07 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>HoloViews Tabular Data Take Two</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-data-take-two/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div&gt;&lt;div class="cell border-box-sizing code_cell rendered"&gt;
+<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2019 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Sun, 03 Mar 2019 01:49:27 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Aggregating Tabular Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org20d8efb"&gt;Set Up&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#orgbb6c321"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org063551b"&gt;Holoviews Bokeh&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org426a95e"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org8c1bc31"&gt;Dotenv&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org8e46700"&gt;Load the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org38b047e"&gt;Convert the DataFrame to a Dataset&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#orge911d52"&gt;Aggregate the Data&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org20d8efb" class="outline-2"&gt;
+&lt;h2 id="org20d8efb"&gt;Set Up&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org20d8efb"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgbb6c321" class="outline-3"&gt;
+&lt;h3 id="orgbb6c321"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgbb6c321"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orga206010" class="outline-4"&gt;
+&lt;h4 id="orga206010"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orga206010"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from functools import partial
+from pathlib import Path
+import os
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orge5f13ec" class="outline-4"&gt;
+&lt;h4 id="orge5f13ec"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orge5f13ec"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from dotenv import load_dotenv
+from holoviews import opts
+from tabulate import tabulate
+import holoviews
+import numpy
+import pandas
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org31f3ff7" class="outline-4"&gt;
+&lt;h4 id="org31f3ff7"&gt;My Projects&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org31f3ff7"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org063551b" class="outline-3"&gt;
+&lt;h3 id="org063551b"&gt;Holoviews Bokeh&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org063551b"&gt;
+&lt;p&gt;
+I don't know why but you have to specify that you're using &lt;code&gt;bokeh&lt;/code&gt;, even though it looks like it's working when you don't.
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;holoviews.extension("bokeh")
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org426a95e" class="outline-3"&gt;
+&lt;h3 id="org426a95e"&gt;The Embedder&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org426a95e"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;files_path = Path("../../files/posts/libraries/aggregating-tabular-data/")
+Embed = partial(
+    EmbedBokeh,
+    folder_path=files_path)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org8c1bc31" class="outline-3"&gt;
+&lt;h3 id="org8c1bc31"&gt;Dotenv&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org8c1bc31"&gt;
+&lt;p&gt;
+I have the path to the data-set in a &lt;code&gt;.env&lt;/code&gt; file so I'll load it into the environment dictionary.
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;load_dotenv(".env")
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org8e46700" class="outline-2"&gt;
+&lt;h2 id="org8e46700"&gt;Load the Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org8e46700"&gt;
+&lt;p&gt;
+This is the same measles/pertusis data that I used before.
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;path = Path(os.environ.get("DISEASES")).expanduser()
+assert path.is_file()
+with path.open() as reader:
+    diseases = pandas.read_csv(path)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org38b047e" class="outline-2"&gt;
+&lt;h2 id="org38b047e"&gt;Convert the DataFrame to a Dataset&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org38b047e"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;key_dimensions = "Year State".split()
+value_dimensions = [("measles", "Measles Incidence"), ("pertussis", "Pertusis Incidence")]
+dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orge911d52" class="outline-2"&gt;
+&lt;h2 id="orge911d52"&gt;Aggregate the Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orge911d52"&gt;
+&lt;p&gt;
+While I had aggregated the data before, this time I'm going to pass in the "Year" column as an argument so it won't keep the states separate.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;aggregator = dataset.aggregate("Year", function=numpy.mean, spreadfn=numpy.std)
+error_bars = holoviews.ErrorBars(aggregator, vdims=["measles", "measles_std"]).iloc[::2]
+overlay = (holoviews.Curve(aggregator) * error_bars).redim.range(measles=(0, None))
+plot = overlay.opts(height=500, width=1000, tools=["hover"])
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Embed(plot, "northwest_measles_aggregated")()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/northwest_measles_aggregated.js" id="e398babc-d5bc-451c-bb10-02ce9f5163d0"&gt;&lt;/script&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>aggregating</category><category>data</category><category>example</category><category>holoviews</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/</guid><pubDate>Sun, 03 Mar 2019 01:34:16 GMT</pubDate></item><item><title>Selecting Tabular Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#orgb9568f6"&gt;Set Up&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org4494ae9"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#orgddbd038"&gt;Holoviews Bokeh&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org47aa4f3"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org3797b09"&gt;Dotenv&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#orgb46c74d"&gt;Load the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org6af98c6"&gt;Convert the DataFrame to a Dataset&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org95e36cb"&gt;Aggregate The Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org819211b"&gt;Plot a Subset&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org4777d0b"&gt;Facets&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org910d574"&gt;Overlays&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgb9568f6" class="outline-2"&gt;
+&lt;h2 id="orgb9568f6"&gt;Set Up&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgb9568f6"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org4494ae9" class="outline-3"&gt;
+&lt;h3 id="org4494ae9"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org4494ae9"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org8b3aae1" class="outline-4"&gt;
+&lt;h4 id="org8b3aae1"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org8b3aae1"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from functools import partial
+from pathlib import Path
+import os
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org4b145d5" class="outline-4"&gt;
+&lt;h4 id="org4b145d5"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org4b145d5"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from dotenv import load_dotenv
+from holoviews import opts
+from tabulate import tabulate
+import holoviews
+import numpy
+import pandas
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org6d620dc" class="outline-4"&gt;
+&lt;h4 id="org6d620dc"&gt;My Projects&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org6d620dc"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgddbd038" class="outline-3"&gt;
+&lt;h3 id="orgddbd038"&gt;Holoviews Bokeh&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgddbd038"&gt;
+&lt;p&gt;
+I don't know why but you have to specify that you're using &lt;code&gt;bokeh&lt;/code&gt;, even though it looks like it's working when you don't.
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;holoviews.extension("bokeh")
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org47aa4f3" class="outline-3"&gt;
+&lt;h3 id="org47aa4f3"&gt;The Embedder&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org47aa4f3"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;files_path = Path("../../files/posts/libraries/selecting-tabular-data/")
+Embed = partial(
+    EmbedBokeh,
+    folder_path=files_path)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org3797b09" class="outline-3"&gt;
+&lt;h3 id="org3797b09"&gt;Dotenv&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org3797b09"&gt;
+&lt;p&gt;
+I have the path to the data-set in a &lt;code&gt;.env&lt;/code&gt; file so I'll load it into the environment dictionary.
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;load_dotenv(".env")
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgb46c74d" class="outline-2"&gt;
+&lt;h2 id="orgb46c74d"&gt;Load the Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgb46c74d"&gt;
+&lt;p&gt;
+This is the same measles/pertusis data that I used before.
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;path = Path(os.environ.get("DISEASES")).expanduser()
+assert path.is_file()
+with path.open() as reader:
+    diseases = pandas.read_csv(path)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(orgtable(diseases.head()))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
+
+
+&lt;colgroup&gt;
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope="col" class="org-right"&gt;Year&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Week&lt;/th&gt;
+&lt;th scope="col" class="org-left"&gt;State&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;measles&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;pertussis&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td class="org-right"&gt;1928&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;td class="org-left"&gt;Alabama&lt;/td&gt;
+&lt;td class="org-right"&gt;3.67&lt;/td&gt;
+&lt;td class="org-right"&gt;nan&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;1928&lt;/td&gt;
+&lt;td class="org-right"&gt;2&lt;/td&gt;
+&lt;td class="org-left"&gt;Alabama&lt;/td&gt;
+&lt;td class="org-right"&gt;6.25&lt;/td&gt;
+&lt;td class="org-right"&gt;nan&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;1928&lt;/td&gt;
+&lt;td class="org-right"&gt;3&lt;/td&gt;
+&lt;td class="org-left"&gt;Alabama&lt;/td&gt;
+&lt;td class="org-right"&gt;7.95&lt;/td&gt;
+&lt;td class="org-right"&gt;nan&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;1928&lt;/td&gt;
+&lt;td class="org-right"&gt;4&lt;/td&gt;
+&lt;td class="org-left"&gt;Alabama&lt;/td&gt;
+&lt;td class="org-right"&gt;12.58&lt;/td&gt;
+&lt;td class="org-right"&gt;nan&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;1928&lt;/td&gt;
+&lt;td class="org-right"&gt;5&lt;/td&gt;
+&lt;td class="org-left"&gt;Alabama&lt;/td&gt;
+&lt;td class="org-right"&gt;8.03&lt;/td&gt;
+&lt;td class="org-right"&gt;nan&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org6af98c6" class="outline-2"&gt;
+&lt;h2 id="org6af98c6"&gt;Convert the DataFrame to a Dataset&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org6af98c6"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;key_dimensions = "Year State".split()
+value_dimensions = [("measles", "Measles Incidence"), ("pertussis", "Pertusis Incidence")]
+dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org95e36cb" class="outline-2"&gt;
+&lt;h2 id="org95e36cb"&gt;Aggregate The Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org95e36cb"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;dataset = dataset.aggregate(function=numpy.mean)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(dataset)
+print(dataset.shape)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+:Dataset   [Year,State]   (measles,pertussis)
+(4284, 4)
+
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org819211b" class="outline-2"&gt;
+&lt;h2 id="org819211b"&gt;Plot a Subset&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org819211b"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;northwest = ["Oregon", "Washington", "Idaho"]
+bars = dataset.select(State=northwest, Year=(1928, 1938)).to(
+    holoviews.Bars, ["Year", "State"], "measles").sort()
+plot = bars.opts(
+    opts.Bars(width=800, height=400, tools=["hover"], xrotation=90, show_legend=False)
+)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Embed(plot, "northwest_measles")()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/northwest_measles.js" id="9711b5b4-83ef-4e9e-b406-5fe3859f6bf3"&gt;&lt;/script&gt;
+
+&lt;p&gt;
+As with all things HoloViews, there are many things that are unclear here - but the one that really tripped me up was the selection of years. Although I passed in a tuple it used it as a range (start, stop) so my original plot had a century instead of two years. Oh, well.
+&lt;/p&gt;
+
+&lt;p&gt;
+Interesting how Oregon spiked up in 1935 and 1936 then dropped down in 1937. According to &lt;a href="https://www.cdc.gov/measles/about/history.html"&gt;the CDC&lt;/a&gt;, the measles vaccine didn't come out until 1963, so I guess those ebb-and-flows are just the normal way diseases cycle through populations. Oregon and Washington probably had more immigrants than Idaho, as well as  higher population densities in their main cities, which might account for their higher rates. Hard to say without corellating data.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org4777d0b" class="outline-2"&gt;
+&lt;h2 id="org4777d0b"&gt;Facets&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org4777d0b"&gt;
+&lt;p&gt;
+The bar-plot is okay for comparing the cities within any given year but they are hard to get trends from. Here's how to use selecting to plot lines for each city.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grouped = dataset.select(State=northwest, Year=(1928, 2011)).to(holoviews.Curve, "Year", "measles")
+gridspace = grouped.grid("State")
+plot = gridspace.opts(
+    opts.Curve(width=200, color="crimson", tools=["hover"])
+)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Embed(plot, "northwest_measles_grid")()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/northwest_measles_grid.js" id="e0183ad8-47df-4d67-befe-c2c4ba24e369"&gt;&lt;/script&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org910d574" class="outline-2"&gt;
+&lt;h2 id="org910d574"&gt;Overlays&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org910d574"&gt;
+&lt;p&gt;
+While the side-by-side plots are clearer than the bar-plots, it's harder to compare the cities year-by-year, so it might be better to plot them over each other.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;overlay = grouped.overlay("State")
+plot = overlay.opts(
+    opts.Curve(height=500, width=1000, color=holoviews.Cycle(values=["crimson", "slateblue", "cadetblue"]))
+)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Embed(plot, "northwest_measles_overlay")()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/northwest_measles_overlay.js" id="a78fd3e5-9234-410a-b6f3-267875eab6aa"&gt;&lt;/script&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>example</category><category>holoviews</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/</guid><pubDate>Sun, 03 Mar 2019 00:25:15 GMT</pubDate></item><item><title>HoloViews Tabular Data Take Two</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-data-take-two/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div&gt;&lt;div class="cell border-box-sizing code_cell rendered"&gt;
 &lt;div class="input"&gt;
 &lt;div class="prompt input_prompt"&gt;In [1]:&lt;/div&gt;
 &lt;div class="inner_cell"&gt;
@@ -2372,28 +2764,28 @@ if (!(document.getElementById('5341')) &amp;&amp; !(document.getElementById('_an
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgdf5ecc8"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orge83918b"&gt;Set Up&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org6fba278"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org4cf2f04"&gt;Set Up&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgaba6372"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgdf13e31"&gt;Holoviews Bokeh&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org8b744df"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org36a957e"&gt;Dotenv&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgf175a43"&gt;Tabulate&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org0e299f9"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org6b64702"&gt;Holoviews Bokeh&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org772c16d"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org89aa71b"&gt;Dotenv&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org9f55838"&gt;Tabulate&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org8b922b3"&gt;Load the Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org18921b2"&gt;Create a Dataset&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org47e989a"&gt;Load the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org48f6cf9"&gt;Create a Dataset&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgc6c0fa0"&gt;Aggregate The Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org4314bba"&gt;Aggregate The Data&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgdf5ecc8" class="outline-2"&gt;
-&lt;h2 id="orgdf5ecc8"&gt;Introduction&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgdf5ecc8"&gt;
+&lt;div id="outline-container-org6fba278" class="outline-2"&gt;
+&lt;h2 id="org6fba278"&gt;Introduction&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org6fba278"&gt;
 &lt;p&gt;
 This is a walk through the &lt;a href="https://holoviews.org/getting_started/Tabular_Datasets.html"&gt;HoloViews page on Tabular Datasets&lt;/a&gt;. The data-set was created by the Wall Street Journal using Project Tycho, but I'm getting it from the &lt;a href="https://github.com/pyviz/holoviews"&gt;HoloViews github repository&lt;/a&gt;. The Wall Street Journal page is &lt;a href="https://graphics.wsj.com/infectious-diseases-and-vaccines/#b02g20t20w15"&gt;here&lt;/a&gt;. Unfortunately it has mixed content types (https and http) as well as some other problems which prevent Firefox and Chrome-based browsers from rendering it the visualization so I don't know what it actually looks like. Given that it's a commercial site I'm assuming it's an old page that they don't care about anymore.
 &lt;/p&gt;
@@ -2404,101 +2796,101 @@ This is a walk through the &lt;a href="https://holoviews.org/getting_started/Tab
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orge83918b" class="outline-2"&gt;
-&lt;h2 id="orge83918b"&gt;Set Up&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orge83918b"&gt;
+&lt;div id="outline-container-org4cf2f04" class="outline-2"&gt;
+&lt;h2 id="org4cf2f04"&gt;Set Up&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org4cf2f04"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgaba6372" class="outline-3"&gt;
-&lt;h3 id="orgaba6372"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgaba6372"&gt;
+&lt;div id="outline-container-org0e299f9" class="outline-3"&gt;
+&lt;h3 id="org0e299f9"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org0e299f9"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org7d76147" class="outline-4"&gt;
-&lt;h4 id="org7d76147"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org7d76147"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from functools import partial
-from pathlib import Path
-import os
+&lt;div id="outline-container-orgf970809" class="outline-4"&gt;
+&lt;h4 id="orgf970809"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgf970809"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;functools&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pathlib&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgd8c15a2" class="outline-4"&gt;
-&lt;h4 id="orgd8c15a2"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgd8c15a2"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from bokeh.io import output_notebook
-from dotenv import load_dotenv
-from holoviews import opts
-from tabulate import tabulate
-import holoviews
-import numpy
-import pandas
+&lt;div id="outline-container-orgbd75365" class="outline-4"&gt;
+&lt;h4 id="orgbd75365"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgbd75365"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;bokeh.io&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;output_notebook&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;dotenv&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;load_dotenv&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;holoviews&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;opts&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;tabulate&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;tabulate&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;holoviews&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;numpy&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pandas&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org2eb19da" class="outline-4"&gt;
-&lt;h4 id="org2eb19da"&gt;My Projects&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org2eb19da"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+&lt;div id="outline-container-org9ff46be" class="outline-4"&gt;
+&lt;h4 id="org9ff46be"&gt;My Projects&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org9ff46be"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;bartleby_the_penguin.tangles.embed_bokeh&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;EmbedBokeh&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgdf13e31" class="outline-3"&gt;
-&lt;h3 id="orgdf13e31"&gt;Holoviews Bokeh&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgdf13e31"&gt;
+&lt;div id="outline-container-org6b64702" class="outline-3"&gt;
+&lt;h3 id="org6b64702"&gt;Holoviews Bokeh&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org6b64702"&gt;
 &lt;p&gt;
 I don't know why but you have to specify that you're using &lt;code&gt;bokeh&lt;/code&gt;, even though it looks like it's working when you don't.
 &lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;holoviews.extension("bokeh")
-output_notebook()
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;holoviews&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;extension&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"bokeh"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;output_notebook&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8b744df" class="outline-3"&gt;
-&lt;h3 id="org8b744df"&gt;The Embedder&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org8b744df"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;files_path = Path("../../files/posts/libraries/holoviews-tabular-datasets/")
-Embed = partial(
-    EmbedBokeh,
-    folder_path=files_path)
+&lt;div id="outline-container-org772c16d" class="outline-3"&gt;
+&lt;h3 id="org772c16d"&gt;The Embedder&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org772c16d"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;files_path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"../../files/posts/libraries/holoviews-tabular-datasets/"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;Embed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;EmbedBokeh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;folder_path&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;files_path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org36a957e" class="outline-3"&gt;
-&lt;h3 id="org36a957e"&gt;Dotenv&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org36a957e"&gt;
+&lt;div id="outline-container-org89aa71b" class="outline-3"&gt;
+&lt;h3 id="org89aa71b"&gt;Dotenv&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org89aa71b"&gt;
 &lt;p&gt;
 I have the path to the data-set in a &lt;code&gt;.env&lt;/code&gt; file so I'll load it into the environment dictionary.
 &lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;load_dotenv(".env")
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;load_dotenv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;".env"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgf175a43" class="outline-3"&gt;
-&lt;h3 id="orgf175a43"&gt;Tabulate&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgf175a43"&gt;
+&lt;div id="outline-container-org9f55838" class="outline-3"&gt;
+&lt;h3 id="org9f55838"&gt;Tabulate&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org9f55838"&gt;
 &lt;p&gt;
 This will print a table that org knows how to render.
 &lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;orgtable = partial(tabulate, headers="keys", tablefmt="orgtbl", 
-		   showindex=False)
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;orgtable&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;tabulate&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;headers&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"keys"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tablefmt&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"orgtbl"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+		   &lt;span class="n"&gt;showindex&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8b922b3" class="outline-2"&gt;
-&lt;h2 id="org8b922b3"&gt;Load the Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org8b922b3"&gt;
+&lt;div id="outline-container-org47e989a" class="outline-2"&gt;
+&lt;h2 id="org47e989a"&gt;Load the Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org47e989a"&gt;
 &lt;p&gt;
 The data comes from &lt;a href="https://www.tycho.pitt.edu/"&gt;Project Tycho&lt;/a&gt;, which provides health-related data sets for research. The &lt;code&gt;.env&lt;/code&gt; file assumes that I cloned the &lt;code&gt;HoloViews&lt;/code&gt; repository so that I can load the data from it.
 &lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;path = Path(os.environ.get("DISEASES")).expanduser()
-assert path.is_file()
-with path.open() as reader:
-    diseases = pandas.read_csv(path)
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;environ&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"DISEASES"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;expanduser&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_file&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;reader&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;diseases&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(orgtable(diseases.head()))
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;orgtable&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;diseases&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;()))&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
@@ -2567,11 +2959,11 @@ with path.open() as reader:
 &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(len(diseases))
-print(len(diseases.State.unique()))
-print(diseases.Year.min())
-print(diseases.Year.max())
-print(diseases.Week.unique())
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;diseases&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;diseases&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;State&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;unique&lt;/span&gt;&lt;span class="p"&gt;()))&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;diseases&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Year&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;min&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;diseases&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Year&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;max&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;diseases&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Week&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;unique&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;pre class="example"&gt;
@@ -2591,17 +2983,16 @@ The &lt;code&gt;State&lt;/code&gt; column includes Washington D.C., which is why
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org18921b2" class="outline-2"&gt;
-&lt;h2 id="org18921b2"&gt;Create a Dataset&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org18921b2"&gt;
+&lt;div id="outline-container-org48f6cf9" class="outline-2"&gt;
+&lt;h2 id="org48f6cf9"&gt;Create a Dataset&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org48f6cf9"&gt;
 &lt;p&gt;
 HoloViews has a class called a Dataset that lets you declare the dependent (&lt;i&gt;value dimensions (vdims)&lt;/i&gt;) and independent variables (&lt;i&gt;key dimensions (kdims)&lt;/i&gt;).
 &lt;/p&gt;
 
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;key_dimensions = "Year State".split()
-value_dimensions = [("measles", "Measles Incidence"), ("pertussis", "Pertusis Incidence")]
-dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;key_dimensions&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"Year State"&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;value_dimensions&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="s2"&gt;"measles"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Measles Incidence"&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"pertussis"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Pertusis Incidence"&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+&lt;span class="n"&gt;dataset&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;holoviews&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Dataset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;diseases&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;key_dimensions&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;value_dimensions&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;
@@ -2609,18 +3000,18 @@ The &lt;code&gt;value_dimensions&lt;/code&gt; list has tuples - these take the f
 &lt;/p&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgc6c0fa0" class="outline-3"&gt;
-&lt;h3 id="orgc6c0fa0"&gt;Aggregate The Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgc6c0fa0"&gt;
+&lt;div id="outline-container-org4314bba" class="outline-3"&gt;
+&lt;h3 id="org4314bba"&gt;Aggregate The Data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org4314bba"&gt;
 &lt;p&gt;
 The one column that I didn't add is the &lt;code&gt;Week&lt;/code&gt; column. The &lt;code&gt;Dataset&lt;/code&gt; has a rather confusing &lt;code&gt;aggregate&lt;/code&gt; method (confusing because you only pass in the function to aggregate with) that apparently knows how to use the &lt;code&gt;key_dimensions&lt;/code&gt; variables we passed in to figure out what to aggregate.
 &lt;/p&gt;
 
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;dataset = dataset.aggregate(function=numpy.mean)
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;dataset&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;dataset&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;aggregate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;numpy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mean&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(dataset)
-print(dataset.shape)
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dataset&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dataset&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;pre class="example"&gt;
@@ -2629,12 +3020,12 @@ print(dataset.shape)
 
 &lt;/pre&gt;
 
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;layout = (dataset.to(holoviews.Curve, "Year", "measles")
-	  + dataset.to(holoviews.Curve, "Year", "pertussis")).cols(1)
-layout.opts(opts.Curve(width=600, height=300, framewise=True, tools=["hover"]))
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dataset&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;holoviews&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Curve&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Year"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"measles"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+	  &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;dataset&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;holoviews&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Curve&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Year"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"pertussis"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cols&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;layout&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;opts&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;opts&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Curve&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;width&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;600&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;height&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;300&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;framewise&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;True&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tools&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"hover"&lt;/span&gt;&lt;span class="p"&gt;]))&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Embed(layout, "measles_pertusis")()
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;Embed&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;layout&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"measles_pertusis"&lt;/span&gt;&lt;span class="p"&gt;)()&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/measles_pertusis.js" id="e0b8360d-329e-4304-bd8b-0b14a6a80f57"&gt;&lt;/script&gt;
@@ -4652,1682 +5043,4 @@ I don't know where this convention came from, but you can use the &lt;code&gt;by
 &lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-hvplot/iris_parallel_coordinates.js" id="d8e70c60-c084-47d6-81b0-a27c91b65ccc"&gt;&lt;/script&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description><category>exploration</category><category>hvplot</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-hvplot/</guid><pubDate>Fri, 01 Feb 2019 19:24:30 GMT</pubDate></item><item><title>Portland Daily Temperatures Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
-&lt;h2&gt;Table of Contents&lt;/h2&gt;
-&lt;div id="text-table-of-contents"&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/#orge5642a9"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/#orgd83b347"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/#org4f08676"&gt;Loading the Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/#orga567979"&gt;Cleaning&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/#orgcdc82b1"&gt;Figuring Out the Missing Date&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/#orgace35a6"&gt;Pivot the Metric Column&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/#org54b06bc"&gt;Updating the Columns&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/#org28ad4a8"&gt;Save the Message Pack&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/#org59c3adc"&gt;Looking at Some Plots&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orge5642a9" class="outline-2"&gt;
-&lt;h2 id="orge5642a9"&gt;Introduction&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orge5642a9"&gt;
-&lt;p&gt;
-I'm going to work with the Daily Temperatures data set for Portland, Oregon (measured at the airport) taken from the &lt;a href="https://w2.weather.gov/climate/local_data.php?wfo=pqr"&gt;National Weather Service&lt;/a&gt;. I cleaned it up a little already, removing the extra header rows and adding a missing column header (&lt;code&gt;Metric&lt;/code&gt;) but the data is arranged with the year and month as a column and then each day is given its own column, which isn't how I want to work with it, so I'm going to transform it a little to make it more like what I expect it to look like.}
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgd83b347" class="outline-2"&gt;
-&lt;h2 id="orgd83b347"&gt;Set Up&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgd83b347"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orga20a174" class="outline-3"&gt;
-&lt;h3 id="orga20a174"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orga20a174"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org2ba65ed" class="outline-4"&gt;
-&lt;h4 id="org2ba65ed"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org2ba65ed"&gt;
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;datetime&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pathlib&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;typing&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Union&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgde9675f" class="outline-4"&gt;
-&lt;h4 id="orgde9675f"&gt;From PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgde9675f"&gt;
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;dotenv&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;load_dotenv&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class="kn"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;pyplot&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pandas&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;seaborn&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org3af0861" class="outline-3"&gt;
-&lt;h3 id="org3af0861"&gt;Plotting&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org3af0861"&gt;
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;get_ipython&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;run_line_magic&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'matplotlib'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'inline'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;get_ipython&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;run_line_magic&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'config'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"InlineBackend.figure_format = 'retina'"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;seaborn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;style&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"whitegrid"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-	    &lt;span class="n"&gt;rc&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s2"&gt;"axes.grid"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-		&lt;span class="s2"&gt;"font.family"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"sans-serif"&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;
-		&lt;span class="s2"&gt;"font.sans-serif"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"Open Sans"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Latin Modern Sans"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Lato"&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;
-		&lt;span class="s2"&gt;"figure.figsize"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="p"&gt;)},&lt;/span&gt;
-	    &lt;span class="n"&gt;font_scale&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org4f08676" class="outline-2"&gt;
-&lt;h2 id="org4f08676"&gt;Loading the Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org4f08676"&gt;
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;load_dotenv&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;environ&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"CSV"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;expanduser&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_file&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-/home/hades/data/datasets/necromuralist/daily-climate-data/portland_1940_to_april_2018.csv
-
-&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgf270d81" class="outline-3"&gt;
-&lt;h3 id="orgf270d81"&gt;Some Preparation&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgf270d81"&gt;
-&lt;p&gt;
-The first thing to work with is that there are three characters representing "missing" data (that I noticed) - &lt;i&gt;M&lt;/i&gt;, &lt;i&gt;T&lt;/i&gt;, and &lt;i&gt;-&lt;/i&gt; - that we have to tell pandas about when we use &lt;a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_csv.html"&gt;read_csv&lt;/a&gt;.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;missing&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"M"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"T"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"-"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;
-I was going to load the measurement type (e.g. "TX"), but I realized that I was planning to turn those into column headers so maybe it's not a good idea.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;na_values&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;missing&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-(3756, 35)
-
-&lt;/pre&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;columns&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Index(['YR', 'MO', 'Metric', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-       '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22',
-       '23', '24', '25', '26', '27', '28', '29', '30', '31', 'AVG or Total'],
-      dtype='object')
-
-&lt;/pre&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-&amp;lt;class 'pandas.core.frame.DataFrame'&amp;gt;
-RangeIndex: 3756 entries, 0 to 3755
-Data columns (total 35 columns):
-YR              3756 non-null int64
-MO              3756 non-null int64
-Metric          3756 non-null object
-1               3602 non-null float64
-2               3554 non-null float64
-3               3583 non-null float64
-4               3604 non-null float64
-5               3599 non-null float64
-6               3610 non-null float64
-7               3587 non-null object
-8               3590 non-null float64
-9               3595 non-null float64
-10              3614 non-null float64
-11              3602 non-null float64
-12              3600 non-null float64
-13              3583 non-null float64
-14              3582 non-null float64
-15              3591 non-null float64
-16              3604 non-null float64
-17              3598 non-null float64
-18              3615 non-null float64
-19              3611 non-null float64
-20              3588 non-null float64
-21              3606 non-null float64
-22              3609 non-null float64
-23              3595 non-null float64
-24              3605 non-null float64
-25              3598 non-null float64
-26              3600 non-null float64
-27              3598 non-null float64
-28              3593 non-null float64
-29              3371 non-null float64
-30              3294 non-null float64
-31              2097 non-null float64
-AVG or Total    3616 non-null float64
-dtypes: float64(31), int64(2), object(2)
-memory usage: 1.0+ MB
-None
-&lt;/pre&gt;
-
-&lt;p&gt;
-For some reason column &lt;code&gt;7&lt;/code&gt; wasn't converted to a float.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;row&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;enumerate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"7"&lt;/span&gt;&lt;span class="p"&gt;]):&lt;/span&gt;
-    &lt;span class="k"&gt;try&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-	&lt;span class="nb"&gt;float&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="k"&gt;except&lt;/span&gt; &lt;span class="ne"&gt;Exception&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-	&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-	&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Row: {}"&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-	&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Value: {}"&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-could not convert string to float: 
-Row: 1835
-Value:  
-
-&lt;/pre&gt;
-&lt;p&gt;
-It turns out that this one row also had a space (' ') for one of the values. Strange.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;missing&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;" "&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;na_values&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;missing&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-&amp;lt;class 'pandas.core.frame.DataFrame'&amp;gt;
-RangeIndex: 3756 entries, 0 to 3755
-Data columns (total 35 columns):
-YR              3756 non-null int64
-MO              3756 non-null int64
-Metric          3756 non-null object
-1               3602 non-null float64
-2               3554 non-null float64
-3               3583 non-null float64
-4               3604 non-null float64
-5               3599 non-null float64
-6               3610 non-null float64
-7               3586 non-null float64
-8               3590 non-null float64
-9               3595 non-null float64
-10              3614 non-null float64
-11              3602 non-null float64
-12              3600 non-null float64
-13              3583 non-null float64
-14              3582 non-null float64
-15              3591 non-null float64
-16              3604 non-null float64
-17              3598 non-null float64
-18              3615 non-null float64
-19              3611 non-null float64
-20              3588 non-null float64
-21              3606 non-null float64
-22              3609 non-null float64
-23              3595 non-null float64
-24              3605 non-null float64
-25              3598 non-null float64
-26              3600 non-null float64
-27              3598 non-null float64
-28              3593 non-null float64
-29              3371 non-null float64
-30              3294 non-null float64
-31              2097 non-null float64
-AVG or Total    3616 non-null float64
-dtypes: float64(32), int64(2), object(1)
-memory usage: 1.0+ MB
-None
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orga567979" class="outline-2"&gt;
-&lt;h2 id="orga567979"&gt;Cleaning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orga567979"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org0ad4c53" class="outline-3"&gt;
-&lt;h3 id="org0ad4c53"&gt;Drop the Last Column&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org0ad4c53"&gt;
-&lt;p&gt;
-Besides the fact that the last column is a calculated one, the fact that it's ambiguous (I guess you can tell by how big it is whether it's a Total, but still) makes me think I should get rid of the last column (using &lt;a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.drop.html"&gt;drop&lt;/a&gt;).
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;cleaned&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;drop&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;columns&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;axis&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"columns"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cleaned&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cleaned&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;columns&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;columns&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-(3756, 34)
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org89d2229" class="outline-3"&gt;
-&lt;h3 id="org89d2229"&gt;Rotate the Days&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org89d2229"&gt;
-&lt;p&gt;
-Now I'm going to move the day-columns into row-values using &lt;a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.melt.html"&gt;melt&lt;/a&gt;.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;melt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cleaned&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;id_vars&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"YR"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"MO"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Metric"&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;var_name&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"Day"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;value_name&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"Value"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-     YR  MO Metric Day  Value
-0  1940  10     TX   1    NaN
-1  1940  10     TN   1    NaN
-2  1940  10     PR   1    NaN
-3  1940  10     SN   1    NaN
-4  1940  11     TX   1   52.0
-
-&lt;/pre&gt;
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="mi"&gt;31&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-(116436, 5)
-
-&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org9f3edd2" class="outline-4"&gt;
-&lt;h4 id="org9f3edd2"&gt;Casting the Days to Integers&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org9f3edd2"&gt;
-&lt;p&gt;
-Although they look like integers, the &lt;code&gt;Day&lt;/code&gt; column was converted from column headers so they're strings. Maybe I could have cast them at the time of the conversion, but, oh, well.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iloc&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Day&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-&amp;lt;class 'str'&amp;gt;
-
-&lt;/pre&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"Day"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Day&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;astype&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iloc&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Day&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-&amp;lt;class 'numpy.int64'&amp;gt;
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org91a9a55" class="outline-3"&gt;
-&lt;h3 id="org91a9a55"&gt;Make a Date Column&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org91a9a55"&gt;
-&lt;p&gt;
-Now I'll make a single date column.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"date"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apply&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;year&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;YR&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-						   &lt;span class="n"&gt;month&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MO&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-						   &lt;span class="n"&gt;day&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Day&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
-			      &lt;span class="n"&gt;axis&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"columns"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;
-That raised an error..
-&lt;/p&gt;
-
-&lt;pre class="example"&gt;
-ValueError: ('day is out of range for month', 'occurred at index 105184')
-&lt;/pre&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iloc&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;105184&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-YR        1941
-MO           2
-Metric      TX
-Day         29
-Value        -
-Name: 105184, dtype: object
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-Okay, so here we have a problem in that not all the dates exist. Also, for some reason the '-' didn't get converted to a NaN, but one thing at a time.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;to_datetime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;pandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Series&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;Union&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="bp"&gt;None&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-    &lt;span class="sd"&gt;"""Converts the row to a datetime&lt;/span&gt;
-
-&lt;span class="sd"&gt;    Args:&lt;/span&gt;
-&lt;span class="sd"&gt;     row: row in the dataframe with year, month, and day&lt;/span&gt;
-&lt;span class="sd"&gt;    Returns:&lt;/span&gt;
-&lt;span class="sd"&gt;     row converted to datetime or None if it isn't valid&lt;/span&gt;
-&lt;span class="sd"&gt;    """&lt;/span&gt;
-    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;pandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;isnull&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-	&lt;span class="k"&gt;try&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-	    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;year&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;YR&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;month&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MO&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;day&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Day&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-	&lt;span class="k"&gt;except&lt;/span&gt; &lt;span class="ne"&gt;ValueError&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-	    &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="k"&gt;return&lt;/span&gt;    
-&lt;/pre&gt;&lt;/div&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;started&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;now&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"date"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apply&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_datetime&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;axis&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"columns"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Elapsed: {}"&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;now&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;started&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-day is out of range for month
-     YR  MO Metric  Day  Value       date
-0  1940  10     TX    1    NaN        NaT
-1  1940  10     TN    1    NaN        NaT
-2  1940  10     PR    1    NaN        NaT
-3  1940  10     SN    1    NaN        NaT
-4  1940  11     TX    1   52.0 1940-11-01
-Elapsed: 0:00:09.351053
-
-&lt;/pre&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Fraction Missing: {:.2f}"&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
-    &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;isnull&lt;/span&gt;&lt;span class="p"&gt;()])&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Fraction Missing: 0.06
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgfbd480f" class="outline-3"&gt;
-&lt;h3 id="orgfbd480f"&gt;Drop the Missing&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgfbd480f"&gt;
-&lt;p&gt;
-Here I'll drop the dates that didn't have data.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;cleaned&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dropna&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;subset&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"Value"&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cleaned&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-     YR  MO Metric  Day  Value       date
-4  1940  11     TX    1  52.00 1940-11-01
-5  1940  11     TN    1  40.00 1940-11-01
-6  1940  11     PR    1   0.17 1940-11-01
-7  1940  11     SN    1   0.00 1940-11-01
-8  1940  12     TX    1  51.00 1940-12-01
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org395c528" class="outline-3"&gt;
-&lt;h3 id="org395c528"&gt;Drop the Extra Date Coulmns&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org395c528"&gt;
-&lt;p&gt;
-Since we have a date column I'll get rid of the columns that made it up.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;cleaned&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cleaned&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;drop&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="s2"&gt;"YR"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"MO"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Day"&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;axis&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"columns"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cleaned&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-  Metric  Value       date
-4     TX  52.00 1940-11-01
-5     TN  40.00 1940-11-01
-6     PR   0.17 1940-11-01
-7     SN   0.00 1940-11-01
-8     TX  51.00 1940-12-01
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgcdc82b1" class="outline-2"&gt;
-&lt;h2 id="orgcdc82b1"&gt;Figuring Out the Missing Date&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgcdc82b1"&gt;
-&lt;p&gt;
-One of the entries has values but no date.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cleaned&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;cleaned&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;isnull&lt;/span&gt;&lt;span class="p"&gt;()])&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-       Metric  Value date
-105427     SN   34.0  NaT
-
-&lt;/pre&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;melted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iloc&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;105427&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-YR        1946
-MO           2
-Metric      SN
-Day         29
-Value       34
-date       NaT
-Name: 105427, dtype: object
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-I looked it up and 1946 isn't a leap-year, so there's no February 29, 1946. Did something get lost in translation?
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;YR&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="mi"&gt;1946&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MO&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)])&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-       YR  MO Metric      1      2     3      4      5      6      7  \
-256  1946   2     TX  48.00  47.00  45.0  43.00  48.00  48.00  43.00   
-257  1946   2     TN  44.00  35.00  32.0  32.00  37.00  39.00  33.00   
-258  1946   2     PR   0.05   0.02   NaN   0.01   1.54   0.63   0.06   
-259  1946   2     SN   0.00   0.00   0.0   0.00   0.00   0.00   0.00   
-
-         ...         23     24    25     26     27     28    29  30  31  \
-256      ...       58.0  52.00  53.0  49.00  53.00  55.00   NaN NaN NaN   
-257      ...       43.0  40.00  39.0  35.00  44.00  40.00   NaN NaN NaN   
-258      ...        0.1   0.26   NaN   0.57   0.64   0.04   NaN NaN NaN   
-259      ...        0.0   0.00   0.0   0.00   0.00   0.00  34.0 NaN NaN   
-
-     AVG or Total  
-256         49.40  
-257         36.00  
-258          4.99  
-259          0.00  
-
-[4 rows x 35 columns]
-&lt;/pre&gt;
-
-&lt;p&gt;
-It looks like there's something wrong with the snowfall measurement for that date, the other measurements don't have values.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;YR&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="mi"&gt;1946&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MO&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Metric&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="s2"&gt;"SN"&lt;/span&gt;&lt;span class="p"&gt;)])&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-       YR  MO Metric    1    2    3    4    5    6    7      ...        23  \
-259  1946   2     SN  0.0  0.0  0.0  0.0  0.0  0.0  0.0      ...       0.0   
-
-      24   25   26   27   28    29  30  31  AVG or Total  
-259  0.0  0.0  0.0  0.0  0.0  34.0 NaN NaN           0.0  
-
-[1 rows x 35 columns]
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-It was just all 0's and then there's this mysterious 34 inches of snow on the 29th of February. I'm pretty sure that's a mistake. I'll have to delete that. 
-&lt;/p&gt;
-
-&lt;p&gt;
-Although I have the index in the original &lt;code&gt;data&lt;/code&gt; frame I've already done all this cleaning so I think it's easier just to drop the missing dates.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;rows&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;columns&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cleaned&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;
-&lt;span class="n"&gt;cleaned&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cleaned&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dropna&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;subset&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"date"&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
-&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;cleaned&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;rows&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgace35a6" class="outline-2"&gt;
-&lt;h2 id="orgace35a6"&gt;Pivot the Metric Column&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgace35a6"&gt;
-&lt;p&gt;
-So, besides getting the dates into a column one of the points of this was to get the metric types into columns by &lt;a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.pivot.html"&gt;pivoting&lt;/a&gt;. I guess you could argue that this is just a category, but since each date gets all four of the values I think this makes sense.
-&lt;/p&gt;
-
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;pivoted&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cleaned&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pivot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"date"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;columns&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"Metric"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;values&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"Value"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;pivoted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Metric        PR   SN    TN    TX
-date                             
-1940-10-13  0.01  0.0  57.0  75.0
-1940-10-14   NaN  0.0  53.0  70.0
-1940-10-15   NaN  0.0  52.0  64.0
-1940-10-16  0.00  0.0  50.0  72.0
-1940-10-17  0.13  0.0  58.0  72.0
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-It looks like there's some missing precipitation data. I don't really have a solution for that. I think decisions to imput missing values should come when the data set is being used.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;metric&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"PR"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"SN"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"TN"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"TX"&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"{} Missing: {:,}"&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;metric&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;pivoted&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;pivoted&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;metric&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;isnull&lt;/span&gt;&lt;span class="p"&gt;()])))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-PR Missing: 3,297
-SN Missing: 523
-TN Missing: 0
-TX Missing: 0
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-So it looks like we're okay with the temperatures but maybe not so well off with the precipitation.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;missing&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pivoted&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;pivoted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;PR&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;isnull&lt;/span&gt;&lt;span class="p"&gt;()]&lt;/span&gt;
-&lt;span class="n"&gt;missing&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;loc&lt;/span&gt;&lt;span class="p"&gt;[:,&lt;/span&gt; &lt;span class="s2"&gt;"missing"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-&lt;span class="n"&gt;monthly&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;missing&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;missing&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;resample&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"M"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;figure&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;axe&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pyplot&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;subplots&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;figure&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;suptitle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Missing Monthly Precipitation"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"bold"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;counts&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;monthly&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;stem&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;axe&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;stem&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;
-&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/missing_pr.png" alt="missing_pr.png"&gt;
-So, I was expecting this to be a problem that happened early and then died out, but it appears there's an ongoing problem with collecting precipitation - or maybe they use a symbol for 0 that I'm interpreting as missing?
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;yearly&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;missing&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;missing&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;resample&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Y"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;figure&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;axe&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pyplot&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;subplots&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;figure&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;suptitle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Missing Yearly Precipitation"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"bold"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;counts&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;yearly&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;stem&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;axe&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;stem&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;div class="figure"&gt;
-&lt;p&gt;&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/missing_yearly_pr.png" alt="missing_yearly_pr.png"&gt;
-&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;p&gt;
-This does seem problematic, if I do anything with precipitation I'll have to figure out what's going on here.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org54b06bc" class="outline-2"&gt;
-&lt;h2 id="org54b06bc"&gt;Updating the Columns&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org54b06bc"&gt;
-&lt;p&gt;
-The whole &lt;code&gt;TX&lt;/code&gt;, &lt;code&gt;TN&lt;/code&gt;, etc. encoding scheme seems like it causes too much mental overhead so I'm going to rename the metric columns.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;renamed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pivoted&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;rename&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;dict&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"precipitation"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-			      &lt;span class="n"&gt;SN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"snowfall"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-			      &lt;span class="n"&gt;TN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"minimum_temperature"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-			      &lt;span class="n"&gt;TX&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"maximum_temperature"&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
-			 &lt;span class="n"&gt;axis&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"columns"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;renamed&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Metric      precipitation  snowfall  minimum_temperature  maximum_temperature
-date                                                                         
-1940-10-13           0.01       0.0                 57.0                 75.0
-1940-10-14            NaN       0.0                 53.0                 70.0
-1940-10-15            NaN       0.0                 52.0                 64.0
-1940-10-16           0.00       0.0                 50.0                 72.0
-1940-10-17           0.13       0.0                 58.0                 72.0
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-
-&lt;div id="outline-container-org28ad4a8" class="outline-2"&gt;
-&lt;h2 id="org28ad4a8"&gt;Save the Message Pack&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org28ad4a8"&gt;
-&lt;p&gt;
-Now that we have the cleaned-up data, I'll save it as a message pack.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;pack_path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;environ&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"MESSAGE_PACK"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;expanduser&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;pack_path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-/home/hades/pCloudDrive/data/daily-climate-data/portland_1940_to_april_2018.msg
-
-&lt;/pre&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;renamed&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to_msgpack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;pack_path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;pack_path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_file&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org59c3adc" class="outline-2"&gt;
-&lt;h2 id="org59c3adc"&gt;Looking at Some Plots&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org59c3adc"&gt;
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;maximum_temperature&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;renamed&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;maximum_temperature&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;resample&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Y"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;medians&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;maximum_temperature&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;median&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;maxes&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;maximum_temperature&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;max&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;mins&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;maximum_temperature&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;min&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;figure&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;axe&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pyplot&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;subplots&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;figure&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;suptitle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Portland, OR Yearly Maximum Daily Temperatures"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"bold"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;axe&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;stem&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;maxes&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;maxes&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;markerfmt&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"ro"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;label&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"Maximum"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;axe&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;stem&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mins&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;mins&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;markerfmt&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"go"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;label&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"Minimum"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;stem&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;axe&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;stem&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;medians&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;medians&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;label&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"Median"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;legend&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;axe&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;legend&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bbox_to_anchor&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;div class="figure"&gt;
-&lt;p&gt;&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/median_yearly_temperature.png" alt="median_yearly_temperature.png"&gt;
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;</description><category>cleaning</category><category>data</category><category>weather</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/portland-daily-climate/portland-daily-temperatures-data/</guid><pubDate>Tue, 22 Jan 2019 01:31:32 GMT</pubDate></item><item><title>Kaggle On Time-Series Visualization</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
-&lt;h2&gt;Table of Contents&lt;/h2&gt;
-&lt;div id="text-table-of-contents"&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org806bf51"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#orgd6c52b5"&gt;Set Up&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org9c2d9c5"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org69c897d"&gt;Plotting&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#orgf9b7bda"&gt;Setup Libraries&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#orgb24afa4"&gt;The Data&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#orge4a982a"&gt;New York Stock Exchange Prices&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org210002a"&gt;Shelter Outcomes&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org7a65e6f"&gt;Cryptocurrency&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#orgffe2e5a"&gt;Grouping&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org1a73eaa"&gt;Birth Dates&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org9d45fdc"&gt;Outcomes&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#orgde0c4e3"&gt;Trading Volume&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org773c39d"&gt;Lag Plots&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org74c7c78"&gt;NYSE&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org76330e0"&gt;UPS&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org424c6a1"&gt;Autcorrelation Plot&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org1ed9bb2"&gt;UPS&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#orgf6e7937"&gt;Cryptocurrency&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#org1b356de"&gt;Lag Plot&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/#orgbca338b"&gt;Autocorrelation Plot&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org806bf51" class="outline-2"&gt;
-&lt;h2 id="org806bf51"&gt;Introduction&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org806bf51"&gt;
-&lt;p&gt;
-This is a walk-through of the kaggle notebook on &lt;a href="https://www.kaggle.com/residentmario/time-series-plotting-optional"&gt;Time-Series Plotting&lt;/a&gt; by Aleksey Bilogur.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgd6c52b5" class="outline-2"&gt;
-&lt;h2 id="orgd6c52b5"&gt;Set Up&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgd6c52b5"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org9c2d9c5" class="outline-3"&gt;
-&lt;h3 id="org9c2d9c5"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org9c2d9c5"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgfe7b97b" class="outline-4"&gt;
-&lt;h4 id="orgfe7b97b"&gt;From Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgfe7b97b"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from datetime import datetime
-from functools import partial
-from pathlib import Path
-import os
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgc091065" class="outline-4"&gt;
-&lt;h4 id="orgc091065"&gt;From PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgc091065"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from dotenv import load_dotenv
-from pandas.plotting import autocorrelation_plot, lag_plot
-from tabulate import tabulate
-import matplotlib
-import matplotlib.pyplot as pyplot
-import pandas
-import seaborn
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org69c897d" class="outline-3"&gt;
-&lt;h3 id="org69c897d"&gt;Plotting&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org69c897d"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;get_ipython().run_line_magic('matplotlib', 'inline')
-get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
-seaborn.set(style="whitegrid",
-	    rc={"axes.grid": False,
-		"font.family": ["sans-serif"],
-		"font.sans-serif": ["Open Sans", "Latin Modern Sans", "Lato"],
-		"figure.figsize": (8, 6)},
-	    font_scale=1)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgf9b7bda" class="outline-3"&gt;
-&lt;h3 id="orgf9b7bda"&gt;Setup Libraries&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgf9b7bda"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;load_dotenv()
-table = partial(tabulate, headers="keys", tablefmt="orgtbl")
-kaggle_path = Path(os.environ.get("KAGGLE")).expanduser()
-assert kaggle_path.is_dir()
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgb24afa4" class="outline-2"&gt;
-&lt;h2 id="orgb24afa4"&gt;The Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgb24afa4"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orge4a982a" class="outline-3"&gt;
-&lt;h3 id="orge4a982a"&gt;New York Stock Exchange Prices&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orge4a982a"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;nyse_path = kaggle_path.joinpath("nyse/prices.csv")
-assert nyse_path.is_file()
-nyse = pandas.read_csv(nyse_path, parse_dates=["date"])
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;nyse.info()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-&amp;lt;class 'pandas.core.frame.DataFrame'&amp;gt;
-RangeIndex: 851264 entries, 0 to 851263
-Data columns (total 7 columns):
-date      851264 non-null datetime64[ns]
-symbol    851264 non-null object
-open      851264 non-null float64
-close     851264 non-null float64
-low       851264 non-null float64
-high      851264 non-null float64
-volume    851264 non-null float64
-dtypes: datetime64[ns](1), float64(5), object(1)
-memory usage: 45.5+ MB
-&lt;/pre&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;nyse = nyse.set_index("date")
-print(table(nyse.head()))
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
-
-
-&lt;colgroup&gt;
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-&lt;/colgroup&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th scope="col" class="org-left"&gt;date&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;symbol&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;open&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;close&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;low&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;high&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;volume&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2016-01-05 00:00:00&lt;/td&gt;
-&lt;td class="org-left"&gt;WLTW&lt;/td&gt;
-&lt;td class="org-right"&gt;123.43&lt;/td&gt;
-&lt;td class="org-right"&gt;125.84&lt;/td&gt;
-&lt;td class="org-right"&gt;122.31&lt;/td&gt;
-&lt;td class="org-right"&gt;126.25&lt;/td&gt;
-&lt;td class="org-right"&gt;2.1636e+06&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2016-01-06 00:00:00&lt;/td&gt;
-&lt;td class="org-left"&gt;WLTW&lt;/td&gt;
-&lt;td class="org-right"&gt;125.24&lt;/td&gt;
-&lt;td class="org-right"&gt;119.98&lt;/td&gt;
-&lt;td class="org-right"&gt;119.94&lt;/td&gt;
-&lt;td class="org-right"&gt;125.54&lt;/td&gt;
-&lt;td class="org-right"&gt;2.3864e+06&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2016-01-07 00:00:00&lt;/td&gt;
-&lt;td class="org-left"&gt;WLTW&lt;/td&gt;
-&lt;td class="org-right"&gt;116.38&lt;/td&gt;
-&lt;td class="org-right"&gt;114.95&lt;/td&gt;
-&lt;td class="org-right"&gt;114.93&lt;/td&gt;
-&lt;td class="org-right"&gt;119.74&lt;/td&gt;
-&lt;td class="org-right"&gt;2.4895e+06&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2016-01-08 00:00:00&lt;/td&gt;
-&lt;td class="org-left"&gt;WLTW&lt;/td&gt;
-&lt;td class="org-right"&gt;115.48&lt;/td&gt;
-&lt;td class="org-right"&gt;116.62&lt;/td&gt;
-&lt;td class="org-right"&gt;113.5&lt;/td&gt;
-&lt;td class="org-right"&gt;117.44&lt;/td&gt;
-&lt;td class="org-right"&gt;2.0063e+06&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2016-01-11 00:00:00&lt;/td&gt;
-&lt;td class="org-left"&gt;WLTW&lt;/td&gt;
-&lt;td class="org-right"&gt;117.01&lt;/td&gt;
-&lt;td class="org-right"&gt;114.97&lt;/td&gt;
-&lt;td class="org-right"&gt;114.09&lt;/td&gt;
-&lt;td class="org-right"&gt;117.33&lt;/td&gt;
-&lt;td class="org-right"&gt;1.4086e+06&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;
-The notebook describes this as an example of a "strong" date case because the dates act as an explicit index for the data and are, in this case, an aggregate for a day of trading.
-&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org0e5293a" class="outline-4"&gt;
-&lt;h4 id="org0e5293a"&gt;UPS&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org0e5293a"&gt;
-&lt;p&gt;
-Some of the correlational plots don't show anything meaningful when you use the market as a whole (I guess because different stocks are moving in different directions) so I'm going to pull out the UPS stock information to use later.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ups = nyse[nyse.symbol=="UPS"]
-print(ups.shape)
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-(1762, 6)
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org210002a" class="outline-3"&gt;
-&lt;h3 id="org210002a"&gt;Shelter Outcomes&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org210002a"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;shelter_path = kaggle_path.joinpath(
-    "austin-animal-center-shelter-outcomes/aac_shelter_outcomes.csv")
-assert shelter_path.is_file()
-shelter = pandas.read_csv(shelter_path, parse_dates=["datetime", "date_of_birth"])
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;shelter.info()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-&amp;lt;class 'pandas.core.frame.DataFrame'&amp;gt;
-RangeIndex: 78256 entries, 0 to 78255
-Data columns (total 12 columns):
-age_upon_outcome    78248 non-null object
-animal_id           78256 non-null object
-animal_type         78256 non-null object
-breed               78256 non-null object
-color               78256 non-null object
-date_of_birth       78256 non-null datetime64[ns]
-datetime            78256 non-null datetime64[ns]
-monthyear           78256 non-null object
-name                54370 non-null object
-outcome_subtype     35963 non-null object
-outcome_type        78244 non-null object
-sex_upon_outcome    78254 non-null object
-dtypes: datetime64[ns](2), object(10)
-memory usage: 7.2+ MB
-&lt;/pre&gt;
-
-&lt;p&gt;
-Some of the columns are only identifiers (like a name) so we'll drop them to make it easier to inspect the data (although we aren't really going to do anything with it here anyway).
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;shelter = shelter[["outcome_type", "age_upon_outcome", "datetime",
-		   "animal_type", "breed", "color", "sex_upon_outcome",
-		   "date_of_birth"]]
-print(table(shelter.head(), showindex=False))
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
-
-
-&lt;colgroup&gt;
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-left"&gt;
-&lt;/colgroup&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th scope="col" class="org-left"&gt;outcome_type&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;age_upon_outcome&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;datetime&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;animal_type&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;breed&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;color&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;sex_upon_outcome&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;date_of_birth&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td class="org-left"&gt;Transfer&lt;/td&gt;
-&lt;td class="org-left"&gt;2 weeks&lt;/td&gt;
-&lt;td class="org-left"&gt;2014-07-22 16:04:00&lt;/td&gt;
-&lt;td class="org-left"&gt;Cat&lt;/td&gt;
-&lt;td class="org-left"&gt;Domestic Shorthair Mix&lt;/td&gt;
-&lt;td class="org-left"&gt;Orange Tabby&lt;/td&gt;
-&lt;td class="org-left"&gt;Intact Male&lt;/td&gt;
-&lt;td class="org-left"&gt;2014-07-07 00:00:00&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;Transfer&lt;/td&gt;
-&lt;td class="org-left"&gt;1 year&lt;/td&gt;
-&lt;td class="org-left"&gt;2013-11-07 11:47:00&lt;/td&gt;
-&lt;td class="org-left"&gt;Dog&lt;/td&gt;
-&lt;td class="org-left"&gt;Beagle Mix&lt;/td&gt;
-&lt;td class="org-left"&gt;White/Brown&lt;/td&gt;
-&lt;td class="org-left"&gt;Spayed Female&lt;/td&gt;
-&lt;td class="org-left"&gt;2012-11-06 00:00:00&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;Adoption&lt;/td&gt;
-&lt;td class="org-left"&gt;1 year&lt;/td&gt;
-&lt;td class="org-left"&gt;2014-06-03 14:20:00&lt;/td&gt;
-&lt;td class="org-left"&gt;Dog&lt;/td&gt;
-&lt;td class="org-left"&gt;Pit Bull&lt;/td&gt;
-&lt;td class="org-left"&gt;Blue/White&lt;/td&gt;
-&lt;td class="org-left"&gt;Neutered Male&lt;/td&gt;
-&lt;td class="org-left"&gt;2013-03-31 00:00:00&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;Transfer&lt;/td&gt;
-&lt;td class="org-left"&gt;9 years&lt;/td&gt;
-&lt;td class="org-left"&gt;2014-06-15 15:50:00&lt;/td&gt;
-&lt;td class="org-left"&gt;Dog&lt;/td&gt;
-&lt;td class="org-left"&gt;Miniature Schnauzer Mix&lt;/td&gt;
-&lt;td class="org-left"&gt;White&lt;/td&gt;
-&lt;td class="org-left"&gt;Neutered Male&lt;/td&gt;
-&lt;td class="org-left"&gt;2005-06-02 00:00:00&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;Euthanasia&lt;/td&gt;
-&lt;td class="org-left"&gt;5 months&lt;/td&gt;
-&lt;td class="org-left"&gt;2014-07-07 14:04:00&lt;/td&gt;
-&lt;td class="org-left"&gt;Other&lt;/td&gt;
-&lt;td class="org-left"&gt;Bat Mix&lt;/td&gt;
-&lt;td class="org-left"&gt;Brown&lt;/td&gt;
-&lt;td class="org-left"&gt;Unknown&lt;/td&gt;
-&lt;td class="org-left"&gt;2014-01-07 00:00:00&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;
-The notebook describes this as an example of a "weak" date case because the dates are only there for record-keeping and, while they might be significant for modeling, aren't acting as an index for the records.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org7a65e6f" class="outline-3"&gt;
-&lt;h3 id="org7a65e6f"&gt;Cryptocurrency&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org7a65e6f"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;currency_path = kaggle_path.joinpath("all-crypto-currencies/crypto-markets.csv")
-assert currency_path.is_file()
-currency = pandas.read_csv(currency_path, parse_dates=["date"])
-currency = currency.set_index("date")
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(table(currency.head(), showindex=True))
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
-
-
-&lt;colgroup&gt;
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-&lt;/colgroup&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th scope="col" class="org-left"&gt;date&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;slug&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;symbol&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;name&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;ranknow&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;open&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;high&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;low&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;close&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;volume&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;market&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;close_ratio&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;spread&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2013-04-28 00:00:00&lt;/td&gt;
-&lt;td class="org-left"&gt;bitcoin&lt;/td&gt;
-&lt;td class="org-left"&gt;BTC&lt;/td&gt;
-&lt;td class="org-left"&gt;Bitcoin&lt;/td&gt;
-&lt;td class="org-right"&gt;1&lt;/td&gt;
-&lt;td class="org-right"&gt;135.3&lt;/td&gt;
-&lt;td class="org-right"&gt;135.98&lt;/td&gt;
-&lt;td class="org-right"&gt;132.1&lt;/td&gt;
-&lt;td class="org-right"&gt;134.21&lt;/td&gt;
-&lt;td class="org-right"&gt;0&lt;/td&gt;
-&lt;td class="org-right"&gt;1.48857e+09&lt;/td&gt;
-&lt;td class="org-right"&gt;0.5438&lt;/td&gt;
-&lt;td class="org-right"&gt;3.88&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2013-04-29 00:00:00&lt;/td&gt;
-&lt;td class="org-left"&gt;bitcoin&lt;/td&gt;
-&lt;td class="org-left"&gt;BTC&lt;/td&gt;
-&lt;td class="org-left"&gt;Bitcoin&lt;/td&gt;
-&lt;td class="org-right"&gt;1&lt;/td&gt;
-&lt;td class="org-right"&gt;134.44&lt;/td&gt;
-&lt;td class="org-right"&gt;147.49&lt;/td&gt;
-&lt;td class="org-right"&gt;134&lt;/td&gt;
-&lt;td class="org-right"&gt;144.54&lt;/td&gt;
-&lt;td class="org-right"&gt;0&lt;/td&gt;
-&lt;td class="org-right"&gt;1.60377e+09&lt;/td&gt;
-&lt;td class="org-right"&gt;0.7813&lt;/td&gt;
-&lt;td class="org-right"&gt;13.49&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2013-04-30 00:00:00&lt;/td&gt;
-&lt;td class="org-left"&gt;bitcoin&lt;/td&gt;
-&lt;td class="org-left"&gt;BTC&lt;/td&gt;
-&lt;td class="org-left"&gt;Bitcoin&lt;/td&gt;
-&lt;td class="org-right"&gt;1&lt;/td&gt;
-&lt;td class="org-right"&gt;144&lt;/td&gt;
-&lt;td class="org-right"&gt;146.93&lt;/td&gt;
-&lt;td class="org-right"&gt;134.05&lt;/td&gt;
-&lt;td class="org-right"&gt;139&lt;/td&gt;
-&lt;td class="org-right"&gt;0&lt;/td&gt;
-&lt;td class="org-right"&gt;1.54281e+09&lt;/td&gt;
-&lt;td class="org-right"&gt;0.3843&lt;/td&gt;
-&lt;td class="org-right"&gt;12.88&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2013-05-01 00:00:00&lt;/td&gt;
-&lt;td class="org-left"&gt;bitcoin&lt;/td&gt;
-&lt;td class="org-left"&gt;BTC&lt;/td&gt;
-&lt;td class="org-left"&gt;Bitcoin&lt;/td&gt;
-&lt;td class="org-right"&gt;1&lt;/td&gt;
-&lt;td class="org-right"&gt;139&lt;/td&gt;
-&lt;td class="org-right"&gt;139.89&lt;/td&gt;
-&lt;td class="org-right"&gt;107.72&lt;/td&gt;
-&lt;td class="org-right"&gt;116.99&lt;/td&gt;
-&lt;td class="org-right"&gt;0&lt;/td&gt;
-&lt;td class="org-right"&gt;1.29895e+09&lt;/td&gt;
-&lt;td class="org-right"&gt;0.2882&lt;/td&gt;
-&lt;td class="org-right"&gt;32.17&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2013-05-02 00:00:00&lt;/td&gt;
-&lt;td class="org-left"&gt;bitcoin&lt;/td&gt;
-&lt;td class="org-left"&gt;BTC&lt;/td&gt;
-&lt;td class="org-left"&gt;Bitcoin&lt;/td&gt;
-&lt;td class="org-right"&gt;1&lt;/td&gt;
-&lt;td class="org-right"&gt;116.38&lt;/td&gt;
-&lt;td class="org-right"&gt;125.6&lt;/td&gt;
-&lt;td class="org-right"&gt;92.28&lt;/td&gt;
-&lt;td class="org-right"&gt;105.21&lt;/td&gt;
-&lt;td class="org-right"&gt;0&lt;/td&gt;
-&lt;td class="org-right"&gt;1.16852e+09&lt;/td&gt;
-&lt;td class="org-right"&gt;0.3881&lt;/td&gt;
-&lt;td class="org-right"&gt;33.32&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgffe2e5a" class="outline-2"&gt;
-&lt;h2 id="orgffe2e5a"&gt;Grouping&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgffe2e5a"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org1a73eaa" class="outline-3"&gt;
-&lt;h3 id="org1a73eaa"&gt;Birth Dates&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org1a73eaa"&gt;
-&lt;p&gt;
-Here's a plot of the birth dates of the animals in the shelter.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;figure, axe = pyplot.subplots()
-figure.suptitle("Count of Births By Date", weight="bold")
-axe.set_xlabel("Date of Birth")
-births = shelter.date_of_birth.value_counts().sort_values().plot.line(ax=axe)
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;div class="figure"&gt;
-&lt;p&gt;&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/births.png" alt="births.png"&gt;
-&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;p&gt;
-It lools like there was an upward trend until about 2016 when it started to taper off, but since we're counting by days there's a lot of variance so we're going to group the data using pandas' &lt;a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.resample.html"&gt;resample&lt;/a&gt; method. 
-&lt;/p&gt;
-
-&lt;p&gt;
-There's a couple of different ways to do this, but the simplest way is to take the count for each date using &lt;a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.value_counts.html"&gt;value_counts&lt;/a&gt;. This will leave us with a &lt;a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html"&gt;Series&lt;/a&gt; with the dates in the index and the counts as values. Once we have this we can aggregate the dates by year and then count how many births there were per year.
-&lt;/p&gt;
-
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;counts = shelter.date_of_birth.value_counts()
-print(table(counts.head().reset_index(), showindex=False))
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
-
-
-&lt;colgroup&gt;
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-right"&gt;
-&lt;/colgroup&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th scope="col" class="org-left"&gt;index&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;date_of_birth&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2014-05-05 00:00:00&lt;/td&gt;
-&lt;td class="org-right"&gt;112&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2015-09-01 00:00:00&lt;/td&gt;
-&lt;td class="org-right"&gt;110&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2014-04-21 00:00:00&lt;/td&gt;
-&lt;td class="org-right"&gt;105&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2015-04-28 00:00:00&lt;/td&gt;
-&lt;td class="org-right"&gt;104&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2016-05-01 00:00:00&lt;/td&gt;
-&lt;td class="org-right"&gt;102&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;year_counts = counts.resample("Y")
-print(year_counts)
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-DatetimeIndexResampler [freq=&amp;lt;YearEnd: month=12&amp;gt;, axis=0, closed=right, label=right, convention=start, base=0]
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-Note that this is an aggregator, we don't get what we want until we call a method (like &lt;code&gt;count&lt;/code&gt;) on it. In this case since we have value counts we want to sum all of the counts for a year (so we need &lt;code&gt;sum&lt;/code&gt;).
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;figure, axe = pyplot.subplots()
-sums = year_counts.sum()
-first = counts.index.min()
-last = counts.index.max()
-figure.suptitle("Births Per Year ({} - {})".format(first.year,
-						   last.year),
-		weight="bold")
-axe.set_xlim((first, last))
-peak = sums.idxmax()
-axe.axvline(peak, color="r", linestyle=":", label=peak.year)
-
-plotted = sums.plot.line(ax=axe, label="_")
-axe.legend()
-lim = axe.set_ylim(bottom=0)
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;div class="figure"&gt;
-&lt;p&gt;&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/births_by_year.png" alt="births_by_year.png"&gt;
-&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;p&gt;
-An alternative way to look at this would be a lollipop plot.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;figure, axe = pyplot.subplots()
-figure.suptitle("Births Per Year ({} - {})".format(first.year,
-						   last.year),
-		weight="bold")
-
-x_labels = pandas.Series([x.year for x in sums.index])
-peak_index = int(x_labels[x_labels==peak.year])
-axe.axvline(peak_index, color="r", linestyle=":", label="{} (Peak Year)".format(peak.year))
-stems = axe.stem(x_labels, sums)
-axe.set_xlim(left=first.year)
-figure.autofmt_xdate()
-legend = axe.legend()
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;div class="figure"&gt;
-&lt;p&gt;&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/births_lollipop.png" alt="births_lollipop.png"&gt;
-&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;p&gt;
-There's something funny going on with the dates, passing in the index instead of a list of years shifts all the years to the left by one (what's 2015 on the plot above would be 2016). I don't know what's doing this.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org9d45fdc" class="outline-3"&gt;
-&lt;h3 id="org9d45fdc"&gt;Outcomes&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org9d45fdc"&gt;
-&lt;p&gt;
-While knowing the birthdates of the animals in the shelter is interesting, what about the dates when their cases were resolved?
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;outcome_counts = shelter.datetime.value_counts()
-outcomes = outcome_counts.resample("Y").sum()
-print(table(outcome_counts.head().reset_index(), showindex=False))
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
-
-
-&lt;colgroup&gt;
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-right"&gt;
-&lt;/colgroup&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th scope="col" class="org-left"&gt;index&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;datetime&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2016-04-18 00:00:00&lt;/td&gt;
-&lt;td class="org-right"&gt;39&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2015-08-11 00:00:00&lt;/td&gt;
-&lt;td class="org-right"&gt;25&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2017-10-17 00:00:00&lt;/td&gt;
-&lt;td class="org-right"&gt;25&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2015-11-17 00:00:00&lt;/td&gt;
-&lt;td class="org-right"&gt;22&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;2015-07-02 00:00:00&lt;/td&gt;
-&lt;td class="org-right"&gt;22&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;figure, axe = pyplot.subplots()
-x_labels = pandas.Series([x.year for x in sums.index])
-figure.suptitle("Outcomes Per Year", weight="bold")
-stems = axe.stem(outcomes.index, outcomes, label="Outcome")
-axe.plot(sums.index, sums, "r.", label="Births")
-# axe.set_xticklabels(x_labels)
-figure.autofmt_xdate()
-legend = axe.legend()
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;div class="figure"&gt;
-&lt;p&gt;&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/outcomes.png" alt="outcomes.png"&gt;
-&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;p&gt;
-So, I've re-introduced the messed up dates on the x-axis (I kind of tried to fix it but gave up), but, ignoring the actual years you can see that there are only six years of adoption outcomes although there are sixteen years of birth dates.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgde0c4e3" class="outline-3"&gt;
-&lt;h3 id="orgde0c4e3"&gt;Trading Volume&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgde0c4e3"&gt;
-&lt;p&gt;
-The previous plot was a count-plot. You can also use other summary-statistics like a mean to see how things changed over time.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;figure, axe = pyplot.subplots()
-volume = nyse.volume.resample("Y")
-means = volume.mean()
-figure.suptitle("Mean NYSE Trading Volume Per Year", weight="bold")
-stem = axe.stem(means.index, means)
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;div class="figure"&gt;
-&lt;p&gt;&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/volume.png" alt="volume.png"&gt;
-&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;p&gt;
-I tried putting standard deviations in there too but the values are so big it squashed the means.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org773c39d" class="outline-2"&gt;
-&lt;h2 id="org773c39d"&gt;Lag Plots&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org773c39d"&gt;
-&lt;p&gt;
-The &lt;a href="https://pandas.pydata.org/pandas-docs/stable/visualization.html#lag-plot"&gt;Lag Plot&lt;/a&gt; helps you check if there is a significance to the ordering of the data. You are plotting the value in the inputs vs the next value (e.g. one day against the following day). If there is no significance to the ordering then the plot will look random.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org74c7c78" class="outline-3"&gt;
-&lt;h3 id="org74c7c78"&gt;NYSE&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org74c7c78"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;volume = nyse.volume.resample("D")
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;figure, axe = pyplot.subplots()
-figure.suptitle("NYSE Volume Lag Plot", weight="bold")
-subplot = lag_plot(volume.sum().tail(365), ax=axe)
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;div class="figure"&gt;
-&lt;p&gt;&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/lag_plot.png" alt="lag_plot.png"&gt;
-&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;p&gt;
-So, the center points do seem to show a relationship, as the next-days volume goes up along with the previous day's volume, but I don't know what those bands around 0 are. One thing I noticed is that there are holidays in the data.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(volume.sum().index[-6])
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-2016-12-25 00:00:00
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-And there are also weekends in there.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(volume.sum().index[-13].strftime("%a"))
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Sun
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-So it's likely that there are days in there where there was no trading and so they won't correlate with the days that preceded the start of a break or the ones that followed the end of a break. I think. I don't really know if there's trading all year round.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;volume_sums = volume.sum()
-for day in volume_sums[volume_sums==0][-9:].index:
-    print("{} {}".format(day.strftime("%a"), day))
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Sat 2016-12-03 00:00:00
-Sun 2016-12-04 00:00:00
-Sat 2016-12-10 00:00:00
-Sun 2016-12-11 00:00:00
-Sat 2016-12-17 00:00:00
-Sun 2016-12-18 00:00:00
-Sat 2016-12-24 00:00:00
-Sun 2016-12-25 00:00:00
-Mon 2016-12-26 00:00:00
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-So it does look like the zeros are weekends and holidays.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org76330e0" class="outline-3"&gt;
-&lt;h3 id="org76330e0"&gt;UPS&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org76330e0"&gt;
-&lt;p&gt;
-Here's what just the UPS trading volumes look like.
-&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;figure, axe = pyplot.subplots()
-figure.suptitle("UPS Trading Volume Lag Plot", weight="bold")
-subplot = lag_plot(ups.volume, ax=axe)
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;div class="figure"&gt;
-&lt;p&gt;&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/ups_lag_plot.png" alt="ups_lag_plot.png"&gt;
-&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;p&gt;
-I don't know why but that makes it look better. I guess the market as a whole doesn't move quite so well together day by day as a single stock does.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org424c6a1" class="outline-2"&gt;
-&lt;h2 id="org424c6a1"&gt;Autcorrelation Plot&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org424c6a1"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org1ed9bb2" class="outline-3"&gt;
-&lt;h3 id="org1ed9bb2"&gt;UPS&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org1ed9bb2"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;figure, axe = pyplot.subplots()
-figure.suptitle("UPS Trading Volume Daily Autocorrelation", weight="bold")
-subplot = autocorrelation_plot(ups.volume, ax=axe)
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;div class="figure"&gt;
-&lt;p&gt;&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/autocorrelation.png" alt="autocorrelation.png"&gt;
-&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;p&gt;
-This plot shows the lag in relationship to correlation over different lag intervals. It looks like up to about 500 days of lag the correlation is positive but it starts to become more negative after that.  The horizontal lines are the confidence intervals - the solid grey lines are the 95 % interval and the dashed grey lines are the 99% interval. The points that fall outside of these intervals are statistically significant.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgf6e7937" class="outline-2"&gt;
-&lt;h2 id="orgf6e7937"&gt;Cryptocurrency&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgf6e7937"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org1b356de" class="outline-3"&gt;
-&lt;h3 id="org1b356de"&gt;Lag Plot&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org1b356de"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;crypto_daily = currency.volume.resample("D")
-figure, axe = pyplot.subplots()
-figure.suptitle("Cryptocurrency Volume Lag Plot", weight="bold")
-subplot = lag_plot(crypto_daily.sum(), ax=axe)
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;div class="figure"&gt;
-&lt;p&gt;&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/crypto_lag.png" alt="crypto_lag.png"&gt;
-&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;p&gt;
-Unlike the stock-exchange, the cryptocurrencies seem to move together and don't take days off.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgbca338b" class="outline-3"&gt;
-&lt;h3 id="orgbca338b"&gt;Autocorrelation Plot&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgbca338b"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;figure, axe = pyplot.subplots()
-figure.suptitle("Dogecoin Auto Correlation", weight="bold")
-dogecoin = currency[currency.name=="Dogecoin"]
-subplot = autocorrelation_plot(dogecoin.volume, ax=axe)
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;div class="figure"&gt;
-&lt;p&gt;&lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/currency_autocorrelation.png" alt="currency_autocorrelation.png"&gt;
-&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;p&gt;
-If my understanding of how this plot works is correct, there is some kind of significance to lags of 125 and 250 days. Is this really true? Possibly.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;</description><category>kaggle</category><category>time-series</category><category>tutorial</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/kaggle-on-time-series-visualization/</guid><pubDate>Sun, 20 Jan 2019 21:12:55 GMT</pubDate></item></channel></rss>
+&lt;/div&gt;</description><category>exploration</category><category>hvplot</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-hvplot/</guid><pubDate>Fri, 01 Feb 2019 19:24:30 GMT</pubDate></item></channel></rss>
