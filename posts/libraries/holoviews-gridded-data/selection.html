@@ -1,0 +1,919 @@
+
+<html>
+  <head>
+    
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-1.0.4.min.css">
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.0.4.min.css">
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-tables-1.0.4.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+<style>div.bk-hbox {
+    display: flex;
+    justify-content: center;
+}
+
+div.bk-hbox div.bk-plot {
+    padding: 8px;
+}
+
+div.bk-hbox div.bk-data-table {
+    padding: 20px;
+}
+
+div.hololayout {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+div.holoframe {
+  width: 75%;
+}
+
+div.holowell {
+  display: flex;
+  align-items: center;
+}
+
+form.holoform {
+  background-color: #fafafa;
+  border-radius: 5px;
+  overflow: hidden;
+  padding-left: 0.8em;
+  padding-right: 0.8em;
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  border: 1px solid #e3e3e3;
+}
+
+div.holowidgets {
+  padding-right: 0;
+  width: 25%;
+}
+
+div.holoslider {
+  min-height: 0 !important;
+  height: 0.8em;
+  width: 100%;
+}
+
+div.holoformgroup {
+  padding-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+div.hologroup {
+  padding-left: 0;
+  padding-right: 0.8em;
+  width: 100%;
+}
+
+.holoselect {
+  width: 92%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.holotext {
+  padding-left:  0.5em;
+  padding-right: 0;
+  width: 100%;
+}
+
+.holowidgets .ui-resizable-se {
+  visibility: hidden
+}
+
+.holoframe > .ui-resizable-se {
+  visibility: hidden
+}
+
+.holowidgets .ui-resizable-s {
+  visibility: hidden
+}
+
+
+/* CSS rules for noUISlider based slider used by JupyterLab extension  */
+
+.noUi-handle {
+  width: 20px !important;
+  height: 20px !important;
+  left: -5px !important;
+  top: -5px !important;
+}
+
+.noUi-handle:before, .noUi-handle:after {
+  visibility: hidden;
+  height: 0px;
+}
+
+.noUi-target {
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
+</style>
+    
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-1.0.4.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.0.4.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-1.0.4.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-gl-1.0.4.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" type="text/javascript"></script>
+<script type="text/javascript">function HoloViewsWidget() {
+}
+
+HoloViewsWidget.prototype.init_slider = function(init_val){
+  if(this.load_json) {
+    this.from_json()
+  } else {
+    this.update_cache();
+  }
+}
+
+HoloViewsWidget.prototype.populate_cache = function(idx){
+  this.cache[idx].innerHTML = this.frames[idx];
+  if (this.embed) {
+    delete this.frames[idx];
+  }
+}
+
+HoloViewsWidget.prototype.process_error = function(msg){
+}
+
+HoloViewsWidget.prototype.from_json = function() {
+  var data_url = this.json_path + this.id + '.json';
+  $.getJSON(data_url, $.proxy(function(json_data) {
+    this.frames = json_data;
+    this.update_cache();
+    this.update(0);
+  }, this));
+}
+
+HoloViewsWidget.prototype.dynamic_update = function(current){
+  if (current === undefined) {
+    return
+  }
+  this.current = current;
+  if (this.comm) {
+    var msg = {comm_id: this.id+'_client', content: current}
+    this.comm.send(msg);
+  }
+}
+
+HoloViewsWidget.prototype.update_cache = function(force){
+  var frame_len = Object.keys(this.frames).length;
+  for (var i=0; i<frame_len; i++) {
+    if(!this.load_json || this.dynamic)  {
+      var frame = Object.keys(this.frames)[i];
+    } else {
+      var frame = i;
+    }
+    if(!(frame in this.cache) || force) {
+      if ((frame in this.cache) && force) { this.cache[frame].remove() }
+      var div = document.createElement("div");
+      var parent = document.getElementById("_anim_img"+this.id);
+      div.style.display = "none";
+      parent.appendChild(div)
+      this.cache[frame] = div;
+      var cache_id = "_anim_img"+this.id+"_"+frame;
+      this.populate_cache(frame);
+    }
+  }
+}
+
+HoloViewsWidget.prototype.update = function(current){
+  if(current in this.cache) {
+    for (var index in this.cache) {
+      this.cache[index].style.display = "none";
+    }
+    this.cache[current].style.display = "";
+    this.wait = false;
+  }
+}
+
+HoloViewsWidget.prototype.init_comms = function() {
+  var that = this
+  HoloViews.comm_manager.register_target(this.plot_id, this.id, function (msg) { that.msg_handler(msg) })
+  if (!this.cached || this.dynamic) {
+    function ack_callback(msg) {
+      var msg = msg.metadata;
+      var comm_id = msg.comm_id;
+      var comm_status = HoloViews.comm_status[comm_id];
+      if (that.queue.length > 0) {
+        that.time = Date.now();
+        that.dynamic_update(that.queue[that.queue.length-1]);
+        that.queue = [];
+      } else {
+        that.wait = false;
+      }
+      if ((msg.msg_type == "Ready") && msg.content) {
+        console.log("Python callback returned following output:", msg.content);
+      } else if (msg.msg_type == "Error") {
+        console.log("Python failed with the following traceback:", msg.traceback)
+      }
+    }
+    var comm = HoloViews.comm_manager.get_client_comm(this.plot_id, this.id+'_client', ack_callback);
+    return comm
+  }
+}
+
+HoloViewsWidget.prototype.msg_handler = function(msg) {
+  var metadata = msg.metadata;
+  if ((metadata.msg_type == "Ready")) {
+    if (metadata.content) {
+      console.log("Python callback returned following output:", metadata.content);
+    }
+	return;
+  } else if (metadata.msg_type == "Error") {
+    console.log("Python failed with the following traceback:", metadata.traceback)
+    return
+  }
+  this.process_msg(msg)
+}
+
+HoloViewsWidget.prototype.process_msg = function(msg) {
+}
+
+function SelectionWidget(frames, id, slider_ids, keyMap, dim_vals, notFound, load_json, mode, cached, json_path, dynamic, plot_id){
+  this.frames = frames;
+  this.id = id;
+  this.plot_id = plot_id;
+  this.slider_ids = slider_ids;
+  this.keyMap = keyMap
+  this.current_frame = 0;
+  this.current_vals = dim_vals;
+  this.load_json = load_json;
+  this.mode = mode;
+  this.notFound = notFound;
+  this.cached = cached;
+  this.dynamic = dynamic;
+  this.cache = {};
+  this.json_path = json_path;
+  this.init_slider(this.current_vals[0]);
+  this.queue = [];
+  this.wait = false;
+  if (!this.cached || this.dynamic) {
+    this.comm = this.init_comms();
+  }
+}
+
+SelectionWidget.prototype = new HoloViewsWidget;
+
+
+SelectionWidget.prototype.get_key = function(current_vals) {
+  var key = "(";
+  for (var i=0; i<this.slider_ids.length; i++)
+  {
+    var val = this.current_vals[i];
+    if (!(typeof val === 'string')) {
+      if (val % 1 === 0) { val = val.toFixed(1); }
+      else { val = val.toFixed(10); val = val.slice(0, val.length-1);}
+    }
+    key += "'" + val + "'";
+    if(i != this.slider_ids.length-1) { key += ', ';}
+    else if(this.slider_ids.length == 1) { key += ',';}
+  }
+  key += ")";
+  return this.keyMap[key];
+}
+
+SelectionWidget.prototype.set_frame = function(dim_val, dim_idx){
+  this.current_vals[dim_idx] = dim_val;
+  var key = this.current_vals;
+  if (!this.dynamic) {
+    key = this.get_key(key)
+  }
+  if (this.dynamic || !this.cached) {
+    if ((this.time !== undefined) && ((this.wait) && ((this.time + 10000) > Date.now()))) {
+      this.queue.push(key);
+      return
+    }
+    this.queue = [];
+    this.time = Date.now();
+    this.current_frame = key;
+    this.wait = true;
+    this.dynamic_update(key)
+  } else if (key !== undefined) {
+    this.update(key)
+  }
+}
+
+
+/* Define the ScrubberWidget class */
+function ScrubberWidget(frames, num_frames, id, interval, load_json, mode, cached, json_path, dynamic, plot_id){
+  this.slider_id = "_anim_slider" + id;
+  this.loop_select_id = "_anim_loop_select" + id;
+  this.id = id;
+  this.plot_id = plot_id;
+  this.interval = interval;
+  this.current_frame = 0;
+  this.direction = 0;
+  this.dynamic = dynamic;
+  this.timer = null;
+  this.load_json = load_json;
+  this.mode = mode;
+  this.cached = cached;
+  this.frames = frames;
+  this.cache = {};
+  this.length = num_frames;
+  this.json_path = json_path;
+  document.getElementById(this.slider_id).max = this.length - 1;
+  this.init_slider(0);
+  this.wait = false;
+  this.queue = [];
+  if (!this.cached || this.dynamic) {
+    this.comm = this.init_comms()
+  }
+}
+
+ScrubberWidget.prototype = new HoloViewsWidget;
+
+ScrubberWidget.prototype.set_frame = function(frame){
+  this.current_frame = frame;
+  var widget = document.getElementById(this.slider_id);
+  if (widget === null) {
+    this.pause_animation();
+    return
+  }
+  widget.value = this.current_frame;
+  if (this.dynamic || !this.cached) {
+    if ((this.time !== undefined) && ((this.wait) && ((this.time + 10000) > Date.now()))) {
+      this.queue.push(frame);
+      return
+    }
+    this.queue = [];
+    this.time = Date.now();
+    this.wait = true;
+    this.dynamic_update(frame)
+  } else {
+    this.update(frame)
+  }
+}
+
+ScrubberWidget.prototype.get_loop_state = function(){
+  var button_group = document[this.loop_select_id].state;
+  for (var i = 0; i < button_group.length; i++) {
+    var button = button_group[i];
+    if (button.checked) {
+      return button.value;
+    }
+  }
+  return undefined;
+}
+
+
+ScrubberWidget.prototype.next_frame = function() {
+  this.set_frame(Math.min(this.length - 1, this.current_frame + 1));
+}
+
+ScrubberWidget.prototype.previous_frame = function() {
+  this.set_frame(Math.max(0, this.current_frame - 1));
+}
+
+ScrubberWidget.prototype.first_frame = function() {
+  this.set_frame(0);
+}
+
+ScrubberWidget.prototype.last_frame = function() {
+  this.set_frame(this.length - 1);
+}
+
+ScrubberWidget.prototype.slower = function() {
+  this.interval /= 0.7;
+  if(this.direction > 0){this.play_animation();}
+  else if(this.direction < 0){this.reverse_animation();}
+}
+
+ScrubberWidget.prototype.faster = function() {
+  this.interval *= 0.7;
+  if(this.direction > 0){this.play_animation();}
+  else if(this.direction < 0){this.reverse_animation();}
+}
+
+ScrubberWidget.prototype.anim_step_forward = function() {
+  if(this.current_frame < this.length - 1){
+    this.next_frame();
+  }else{
+    var loop_state = this.get_loop_state();
+    if(loop_state == "loop"){
+      this.first_frame();
+    }else if(loop_state == "reflect"){
+      this.last_frame();
+      this.reverse_animation();
+    }else{
+      this.pause_animation();
+      this.last_frame();
+    }
+  }
+}
+
+ScrubberWidget.prototype.anim_step_reverse = function() {
+  if(this.current_frame > 0){
+    this.previous_frame();
+  } else {
+    var loop_state = this.get_loop_state();
+    if(loop_state == "loop"){
+      this.last_frame();
+    }else if(loop_state == "reflect"){
+      this.first_frame();
+      this.play_animation();
+    }else{
+      this.pause_animation();
+      this.first_frame();
+    }
+  }
+}
+
+ScrubberWidget.prototype.pause_animation = function() {
+  this.direction = 0;
+  if (this.timer){
+    clearInterval(this.timer);
+    this.timer = null;
+  }
+}
+
+ScrubberWidget.prototype.play_animation = function() {
+  this.pause_animation();
+  this.direction = 1;
+  var t = this;
+  if (!this.timer) this.timer = setInterval(function(){t.anim_step_forward();}, this.interval);
+}
+
+ScrubberWidget.prototype.reverse_animation = function() {
+  this.pause_animation();
+  this.direction = -1;
+  var t = this;
+  if (!this.timer) this.timer = setInterval(function(){t.anim_step_reverse();}, this.interval);
+}
+
+function extend(destination, source) {
+  for (var k in source) {
+    if (source.hasOwnProperty(k)) {
+      destination[k] = source[k];
+    }
+  }
+  return destination;
+}
+
+function update_widget(widget, values) {
+  if (widget.hasClass("ui-slider")) {
+    widget.slider('option', {
+      min: 0,
+      max: values.length-1,
+      dim_vals: values,
+      value: 0,
+      dim_labels: values
+    })
+    widget.slider('option', 'slide').call(widget, event, {value: 0})
+  } else {
+    widget.empty();
+    for (var i=0; i<values.length; i++){
+      widget.append($("<option>", {
+        value: i,
+        text: values[i]
+      }))
+    };
+    widget.data('values', values);
+    widget.data('value', 0);
+    widget.trigger("change");
+  };
+}
+
+function init_slider(id, plot_id, dim, values, next_vals, labels, dynamic, step, value, next_dim,
+                     dim_idx, delay, jQueryUI_CDN, UNDERSCORE_CDN) {
+  // Slider JS Block START
+  function loadcssfile(filename){
+    var fileref=document.createElement("link")
+    fileref.setAttribute("rel", "stylesheet")
+    fileref.setAttribute("type", "text/css")
+    fileref.setAttribute("href", filename)
+    document.getElementsByTagName("head")[0].appendChild(fileref)
+  }
+  loadcssfile("https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css");
+  /* Check if jQuery and jQueryUI have been loaded
+     otherwise load with require.js */
+  var jQuery = window.jQuery,
+    // check for old versions of jQuery
+    oldjQuery = jQuery && !!jQuery.fn.jquery.match(/^1\.[0-4](\.|$)/),
+    jquery_path = '',
+    paths = {},
+    noConflict;
+  var jQueryUI = jQuery.ui;
+  // check for jQuery
+  if (!jQuery || oldjQuery) {
+    // load if it's not available or doesn't meet min standards
+    paths.jQuery = jQuery;
+    noConflict = !!oldjQuery;
+  } else {
+    // register the current jQuery
+    define('jquery', [], function() { return jQuery; });
+  }
+  if (!jQueryUI) {
+    paths.jQueryUI = jQueryUI_CDN.slice(null, -3);
+  } else {
+    define('jQueryUI', [], function() { return jQuery.ui; });
+  }
+  paths.underscore = UNDERSCORE_CDN.slice(null, -3);
+  var jquery_require = {
+    paths: paths,
+    shim: {
+      "jQueryUI": {
+        exports:"$",
+        deps: ['jquery']
+      },
+      "underscore": {
+        exports: '_'
+      }
+    }
+  }
+  require.config(jquery_require);
+  require(["jQueryUI", "underscore"], function(jUI, _){
+    if (noConflict) $.noConflict(true);
+    var vals = values;
+    if (dynamic && vals.constructor === Array) {
+      var default_value = parseFloat(value);
+      var min = parseFloat(vals[0]);
+      var max = parseFloat(vals[vals.length-1]);
+      var wstep = step;
+      var wlabels = [default_value];
+      var init_label = default_value;
+    } else {
+      var min = 0;
+      if (dynamic) {
+        var max = Object.keys(vals).length - 1;
+        var init_label = labels[value];
+        var default_value = values[value];
+      } else {
+        var max = vals.length - 1;
+        var init_label = labels[value];
+        var default_value = value;
+      }
+      var wstep = 1;
+      var wlabels = labels;
+    }
+    function adjustFontSize(text) {
+      var width_ratio = (text.parent().width()/8)/text.val().length;
+      var size = Math.min(0.9, Math.max(0.6, width_ratio))+'em';
+      text.css('font-size', size);
+    }
+    var slider = $('#_anim_widget'+id+'_'+dim);
+    slider.slider({
+      animate: "fast",
+      min: min,
+      max: max,
+      step: wstep,
+      value: default_value,
+      dim_vals: vals,
+      dim_labels: wlabels,
+      next_vals: next_vals,
+      slide: function(event, ui) {
+        var vals = slider.slider("option", "dim_vals");
+        var next_vals = slider.slider("option", "next_vals");
+        var dlabels = slider.slider("option", "dim_labels");
+        if (dynamic) {
+          var dim_val = ui.value;
+          if (vals.constructor === Array) {
+            var label = ui.value;
+          } else {
+            var label = dlabels[ui.value];
+          }
+        } else {
+          var dim_val = vals[ui.value];
+          var label = dlabels[ui.value];
+        }
+        var text = $('#textInput'+id+'_'+dim);
+        text.val(label);
+        adjustFontSize(text);
+        HoloViews.index[plot_id].set_frame(dim_val, dim_idx);
+        if (Object.keys(next_vals).length > 0) {
+          var new_vals = next_vals[dim_val];
+          var next_widget = $('#_anim_widget'+id+'_'+next_dim);
+          update_widget(next_widget, new_vals);
+        }
+      }
+    });
+    slider.keypress(function(event) {
+      if (event.which == 80 || event.which == 112) {
+        var start = slider.slider("option", "value");
+        var stop =  slider.slider("option", "max");
+        for (var i=start; i<=stop; i++) {
+          var delay = i*delay;
+          $.proxy(function doSetTimeout(i) { setTimeout($.proxy(function() {
+            var val = {value:i};
+            slider.slider('value',i);
+            slider.slider("option", "slide")(null, val);
+          }, slider), delay);}, slider)(i);
+        }
+      }
+      if (event.which == 82 || event.which == 114) {
+        var start = slider.slider("option", "value");
+        var stop =  slider.slider("option", "min");
+        var count = 0;
+        for (var i=start; i>=stop; i--) {
+          var delay = count*delay;
+          count = count + 1;
+          $.proxy(function doSetTimeout(i) { setTimeout($.proxy(function() {
+            var val = {value:i};
+            slider.slider('value',i);
+            slider.slider("option", "slide")(null, val);
+          }, slider), delay);}, slider)(i);
+        }
+      }
+    });
+    var textInput = $('#textInput'+id+'_'+dim)
+    textInput.val(init_label);
+    adjustFontSize(textInput);
+  });
+}
+
+function init_dropdown(id, plot_id, dim, vals, value, next_vals, labels, next_dim, dim_idx, dynamic) {
+  var widget = $("#_anim_widget"+id+'_'+dim);
+  widget.data('values', vals)
+  for (var i=0; i<vals.length; i++){
+    if (dynamic) {
+      var val = vals[i];
+    } else {
+      var val = i;
+    }
+    widget.append($("<option>", {
+      value: val,
+      text: labels[i]
+    }));
+  };
+  widget.data("next_vals", next_vals);
+  widget.val(value);
+  widget.on('change', function(event, ui) {
+    if (dynamic) {
+      var dim_val = parseInt(this.value);
+    } else {
+      var dim_val = $.data(this, 'values')[this.value];
+    }
+    var next_vals = $.data(this, "next_vals");
+    if (Object.keys(next_vals).length > 0) {
+      var new_vals = next_vals[dim_val];
+      var next_widget = $('#_anim_widget'+id+'_'+next_dim);
+      update_widget(next_widget, new_vals);
+    }
+    var widgets = HoloViews.index[plot_id]
+    if (widgets) {
+      widgets.set_frame(dim_val, dim_idx);
+    }
+  });
+}
+
+
+if (window.HoloViews === undefined) {
+  window.HoloViews = {}
+  window.PyViz = window.HoloViews
+} else if (window.PyViz === undefined) {
+  window.PyViz = window.HoloViews
+}
+
+
+var _namespace = {
+  init_slider: init_slider,
+  init_dropdown: init_dropdown,
+  comms: {},
+  comm_status: {},
+  index: {},
+  plot_index: {},
+  kernels: {},
+  receivers: {}
+}
+
+for (var k in _namespace) {
+  if (!(k in window.HoloViews)) {
+    window.HoloViews[k] = _namespace[k];
+  }
+}
+
+// Define Bokeh specific subclasses
+function BokehSelectionWidget() {
+  SelectionWidget.apply(this, arguments);
+}
+
+function BokehScrubberWidget() {
+  ScrubberWidget.apply(this, arguments);
+}
+
+// Let them inherit from the baseclasses
+BokehSelectionWidget.prototype = Object.create(SelectionWidget.prototype);
+BokehScrubberWidget.prototype = Object.create(ScrubberWidget.prototype);
+
+// Define methods to override on widgets
+var BokehMethods = {
+  update_cache : function(){
+    for (var index in this.frames) {
+      this.frames[index] = JSON.parse(this.frames[index]);
+    }
+  },
+  update : function(current){
+    if (current === undefined) {
+      return;
+    }
+    var data = this.frames[current];
+    if (data !== undefined) {
+      if (data.root in HoloViews.plot_index) {
+        var doc = HoloViews.plot_index[data.root].model.document;
+      } else {
+        var doc = Bokeh.index[data.root].model.document;
+      }
+      doc.apply_json_patch(data.content);
+    }
+  },
+  init_comms: function() {
+    if (Bokeh.protocol !== undefined) {
+      this.receiver = new Bokeh.protocol.Receiver()
+    } else {
+      this.receiver = null;
+    }
+    return HoloViewsWidget.prototype.init_comms.call(this);
+  },
+  process_msg : function(msg) {
+    if (this.plot_id in HoloViews.plot_index) {
+      var doc = HoloViews.plot_index[this.plot_id].model.document;
+    } else {
+      var doc = Bokeh.index[this.plot_id].model.document;
+    }
+    if (this.receiver === null) { return }
+    var receiver = this.receiver;
+    if (msg.buffers.length > 0) {
+      receiver.consume(msg.buffers[0].buffer)
+    } else {
+      receiver.consume(msg.content.data)
+    }
+    const comm_msg = receiver.message;
+    if ((comm_msg != null) && (doc != null)) {
+      doc.apply_json_patch(comm_msg.content, comm_msg.buffers)
+    }
+  }
+}
+
+// Extend Bokeh widgets with backend specific methods
+extend(BokehSelectionWidget.prototype, BokehMethods);
+extend(BokehScrubberWidget.prototype, BokehMethods);
+
+window.HoloViews.BokehSelectionWidget = BokehSelectionWidget
+window.HoloViews.BokehScrubberWidget = BokehScrubberWidget
+</script>
+<script type="text/javascript">
+    function JupyterCommManager() {
+    }
+
+    JupyterCommManager.prototype.register_target = function(plot_id, comm_id, msg_handler) {
+      if (window.comm_manager || ((window.Jupyter !== undefined) && (Jupyter.notebook.kernel != null))) {
+        var comm_manager = window.comm_manager || Jupyter.notebook.kernel.comm_manager;
+        comm_manager.register_target(comm_id, function(comm) {
+          comm.on_msg(msg_handler);
+        });
+      } else if ((plot_id in window.PyViz.kernels) && (window.PyViz.kernels[plot_id])) {
+        window.PyViz.kernels[plot_id].registerCommTarget(comm_id, function(comm) {
+          comm.onMsg = msg_handler;
+        });
+      }
+    }
+
+    JupyterCommManager.prototype.get_client_comm = function(plot_id, comm_id, msg_handler) {
+      if (comm_id in window.PyViz.comms) {
+        return window.PyViz.comms[comm_id];
+      } else if (window.comm_manager || ((window.Jupyter !== undefined) && (Jupyter.notebook.kernel != null))) {
+        var comm_manager = window.comm_manager || Jupyter.notebook.kernel.comm_manager;
+        var comm = comm_manager.new_comm(comm_id, {}, {}, {}, comm_id);
+        if (msg_handler) {
+          comm.on_msg(msg_handler);
+        }
+      } else if ((plot_id in window.PyViz.kernels) && (window.PyViz.kernels[plot_id])) {
+        var comm = window.PyViz.kernels[plot_id].connectToComm(comm_id);
+        comm.open();
+        if (msg_handler) {
+          comm.onMsg = msg_handler;
+        }
+      }
+
+      window.PyViz.comms[comm_id] = comm;
+      return comm;
+    }
+
+    window.PyViz.comm_manager = new JupyterCommManager();
+    </script>
+  </head>
+  <body>
+    <div class="hololayout row row-fluid">
+  <div class="holoframe" id="display_areae4683f5dd3074006b5f47b9b47691183">
+    <div id="_anim_imge4683f5dd3074006b5f47b9b47691183">
+      
+      <div id='3043' style='display: table; margin: 0 auto;'>
+
+
+
+
+
+  <div class="bk-root" id="13c1aac9-588b-4d5a-97f3-e930b0367163" data-root-id="3043"></div>
+</div>
+      
+    </div>
+  </div>
+  <div class="holowidgets" id="widget_areae4683f5dd3074006b5f47b9b47691183">
+    <form class="holoform well" id="forme4683f5dd3074006b5f47b9b47691183">
+      
+      
+      <div class="form-group control-group holoformgroup" style=''>
+        <label for="textInpute4683f5dd3074006b5f47b9b47691183_Time">
+          <strong>Time:</strong>
+        </label>
+        <div class="holowell">
+          <div class="hologroup">
+            <input type="text" class="holotext form-control input-small"
+                   id="textInpute4683f5dd3074006b5f47b9b47691183_Time" value="" readonly>
+          </div>
+          <div class="holoslider"
+               id="_anim_widgete4683f5dd3074006b5f47b9b47691183_Time"></div>
+        </div>
+      </div>
+      
+        
+        </form>
+    </div>
+</div>
+<script type="text/javascript">/* Instantiate the BokehSelectionWidget class. */
+/* The IDs given should match those used in the template above. */
+var widget_ids = new Array(1);
+
+
+widget_ids[0] = "_anim_widgete4683f5dd3074006b5f47b9b47691183_Time";
+
+
+function create_widget() {
+  var frame_data = {"0": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 0\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"4ARSBJID4gIjBAMEcAOBBLcCzAI3A/sDkAOXAwIHVwNDA9YCKgNNBDUF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"4ARSBJID4gIjBAMEcAOBBLcCzAI3A/sDkAOXAwIHVwNDA9YCKgNNBDUF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "1": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 1\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"NgXCBK4CXgNXA/cC9AN0BmEDugNoAvACPgIKBHsHKAXwA68ErQNCBKkE\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "2": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 2\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"LgYqBdwDYgMAAy0D4gPGBbcD8gL5A84B6gKpA/IF8gQ1A4sDmwMmBU8F\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "3": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 3\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"UAWXBVIEQgNjAkkC3wNeBqUDZgN7A8wDJAMZA/EFlgRvAxgD9AIBBLQF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "4": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 4\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"cgYKBvMDVgJxAq8DPQQrBooDAQPGA1cCKAMOBKAGUARfA1IDngPkBHYF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "5": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 5\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"MwZfBswEAQWTAwgEvASMBq4DRwMeA1ACdQLIA7sG7wQEBIgCvAINBCgF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "6": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 6\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"pQZVBZkEfAReA+UChwRHBvwCQwOQAyUD9wN1BF8GIQXpA6YDNwMaBFAF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "7": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 7\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"6gXkBIUErwOCA5QEsgSqBoUDNAMYBCYDyQPABOMGuQTJBDgETAS9BKIF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "8": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 8\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"GwcqBtMEAgRGA4QDiQUEB/4EQgT9AoUD4gNMBKcGwQVhBRkFSASXBJwG\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "9": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 9\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"GQiXBtMEPwQvA4ADoAMxBmEFIwNzA3UEpQJyBHwHBQcgBdYEegUxBaMF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "10": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 10\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"4wZ4BYkEVgRXAkYDxwQiB1YDTQP9A30DcwP1A1wHLgT0A7oCggKPBBYF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "11": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 11\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"FgZFBJcDsAOMA5IDGgSYBYEDsALTAusCJANQA4IG1gRnBLwDlQP9BJYF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "12": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 12\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"5QVPBf0DcwNsAz8DTARCBj4D3wFgA58DPAIIBAkH7ATVAwYD/gIOBCIF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "13": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 13\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"vgVMBUoEQQMlA8YD+ATbBaoDhQKXAhsDhAKzAqgH7AR+AzYEbAR7BHIF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "14": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 14\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"pgbTBREEuQJEA/QDzgRCB78EbQOHAwQDEgN/BNMHBwaEBMQDsAPrA9oG\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "15": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 15\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"lQX1BWwDQAPDAioEMwVwB3UElwNEA54CrwIXBBMGLgXDA5sDPQRQBEwG\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "16": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 16\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"gwYXBNYDgwMbBPECswWKBlIE3wLnAxgEqQNXA94GoAXzA5EDvQMoBRAG\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "17": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 17\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"nAYHBQkEvQP/AUsDJAT7BhUDCQMEA+MCVwKNA9sHWAVyA04DJgQTBRwG\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "18": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 18\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"egVOBYQEkwN/A+gDewT6BRMEVwS4AysDuQN0BPkG5gQsBBkEGQOsA7gF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "19": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 19\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"lgbLBYQE5QPqA7sF5AXtBjUENASUBAoDpgJEBOIHqQaJBpUEdQRXBF0G\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "20": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 20\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"LQgsCTMJSQfeB6YIPQkNCycJ5wZjBxUHsgY6CAkL/AkRCTsJwwitCPMJ\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "21": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 21\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"jwjvC0kLGAoSCuMKXgzqDX4KOAk+ChMLbQpRC+4OaAxcC34J8QnGCoEM\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "22": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 22\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"bAdCC9IJwQnWCDAKGwyRDP8KvQhlCWUIXwpYCx4O3gscCqIJDwoJCqUM\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "23": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 23\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"ggeyCEEHawWLB70HlAmKCvwG4ASmBEUFeQWLBioKCQelBS8GEQbQBoMI\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "24": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 24\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"dgYqB8oGPgYeBT0GAAiPCaIFagUwBHQF0QVpBysL1wdZBnoFdQYcBrwI\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "25": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 25\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"iAc6BuAExQRqBBwEMQXJBy4FPgXhA98DJQTRBE8IiwVkBFkEJQSCBQsI\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "26": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 26\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"bQbIBlIF7QMZA68DUwXNBjQEgwQ4A/ADJAVABfgI9QVGBU0EowN3BdEG\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "27": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 27\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"rwhSCiIKgghOCYsJ9wpMDMEJaQhgCaAIsAiWCV4NrQogCmQJ1QhiCiUM\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "28": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 28\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"FQeKCMUGTQdpBjoH3gh9CmEHHAY1BssGWwbdB7EL3ghFCDgHJgftBxkJ\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "29": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 29\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"MwfPC8QK8gjyCKEJtwrPDAULkgnZCOEILwiRCawNGAzNCrsKzwmtChUM\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "30": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 30\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"6QbqCeYI8gb1BrMHFApvC44H4QVRB8QHPAfJCUAMrwnNCEgI2AcRCYEL\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "31": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 31\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"cAepBoQFdwQOBKwEIgY6B4EEigPOAyQEJwW/BHoJuQbUBaYE/gNZBbcH\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "32": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 32\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"igXnBf4EvwOdBAIFbQbMBpsEugPFA6gEAQWtBoMGywVYBHkFrgUjBBkH\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "33": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 33\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"HwZmBxcGyQQIBBUFzwaeCHEFlQRGBKwD5QNkBaIJCAflBEoFMAV4BYYH\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "34": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 34\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"IAbfCNUHCgaIBesGFgg1CsEFXQTCBVoGoQVyB14KWwcwBq4F7AUvB+gH\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "35": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 35\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"ygboB4IHcQWtBY4GiAhCCeIGHgY1BiAG4QSdBnsKtgcBB78FBgZQBrwI\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "36": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 36\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"9QaJCJIH+wX/BXcF1Ac9CJkFdwTYA5YE5gSPBuMJqwebBbgEpgTiBMQH\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "37": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 37\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"mgeDCJAGcwRDBgYGhgdUCSoG4QVnBZAFwQVECL8LYwh6Br4GMgYBB5oI\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "38": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 38\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"3QZMCUYICwdJBjEGrQfJCT8GIgZYBagFggUEBk4KCwhwBhgGAQVaBuEH\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "39": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 39\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"dAeDCWYIiQbKBw0HIgmIC5MKBwkACAMI9gcBCdAMSgv1CSsJughACNkK\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "40": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 40\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"BwbPBrUEiwSsA1MEfwTYBkcEqQMcBGkEWwPZBFYJsgYyBs8EMwRLBDwH\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "41": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 41\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"KQZuBvMCGAMoAzwDigSUBvgDgAP/AmEDTAP9A+AHvATDA4cDFAQgBJYF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "42": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 42\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"MAUiBScElwIMA7QCugNOBrIDLAPsArQDpgN7A5MGIQQkAyAD2gOEA4UF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "43": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 43\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"kAUVBSsESwQ3A9oEngRsBS4DxAK6AzEDzgMMBYoF5AOXA5kCfwKrA8kF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "44": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 44\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"mwXRA1oDZgNgAnMDIAStBa8DaALiAssCGAMCAwwGFwOAAz4DygLYA7sF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "45": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 45\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"vgWPBVQDigPQAwoDSwXWBJYDAQMxA7UChgMTBPoF4gTBA5gD5AICBJcG\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "46": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 46\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"hQUhBUoEVQPrA8EDnAOoBzwESwLBAaQCcAO3BPQFmwQxA94CrAI6AycF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "47": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 47\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"iQXsAz8ECwO6AsUDpQR9BpIDRQNjAzAD4wLkA7YGlAS4AmkDvwJOA7YE\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "48": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 48\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"jgXFBUcE6AM5AxQD4gMfBZkDKAL9AbgClgI8A3EGbwM6AyAD7QPbA9QE\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}", "49": "{\"content\":{\"events\":[{\"attr\":\"text\",\"kind\":\"ModelChanged\",\"model\":{\"id\":\"3042\",\"type\":\"Title\"},\"new\":\"ROI #60  Time: 49\"},{\"cols\":[\"image\",\"x\",\"dh\",\"y\",\"dw\"],\"column_source\":{\"id\":\"3075\",\"type\":\"ColumnDataSource\"},\"kind\":\"ColumnDataChanged\",\"new\":{\"dh\":[3.0],\"dw\":[7.0],\"image\":[{\"__ndarray__\":\"AgajBMUDtALWA9MDXgX2BToEegJDA+8CvgKJA3MGnAPyA50DtQQ7BLsF\",\"dtype\":\"uint16\",\"shape\":[3,7]}],\"x\":[25.5],\"y\":[41.5]}}],\"references\":[]},\"root\":\"3043\"}"};
+  var dim_vals = ['0.0'];
+  var keyMap = {"('0.0',)": 0, "('1.0',)": 1, "('2.0',)": 2, "('3.0',)": 3, "('4.0',)": 4, "('5.0',)": 5, "('6.0',)": 6, "('7.0',)": 7, "('8.0',)": 8, "('9.0',)": 9, "('10.0',)": 10, "('11.0',)": 11, "('12.0',)": 12, "('13.0',)": 13, "('14.0',)": 14, "('15.0',)": 15, "('16.0',)": 16, "('17.0',)": 17, "('18.0',)": 18, "('19.0',)": 19, "('20.0',)": 20, "('21.0',)": 21, "('22.0',)": 22, "('23.0',)": 23, "('24.0',)": 24, "('25.0',)": 25, "('26.0',)": 26, "('27.0',)": 27, "('28.0',)": 28, "('29.0',)": 29, "('30.0',)": 30, "('31.0',)": 31, "('32.0',)": 32, "('33.0',)": 33, "('34.0',)": 34, "('35.0',)": 35, "('36.0',)": 36, "('37.0',)": 37, "('38.0',)": 38, "('39.0',)": 39, "('40.0',)": 40, "('41.0',)": 41, "('42.0',)": 42, "('43.0',)": 43, "('44.0',)": 44, "('45.0',)": 45, "('46.0',)": 46, "('47.0',)": 47, "('48.0',)": 48, "('49.0',)": 49};
+  var notFound = "<h2 style='vertical-align: middle>No frame at selected dimension value.<h2>";
+
+  var anim = new HoloViews.BokehSelectionWidget(frame_data, "e4683f5dd3074006b5f47b9b47691183", widget_ids,
+  keyMap, dim_vals, notFound, false, "default",
+  true, "", false, "3043");
+
+  HoloViews.index['3043'] = anim;
+}
+
+
+
+
+HoloViews.init_slider('e4683f5dd3074006b5f47b9b47691183', '3043', 'Time', ['0.0', '1.0', '2.0', '3.0', '4.0', '5.0', '6.0', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0', '15.0', '16.0', '17.0', '18.0', '19.0', '20.0', '21.0', '22.0', '23.0', '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0', '31.0', '32.0', '33.0', '34.0', '35.0', '36.0', '37.0', '38.0', '39.0', '40.0', '41.0', '42.0', '43.0', '44.0', '45.0', '46.0', '47.0', '48.0', '49.0'], {}, ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49'], false, 1, 0, 'None', 0, 200, 'https://code.jquery.com/ui/1.10.4/jquery-ui.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js')
+
+
+
+
+create_widget();
+
+// Ugly hack - see HoloViews #2574 for more information
+if (!(document.getElementById('3043')) && !(document.getElementById('_anim_imgNone'))) {
+  console.log("Creating DOM nodes dynamically for assumed nbconvert export. To generate clean HTML output set HV_DOC_HTML as an environment variable.")
+  var htmlObject = document.createElement('div');
+  htmlObject.innerHTML = `<div id='3043' style='display: table; margin: 0 auto;'>
+
+
+
+
+
+  <div class="bk-root" id="13c1aac9-588b-4d5a-97f3-e930b0367163" data-root-id="3043"></div>
+</div>`;
+  var scriptTags = document.getElementsByTagName('script');
+  var parentTag = scriptTags[scriptTags.length-1].parentNode;
+  if (parentTag.attributes.length && (parentTag.attributes[0].name == 'data-shell-mode')) {
+    alert('Displaying PyViz objects in JupyterLab requires the jupyterlab_pyviz extension to be installed, install it with:\n\n\tjupyter labextension install @pyviz/jupyterlab_pyviz');
+  } else {
+    parentTag.append(htmlObject)
+  }
+}
+(function(root) {
+  function embed_document(root) {
+    
+  var docs_json = {"5b33379a-f6da-4e91-9270-c1bf12604435":{"roots":{"references":[{"attributes":{"below":[{"id":"3051","type":"LinearAxis"}],"left":[{"id":"3056","type":"LinearAxis"}],"min_border_bottom":10,"min_border_left":10,"min_border_right":10,"min_border_top":10,"plot_height":400,"plot_width":400,"renderers":[{"id":"3051","type":"LinearAxis"},{"id":"3055","type":"Grid"},{"id":"3056","type":"LinearAxis"},{"id":"3060","type":"Grid"},{"id":"3069","type":"BoxAnnotation"},{"id":"3080","type":"GlyphRenderer"}],"title":{"id":"3042","type":"Title"},"toolbar":{"id":"3066","type":"Toolbar"},"x_range":{"id":"3040","type":"Range1d"},"x_scale":{"id":"3047","type":"LinearScale"},"y_range":{"id":"3041","type":"Range1d"},"y_scale":{"id":"3049","type":"LinearScale"}},"id":"3043","subtype":"Figure","type":"Plot"},{"attributes":{"color_mapper":{"id":"3074","type":"LinearColorMapper"},"dh":{"field":"dh","units":"data"},"dw":{"field":"dw","units":"data"},"image":{"field":"image"},"x":{"field":"x"},"y":{"field":"y"}},"id":"3079","type":"Image"},{"attributes":{},"id":"3082","type":"BasicTickFormatter"},{"attributes":{},"id":"3099","type":"UnionRenderers"},{"attributes":{},"id":"3076","type":"Selection"},{"attributes":{"callback":null,"data":{"dh":[3.0],"dw":[7.0],"image":[{"__ndarray__":"4ARSBJID4gIjBAMEcAOBBLcCzAI3A/sDkAOXAwIHVwNDA9YCKgNNBDUF","dtype":"uint16","shape":[3,7]}],"x":[25.5],"y":[41.5]},"selected":{"id":"3076","type":"Selection"},"selection_policy":{"id":"3099","type":"UnionRenderers"}},"id":"3075","type":"ColumnDataSource"},{"attributes":{"bottom_units":"screen","fill_alpha":{"value":0.5},"fill_color":{"value":"lightgrey"},"left_units":"screen","level":"overlay","line_alpha":{"value":1.0},"line_color":{"value":"black"},"line_dash":[4,4],"line_width":{"value":2},"plot":null,"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"3069","type":"BoxAnnotation"},{"attributes":{"callback":null,"end":32.5,"reset_end":32.5,"reset_start":25.5,"start":25.5,"tags":[[["x","x",null]]]},"id":"3040","type":"Range1d"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"3061","type":"SaveTool"},{"id":"3062","type":"PanTool"},{"id":"3063","type":"WheelZoomTool"},{"id":"3064","type":"BoxZoomTool"},{"id":"3065","type":"ResetTool"}]},"id":"3066","type":"Toolbar"},{"attributes":{"callback":null,"end":44.5,"reset_end":44.5,"reset_start":41.5,"start":41.5,"tags":[[["y","y",null]]]},"id":"3041","type":"Range1d"},{"attributes":{"plot":null,"text":"ROI #60  Time: 0","text_color":{"value":"black"},"text_font_size":{"value":"12pt"}},"id":"3042","type":"Title"},{"attributes":{},"id":"3065","type":"ResetTool"},{"attributes":{"overlay":{"id":"3069","type":"BoxAnnotation"}},"id":"3064","type":"BoxZoomTool"},{"attributes":{"grid_line_color":{"value":null},"plot":{"id":"3043","subtype":"Figure","type":"Plot"},"ticker":{"id":"3052","type":"BasicTicker"}},"id":"3055","type":"Grid"},{"attributes":{"high":3822.0,"low":449.0,"nan_color":"rgba(0, 0, 0, 0)","palette":["#440154","#440255","#440357","#450558","#45065a","#45085b","#46095c","#460b5e","#460c5f","#460e61","#470f62","#471163","#471265","#471466","#471567","#471669","#47186a","#48196b","#481a6c","#481c6e","#481d6f","#481e70","#482071","#482172","#482273","#482374","#472575","#472676","#472777","#472878","#472a79","#472b7a","#472c7b","#462d7c","#462f7c","#46307d","#46317e","#45327f","#45347f","#453580","#453681","#443781","#443982","#433a83","#433b83","#433c84","#423d84","#423e85","#424085","#414186","#414286","#404387","#404487","#3f4587","#3f4788","#3e4888","#3e4989","#3d4a89","#3d4b89","#3d4c89","#3c4d8a","#3c4e8a","#3b508a","#3b518a","#3a528b","#3a538b","#39548b","#39558b","#38568b","#38578c","#37588c","#37598c","#365a8c","#365b8c","#355c8c","#355d8c","#345e8d","#345f8d","#33608d","#33618d","#32628d","#32638d","#31648d","#31658d","#31668d","#30678d","#30688d","#2f698d","#2f6a8d","#2e6b8e","#2e6c8e","#2e6d8e","#2d6e8e","#2d6f8e","#2c708e","#2c718e","#2c728e","#2b738e","#2b748e","#2a758e","#2a768e","#2a778e","#29788e","#29798e","#287a8e","#287a8e","#287b8e","#277c8e","#277d8e","#277e8e","#267f8e","#26808e","#26818e","#25828e","#25838d","#24848d","#24858d","#24868d","#23878d","#23888d","#23898d","#22898d","#228a8d","#228b8d","#218c8d","#218d8c","#218e8c","#208f8c","#20908c","#20918c","#1f928c","#1f938b","#1f948b","#1f958b","#1f968b","#1e978a","#1e988a","#1e998a","#1e998a","#1e9a89","#1e9b89","#1e9c89","#1e9d88","#1e9e88","#1e9f88","#1ea087","#1fa187","#1fa286","#1fa386","#20a485","#20a585","#21a685","#21a784","#22a784","#23a883","#23a982","#24aa82","#25ab81","#26ac81","#27ad80","#28ae7f","#29af7f","#2ab07e","#2bb17d","#2cb17d","#2eb27c","#2fb37b","#30b47a","#32b57a","#33b679","#35b778","#36b877","#38b976","#39b976","#3bba75","#3dbb74","#3ebc73","#40bd72","#42be71","#44be70","#45bf6f","#47c06e","#49c16d","#4bc26c","#4dc26b","#4fc369","#51c468","#53c567","#55c666","#57c665","#59c764","#5bc862","#5ec961","#60c960","#62ca5f","#64cb5d","#67cc5c","#69cc5b","#6bcd59","#6dce58","#70ce56","#72cf55","#74d054","#77d052","#79d151","#7cd24f","#7ed24e","#81d34c","#83d34b","#86d449","#88d547","#8bd546","#8dd644","#90d643","#92d741","#95d73f","#97d83e","#9ad83c","#9dd93a","#9fd938","#a2da37","#a5da35","#a7db33","#aadb32","#addc30","#afdc2e","#b2dd2c","#b5dd2b","#b7dd29","#bade27","#bdde26","#bfdf24","#c2df22","#c5df21","#c7e01f","#cae01e","#cde01d","#cfe11c","#d2e11b","#d4e11a","#d7e219","#dae218","#dce218","#dfe318","#e1e318","#e4e318","#e7e419","#e9e419","#ece41a","#eee51b","#f1e51c","#f3e51e","#f6e61f","#f8e621","#fae622","#fde724"]},"id":"3074","type":"LinearColorMapper"},{"attributes":{"axis_label":"y","bounds":"auto","formatter":{"id":"3084","type":"BasicTickFormatter"},"major_label_orientation":"horizontal","plot":{"id":"3043","subtype":"Figure","type":"Plot"},"ticker":{"id":"3057","type":"BasicTicker"}},"id":"3056","type":"LinearAxis"},{"attributes":{},"id":"3047","type":"LinearScale"},{"attributes":{},"id":"3063","type":"WheelZoomTool"},{"attributes":{},"id":"3052","type":"BasicTicker"},{"attributes":{},"id":"3057","type":"BasicTicker"},{"attributes":{},"id":"3049","type":"LinearScale"},{"attributes":{"dimension":1,"grid_line_color":{"value":null},"plot":{"id":"3043","subtype":"Figure","type":"Plot"},"ticker":{"id":"3057","type":"BasicTicker"}},"id":"3060","type":"Grid"},{"attributes":{"source":{"id":"3075","type":"ColumnDataSource"}},"id":"3081","type":"CDSView"},{"attributes":{},"id":"3062","type":"PanTool"},{"attributes":{"axis_label":"x","bounds":"auto","formatter":{"id":"3082","type":"BasicTickFormatter"},"major_label_orientation":"horizontal","plot":{"id":"3043","subtype":"Figure","type":"Plot"},"ticker":{"id":"3052","type":"BasicTicker"}},"id":"3051","type":"LinearAxis"},{"attributes":{},"id":"3084","type":"BasicTickFormatter"},{"attributes":{},"id":"3061","type":"SaveTool"},{"attributes":{"color_mapper":{"id":"3074","type":"LinearColorMapper"},"dh":{"field":"dh","units":"data"},"dw":{"field":"dw","units":"data"},"image":{"field":"image"},"x":{"field":"x"},"y":{"field":"y"}},"id":"3078","type":"Image"},{"attributes":{"data_source":{"id":"3075","type":"ColumnDataSource"},"glyph":{"id":"3078","type":"Image"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"3079","type":"Image"},"selection_glyph":null,"view":{"id":"3081","type":"CDSView"}},"id":"3080","type":"GlyphRenderer"}],"root_ids":["3043"]},"title":"Bokeh Application","version":"1.0.4"}};
+  var render_items = [{"docid":"5b33379a-f6da-4e91-9270-c1bf12604435","roots":{"3043":"13c1aac9-588b-4d5a-97f3-e930b0367163"}}];
+  root.Bokeh.embed.embed_items_notebook(docs_json, render_items);
+
+  }
+  if (root.Bokeh !== undefined) {
+    embed_document(root);
+  } else {
+    var attempts = 0;
+    var timer = setInterval(function(root) {
+      if (root.Bokeh !== undefined) {
+        embed_document(root);
+        clearInterval(timer);
+      }
+      attempts++;
+      if (attempts > 100) {
+        console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+        clearInterval(timer);
+      }
+    }, 10, root)
+  }
+})(window);</script>
+  </body>
+</html>
