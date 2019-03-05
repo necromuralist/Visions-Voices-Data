@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data (Posts about tutorila)</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description></description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/categories/tutorila.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2019 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Tue, 05 Mar 2019 02:30:48 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>HoloViews Gridded Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#orgee066a2"&gt;The Beginning&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org1361a8d"&gt;The Middle&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org7f1b91b"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org494b274"&gt;Build It&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org4b8521f"&gt;Save It&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org8f698a4"&gt;The End&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgee066a2" class="outline-2"&gt;
+&lt;h2 id="orgee066a2"&gt;The Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgee066a2"&gt;
+&lt;p&gt;
+This is a reproduction of the HoloViews &lt;a href="http://holoviews.org/getting_started/Gridded_Datasets.html"&gt;Gridded Datasets&lt;/a&gt; example in the Getting Started section of their documentation to make sure that I can do it myself. The &lt;i&gt;Gridded Data&lt;/i&gt; that they're referring to is data with more than two dimensions (a table has two dimensions - &lt;i&gt;columns&lt;/i&gt; and &lt;i&gt;rows&lt;/i&gt;). One way to display this type of data might be to use three dimensions (assuming there's only three), but the suggestion here is to use a slider to step through the data instead (so the third dimension is time or something similar).
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org1361a8d" class="outline-2"&gt;
+&lt;h2 id="org1361a8d"&gt;The Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org1361a8d"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org7f1b91b" class="outline-3"&gt;
+&lt;h3 id="org7f1b91b"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org7f1b91b"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgc1fb201" class="outline-4"&gt;
+&lt;h4 id="orgc1fb201"&gt;Imports&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgc1fb201"&gt;
+&lt;/div&gt;
+&lt;ul class="org-ul"&gt;
+&lt;li&gt;&lt;a id="org1a06df3"&gt;&lt;/a&gt;Python&lt;br&gt;
+&lt;div class="outline-text-5" id="text-org1a06df3"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from pathlib import Path
+import os
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a id="org891fce0"&gt;&lt;/a&gt;PyPi&lt;br&gt;
+&lt;div class="outline-text-5" id="text-org891fce0"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from dotenv import load_dotenv
+import holoviews
+from holoviews import opts
+import numpy
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org7fc2f6e" class="outline-4"&gt;
+&lt;h4 id="org7fc2f6e"&gt;The Dotenv&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org7fc2f6e"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;load_dotenv(".env")
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org75f1825" class="outline-4"&gt;
+&lt;h4 id="org75f1825"&gt;Bokeh&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org75f1825"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;#+begin_src python :session holoviews :results none
+holoviews.extension("bokeh")
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org65bac34" class="outline-4"&gt;
+&lt;h4 id="org65bac34"&gt;The Output Path&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org65bac34"&gt;
+&lt;p&gt;
+This is where to store files and images that get created and need to get grabbed by nikola.
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;OUTPUT_PATH = Path("../../files/posts/libraries/holoviews-gridded-data")
+assert OUTPUT_PATH.is_dir()
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgda2d128" class="outline-4"&gt;
+&lt;h4 id="orgda2d128"&gt;The Data&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgda2d128"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;data_path = Path(os.environ.get("PHOTONS")).expanduser()
+assert data_path.is_file()
+data = numpy.load(str(data_path))
+calcium = data["Calcium"]
+print(calcium.shape)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+(62, 111, 50)
+
+&lt;/pre&gt;
+
+&lt;p&gt;
+The &lt;a href="https://www.numpy.org/devdocs/reference/generated/numpy.load.html"&gt;numpy.load&lt;/a&gt; function loads a pickled dict-like object that doesn't unpickle the data until you retrieve it (e.g. when I created the &lt;code&gt;calcium&lt;/code&gt; variable). The data is a 3D array of images with the third dimension representing time (it's a set of images that change over time) so there are 50 time-steps (I don't know what the imagaes actually are or what the time-intervals are). 
+&lt;/p&gt;
+
+&lt;p&gt;
+I'm going to load the data into a HoloViews Dataset, but is going to need time, x, and y coordinates to render the images. To make it simpler I'll just pass in integer arrays with zero-indexed indices for the images. Since this isn't really a dataset that I care about I don't know what the orientation of the image is, but the example set it up as a wide image.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;data_set = holoviews.Dataset((numpy.arange(50), numpy.arange(111), numpy.arange(62), calcium),
+			     ["Time", "x", "y"], "Fluoresence")
+print(data_set)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+:Dataset   [Time,x,y]   (Fluoresence)
+
+&lt;/pre&gt;
+
+&lt;p&gt;
+Note that holoviews treats labels in lists differently than tuples - if it's a tuple then it thinks it represents a &lt;code&gt;(&amp;lt;variable&amp;gt;, &amp;lt;label&amp;gt;)&lt;/code&gt; pair and a list is treated as just labels, which is what we want here.
+&lt;/p&gt;
+
+&lt;p&gt;
+The example says that really we should have used &lt;a href="http://xarray.pydata.org/en/stable/"&gt;xarray&lt;/a&gt; to load the data, so this is how to convert it to and &lt;code&gt;xarray&lt;/code&gt;.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(data_set.clone(datatype=["xarray"]).data)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+&amp;lt;xarray.Dataset&amp;gt;
+Dimensions:      (Time: 50, x: 111, y: 62)
+Coordinates:
+  * Time         (Time) int64 0 1 2 3 4 5 6 7 8 9 ... 41 42 43 44 45 46 47 48 49
+  * x            (x) int64 0 1 2 3 4 5 6 7 8 ... 103 104 105 106 107 108 109 110
+  * y            (y) int64 0 1 2 3 4 5 6 7 8 9 ... 52 53 54 55 56 57 58 59 60 61
+Data variables:
+    Fluoresence  (y, x, Time) uint16 386 441 196 318 525 ... 806 801 899 583 774
+
+&lt;/pre&gt;
+
+&lt;p&gt;
+But we want to use a Dataset, not an x-array so this was just for illustration…
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org494b274" class="outline-3"&gt;
+&lt;h3 id="org494b274"&gt;Build It&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org494b274"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org94153b4" class="outline-4"&gt;
+&lt;h4 id="org94153b4"&gt;Set Up the Plot&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org94153b4"&gt;
+&lt;p&gt;
+Before doing the plot I'll set the defaults for it.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;opts.defaults(
+    opts.GridSpace(shared_xaxis=True, shared_yaxis=True),
+    opts.Image(cmap="viridis", width=400, height=400),
+    opts.Labels(text_color="white", text_font_size="8pt", text_align="left", text_baseline="bottom"),
+    opts.Path(color="white"),
+    opts.Spread(width=600),
+    opts.Overlay(show_legend=False)
+)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Note that if you don't setup the backend with &lt;code&gt;holoviews.extension&lt;/code&gt; then the opts won't have any of the attributes like &lt;code&gt;GridSpace&lt;/code&gt;, &lt;code&gt;Image&lt;/code&gt;, etc.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;plot = data_set.to(holoviews.Image, ["x", "y"]).hist()
+file_name = "grid_image.html"
+output = OUTPUT_PATH.joinpath(file_name)
+holoviews.save(plot, output)
+print("[[file:{}][Link to the plot.]]".format(file_name))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/grid_image.html"&gt;Link to the plot.&lt;/a&gt;
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orga22eb50" class="outline-4"&gt;
+&lt;h4 id="orga22eb50"&gt;Zoom In&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orga22eb50"&gt;
+&lt;p&gt;
+HoloViews provides a way to select out Regions of Interest (ROI). The pickle we loaded earlier has coordinates for rectangular bounding boxes in it (under the &lt;code&gt;ROIs&lt;/code&gt; key).
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;regions_of_interest = data["ROIs"]
+bounds = holoviews.Path([holoviews.Bounds(tuple(region)) for region in regions_of_interest])
+print(regions_of_interest.shape)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+(147, 4)
+
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org4b8521f" class="outline-3"&gt;
+&lt;h3 id="org4b8521f"&gt;Save It&lt;/h3&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org8f698a4" class="outline-2"&gt;
+&lt;h2 id="org8f698a4"&gt;The End&lt;/h2&gt;
+&lt;/div&gt;</description><category>holoviews</category><category>tutorila</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/</guid><pubDate>Tue, 05 Mar 2019 00:50:25 GMT</pubDate></item></channel></rss>

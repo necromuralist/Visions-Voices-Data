@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="Walking through the HoloViews' Getting Started - Gridded Datasets example." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>HoloViews Gridded Data | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
+</script>
+<meta content="Cloistered Monkey" name="author">
+<link href="../aggregating-tabular-data/" rel="prev" title="Aggregating Tabular Data" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="HoloViews Gridded Data" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/" property="og:url">
+<meta content="Walking through the HoloViews' Getting Started - Gridded Datasets example." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2019-03-04T16:50:25-08:00" property="article:published_time">
+<meta content="holoviews" property="article:tag">
+<meta content="tutorila" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="../../../archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../rss.xml">RSS feed</a></li>
+<li class="nav-item"><a class="nav-link" href="https://necromuralist.github.io/">Cloistered Monkey</a></li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"><input name="k8" type="hidden" value="#444444"><input name="k9" type="hidden" value="#D51920"><input name="kt" type="hidden" value="h"><input class="span2" maxlength="255" name="q" placeholder="Search…" style="margin-top: 4px;" type="text"><input style="visibility: hidden;" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href=".">HoloViews Gridded Data</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2019-03-04T16:50:25-08:00" itemprop="datePublished" title="2019-03-04 16:50">2019-03-04 16:50</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgee066a2">The Beginning</a></li>
+<li><a href="#org1361a8d">The Middle</a>
+<ul>
+<li><a href="#org7f1b91b">Set Up</a></li>
+<li><a href="#org494b274">Build It</a></li>
+<li><a href="#org4b8521f">Save It</a></li>
+</ul>
+</li>
+<li><a href="#org8f698a4">The End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgee066a2">
+<h2 id="orgee066a2">The Beginning</h2>
+<div class="outline-text-2" id="text-orgee066a2">
+<p>This is a reproduction of the HoloViews <a href="http://holoviews.org/getting_started/Gridded_Datasets.html">Gridded Datasets</a> example in the Getting Started section of their documentation to make sure that I can do it myself. The <i>Gridded Data</i> that they're referring to is data with more than two dimensions (a table has two dimensions - <i>columns</i> and <i>rows</i>). One way to display this type of data might be to use three dimensions (assuming there's only three), but the suggestion here is to use a slider to step through the data instead (so the third dimension is time or something similar).</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org1361a8d">
+<h2 id="org1361a8d">The Middle</h2>
+<div class="outline-text-2" id="text-org1361a8d"></div>
+<div class="outline-3" id="outline-container-org7f1b91b">
+<h3 id="org7f1b91b">Set Up</h3>
+<div class="outline-text-3" id="text-org7f1b91b"></div>
+<div class="outline-4" id="outline-container-orgc1fb201">
+<h4 id="orgc1fb201">Imports</h4>
+<div class="outline-text-4" id="text-orgc1fb201"></div>
+<ul class="org-ul">
+<li><a id="org1a06df3"></a>Python<br>
+<div class="outline-text-5" id="text-org1a06df3">
+<div class="highlight">
+<pre><span></span>from pathlib import Path
+import os
+</pre></div>
+</div>
+</li>
+<li><a id="org891fce0"></a>PyPi<br>
+<div class="outline-text-5" id="text-org891fce0">
+<div class="highlight">
+<pre><span></span>from dotenv import load_dotenv
+import holoviews
+from holoviews import opts
+import numpy
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="outline-4" id="outline-container-org7fc2f6e">
+<h4 id="org7fc2f6e">The Dotenv</h4>
+<div class="outline-text-4" id="text-org7fc2f6e">
+<div class="highlight">
+<pre><span></span>load_dotenv(".env")
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org75f1825">
+<h4 id="org75f1825">Bokeh</h4>
+<div class="outline-text-4" id="text-org75f1825">
+<div class="highlight">
+<pre><span></span>#+begin_src python :session holoviews :results none
+holoviews.extension("bokeh")
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org65bac34">
+<h4 id="org65bac34">The Output Path</h4>
+<div class="outline-text-4" id="text-org65bac34">
+<p>This is where to store files and images that get created and need to get grabbed by nikola.</p>
+<div class="highlight">
+<pre><span></span>OUTPUT_PATH = Path("../../files/posts/libraries/holoviews-gridded-data")
+assert OUTPUT_PATH.is_dir()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgda2d128">
+<h4 id="orgda2d128">The Data</h4>
+<div class="outline-text-4" id="text-orgda2d128">
+<div class="highlight">
+<pre><span></span>data_path = Path(os.environ.get("PHOTONS")).expanduser()
+assert data_path.is_file()
+data = numpy.load(str(data_path))
+calcium = data["Calcium"]
+print(calcium.shape)
+</pre></div>
+<pre class="example">
+(62, 111, 50)
+
+</pre>
+<p>The <a href="https://www.numpy.org/devdocs/reference/generated/numpy.load.html">numpy.load</a> function loads a pickled dict-like object that doesn't unpickle the data until you retrieve it (e.g. when I created the <code>calcium</code> variable). The data is a 3D array of images with the third dimension representing time (it's a set of images that change over time) so there are 50 time-steps (I don't know what the imagaes actually are or what the time-intervals are).</p>
+<p>I'm going to load the data into a HoloViews Dataset, but is going to need time, x, and y coordinates to render the images. To make it simpler I'll just pass in integer arrays with zero-indexed indices for the images. Since this isn't really a dataset that I care about I don't know what the orientation of the image is, but the example set it up as a wide image.</p>
+<div class="highlight">
+<pre><span></span>data_set = holoviews.Dataset((numpy.arange(50), numpy.arange(111), numpy.arange(62), calcium),
+                             ["Time", "x", "y"], "Fluoresence")
+print(data_set)
+</pre></div>
+<pre class="example">
+:Dataset   [Time,x,y]   (Fluoresence)
+
+</pre>
+<p>Note that holoviews treats labels in lists differently than tuples - if it's a tuple then it thinks it represents a <code>(&lt;variable&gt;, &lt;label&gt;)</code> pair and a list is treated as just labels, which is what we want here.</p>
+<p>The example says that really we should have used <a href="http://xarray.pydata.org/en/stable/">xarray</a> to load the data, so this is how to convert it to and <code>xarray</code>.</p>
+<div class="highlight">
+<pre><span></span>print(data_set.clone(datatype=["xarray"]).data)
+</pre></div>
+<pre class="example">
+&lt;xarray.Dataset&gt;
+Dimensions:      (Time: 50, x: 111, y: 62)
+Coordinates:
+  * Time         (Time) int64 0 1 2 3 4 5 6 7 8 9 ... 41 42 43 44 45 46 47 48 49
+  * x            (x) int64 0 1 2 3 4 5 6 7 8 ... 103 104 105 106 107 108 109 110
+  * y            (y) int64 0 1 2 3 4 5 6 7 8 9 ... 52 53 54 55 56 57 58 59 60 61
+Data variables:
+    Fluoresence  (y, x, Time) uint16 386 441 196 318 525 ... 806 801 899 583 774
+
+</pre>
+<p>But we want to use a Dataset, not an x-array so this was just for illustration…</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org494b274">
+<h3 id="org494b274">Build It</h3>
+<div class="outline-text-3" id="text-org494b274"></div>
+<div class="outline-4" id="outline-container-org94153b4">
+<h4 id="org94153b4">Set Up the Plot</h4>
+<div class="outline-text-4" id="text-org94153b4">
+<p>Before doing the plot I'll set the defaults for it.</p>
+<div class="highlight">
+<pre><span></span>opts.defaults(
+    opts.GridSpace(shared_xaxis=True, shared_yaxis=True),
+    opts.Image(cmap="viridis", width=400, height=400),
+    opts.Labels(text_color="white", text_font_size="8pt", text_align="left", text_baseline="bottom"),
+    opts.Path(color="white"),
+    opts.Spread(width=600),
+    opts.Overlay(show_legend=False)
+)
+</pre></div>
+<p>Note that if you don't setup the backend with <code>holoviews.extension</code> then the opts won't have any of the attributes like <code>GridSpace</code>, <code>Image</code>, etc.</p>
+<div class="highlight">
+<pre><span></span>plot = data_set.to(holoviews.Image, ["x", "y"]).hist()
+file_name = "grid_image.html"
+output = OUTPUT_PATH.joinpath(file_name)
+holoviews.save(plot, output)
+print("[[file:{}][Link to the plot.]]".format(file_name))
+</pre></div>
+<p><a href="grid_image.html">Link to the plot.</a></p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orga22eb50">
+<h4 id="orga22eb50">Zoom In</h4>
+<div class="outline-text-4" id="text-orga22eb50">
+<p>HoloViews provides a way to select out Regions of Interest (ROI). The pickle we loaded earlier has coordinates for rectangular bounding boxes in it (under the <code>ROIs</code> key).</p>
+<div class="highlight">
+<pre><span></span>regions_of_interest = data["ROIs"]
+bounds = holoviews.Path([holoviews.Bounds(tuple(region)) for region in regions_of_interest])
+print(regions_of_interest.shape)
+</pre></div>
+<pre class="example">
+(147, 4)
+
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org4b8521f">
+<h3 id="org4b8521f">Save It</h3>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org8f698a4">
+<h2 id="org8f698a4">The End</h2>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="../../../categories/holoviews/" rel="tag">holoviews</a></li>
+<li><a class="tag p-category" href="../../../categories/tutorila/" rel="tag">tutorila</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="../aggregating-tabular-data/" rel="prev" title="Aggregating Tabular Data">Previous post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="../../../assets/js/all-nocdn.js">
+</script><!-- fancy dates -->
+<script>
+    moment.locale("en");
+    fancydates(0, "YYYY-MM-DD HH:mm");
+</script><!-- end fancy dates -->
+<script>
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script>
+</body>
+</html>
