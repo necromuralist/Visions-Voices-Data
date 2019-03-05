@@ -15,7 +15,7 @@
 <link href="index-1.html" rel="next" type="text/html"><!--[if lt IE 9]><script src="assets/js/html5.js"></script><![endif]-->
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
 </script>
-<link href="posts/libraries/aggregating-tabular-data/" rel="prefetch" type="text/html">
+<link href="posts/libraries/holoviews-gridded-data/" rel="prefetch" type="text/html">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -42,6 +42,191 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
+<h1 class="p-name entry-title"><a class="u-url" href="posts/libraries/holoviews-gridded-data/">HoloViews Gridded Data</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="posts/libraries/holoviews-gridded-data/" rel="bookmark"><time class="published dt-published" datetime="2019-03-04T16:50:25-08:00" itemprop="datePublished" title="2019-03-04 16:50">2019-03-04 16:50</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="posts/libraries/holoviews-gridded-data/#orgee066a2">The Beginning</a></li>
+<li><a href="posts/libraries/holoviews-gridded-data/#org1361a8d">The Middle</a>
+<ul>
+<li><a href="posts/libraries/holoviews-gridded-data/#org7f1b91b">Set Up</a></li>
+<li><a href="posts/libraries/holoviews-gridded-data/#org494b274">Build It</a></li>
+<li><a href="posts/libraries/holoviews-gridded-data/#org4b8521f">Save It</a></li>
+</ul>
+</li>
+<li><a href="posts/libraries/holoviews-gridded-data/#org8f698a4">The End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgee066a2">
+<h2 id="orgee066a2">The Beginning</h2>
+<div class="outline-text-2" id="text-orgee066a2">
+<p>This is a reproduction of the HoloViews <a href="http://holoviews.org/getting_started/Gridded_Datasets.html">Gridded Datasets</a> example in the Getting Started section of their documentation to make sure that I can do it myself. The <i>Gridded Data</i> that they're referring to is data with more than two dimensions (a table has two dimensions - <i>columns</i> and <i>rows</i>). One way to display this type of data might be to use three dimensions (assuming there's only three), but the suggestion here is to use a slider to step through the data instead (so the third dimension is time or something similar).</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org1361a8d">
+<h2 id="org1361a8d">The Middle</h2>
+<div class="outline-text-2" id="text-org1361a8d"></div>
+<div class="outline-3" id="outline-container-org7f1b91b">
+<h3 id="org7f1b91b">Set Up</h3>
+<div class="outline-text-3" id="text-org7f1b91b"></div>
+<div class="outline-4" id="outline-container-orgc1fb201">
+<h4 id="orgc1fb201">Imports</h4>
+<div class="outline-text-4" id="text-orgc1fb201"></div>
+<ul class="org-ul">
+<li><a id="org1a06df3"></a>Python<br>
+<div class="outline-text-5" id="text-org1a06df3">
+<div class="highlight">
+<pre><span></span>from pathlib import Path
+import os
+</pre></div>
+</div>
+</li>
+<li><a id="org891fce0"></a>PyPi<br>
+<div class="outline-text-5" id="text-org891fce0">
+<div class="highlight">
+<pre><span></span>from dotenv import load_dotenv
+import holoviews
+from holoviews import opts
+import numpy
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="outline-4" id="outline-container-org7fc2f6e">
+<h4 id="org7fc2f6e">The Dotenv</h4>
+<div class="outline-text-4" id="text-org7fc2f6e">
+<div class="highlight">
+<pre><span></span>load_dotenv(".env")
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org75f1825">
+<h4 id="org75f1825">Bokeh</h4>
+<div class="outline-text-4" id="text-org75f1825">
+<div class="highlight">
+<pre><span></span>#+begin_src python :session holoviews :results none
+holoviews.extension("bokeh")
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org65bac34">
+<h4 id="org65bac34">The Output Path</h4>
+<div class="outline-text-4" id="text-org65bac34">
+<p>This is where to store files and images that get created and need to get grabbed by nikola.</p>
+<div class="highlight">
+<pre><span></span>OUTPUT_PATH = Path("../../files/posts/libraries/holoviews-gridded-data")
+assert OUTPUT_PATH.is_dir()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgda2d128">
+<h4 id="orgda2d128">The Data</h4>
+<div class="outline-text-4" id="text-orgda2d128">
+<div class="highlight">
+<pre><span></span>data_path = Path(os.environ.get("PHOTONS")).expanduser()
+assert data_path.is_file()
+data = numpy.load(str(data_path))
+calcium = data["Calcium"]
+print(calcium.shape)
+</pre></div>
+<pre class="example">
+(62, 111, 50)
+
+</pre>
+<p>The <a href="https://www.numpy.org/devdocs/reference/generated/numpy.load.html">numpy.load</a> function loads a pickled dict-like object that doesn't unpickle the data until you retrieve it (e.g. when I created the <code>calcium</code> variable). The data is a 3D array of images with the third dimension representing time (it's a set of images that change over time) so there are 50 time-steps (I don't know what the imagaes actually are or what the time-intervals are).</p>
+<p>I'm going to load the data into a HoloViews Dataset, but is going to need time, x, and y coordinates to render the images. To make it simpler I'll just pass in integer arrays with zero-indexed indices for the images. Since this isn't really a dataset that I care about I don't know what the orientation of the image is, but the example set it up as a wide image.</p>
+<div class="highlight">
+<pre><span></span>data_set = holoviews.Dataset((numpy.arange(50), numpy.arange(111), numpy.arange(62), calcium),
+                             ["Time", "x", "y"], "Fluoresence")
+print(data_set)
+</pre></div>
+<pre class="example">
+:Dataset   [Time,x,y]   (Fluoresence)
+
+</pre>
+<p>Note that holoviews treats labels in lists differently than tuples - if it's a tuple then it thinks it represents a <code>(&lt;variable&gt;, &lt;label&gt;)</code> pair and a list is treated as just labels, which is what we want here.</p>
+<p>The example says that really we should have used <a href="http://xarray.pydata.org/en/stable/">xarray</a> to load the data, so this is how to convert it to and <code>xarray</code>.</p>
+<div class="highlight">
+<pre><span></span>print(data_set.clone(datatype=["xarray"]).data)
+</pre></div>
+<pre class="example">
+&lt;xarray.Dataset&gt;
+Dimensions:      (Time: 50, x: 111, y: 62)
+Coordinates:
+  * Time         (Time) int64 0 1 2 3 4 5 6 7 8 9 ... 41 42 43 44 45 46 47 48 49
+  * x            (x) int64 0 1 2 3 4 5 6 7 8 ... 103 104 105 106 107 108 109 110
+  * y            (y) int64 0 1 2 3 4 5 6 7 8 9 ... 52 53 54 55 56 57 58 59 60 61
+Data variables:
+    Fluoresence  (y, x, Time) uint16 386 441 196 318 525 ... 806 801 899 583 774
+
+</pre>
+<p>But we want to use a Dataset, not an x-array so this was just for illustration…</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org494b274">
+<h3 id="org494b274">Build It</h3>
+<div class="outline-text-3" id="text-org494b274"></div>
+<div class="outline-4" id="outline-container-org94153b4">
+<h4 id="org94153b4">Set Up the Plot</h4>
+<div class="outline-text-4" id="text-org94153b4">
+<p>Before doing the plot I'll set the defaults for it.</p>
+<div class="highlight">
+<pre><span></span>opts.defaults(
+    opts.GridSpace(shared_xaxis=True, shared_yaxis=True),
+    opts.Image(cmap="viridis", width=400, height=400),
+    opts.Labels(text_color="white", text_font_size="8pt", text_align="left", text_baseline="bottom"),
+    opts.Path(color="white"),
+    opts.Spread(width=600),
+    opts.Overlay(show_legend=False)
+)
+</pre></div>
+<p>Note that if you don't setup the backend with <code>holoviews.extension</code> then the opts won't have any of the attributes like <code>GridSpace</code>, <code>Image</code>, etc.</p>
+<div class="highlight">
+<pre><span></span>plot = data_set.to(holoviews.Image, ["x", "y"]).hist()
+file_name = "grid_image.html"
+output = OUTPUT_PATH.joinpath(file_name)
+holoviews.save(plot, output)
+print("[[file:{}][Link to the plot.]]".format(file_name))
+</pre></div>
+<p><a href="posts/libraries/holoviews-gridded-data/grid_image.html">Link to the plot.</a></p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orga22eb50">
+<h4 id="orga22eb50">Zoom In</h4>
+<div class="outline-text-4" id="text-orga22eb50">
+<p>HoloViews provides a way to select out Regions of Interest (ROI). The pickle we loaded earlier has coordinates for rectangular bounding boxes in it (under the <code>ROIs</code> key).</p>
+<div class="highlight">
+<pre><span></span>regions_of_interest = data["ROIs"]
+bounds = holoviews.Path([holoviews.Bounds(tuple(region)) for region in regions_of_interest])
+print(regions_of_interest.shape)
+</pre></div>
+<pre class="example">
+(147, 4)
+
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org4b8521f">
+<h3 id="org4b8521f">Save It</h3>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org8f698a4">
+<h2 id="org8f698a4">The End</h2>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
 <h1 class="p-name entry-title"><a class="u-url" href="posts/libraries/aggregating-tabular-data/">Aggregating Tabular Data</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
@@ -53,29 +238,29 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/libraries/aggregating-tabular-data/#org20d8efb">Set Up</a>
+<li><a href="posts/libraries/aggregating-tabular-data/#org6757792">Set Up</a>
 <ul>
-<li><a href="posts/libraries/aggregating-tabular-data/#orgbb6c321">Imports</a></li>
-<li><a href="posts/libraries/aggregating-tabular-data/#org063551b">Holoviews Bokeh</a></li>
-<li><a href="posts/libraries/aggregating-tabular-data/#org426a95e">The Embedder</a></li>
-<li><a href="posts/libraries/aggregating-tabular-data/#org8c1bc31">Dotenv</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#orgfc86770">Imports</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#org6682ddb">Holoviews Bokeh</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#orgfadb4d7">The Embedder</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#org2ea0dbe">Dotenv</a></li>
 </ul>
 </li>
-<li><a href="posts/libraries/aggregating-tabular-data/#org8e46700">Load the Data</a></li>
-<li><a href="posts/libraries/aggregating-tabular-data/#org38b047e">Convert the DataFrame to a Dataset</a></li>
-<li><a href="posts/libraries/aggregating-tabular-data/#orge911d52">Aggregate the Data</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#org2f36520">Load the Data</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#org1d4210b">Convert the DataFrame to a Dataset</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#orgc58cf93">Aggregate the Data</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org20d8efb">
-<h2 id="org20d8efb">Set Up</h2>
-<div class="outline-text-2" id="text-org20d8efb"></div>
-<div class="outline-3" id="outline-container-orgbb6c321">
-<h3 id="orgbb6c321">Imports</h3>
-<div class="outline-text-3" id="text-orgbb6c321"></div>
-<div class="outline-4" id="outline-container-orga206010">
-<h4 id="orga206010">Python</h4>
-<div class="outline-text-4" id="text-orga206010">
+<div class="outline-2" id="outline-container-org6757792">
+<h2 id="org6757792">Set Up</h2>
+<div class="outline-text-2" id="text-org6757792"></div>
+<div class="outline-3" id="outline-container-orgfc86770">
+<h3 id="orgfc86770">Imports</h3>
+<div class="outline-text-3" id="text-orgfc86770"></div>
+<div class="outline-4" id="outline-container-org596cefe">
+<h4 id="org596cefe">Python</h4>
+<div class="outline-text-4" id="text-org596cefe">
 <div class="highlight">
 <pre><span></span>from functools import partial
 from pathlib import Path
@@ -83,9 +268,9 @@ import os
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orge5f13ec">
-<h4 id="orge5f13ec">PyPi</h4>
-<div class="outline-text-4" id="text-orge5f13ec">
+<div class="outline-4" id="outline-container-org675e64b">
+<h4 id="org675e64b">PyPi</h4>
+<div class="outline-text-4" id="text-org675e64b">
 <div class="highlight">
 <pre><span></span>from dotenv import load_dotenv
 from holoviews import opts
@@ -96,27 +281,27 @@ import pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org31f3ff7">
-<h4 id="org31f3ff7">My Projects</h4>
-<div class="outline-text-4" id="text-org31f3ff7">
+<div class="outline-4" id="outline-container-orgcbd9759">
+<h4 id="orgcbd9759">My Projects</h4>
+<div class="outline-text-4" id="text-orgcbd9759">
 <div class="highlight">
 <pre><span></span>from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org063551b">
-<h3 id="org063551b">Holoviews Bokeh</h3>
-<div class="outline-text-3" id="text-org063551b">
+<div class="outline-3" id="outline-container-org6682ddb">
+<h3 id="org6682ddb">Holoviews Bokeh</h3>
+<div class="outline-text-3" id="text-org6682ddb">
 <p>I don't know why but you have to specify that you're using <code>bokeh</code>, even though it looks like it's working when you don't.</p>
 <div class="highlight">
 <pre><span></span>holoviews.extension("bokeh")
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org426a95e">
-<h3 id="org426a95e">The Embedder</h3>
-<div class="outline-text-3" id="text-org426a95e">
+<div class="outline-3" id="outline-container-orgfadb4d7">
+<h3 id="orgfadb4d7">The Embedder</h3>
+<div class="outline-text-3" id="text-orgfadb4d7">
 <div class="highlight">
 <pre><span></span>files_path = Path("../../files/posts/libraries/aggregating-tabular-data/")
 Embed = partial(
@@ -125,9 +310,9 @@ Embed = partial(
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org8c1bc31">
-<h3 id="org8c1bc31">Dotenv</h3>
-<div class="outline-text-3" id="text-org8c1bc31">
+<div class="outline-3" id="outline-container-org2ea0dbe">
+<h3 id="org2ea0dbe">Dotenv</h3>
+<div class="outline-text-3" id="text-org2ea0dbe">
 <p>I have the path to the data-set in a <code>.env</code> file so I'll load it into the environment dictionary.</p>
 <div class="highlight">
 <pre><span></span>load_dotenv(".env")
@@ -135,9 +320,9 @@ Embed = partial(
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org8e46700">
-<h2 id="org8e46700">Load the Data</h2>
-<div class="outline-text-2" id="text-org8e46700">
+<div class="outline-2" id="outline-container-org2f36520">
+<h2 id="org2f36520">Load the Data</h2>
+<div class="outline-text-2" id="text-org2f36520">
 <p>This is the same measles/pertusis data that I used before.</p>
 <div class="highlight">
 <pre><span></span>path = Path(os.environ.get("DISEASES")).expanduser()
@@ -147,9 +332,9 @@ with path.open() as reader:
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org38b047e">
-<h2 id="org38b047e">Convert the DataFrame to a Dataset</h2>
-<div class="outline-text-2" id="text-org38b047e">
+<div class="outline-2" id="outline-container-org1d4210b">
+<h2 id="org1d4210b">Convert the DataFrame to a Dataset</h2>
+<div class="outline-text-2" id="text-org1d4210b">
 <div class="highlight">
 <pre><span></span>key_dimensions = "Year State".split()
 value_dimensions = [("measles", "Measles Incidence"), ("pertussis", "Pertusis Incidence")]
@@ -157,9 +342,9 @@ dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge911d52">
-<h2 id="orge911d52">Aggregate the Data</h2>
-<div class="outline-text-2" id="text-orge911d52">
+<div class="outline-2" id="outline-container-orgc58cf93">
+<h2 id="orgc58cf93">Aggregate the Data</h2>
+<div class="outline-text-2" id="text-orgc58cf93">
 <p>While I had aggregated the data before, this time I'm going to pass in the "Year" column as an argument so it won't keep the states separate.</p>
 <div class="highlight">
 <pre><span></span>aggregator = dataset.aggregate("Year", function=numpy.mean, spreadfn=numpy.std)
@@ -188,32 +373,32 @@ plot = overlay.opts(height=500, width=1000, tools=["hover"])
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/libraries/selecting-tabular-data/#orgb9568f6">Set Up</a>
+<li><a href="posts/libraries/selecting-tabular-data/#org58c00c8">Set Up</a>
 <ul>
-<li><a href="posts/libraries/selecting-tabular-data/#org4494ae9">Imports</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#orgddbd038">Holoviews Bokeh</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#org47aa4f3">The Embedder</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#org3797b09">Dotenv</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#orgb4e4949">Imports</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#org9b0c9dd">Holoviews Bokeh</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#org54abd86">The Embedder</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#org08eac85">Dotenv</a></li>
 </ul>
 </li>
-<li><a href="posts/libraries/selecting-tabular-data/#orgb46c74d">Load the Data</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#org6af98c6">Convert the DataFrame to a Dataset</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#org95e36cb">Aggregate The Data</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#org819211b">Plot a Subset</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#org4777d0b">Facets</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#org910d574">Overlays</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#org811b9f0">Load the Data</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#orgd021ee5">Convert the DataFrame to a Dataset</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#org62a7cc1">Aggregate The Data</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#orgb89abbc">Plot a Subset</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#orge8fc643">Facets</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#org44b4177">Overlays</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgb9568f6">
-<h2 id="orgb9568f6">Set Up</h2>
-<div class="outline-text-2" id="text-orgb9568f6"></div>
-<div class="outline-3" id="outline-container-org4494ae9">
-<h3 id="org4494ae9">Imports</h3>
-<div class="outline-text-3" id="text-org4494ae9"></div>
-<div class="outline-4" id="outline-container-org8b3aae1">
-<h4 id="org8b3aae1">Python</h4>
-<div class="outline-text-4" id="text-org8b3aae1">
+<div class="outline-2" id="outline-container-org58c00c8">
+<h2 id="org58c00c8">Set Up</h2>
+<div class="outline-text-2" id="text-org58c00c8"></div>
+<div class="outline-3" id="outline-container-orgb4e4949">
+<h3 id="orgb4e4949">Imports</h3>
+<div class="outline-text-3" id="text-orgb4e4949"></div>
+<div class="outline-4" id="outline-container-orgee5965a">
+<h4 id="orgee5965a">Python</h4>
+<div class="outline-text-4" id="text-orgee5965a">
 <div class="highlight">
 <pre><span></span>from functools import partial
 from pathlib import Path
@@ -221,9 +406,9 @@ import os
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org4b145d5">
-<h4 id="org4b145d5">PyPi</h4>
-<div class="outline-text-4" id="text-org4b145d5">
+<div class="outline-4" id="outline-container-org1f28436">
+<h4 id="org1f28436">PyPi</h4>
+<div class="outline-text-4" id="text-org1f28436">
 <div class="highlight">
 <pre><span></span>from dotenv import load_dotenv
 from holoviews import opts
@@ -234,27 +419,27 @@ import pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org6d620dc">
-<h4 id="org6d620dc">My Projects</h4>
-<div class="outline-text-4" id="text-org6d620dc">
+<div class="outline-4" id="outline-container-org93760be">
+<h4 id="org93760be">My Projects</h4>
+<div class="outline-text-4" id="text-org93760be">
 <div class="highlight">
 <pre><span></span>from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgddbd038">
-<h3 id="orgddbd038">Holoviews Bokeh</h3>
-<div class="outline-text-3" id="text-orgddbd038">
+<div class="outline-3" id="outline-container-org9b0c9dd">
+<h3 id="org9b0c9dd">Holoviews Bokeh</h3>
+<div class="outline-text-3" id="text-org9b0c9dd">
 <p>I don't know why but you have to specify that you're using <code>bokeh</code>, even though it looks like it's working when you don't.</p>
 <div class="highlight">
 <pre><span></span>holoviews.extension("bokeh")
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org47aa4f3">
-<h3 id="org47aa4f3">The Embedder</h3>
-<div class="outline-text-3" id="text-org47aa4f3">
+<div class="outline-3" id="outline-container-org54abd86">
+<h3 id="org54abd86">The Embedder</h3>
+<div class="outline-text-3" id="text-org54abd86">
 <div class="highlight">
 <pre><span></span>files_path = Path("../../files/posts/libraries/selecting-tabular-data/")
 Embed = partial(
@@ -263,9 +448,9 @@ Embed = partial(
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org3797b09">
-<h3 id="org3797b09">Dotenv</h3>
-<div class="outline-text-3" id="text-org3797b09">
+<div class="outline-3" id="outline-container-org08eac85">
+<h3 id="org08eac85">Dotenv</h3>
+<div class="outline-text-3" id="text-org08eac85">
 <p>I have the path to the data-set in a <code>.env</code> file so I'll load it into the environment dictionary.</p>
 <div class="highlight">
 <pre><span></span>load_dotenv(".env")
@@ -273,9 +458,9 @@ Embed = partial(
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgb46c74d">
-<h2 id="orgb46c74d">Load the Data</h2>
-<div class="outline-text-2" id="text-orgb46c74d">
+<div class="outline-2" id="outline-container-org811b9f0">
+<h2 id="org811b9f0">Load the Data</h2>
+<div class="outline-text-2" id="text-org811b9f0">
 <p>This is the same measles/pertusis data that I used before.</p>
 <div class="highlight">
 <pre><span></span>path = Path(os.environ.get("DISEASES")).expanduser()
@@ -342,9 +527,9 @@ with path.open() as reader:
 </table>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org6af98c6">
-<h2 id="org6af98c6">Convert the DataFrame to a Dataset</h2>
-<div class="outline-text-2" id="text-org6af98c6">
+<div class="outline-2" id="outline-container-orgd021ee5">
+<h2 id="orgd021ee5">Convert the DataFrame to a Dataset</h2>
+<div class="outline-text-2" id="text-orgd021ee5">
 <div class="highlight">
 <pre><span></span>key_dimensions = "Year State".split()
 value_dimensions = [("measles", "Measles Incidence"), ("pertussis", "Pertusis Incidence")]
@@ -352,9 +537,9 @@ dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org95e36cb">
-<h2 id="org95e36cb">Aggregate The Data</h2>
-<div class="outline-text-2" id="text-org95e36cb">
+<div class="outline-2" id="outline-container-org62a7cc1">
+<h2 id="org62a7cc1">Aggregate The Data</h2>
+<div class="outline-text-2" id="text-org62a7cc1">
 <div class="highlight">
 <pre><span></span>dataset = dataset.aggregate(function=numpy.mean)
 </pre></div>
@@ -368,9 +553,9 @@ print(dataset.shape)
 
 </pre></div>
 </div>
-<div class="outline-2" id="outline-container-org819211b">
-<h2 id="org819211b">Plot a Subset</h2>
-<div class="outline-text-2" id="text-org819211b">
+<div class="outline-2" id="outline-container-orgb89abbc">
+<h2 id="orgb89abbc">Plot a Subset</h2>
+<div class="outline-text-2" id="text-orgb89abbc">
 <div class="highlight">
 <pre><span></span>northwest = ["Oregon", "Washington", "Idaho"]
 bars = dataset.select(State=northwest, Year=(1928, 1938)).to(
@@ -388,9 +573,9 @@ plot = bars.opts(
 <p>Interesting how Oregon spiked up in 1935 and 1936 then dropped down in 1937. According to <a href="https://www.cdc.gov/measles/about/history.html">the CDC</a>, the measles vaccine didn't come out until 1963, so I guess those ebb-and-flows are just the normal way diseases cycle through populations. Oregon and Washington probably had more immigrants than Idaho, as well as higher population densities in their main cities, which might account for their higher rates. Hard to say without corellating data.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org4777d0b">
-<h2 id="org4777d0b">Facets</h2>
-<div class="outline-text-2" id="text-org4777d0b">
+<div class="outline-2" id="outline-container-orge8fc643">
+<h2 id="orge8fc643">Facets</h2>
+<div class="outline-text-2" id="text-orge8fc643">
 <p>The bar-plot is okay for comparing the cities within any given year but they are hard to get trends from. Here's how to use selecting to plot lines for each city.</p>
 <div class="highlight">
 <pre><span></span>grouped = dataset.select(State=northwest, Year=(1928, 2011)).to(holoviews.Curve, "Year", "measles")
@@ -405,9 +590,9 @@ plot = gridspace.opts(
 <script id="e0183ad8-47df-4d67-befe-c2c4ba24e369" src="posts/libraries/selecting-tabular-data/northwest_measles_grid.js">
 </script></div>
 </div>
-<div class="outline-2" id="outline-container-org910d574">
-<h2 id="org910d574">Overlays</h2>
-<div class="outline-text-2" id="text-org910d574">
+<div class="outline-2" id="outline-container-org44b4177">
+<h2 id="org44b4177">Overlays</h2>
+<div class="outline-text-2" id="text-org44b4177">
 <p>While the side-by-side plots are clearer than the bar-plots, it's harder to compare the cities year-by-year, so it might be better to plot them over each other.</p>
 <div class="highlight">
 <pre><span></span>overlay = grouped.overlay("State")
@@ -487,10 +672,10 @@ plot = overlay.opts(
 </div>
 <div class="output_area">
 <div class="prompt"></div>
-<div id="07b377e3-2ce1-4452-9603-c03c6366a7af"></div>
+<div id="b8e1264d-ea27-4046-bdea-66c462a8f839"></div>
 <div class="output_subarea output_javascript">
 <script type="text/javascript">
-var element = $('#07b377e3-2ce1-4452-9603-c03c6366a7af');
+var element = $('#b8e1264d-ea27-4046-bdea-66c462a8f839');
 
 (function(root) {
   function now() {
@@ -800,10 +985,10 @@ var element = $('#07b377e3-2ce1-4452-9603-c03c6366a7af');
 <div class="output">
 <div class="output_area">
 <div class="prompt"></div>
-<div id="791f3e92-2ca8-49de-b1d1-e5fe7a9af12e"></div>
+<div id="7ef26089-fb05-43ff-a23f-3d36204225a3"></div>
 <div class="output_subarea output_javascript">
 <script type="text/javascript">
-var element = $('#791f3e92-2ca8-49de-b1d1-e5fe7a9af12e');
+var element = $('#7ef26089-fb05-43ff-a23f-3d36204225a3');
 
 (function(root) {
   function now() {
@@ -1452,10 +1637,10 @@ div.hologroup {
 </div>
 <div class="output_area">
 <div class="prompt"></div>
-<div id="f20b9bec-e021-4395-8176-f74ec0046c45"></div>
+<div id="1a0863dd-ee0e-4e69-bedf-ec0123d310f1"></div>
 <div class="output_subarea output_javascript">
 <script type="text/javascript">
-var element = $('#f20b9bec-e021-4395-8176-f74ec0046c45');
+var element = $('#1a0863dd-ee0e-4e69-bedf-ec0123d310f1');
 function HoloViewsWidget() {
 }
 
@@ -2423,10 +2608,10 @@ if (window.Jupyter !== undefined) {
 <div class="output">
 <div class="output_area">
 <div class="prompt output_prompt">Out[48]:</div>
-<div id="217618c0-348d-4ef2-8824-07340cb41cb8"></div>
+<div id="8dea28b4-09d5-409d-b763-ab23f15606d3"></div>
 <div class="output_subarea output_javascript output_execute_result">
 <script type="text/javascript">
-var element = $('#217618c0-348d-4ef2-8824-07340cb41cb8');
+var element = $('#8dea28b4-09d5-409d-b763-ab23f15606d3');
 
 // Ugly hack - see HoloViews #2574 for more information
 if (!(document.getElementById('5341')) && !(document.getElementById('_anim_img45a5bc2a41ac4e4984bedc826209bc9f'))) {
@@ -2679,42 +2864,42 @@ if (!(document.getElementById('5341')) && !(document.getElementById('_anim_imgNo
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/libraries/holoviews-tabular-datasets/#org10604a7">Introduction</a></li>
-<li><a href="posts/libraries/holoviews-tabular-datasets/#orgfbdc19e">Set Up</a>
+<li><a href="posts/libraries/holoviews-tabular-datasets/#org7ed84a6">Introduction</a></li>
+<li><a href="posts/libraries/holoviews-tabular-datasets/#orga31fb40">Set Up</a>
 <ul>
-<li><a href="posts/libraries/holoviews-tabular-datasets/#orgcf2fa7c">Imports</a></li>
-<li><a href="posts/libraries/holoviews-tabular-datasets/#orgbc47545">Holoviews Bokeh</a></li>
-<li><a href="posts/libraries/holoviews-tabular-datasets/#org8d4f80b">The Embedder</a></li>
-<li><a href="posts/libraries/holoviews-tabular-datasets/#orgfc27cbc">Dotenv</a></li>
-<li><a href="posts/libraries/holoviews-tabular-datasets/#org560f8bf">Tabulate</a></li>
+<li><a href="posts/libraries/holoviews-tabular-datasets/#orgdd1100a">Imports</a></li>
+<li><a href="posts/libraries/holoviews-tabular-datasets/#orgae755d6">Holoviews Bokeh</a></li>
+<li><a href="posts/libraries/holoviews-tabular-datasets/#orgc74028d">The Embedder</a></li>
+<li><a href="posts/libraries/holoviews-tabular-datasets/#org74fe15a">Dotenv</a></li>
+<li><a href="posts/libraries/holoviews-tabular-datasets/#org23a1e7a">Tabulate</a></li>
 </ul>
 </li>
-<li><a href="posts/libraries/holoviews-tabular-datasets/#org589cad7">Load the Data</a></li>
-<li><a href="posts/libraries/holoviews-tabular-datasets/#orgaa14009">Create a Dataset</a>
+<li><a href="posts/libraries/holoviews-tabular-datasets/#org78a663e">Load the Data</a></li>
+<li><a href="posts/libraries/holoviews-tabular-datasets/#org4d93c52">Create a Dataset</a>
 <ul>
-<li><a href="posts/libraries/holoviews-tabular-datasets/#orga2d4768">Aggregate The Data</a></li>
-<li><a href="posts/libraries/holoviews-tabular-datasets/#orgd36747c">Save the HTML</a></li>
+<li><a href="posts/libraries/holoviews-tabular-datasets/#orgd08d692">Aggregate The Data</a></li>
+<li><a href="posts/libraries/holoviews-tabular-datasets/#org07141b7">Save the HTML</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org10604a7">
-<h2 id="org10604a7">Introduction</h2>
-<div class="outline-text-2" id="text-org10604a7">
+<div class="outline-2" id="outline-container-org7ed84a6">
+<h2 id="org7ed84a6">Introduction</h2>
+<div class="outline-text-2" id="text-org7ed84a6">
 <p>This is a walk through the <a href="https://holoviews.org/getting_started/Tabular_Datasets.html">HoloViews page on Tabular Datasets</a>. The data-set was created by the Wall Street Journal using Project Tycho, but I'm getting it from the <a href="https://github.com/pyviz/holoviews">HoloViews github repository</a>. The Wall Street Journal page is <a href="https://graphics.wsj.com/infectious-diseases-and-vaccines/#b02g20t20w15">here</a>. Unfortunately it has mixed content types (https and http) as well as some other problems which prevent Firefox and Chrome-based browsers from rendering it the visualization so I don't know what it actually looks like. Given that it's a commercial site I'm assuming it's an old page that they don't care about anymore.</p>
 <p><b>Warning:</b> I originally did this with <code>modin</code> and it wouldn't plot correctly. Save it for pre-processing and just use the real <code>pandas</code> when plotting.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgfbdc19e">
-<h2 id="orgfbdc19e">Set Up</h2>
-<div class="outline-text-2" id="text-orgfbdc19e"></div>
-<div class="outline-3" id="outline-container-orgcf2fa7c">
-<h3 id="orgcf2fa7c">Imports</h3>
-<div class="outline-text-3" id="text-orgcf2fa7c"></div>
-<div class="outline-4" id="outline-container-org75a96ac">
-<h4 id="org75a96ac">Python</h4>
-<div class="outline-text-4" id="text-org75a96ac">
+<div class="outline-2" id="outline-container-orga31fb40">
+<h2 id="orga31fb40">Set Up</h2>
+<div class="outline-text-2" id="text-orga31fb40"></div>
+<div class="outline-3" id="outline-container-orgdd1100a">
+<h3 id="orgdd1100a">Imports</h3>
+<div class="outline-text-3" id="text-orgdd1100a"></div>
+<div class="outline-4" id="outline-container-orgd0904eb">
+<h4 id="orgd0904eb">Python</h4>
+<div class="outline-text-4" id="text-orgd0904eb">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
@@ -2722,9 +2907,9 @@ if (!(document.getElementById('5341')) && !(document.getElementById('_anim_imgNo
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org1de0db4">
-<h4 id="org1de0db4">PyPi</h4>
-<div class="outline-text-4" id="text-org1de0db4">
+<div class="outline-4" id="outline-container-org3d26ec4">
+<h4 id="org3d26ec4">PyPi</h4>
+<div class="outline-text-4" id="text-org3d26ec4">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">bokeh.io</span> <span class="kn">import</span> <span class="n">output_notebook</span>
 <span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
@@ -2736,18 +2921,18 @@ if (!(document.getElementById('5341')) && !(document.getElementById('_anim_imgNo
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org9bda96f">
-<h4 id="org9bda96f">My Projects</h4>
-<div class="outline-text-4" id="text-org9bda96f">
+<div class="outline-4" id="outline-container-orga51b045">
+<h4 id="orga51b045">My Projects</h4>
+<div class="outline-text-4" id="text-orga51b045">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgbc47545">
-<h3 id="orgbc47545">Holoviews Bokeh</h3>
-<div class="outline-text-3" id="text-orgbc47545">
+<div class="outline-3" id="outline-container-orgae755d6">
+<h3 id="orgae755d6">Holoviews Bokeh</h3>
+<div class="outline-text-3" id="text-orgae755d6">
 <p>I don't know why but you have to specify that you're using <code>bokeh</code>, even though it looks like it's working when you don't.</p>
 <div class="highlight">
 <pre><span></span><span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">)</span>
@@ -2755,9 +2940,9 @@ if (!(document.getElementById('5341')) && !(document.getElementById('_anim_imgNo
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org8d4f80b">
-<h3 id="org8d4f80b">The Embedder</h3>
-<div class="outline-text-3" id="text-org8d4f80b">
+<div class="outline-3" id="outline-container-orgc74028d">
+<h3 id="orgc74028d">The Embedder</h3>
+<div class="outline-text-3" id="text-orgc74028d">
 <div class="highlight">
 <pre><span></span><span class="n">files_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/holoviews-tabular-datasets/"</span><span class="p">)</span>
 <span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
@@ -2766,18 +2951,18 @@ if (!(document.getElementById('5341')) && !(document.getElementById('_anim_imgNo
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgfc27cbc">
-<h3 id="orgfc27cbc">Dotenv</h3>
-<div class="outline-text-3" id="text-orgfc27cbc">
+<div class="outline-3" id="outline-container-org74fe15a">
+<h3 id="org74fe15a">Dotenv</h3>
+<div class="outline-text-3" id="text-org74fe15a">
 <p>I have the path to the data-set in a <code>.env</code> file so I'll load it into the environment dictionary.</p>
 <div class="highlight">
 <pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">".env"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org560f8bf">
-<h3 id="org560f8bf">Tabulate</h3>
-<div class="outline-text-3" id="text-org560f8bf">
+<div class="outline-3" id="outline-container-org23a1e7a">
+<h3 id="org23a1e7a">Tabulate</h3>
+<div class="outline-text-3" id="text-org23a1e7a">
 <p>This will print a table that org knows how to render.</p>
 <div class="highlight">
 <pre><span></span><span class="n">orgtable</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> 
@@ -2786,9 +2971,9 @@ if (!(document.getElementById('5341')) && !(document.getElementById('_anim_imgNo
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org589cad7">
-<h2 id="org589cad7">Load the Data</h2>
-<div class="outline-text-2" id="text-org589cad7">
+<div class="outline-2" id="outline-container-org78a663e">
+<h2 id="org78a663e">Load the Data</h2>
+<div class="outline-text-2" id="text-org78a663e">
 <p>The data comes from <a href="https://www.tycho.pitt.edu/">Project Tycho</a>, which provides health-related data sets for research. The <code>.env</code> file assumes that I cloned the <code>HoloViews</code> repository so that I can load the data from it.</p>
 <div class="highlight">
 <pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"DISEASES"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
@@ -2873,9 +3058,9 @@ if (!(document.getElementById('5341')) && !(document.getElementById('_anim_imgNo
 <p>The <code>State</code> column includes Washington D.C., which is why there are 51 states. It has 52 weeks of data for each year from 1928 through 2011. Since <i>measles</i> and <i>pertussis</i> are greater than 1 I assume that this is some kind of rate (like incidence per million), but the page doesn't say and I the article they link to doesn't seem to render in my browser (and I don't have an account to download a dataset).</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgaa14009">
-<h2 id="orgaa14009">Create a Dataset</h2>
-<div class="outline-text-2" id="text-orgaa14009">
+<div class="outline-2" id="outline-container-org4d93c52">
+<h2 id="org4d93c52">Create a Dataset</h2>
+<div class="outline-text-2" id="text-org4d93c52">
 <p>HoloViews has a class called a Dataset that lets you declare the dependent (<i>value dimensions (vdims)</i>) and independent variables (<i>key dimensions (kdims)</i>).</p>
 <div class="highlight">
 <pre><span></span><span class="n">key_dimensions</span> <span class="o">=</span> <span class="s2">"Year State"</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
@@ -2884,9 +3069,9 @@ if (!(document.getElementById('5341')) && !(document.getElementById('_anim_imgNo
 </pre></div>
 <p>The <code>value_dimensions</code> list has tuples - these take the form <code>(&lt;column-name&gt;, &lt;output-name&gt;)</code> so when you make a plot it will use the <code>&lt;output-name&gt;</code> for any labels that are created.</p>
 </div>
-<div class="outline-3" id="outline-container-orga2d4768">
-<h3 id="orga2d4768">Aggregate The Data</h3>
-<div class="outline-text-3" id="text-orga2d4768">
+<div class="outline-3" id="outline-container-orgd08d692">
+<h3 id="orgd08d692">Aggregate The Data</h3>
+<div class="outline-text-3" id="text-orgd08d692">
 <p>The one column that I didn't add is the <code>Week</code> column. The <code>Dataset</code> has a rather confusing <code>aggregate</code> method (confusing because you only pass in the function to aggregate with) that apparently knows how to use the <code>key_dimensions</code> variables we passed in to figure out what to aggregate.</p>
 <div class="highlight">
 <pre><span></span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
@@ -2915,9 +3100,9 @@ if (!(document.getElementById('5341')) && !(document.getElementById('_anim_imgNo
 <p><a href="posts/libraries/holoviews-tabular-datasets/diseases.html">diseases.html</a></p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgd36747c">
-<h3 id="orgd36747c">Save the HTML</h3>
-<div class="outline-text-3" id="text-orgd36747c">
+<div class="outline-3" id="outline-container-org07141b7">
+<h3 id="org07141b7">Save the HTML</h3>
+<div class="outline-text-3" id="text-org07141b7">
 <p>I'll see if you can do it directly here without using jupyter.</p>
 <div class="highlight">
 <pre><span></span><span class="n">save_file</span> <span class="o">=</span> <span class="s2">"diseases_2.html"</span>
@@ -2944,32 +3129,32 @@ if (!(document.getElementById('5341')) && !(document.getElementById('_anim_imgNo
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/giss/giss-globalhemispheric-temperatures/#orge5271d4">Set Up</a>
+<li><a href="posts/giss/giss-globalhemispheric-temperatures/#org2536a75">Set Up</a>
 <ul>
-<li><a href="posts/giss/giss-globalhemispheric-temperatures/#org4e70259">Imports</a></li>
-<li><a href="posts/giss/giss-globalhemispheric-temperatures/#org4baa8bd">Setup the Embed</a></li>
+<li><a href="posts/giss/giss-globalhemispheric-temperatures/#orgbd17f97">Imports</a></li>
+<li><a href="posts/giss/giss-globalhemispheric-temperatures/#org760ec5f">Setup the Embed</a></li>
 </ul>
 </li>
-<li><a href="posts/giss/giss-globalhemispheric-temperatures/#org88042c3">Load the Data</a></li>
-<li><a href="posts/giss/giss-globalhemispheric-temperatures/#orge55d3c7">Plot</a>
+<li><a href="posts/giss/giss-globalhemispheric-temperatures/#org6fdc59b">Load the Data</a></li>
+<li><a href="posts/giss/giss-globalhemispheric-temperatures/#org2a09201">Plot</a>
 <ul>
-<li><a href="posts/giss/giss-globalhemispheric-temperatures/#orgdc10b69">Global/Hemispheric</a></li>
-<li><a href="posts/giss/giss-globalhemispheric-temperatures/#org5151ab5">Embed the Plot</a></li>
-<li><a href="posts/giss/giss-globalhemispheric-temperatures/#org8a86407">Latitude And Longitude</a></li>
+<li><a href="posts/giss/giss-globalhemispheric-temperatures/#org90679ca">Global/Hemispheric</a></li>
+<li><a href="posts/giss/giss-globalhemispheric-temperatures/#orgdffc9bc">Embed the Plot</a></li>
+<li><a href="posts/giss/giss-globalhemispheric-temperatures/#orgf3e555f">Latitude And Longitude</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge5271d4">
-<h2 id="orge5271d4">Set Up</h2>
-<div class="outline-text-2" id="text-orge5271d4"></div>
-<div class="outline-3" id="outline-container-org4e70259">
-<h3 id="org4e70259">Imports</h3>
-<div class="outline-text-3" id="text-org4e70259"></div>
-<div class="outline-4" id="outline-container-org0f8db26">
-<h4 id="org0f8db26">Python</h4>
-<div class="outline-text-4" id="text-org0f8db26">
+<div class="outline-2" id="outline-container-org2536a75">
+<h2 id="org2536a75">Set Up</h2>
+<div class="outline-text-2" id="text-org2536a75"></div>
+<div class="outline-3" id="outline-container-orgbd17f97">
+<h3 id="orgbd17f97">Imports</h3>
+<div class="outline-text-3" id="text-orgbd17f97"></div>
+<div class="outline-4" id="outline-container-org24c295c">
+<h4 id="org24c295c">Python</h4>
+<div class="outline-text-4" id="text-org24c295c">
 <div class="highlight">
 <pre><span></span>from functools import partial
 from pathlib import Path
@@ -2977,9 +3162,9 @@ import os
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orge32dbb0">
-<h4 id="orge32dbb0">PyPi</h4>
-<div class="outline-text-4" id="text-orge32dbb0">
+<div class="outline-4" id="outline-container-orgab797dd">
+<h4 id="orgab797dd">PyPi</h4>
+<div class="outline-text-4" id="text-orgab797dd">
 <div class="highlight">
 <pre><span></span>from bokeh.layouts import column
 from bokeh.palettes import Set1
@@ -3003,18 +3188,18 @@ import pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org3aba2af">
-<h4 id="org3aba2af">This Project</h4>
-<div class="outline-text-4" id="text-org3aba2af">
+<div class="outline-4" id="outline-container-org95ffcc4">
+<h4 id="org95ffcc4">This Project</h4>
+<div class="outline-text-4" id="text-org95ffcc4">
 <div class="highlight">
 <pre><span></span>from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org4baa8bd">
-<h3 id="org4baa8bd">Setup the Embed</h3>
-<div class="outline-text-3" id="text-org4baa8bd">
+<div class="outline-3" id="outline-container-org760ec5f">
+<h3 id="org760ec5f">Setup the Embed</h3>
+<div class="outline-text-3" id="text-org760ec5f">
 <div class="highlight">
 <pre><span></span>files_path = Path("../../files/posts/giss/giss-globalhemispheric-temperatures/")
 Embed = partial(
@@ -3022,9 +3207,9 @@ Embed = partial(
     folder_path=files_path)
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org23760dc">
-<h4 id="org23760dc">Set Up Bokeh</h4>
-<div class="outline-text-4" id="text-org23760dc">
+<div class="outline-4" id="outline-container-org556c09f">
+<h4 id="org556c09f">Set Up Bokeh</h4>
+<div class="outline-text-4" id="text-org556c09f">
 <p>I originally createde EmbedBokeh to use HoloViews to do the rendering so you have to set bokeh to be the backend or it will try to use <code>matplotlib</code> instead.</p>
 <div class="highlight">
 <pre><span></span>holoviews.extension("bokeh")
@@ -3033,9 +3218,9 @@ Embed = partial(
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org88042c3">
-<h2 id="org88042c3">Load the Data</h2>
-<div class="outline-text-2" id="text-org88042c3">
+<div class="outline-2" id="outline-container-org6fdc59b">
+<h2 id="org6fdc59b">Load the Data</h2>
+<div class="outline-text-2" id="text-org6fdc59b">
 <div class="highlight">
 <pre><span></span>load_dotenv(".env")
 path = Path(os.environ.get("ZONES")).expanduser()
@@ -3138,12 +3323,12 @@ Index(['Year', 'Global', 'Northern Hemisphere', 'Southern Hemisphere',
 
 </pre></div>
 </div>
-<div class="outline-2" id="outline-container-orge55d3c7">
-<h2 id="orge55d3c7">Plot</h2>
-<div class="outline-text-2" id="text-orge55d3c7"></div>
-<div class="outline-3" id="outline-container-orgdc10b69">
-<h3 id="orgdc10b69">Global/Hemispheric</h3>
-<div class="outline-text-3" id="text-orgdc10b69">
+<div class="outline-2" id="outline-container-org2a09201">
+<h2 id="org2a09201">Plot</h2>
+<div class="outline-text-2" id="text-org2a09201"></div>
+<div class="outline-3" id="outline-container-org90679ca">
+<h3 id="org90679ca">Global/Hemispheric</h3>
+<div class="outline-text-3" id="text-org90679ca">
 <div class="highlight">
 <pre><span></span>class Plot:
     width = 1000
@@ -3201,9 +3386,9 @@ plot.legend.location = "top_left"
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org5151ab5">
-<h3 id="org5151ab5">Embed the Plot</h3>
-<div class="outline-text-3" id="text-org5151ab5">
+<div class="outline-3" id="outline-container-orgdffc9bc">
+<h3 id="orgdffc9bc">Embed the Plot</h3>
+<div class="outline-text-3" id="text-orgdffc9bc">
 <p>I need to fix the <code>EmbedBokeh</code> class.</p>
 <div class="highlight">
 <pre><span></span>embed = Embed(plot, "global_temperature_anomalies")
@@ -3213,9 +3398,9 @@ embed()
 <script id="c46002a4-86c3-497f-8734-0cba02939fed" src="posts/giss/giss-globalhemispheric-temperatures/global_temperature_anomalies.js">
 </script></div>
 </div>
-<div class="outline-3" id="outline-container-org8a86407">
-<h3 id="org8a86407">Latitude And Longitude</h3>
-<div class="outline-text-3" id="text-org8a86407">
+<div class="outline-3" id="outline-container-orgf3e555f">
+<h3 id="orgf3e555f">Latitude And Longitude</h3>
+<div class="outline-text-3" id="text-orgf3e555f">
 <div class="highlight">
 <pre><span></span>
 </pre></div>
@@ -3237,57 +3422,57 @@ embed()
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org7b9717b">Introduction</a></li>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org1d7d445">Set Up</a>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org5b904a9">Introduction</a></li>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgccbbe6c">Set Up</a>
 <ul>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org2b6dc66">Imports</a></li>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgf11479c">Load Dotenv</a></li>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org5c590df">Imports</a></li>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org0db327f">Load Dotenv</a></li>
 </ul>
 </li>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org381f1b2">Load the Data</a>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgabe07f9">Load the Data</a>
 <ul>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgc52be5a">Take One</a></li>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org0b3fa95">Take Two</a></li>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org4b0a0fc">Take Three</a></li>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgfe88b6a">Take One</a></li>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgdcd8537">Take Two</a></li>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org33b45cd">Take Three</a></li>
 </ul>
 </li>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org1866a70">The Real Data</a></li>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org441f298">Criteria</a>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgdacee5b">The Real Data</a></li>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgf3d92f7">Criteria</a>
 <ul>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orge55cd6d">Appropriate Chart Selection and Variables</a></li>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orge9553ad">Design of the Chart</a></li>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org876c578">Content</a></li>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgee3e49f">Grading</a></li>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org2ffb1e8">Appropriate Chart Selection and Variables</a></li>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org95adad0">Design of the Chart</a></li>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org7c6d1a6">Content</a></li>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgca9177b">Grading</a></li>
 </ul>
 </li>
-<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org8425e92">Citation</a></li>
+<li><a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org63a9879">Citation</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org7b9717b">
-<h2 id="org7b9717b">Introduction</h2>
-<div class="outline-text-2" id="text-org7b9717b">
+<div class="outline-2" id="outline-container-org5b904a9">
+<h2 id="org5b904a9">Introduction</h2>
+<div class="outline-text-2" id="text-org5b904a9">
 <p>This is a look at the <a href="https://data.giss.nasa.gov/gistemp/">Godard Institute for Space Studies' surface temperature data</a>. In particular it is the <b>Global-mean monthly, seasonal, and annual means</b> data which has data from 1880 to the present <a href="https://data.giss.nasa.gov/gistemp/tabledata_v3/GLB.Ts+dSST.csv">(CSV Download Link</a>).</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org1d7d445">
-<h2 id="org1d7d445">Set Up</h2>
-<div class="outline-text-2" id="text-org1d7d445"></div>
-<div class="outline-3" id="outline-container-org2b6dc66">
-<h3 id="org2b6dc66">Imports</h3>
-<div class="outline-text-3" id="text-org2b6dc66"></div>
-<div class="outline-4" id="outline-container-org7723b64">
-<h4 id="org7723b64">Python</h4>
-<div class="outline-text-4" id="text-org7723b64">
+<div class="outline-2" id="outline-container-orgccbbe6c">
+<h2 id="orgccbbe6c">Set Up</h2>
+<div class="outline-text-2" id="text-orgccbbe6c"></div>
+<div class="outline-3" id="outline-container-org5c590df">
+<h3 id="org5c590df">Imports</h3>
+<div class="outline-text-3" id="text-org5c590df"></div>
+<div class="outline-4" id="outline-container-org7ab7035">
+<h4 id="org7ab7035">Python</h4>
+<div class="outline-text-4" id="text-org7ab7035">
 <div class="highlight">
 <pre><span></span>from pathlib import Path
 import os
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgb61ce2f">
-<h4 id="orgb61ce2f">PyPi</h4>
-<div class="outline-text-4" id="text-orgb61ce2f">
+<div class="outline-4" id="outline-container-orgbd74bed">
+<h4 id="orgbd74bed">PyPi</h4>
+<div class="outline-text-4" id="text-orgbd74bed">
 <div class="highlight">
 <pre><span></span>from dotenv import load_dotenv
 import pandas
@@ -3295,21 +3480,21 @@ import pandas
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgf11479c">
-<h3 id="orgf11479c">Load Dotenv</h3>
-<div class="outline-text-3" id="text-orgf11479c">
+<div class="outline-3" id="outline-container-org0db327f">
+<h3 id="org0db327f">Load Dotenv</h3>
+<div class="outline-text-3" id="text-org0db327f">
 <div class="highlight">
 <pre><span></span>load_dotenv(".env")
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org381f1b2">
-<h2 id="org381f1b2">Load the Data</h2>
-<div class="outline-text-2" id="text-org381f1b2"></div>
-<div class="outline-3" id="outline-container-orgc52be5a">
-<h3 id="orgc52be5a">Take One</h3>
-<div class="outline-text-3" id="text-orgc52be5a">
+<div class="outline-2" id="outline-container-orgabe07f9">
+<h2 id="orgabe07f9">Load the Data</h2>
+<div class="outline-text-2" id="text-orgabe07f9"></div>
+<div class="outline-3" id="outline-container-orgfe88b6a">
+<h3 id="orgfe88b6a">Take One</h3>
+<div class="outline-text-3" id="text-orgfe88b6a">
 <div class="highlight">
 <pre><span></span>path = Path(os.environ.get("GLOBAL")).expanduser()
 assert path.is_file()
@@ -3340,9 +3525,9 @@ Name: (Year, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec, J-D, D-
 <p>So we're going to have to skip the first row.</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org0b3fa95">
-<h3 id="org0b3fa95">Take Two</h3>
-<div class="outline-text-3" id="text-org0b3fa95">
+<div class="outline-3" id="outline-container-orgdcd8537">
+<h3 id="orgdcd8537">Take Two</h3>
+<div class="outline-text-3" id="text-orgdcd8537">
 <div class="highlight">
 <pre><span></span>path = Path(os.environ.get("GLOBAL")).expanduser()
 assert path.is_file()
@@ -3394,9 +3579,9 @@ max    2019.0000    1.150000
 <p>So most of the columns weren't read as numeric, probably because of the use of <code>***</code> for missing data.</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org4b0a0fc">
-<h3 id="org4b0a0fc">Take Three</h3>
-<div class="outline-text-3" id="text-org4b0a0fc">
+<div class="outline-3" id="outline-container-org33b45cd">
+<h3 id="org33b45cd">Take Three</h3>
+<div class="outline-text-3" id="text-org33b45cd">
 <div class="highlight">
 <pre><span></span>with path.open() as reader:
     giss = pandas.read_csv(path, skiprows=1, na_values="***")
@@ -3449,9 +3634,9 @@ max      0.970000
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org1866a70">
-<h2 id="org1866a70">The Real Data</h2>
-<div class="outline-text-2" id="text-org1866a70">
+<div class="outline-2" id="outline-container-orgdacee5b">
+<h2 id="orgdacee5b">The Real Data</h2>
+<div class="outline-text-2" id="text-orgdacee5b">
 <p>The data I was supposed to pull was the <i>Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'</i> <a href="https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv">Zonal Annual Means</a> which shows the different annual mean for each zone in a given year (rather than monthly global averages).</p>
 <div class="highlight">
 <pre><span></span>zone_path = Path(os.environ.get("ZONES")).expanduser()
@@ -3515,30 +3700,30 @@ EQU-24N      -0.21
 Name: 0, dtype: float64
 </pre></div>
 </div>
-<div class="outline-2" id="outline-container-org441f298">
-<h2 id="org441f298">Criteria</h2>
-<div class="outline-text-2" id="text-org441f298"></div>
-<div class="outline-3" id="outline-container-orge55cd6d">
-<h3 id="orge55cd6d">Appropriate Chart Selection and Variables</h3>
-<div class="outline-text-3" id="text-orge55cd6d">
+<div class="outline-2" id="outline-container-orgf3d92f7">
+<h2 id="orgf3d92f7">Criteria</h2>
+<div class="outline-text-2" id="text-orgf3d92f7"></div>
+<div class="outline-3" id="outline-container-org2ffb1e8">
+<h3 id="org2ffb1e8">Appropriate Chart Selection and Variables</h3>
+<div class="outline-text-3" id="text-org2ffb1e8">
 <p>Did you select the appropriate chart and use the correct chart elements to visualize the nominal, ordinal, discrete, and continuous variables, as described in lecture 2.1.3? Continuous data variables should be assigned to continuous chart elements (e.g., lines between data points), whereas discrete variables should be assigned to discrete chart elements (e.g., separate bars). Furthermore, the assignment of variables to elements should follow the priorities in lecture 2.1.2.</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orge9553ad">
-<h3 id="orge9553ad">Design of the Chart</h3>
-<div class="outline-text-3" id="text-orge9553ad">
+<div class="outline-3" id="outline-container-org95adad0">
+<h3 id="org95adad0">Design of the Chart</h3>
+<div class="outline-text-3" id="text-org95adad0">
 <p>Does the chart effectively display the data, based on the design rules in lecture 2.3.1?</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org876c578">
-<h3 id="org876c578">Content</h3>
-<div class="outline-text-3" id="text-org876c578">
+<div class="outline-3" id="outline-container-org7c6d1a6">
+<h3 id="org7c6d1a6">Content</h3>
+<div class="outline-text-3" id="text-org7c6d1a6">
 <p>How interesting is the result? Does this represent an interesting choice of data and/or an interesting way to display the data? For example, was a streamgraph used instead of an ordinary bar chart?</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgee3e49f">
-<h3 id="orgee3e49f">Grading</h3>
-<div class="outline-text-3" id="text-orgee3e49f">
+<div class="outline-3" id="outline-container-orgca9177b">
+<h3 id="orgca9177b">Grading</h3>
+<div class="outline-text-3" id="text-orgca9177b">
 <table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
 <colgroup>
 <col class="org-left">
@@ -3582,9 +3767,9 @@ Name: 0, dtype: float64
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org8425e92">
-<h2 id="org8425e92">Citation</h2>
-<div class="outline-text-2" id="text-org8425e92">
+<div class="outline-2" id="outline-container-org63a9879">
+<h2 id="org63a9879">Citation</h2>
+<div class="outline-text-2" id="text-org63a9879">
 <ul class="org-ul">
 <li>GISTEMP Team, 2019: GISS Surface Temperature Analysis (GISTEMP). NASA Goddard Institute for Space Studies. Dataset accessed 2019-02-27 at <a href="https://data.giss.nasa.gov/gistemp/">https://data.giss.nasa.gov/gistemp/</a>.</li>
 <li>Hansen, J., R. Ruedy, M. Sato, and K. Lo, 2010: Global surface temperature change, Rev. Geophys., 48, RG4004, <a href="posts/giss/giss-surface-temperature-analysis-gistemp-v32/10.1029/2010RG000345">10.1029/2010RG000345</a>.</li>
@@ -3606,54 +3791,54 @@ Name: 0, dtype: float64
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/libraries/interactive-bokeh-legends/#orgbbbecfe">Introduction</a></li>
-<li><a href="posts/libraries/interactive-bokeh-legends/#orgbc90b2c">Set Up</a>
+<li><a href="posts/libraries/interactive-bokeh-legends/#orgc5c3db7">Introduction</a></li>
+<li><a href="posts/libraries/interactive-bokeh-legends/#org25f3007">Set Up</a>
 <ul>
-<li><a href="posts/libraries/interactive-bokeh-legends/#orgfdb3c07">Imports</a></li>
-<li><a href="posts/libraries/interactive-bokeh-legends/#org876e0ce">The Embedder</a></li>
-<li><a href="posts/libraries/interactive-bokeh-legends/#org7565dda">The Bokeh Backend</a></li>
+<li><a href="posts/libraries/interactive-bokeh-legends/#org7a444fb">Imports</a></li>
+<li><a href="posts/libraries/interactive-bokeh-legends/#org0c13cda">The Embedder</a></li>
+<li><a href="posts/libraries/interactive-bokeh-legends/#orgae028bd">The Bokeh Backend</a></li>
 </ul>
 </li>
-<li><a href="posts/libraries/interactive-bokeh-legends/#orga5e2330">Hide Plots</a>
+<li><a href="posts/libraries/interactive-bokeh-legends/#org6dc4ee1">Hide Plots</a>
 <ul>
-<li><a href="posts/libraries/interactive-bokeh-legends/#orgdabbdd5">Output The Plot</a></li>
+<li><a href="posts/libraries/interactive-bokeh-legends/#org072cc6a">Output The Plot</a></li>
 </ul>
 </li>
-<li><a href="posts/libraries/interactive-bokeh-legends/#orgaffddd2">Fade Plots</a>
+<li><a href="posts/libraries/interactive-bokeh-legends/#org3a5ca71">Fade Plots</a>
 <ul>
-<li><a href="posts/libraries/interactive-bokeh-legends/#org84a4f60">Output The Plot</a></li>
+<li><a href="posts/libraries/interactive-bokeh-legends/#orgcb3c1d7">Output The Plot</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgbbbecfe">
-<h2 id="orgbbbecfe">Introduction</h2>
-<div class="outline-text-2" id="text-orgbbbecfe">
+<div class="outline-2" id="outline-container-orgc5c3db7">
+<h2 id="orgc5c3db7">Introduction</h2>
+<div class="outline-text-2" id="text-orgc5c3db7">
 <p>This is a reproduction of the <a href="https://bokeh.pydata.org/en/latest/docs/user_guide/interaction/legends.html">bokeh interactive legends example</a>.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgbc90b2c">
-<h2 id="orgbc90b2c">Set Up</h2>
-<div class="outline-text-2" id="text-orgbc90b2c"></div>
-<div class="outline-3" id="outline-container-orgfdb3c07">
-<h3 id="orgfdb3c07">Imports</h3>
-<div class="outline-text-3" id="text-orgfdb3c07"></div>
-<div class="outline-4" id="outline-container-org8489753">
-<h4 id="org8489753">Python</h4>
-<div class="outline-text-4" id="text-org8489753">
+<div class="outline-2" id="outline-container-org25f3007">
+<h2 id="org25f3007">Set Up</h2>
+<div class="outline-text-2" id="text-org25f3007"></div>
+<div class="outline-3" id="outline-container-org7a444fb">
+<h3 id="org7a444fb">Imports</h3>
+<div class="outline-text-3" id="text-org7a444fb"></div>
+<div class="outline-4" id="outline-container-orgf02554f">
+<h4 id="orgf02554f">Python</h4>
+<div class="outline-text-4" id="text-orgf02554f">
 <p>I have a class that I use to embed the bokeh and I'm going to make it easier to reuse by binding some values to it with <a href="https://docs.python.org/3.6/library/functools.html">partial</a>.</p>
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org8eb8dea">
-<h4 id="org8eb8dea">PyPi</h4>
-<div class="outline-text-4" id="text-org8eb8dea"></div>
+<div class="outline-4" id="outline-container-org1c97f3e">
+<h4 id="org1c97f3e">PyPi</h4>
+<div class="outline-text-4" id="text-org1c97f3e"></div>
 <ul class="org-ul">
-<li><a id="org8925a27"></a>Bokeh<br>
-<div class="outline-text-5" id="text-org8925a27">
+<li><a id="orga78147b"></a>Bokeh<br>
+<div class="outline-text-5" id="text-orga78147b">
 <p>The <code>Spectral</code> color scheme from <a href="https://bokeh.pydata.org/en/latest/docs/reference/palettes.html">bokeh.palettes</a> is a categorical color scheme from <a href="http://colorbrewer2.org/#type=sequential&amp;scheme=BuGn&amp;n=3">Color Brewer</a>, a color scheme helper for cartographers.</p>
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">bokeh.palettes</span> <span class="kn">import</span> <span class="n">Spectral4</span>
@@ -3662,8 +3847,8 @@ Name: 0, dtype: float64
 </pre></div>
 </div>
 </li>
-<li><a id="org58b0366"></a>Pandas And HoloViews<br>
-<div class="outline-text-5" id="text-org58b0366">
+<li><a id="org6ee6f8a"></a>Pandas And HoloViews<br>
+<div class="outline-text-5" id="text-org6ee6f8a">
 <p>Pandas is for the data, holoviews is because I created the EmbedBokeh class expecting to always use it..</p>
 <div class="highlight">
 <pre><span></span><span class="kn">import</span> <span class="nn">holoviews</span>
@@ -3673,9 +3858,9 @@ Name: 0, dtype: float64
 </li>
 </ul>
 </div>
-<div class="outline-4" id="outline-container-org781449e">
-<h4 id="org781449e">My Stuff</h4>
-<div class="outline-text-4" id="text-org781449e">
+<div class="outline-4" id="outline-container-org1c8c505">
+<h4 id="org1c8c505">My Stuff</h4>
+<div class="outline-text-4" id="text-org1c8c505">
 <p>This is a convenience class for embedding the javascript that bokeh creates into this post.</p>
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
@@ -3683,9 +3868,9 @@ Name: 0, dtype: float64
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org876e0ce">
-<h3 id="org876e0ce">The Embedder</h3>
-<div class="outline-text-3" id="text-org876e0ce">
+<div class="outline-3" id="outline-container-org0c13cda">
+<h3 id="org0c13cda">The Embedder</h3>
+<div class="outline-text-3" id="text-org0c13cda">
 <p>The <code>files_path</code> is where the javascript needs to be stored for <code>nikola</code> to copy it to the right place.</p>
 <div class="highlight">
 <pre><span></span><span class="n">files_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/interactive-bokeh-legends/"</span><span class="p">)</span>
@@ -3695,9 +3880,9 @@ Name: 0, dtype: float64
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org7565dda">
-<h3 id="org7565dda">The Bokeh Backend</h3>
-<div class="outline-text-3" id="text-org7565dda">
+<div class="outline-3" id="outline-container-orgae028bd">
+<h3 id="orgae028bd">The Bokeh Backend</h3>
+<div class="outline-text-3" id="text-orgae028bd">
 <p>For some reason the backend is defaulting to <code>matplotlib</code> so this fixes it.</p>
 <div class="highlight">
 <pre><span></span><span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">)</span>
@@ -3705,9 +3890,9 @@ Name: 0, dtype: float64
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orga5e2330">
-<h2 id="orga5e2330">Hide Plots</h2>
-<div class="outline-text-2" id="text-orga5e2330">
+<div class="outline-2" id="outline-container-org6dc4ee1">
+<h2 id="org6dc4ee1">Hide Plots</h2>
+<div class="outline-text-2" id="text-org6dc4ee1">
 <p>This creates a plot where the entry fore each line in the legend becomes a button that toggles the plot's visibility.</p>
 <div class="highlight">
 <pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">figure</span><span class="p">(</span><span class="n">plot_width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">plot_height</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> 
@@ -3725,16 +3910,16 @@ Name: 0, dtype: float64
 <span class="n">plot</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">text_font_size</span> <span class="o">=</span> <span class="s2">"14pt"</span>
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-orgdabbdd5">
-<h3 id="orgdabbdd5">Output The Plot</h3>
-<div class="outline-text-3" id="text-orgdabbdd5">
+<div class="outline-3" id="outline-container-org072cc6a">
+<h3 id="org072cc6a">Output The Plot</h3>
+<div class="outline-text-3" id="text-org072cc6a">
 <script id="11761887-e983-4882-8f9e-2ea31dcf69b0" src="posts/libraries/interactive-bokeh-legends/interactive_legend.js">
 </script></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgaffddd2">
-<h2 id="orgaffddd2">Fade Plots</h2>
-<div class="outline-text-2" id="text-orgaffddd2">
+<div class="outline-2" id="outline-container-org3a5ca71">
+<h2 id="org3a5ca71">Fade Plots</h2>
+<div class="outline-text-2" id="text-org3a5ca71">
 <p>Clicking on the line in the legend will change the alpha-value for the line (to make it less visible). This has the effect of keeping the hovertool working for the line, while hiding it disables the hover tool.</p>
 <div class="highlight">
 <pre><span></span><span class="n">fade_plot</span> <span class="o">=</span> <span class="n">figure</span><span class="p">(</span><span class="n">plot_width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">plot_height</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> 
@@ -3752,9 +3937,9 @@ Name: 0, dtype: float64
 <span class="n">fade_plot</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">click_policy</span> <span class="o">=</span> <span class="s2">"mute"</span>
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-org84a4f60">
-<h3 id="org84a4f60">Output The Plot</h3>
-<div class="outline-text-3" id="text-org84a4f60">
+<div class="outline-3" id="outline-container-orgcb3c1d7">
+<h3 id="orgcb3c1d7">Output The Plot</h3>
+<div class="outline-text-3" id="text-orgcb3c1d7">
 <script id="684bd0ee-2d92-45ff-b123-7b90d171bf2c" src="posts/libraries/interactive-bokeh-legends/interactive_muted_legend.js">
 </script></div>
 </div>
@@ -3774,39 +3959,39 @@ Name: 0, dtype: float64
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/libraries/customizing-holoviews/#org61fb5b4">Introduction</a></li>
-<li><a href="posts/libraries/customizing-holoviews/#org32f8fe6">Set Up</a>
+<li><a href="posts/libraries/customizing-holoviews/#org3fc72ed">Introduction</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#org1514031">Set Up</a>
 <ul>
-<li><a href="posts/libraries/customizing-holoviews/#org2348aaa">Imports</a></li>
-<li><a href="posts/libraries/customizing-holoviews/#orgd2654f1">The Timer</a></li>
-<li><a href="posts/libraries/customizing-holoviews/#org5501994">The Embedder</a></li>
-<li><a href="posts/libraries/customizing-holoviews/#org7437bf7">Bokeh Backend</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#org14f67c2">Imports</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#org0745287">The Timer</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#org5d19388">The Embedder</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#orgdb9a608">Bokeh Backend</a></li>
 </ul>
 </li>
-<li><a href="posts/libraries/customizing-holoviews/#orgc83b931">The Data</a>
+<li><a href="posts/libraries/customizing-holoviews/#org73282af">The Data</a>
 <ul>
-<li><a href="posts/libraries/customizing-holoviews/#org12b1f17">Plot time vs Latitude.</a></li>
-<li><a href="posts/libraries/customizing-holoviews/#orge808bfc">Take Two</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#orgc5a453f">Plot time vs Latitude.</a></li>
+<li><a href="posts/libraries/customizing-holoviews/#org74a2c97">Take Two</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org61fb5b4">
-<h2 id="org61fb5b4">Introduction</h2>
-<div class="outline-text-2" id="text-org61fb5b4">
+<div class="outline-2" id="outline-container-org3fc72ed">
+<h2 id="org3fc72ed">Introduction</h2>
+<div class="outline-text-2" id="text-org3fc72ed">
 <p>This is another exploration - this time looking at what they call <a href="http://holoviews.org/getting_started/Customization.html">Customization</a>. In my introduction post when I made a scatter plot with a hover tool I first had to make the Scatter element and then add the hover tool as part of the options. HoloViews does this to try and emphasize a separation of content and presentation. When making the Scatter element I was supposed to only be thinking about the data that I wanted to add, then when working with the options I was turning to focus on the aesthetics.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org32f8fe6">
-<h2 id="org32f8fe6">Set Up</h2>
-<div class="outline-text-2" id="text-org32f8fe6"></div>
-<div class="outline-3" id="outline-container-org2348aaa">
-<h3 id="org2348aaa">Imports</h3>
-<div class="outline-text-3" id="text-org2348aaa"></div>
-<div class="outline-4" id="outline-container-orgad0f331">
-<h4 id="orgad0f331">Python</h4>
-<div class="outline-text-4" id="text-orgad0f331">
+<div class="outline-2" id="outline-container-org1514031">
+<h2 id="org1514031">Set Up</h2>
+<div class="outline-text-2" id="text-org1514031"></div>
+<div class="outline-3" id="outline-container-org14f67c2">
+<h3 id="org14f67c2">Imports</h3>
+<div class="outline-text-3" id="text-org14f67c2"></div>
+<div class="outline-4" id="outline-container-orgdf36e38">
+<h4 id="orgdf36e38">Python</h4>
+<div class="outline-text-4" id="text-orgdf36e38">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
@@ -3815,37 +4000,37 @@ Name: 0, dtype: float64
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org1e3d89b">
-<h4 id="org1e3d89b">PyPi</h4>
+<div class="outline-4" id="outline-container-org8e902b8">
+<h4 id="org8e902b8">PyPi</h4>
 </div>
-<div class="outline-4" id="outline-container-org6c150f6">
-<h4 id="org6c150f6">Related Projects</h4>
-<div class="outline-text-4" id="text-org6c150f6">
+<div class="outline-4" id="outline-container-orga5ca6ed">
+<h4 id="orga5ca6ed">Related Projects</h4>
+<div class="outline-text-4" id="text-orga5ca6ed">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">neurotic.tangles.timer</span> <span class="kn">import</span> <span class="n">Timer</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org9721328">
-<h4 id="org9721328">This Project</h4>
-<div class="outline-text-4" id="text-org9721328">
+<div class="outline-4" id="outline-container-org2e15538">
+<h4 id="org2e15538">This Project</h4>
+<div class="outline-text-4" id="text-org2e15538">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgd2654f1">
-<h3 id="orgd2654f1">The Timer</h3>
-<div class="outline-text-3" id="text-orgd2654f1">
+<div class="outline-3" id="outline-container-org0745287">
+<h3 id="org0745287">The Timer</h3>
+<div class="outline-text-3" id="text-org0745287">
 <div class="highlight">
 <pre><span></span><span class="n">TIMER</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org5501994">
-<h3 id="org5501994">The Embedder</h3>
-<div class="outline-text-3" id="text-org5501994">
+<div class="outline-3" id="outline-container-org5d19388">
+<h3 id="org5d19388">The Embedder</h3>
+<div class="outline-text-3" id="text-org5d19388">
 <div class="highlight">
 <pre><span></span><span class="n">files_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/customizing-holoviews/"</span><span class="p">)</span>
 <span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
@@ -3854,9 +4039,9 @@ Name: 0, dtype: float64
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org7437bf7">
-<h3 id="org7437bf7">Bokeh Backend</h3>
-<div class="outline-text-3" id="text-org7437bf7">
+<div class="outline-3" id="outline-container-orgdb9a608">
+<h3 id="orgdb9a608">Bokeh Backend</h3>
+<div class="outline-text-3" id="text-orgdb9a608">
 <p>When I ran the code further down in the notebook to render the javascript I was getting this error:</p>
 <pre class="example">
 ValueError: autoload_static expects a single Model or Document
@@ -3868,9 +4053,9 @@ ValueError: autoload_static expects a single Model or Document
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc83b931">
-<h2 id="orgc83b931">The Data</h2>
-<div class="outline-text-2" id="text-orgc83b931">
+<div class="outline-2" id="outline-container-org73282af">
+<h2 id="org73282af">The Data</h2>
+<div class="outline-text-2" id="text-org73282af">
 <div class="highlight">
 <pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">".env"</span><span class="p">)</span>
 </pre></div>
@@ -3939,9 +4124,9 @@ Name: date, dtype: datetime64[ns]
 <pre><span></span><span class="n">selection</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">date</span> <span class="o">&gt;</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2018</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">24</span><span class="p">)]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">"date"</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-org12b1f17">
-<h3 id="org12b1f17">Plot time vs Latitude.</h3>
-<div class="outline-text-3" id="text-org12b1f17">
+<div class="outline-3" id="outline-container-orgc5a453f">
+<h3 id="orgc5a453f">Plot time vs Latitude.</h3>
+<div class="outline-text-3" id="text-orgc5a453f">
 <p>First we get our content.</p>
 <div class="highlight">
 <pre><span></span><span class="n">curve</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">selection</span><span class="p">,</span> <span class="p">(</span><span class="s2">"date"</span><span class="p">,</span> <span class="s2">"Date-Time"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"OpenDataLat"</span><span class="p">,</span> <span class="s2">"Latitude"</span><span class="p">))</span>
@@ -3952,9 +4137,9 @@ Name: date, dtype: datetime64[ns]
 <script id="8fa0ac45-95db-4c26-8468-94bf70e3c9a5" src="posts/libraries/customizing-holoviews/latitude_time_1.js">
 </script></div>
 </div>
-<div class="outline-3" id="outline-container-orge808bfc">
-<h3 id="orge808bfc">Take Two</h3>
-<div class="outline-text-3" id="text-orge808bfc">
+<div class="outline-3" id="outline-container-org74a2c97">
+<h3 id="org74a2c97">Take Two</h3>
+<div class="outline-text-3" id="text-org74a2c97">
 <p>Although the defaults give us a plot that's hard to read, by adjusting the width of the plot we can make it something more interpretable.</p>
 <div class="highlight">
 <pre><span></span><span class="n">layout</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
@@ -3981,51 +4166,51 @@ Name: date, dtype: datetime64[ns]
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/libraries/holoviews-introduction/#org94c12f1">Introduction</a></li>
-<li><a href="posts/libraries/holoviews-introduction/#org91cf243">Set Up</a>
+<li><a href="posts/libraries/holoviews-introduction/#orgdb7ffbd">Introduction</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#org4f4a6fa">Set Up</a>
 <ul>
-<li><a href="posts/libraries/holoviews-introduction/#orgdf216e0">Imports</a></li>
-<li><a href="posts/libraries/holoviews-introduction/#org541c91a">This Project</a></li>
-<li><a href="posts/libraries/holoviews-introduction/#org303c950">The HoloViews Backend</a></li>
-<li><a href="posts/libraries/holoviews-introduction/#org6431745">A Partial Bokeh Embedder</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#orgbc650da">Imports</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#orgc1118f2">This Project</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#org9e7ae65">The HoloViews Backend</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#orgc882bfd">A Partial Bokeh Embedder</a></li>
 </ul>
 </li>
-<li><a href="posts/libraries/holoviews-introduction/#orge9d6f23">The Data Set</a>
+<li><a href="posts/libraries/holoviews-introduction/#org02ea554">The Data Set</a>
 <ul>
-<li><a href="posts/libraries/holoviews-introduction/#org49605b5">Load It</a></li>
-<li><a href="posts/libraries/holoviews-introduction/#orga9fd71e">Make The DataFrame</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#org532248a">Load It</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#org3dd6197">Make The DataFrame</a></li>
 </ul>
 </li>
-<li><a href="posts/libraries/holoviews-introduction/#orge48b24f">A Plot</a></li>
-<li><a href="posts/libraries/holoviews-introduction/#orgfa7fa6c">Adding To the Layout</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#org191a41e">A Plot</a></li>
+<li><a href="posts/libraries/holoviews-introduction/#org8f72e69">Adding To the Layout</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org94c12f1">
-<h2 id="org94c12f1">Introduction</h2>
-<div class="outline-text-2" id="text-org94c12f1">
+<div class="outline-2" id="outline-container-orgdb7ffbd">
+<h2 id="orgdb7ffbd">Introduction</h2>
+<div class="outline-text-2" id="text-orgdb7ffbd">
 <p>Having taken an initial look at HVPlot, I'm going to look at <a href="http://holoviews.org/">HoloViews</a> which acts as an intermediate layer between the main plotting libraries like bokeh and matplotlib and the upper layer given by HVPlot. I haven't used it before so I'm not really sure when you would use what. I guess <code>HVPlot</code> gives you access to the <code>pandas</code> plots in bokeh without a lot of work, which is nice, although I noticed that the plots tended to be missing things sometimes (like the Hover tool) so if you want to add more back in you probably have to understand <code>HoloViews</code> which itself sometimes doesn't give you what you want (like the ability to render it in org-mode posts) so you still need bokeh too, sometimes. And of course I'm only using the static-page versions of everything, not the features that work with a bokeh or jupyter server. But I guess that's for later.</p>
 <p>I'm going to be working from the <a href="http://holoviews.org/getting_started/Introduction.html">Introduction</a> of their Getting Started guide.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org91cf243">
-<h2 id="org91cf243">Set Up</h2>
-<div class="outline-text-2" id="text-org91cf243"></div>
-<div class="outline-3" id="outline-container-orgdf216e0">
-<h3 id="orgdf216e0">Imports</h3>
-<div class="outline-text-3" id="text-orgdf216e0"></div>
-<div class="outline-4" id="outline-container-org0779338">
-<h4 id="org0779338">Python</h4>
-<div class="outline-text-4" id="text-org0779338">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
+<div class="outline-2" id="outline-container-org4f4a6fa">
+<h2 id="org4f4a6fa">Set Up</h2>
+<div class="outline-text-2" id="text-org4f4a6fa"></div>
+<div class="outline-3" id="outline-container-orgbc650da">
+<h3 id="orgbc650da">Imports</h3>
+<div class="outline-text-3" id="text-orgbc650da"></div>
+<div class="outline-4" id="outline-container-org0844e2e">
+<h4 id="org0844e2e">Python</h4>
+<div class="outline-text-4" id="text-org0844e2e">/home/brunhilde/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org12d4d2d">
-<h4 id="org12d4d2d">From PiPy</h4>
-<div class="outline-text-4" id="text-org12d4d2d">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
+<div class="outline-4" id="outline-container-org5b8267b">
+<h4 id="org5b8267b">From PiPy</h4>
+<div class="outline-text-4" id="text-org5b8267b">/home/brunhilde/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">holoviews</span> <span class="kn">import</span> <span class="n">opts</span>
 <span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">fetch_california_housing</span>
@@ -4036,29 +4221,29 @@ Name: date, dtype: datetime64[ns]
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org541c91a">
-<h3 id="org541c91a">This Project</h3>
-<div class="outline-text-3" id="text-org541c91a">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
+<div class="outline-3" id="outline-container-orgc1118f2">
+<h3 id="orgc1118f2">This Project</h3>
+<div class="outline-text-3" id="text-orgc1118f2">/home/brunhilde/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org303c950">
-<h3 id="org303c950">The HoloViews Backend</h3>
-<div class="outline-text-3" id="text-org303c950">
+<div class="outline-3" id="outline-container-org9e7ae65">
+<h3 id="org9e7ae65">The HoloViews Backend</h3>
+<div class="outline-text-3" id="text-org9e7ae65">
 <p>If you use <code>HVPlot</code> you don't need to set the backend (because it defaults to 'bokeh', I think) but this is going to be about <code>HoloViews</code> so I'm going to do it their way, rather than relying on all the <code>pandas</code> methods.</p>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
+/home/brunhilde/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
 <pre><span></span><span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org6431745">
-<h3 id="org6431745">A Partial Bokeh Embedder</h3>
-<div class="outline-text-3" id="text-org6431745">
+<div class="outline-3" id="outline-container-orgc882bfd">
+<h3 id="orgc882bfd">A Partial Bokeh Embedder</h3>
+<div class="outline-text-3" id="text-orgc882bfd">
 <p>Since the output folder is always the same I'm going to bind it to the EmbedBokeh definition.</p>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
+/home/brunhilde/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
 <pre><span></span><span class="n">plot_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/holoviews-introduction/"</span><span class="p">)</span>
 <span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedBokeh</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="n">plot_path</span><span class="p">)</span>
@@ -4066,14 +4251,14 @@ Name: date, dtype: datetime64[ns]
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge9d6f23">
-<h2 id="orge9d6f23">The Data Set</h2>
-<div class="outline-text-2" id="text-orge9d6f23"></div>
-<div class="outline-3" id="outline-container-org49605b5">
-<h3 id="org49605b5">Load It</h3>
-<div class="outline-text-3" id="text-org49605b5">
+<div class="outline-2" id="outline-container-org02ea554">
+<h2 id="org02ea554">The Data Set</h2>
+<div class="outline-text-2" id="text-org02ea554"></div>
+<div class="outline-3" id="outline-container-org532248a">
+<h3 id="org532248a">Load It</h3>
+<div class="outline-text-3" id="text-org532248a">
 <p>Sklearn downloads it as a 'bunch' so we need to get it in that form first and then turn it into a data frame (I'm sure there's a way to skip this step but this is the way I already know how to do it).</p>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
+/home/brunhilde/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
 <pre><span></span><span class="n">folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"~/data/datasets/california-housing"</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
 <span class="k">assert</span> <span class="n">folder</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
@@ -4125,9 +4310,9 @@ It can be downloaded/loaded using the
       Statistics and Probability Letters, 33 (1997) 291-297
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-orga9fd71e">
-<h3 id="orga9fd71e">Make The DataFrame</h3>
-<div class="outline-text-3" id="text-orga9fd71e">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
+<div class="outline-3" id="outline-container-org3dd6197">
+<h3 id="org3dd6197">Make The DataFrame</h3>
+<div class="outline-text-3" id="text-org3dd6197">/home/brunhilde/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
 <pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">bunch</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">bunch</span><span class="o">.</span><span class="n">feature_names</span><span class="p">)</span>
 <span class="n">data</span><span class="p">[</span><span class="s2">"median_value"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bunch</span><span class="o">.</span><span class="n">target</span>
@@ -4150,11 +4335,11 @@ It can be downloaded/loaded using the
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge48b24f">
-<h2 id="orge48b24f">A Plot</h2>
-<div class="outline-text-2" id="text-orge48b24f">
+<div class="outline-2" id="outline-container-org191a41e">
+<h2 id="org191a41e">A Plot</h2>
+<div class="outline-text-2" id="text-org191a41e">
 <p>Our target is the median value of the house. Does that correlate with median income?</p>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
+/home/brunhilde/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
 <pre><span></span><span class="n">scatter</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">data</span><span class="p">,</span>
                             <span class="p">(</span><span class="s2">"MedInc"</span><span class="p">,</span> <span class="s2">"Median Income"</span><span class="p">),</span>
@@ -4162,18 +4347,18 @@ It can be downloaded/loaded using the
                             <span class="n">label</span><span class="o">=</span><span class="s2">"California Housing"</span><span class="p">)</span>
 </pre></div>
 <p>After setting up the basic plot we can do things to affect the appearance like setting the color or adding tools.</p>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
+/home/brunhilde/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
 <pre><span></span><span class="n">scatter</span> <span class="o">=</span> <span class="n">scatter</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">"red"</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s2">"hover"</span><span class="p">]))</span>
 </pre></div>
 <script id="bfbe3866-7981-492f-b2f8-918396abac02" src="posts/libraries/holoviews-introduction/income_vs_value.js">
 </script></div>
 </div>
-<div class="outline-2" id="outline-container-orgfa7fa6c">
-<h2 id="orgfa7fa6c">Adding To the Layout</h2>
-<div class="outline-text-2" id="text-orgfa7fa6c">
+<div class="outline-2" id="outline-container-org8f72e69">
+<h2 id="org8f72e69">Adding To the Layout</h2>
+<div class="outline-text-2" id="text-org8f72e69">
 <p>What if we want to add a distrbution to the plot? HoloViews uses the <code>+</code> operator to indicate that you want to append a plot to another one.</p>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
+/home/brunhilde/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
 <div class="highlight">
 <pre><span></span><span class="n">layout</span> <span class="o">=</span> <span class="n">scatter</span> <span class="o">+</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Histogram</span><span class="p">(</span>
     <span class="n">numpy</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">HouseAge</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">24</span><span class="p">),</span> <span class="n">kdims</span><span class="o">=</span><span class="p">[</span><span class="s2">"HouseAge"</span><span class="p">])</span>
@@ -4181,648 +4366,6 @@ It can be downloaded/loaded using the
 </pre></div>
 <script id="728203cb-7d9b-4ecd-aeb0-a30aec6a7655" src="posts/libraries/holoviews-introduction/income_vs_value_with_house_age.js">
 </script></div>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="posts/libraries/a-first-look-at-hvplot/">A First Look At HVPlot</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="posts/libraries/a-first-look-at-hvplot/" rel="bookmark"><time class="published dt-published" datetime="2019-02-01T11:24:30-08:00" itemprop="datePublished" title="2019-02-01 11:24">2019-02-01 11:24</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#orge08d0a1">Introduction</a></li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#org98b0fe3">Set Up</a>
-<ul>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#orgd5d547c">Imports</a></li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#orgc57a96f">Typing</a></li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#orgabe06f9">Constants</a></li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#org959fad7">Tables</a></li>
-</ul>
-</li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#orgb0391ab">Helpers</a>
-<ul>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#org16d4d22">EmbedBokeh Class</a></li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#org01ce9cb">The Timer</a></li>
-</ul>
-</li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#orgbc96c2f">The Data</a>
-<ul>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#orge8c1db3">Portland Crime</a></li>
-</ul>
-</li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#org2eb7a7c">Making the Plot</a>
-<ul>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#org9a68630">The Plot</a></li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#org210d704">Trimmed</a></li>
-</ul>
-</li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#org838e2be">By Type</a></li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#orge86d805">Looking a Little More at the Crimes</a>
-<ul>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#org727956b">By Neighborhood</a></li>
-</ul>
-</li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#org0ea5dc4">Distribution</a></li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#org8f0e501">Irises</a>
-<ul>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#orgb1500dd">Scatter Matrix</a></li>
-<li><a href="posts/libraries/a-first-look-at-hvplot/#orgc326cd7">Parallel Coordinates</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orge08d0a1">
-<h2 id="orge08d0a1">Introduction</h2>
-<div class="outline-text-2" id="text-orge08d0a1">
-<p>This is a look at <a href="https://hvplot.pyviz.org/">HVPlot</a>, a <a href="http://holoviews.org/">HoloViews</a> based plotting adapter that works directly with <a href="https://pandas.pydata.org/">pandas</a> or other pandas-like libraries (e.g. <a href="https://dask.org/">dask</a>). I'm starting with their <a href="https://hvplot.pyviz.org/user_guide/Introduction.html">Introduction</a> but might branch out after that. We'll see.</p>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org98b0fe3">
-<h2 id="org98b0fe3">Set Up</h2>
-<div class="outline-text-2" id="text-org98b0fe3"></div>
-<div class="outline-3" id="outline-container-orgd5d547c">
-<h3 id="orgd5d547c">Imports</h3>
-<div class="outline-text-3" id="text-orgd5d547c"></div>
-<div class="outline-4" id="outline-container-org5ba6888">
-<h4 id="org5ba6888">From Python</h4>
-<div class="outline-text-4" id="text-org5ba6888">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
-<span class="kn">import</span> <span class="nn">textwrap</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org76f1e54">
-<h4 id="org76f1e54">From PyPi</h4>
-<div class="outline-text-4" id="text-org76f1e54">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">load_iris</span>
-<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">pandas</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org5a1fcf9">
-<h4 id="org5a1fcf9">My Stuff</h4>
-<div class="outline-text-4" id="text-org5a1fcf9">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">neurotic.tangles.timer</span> <span class="kn">import</span> <span class="n">Timer</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org5c87be7">
-<h4 id="org5c87be7">The Bokeh Imports</h4>
-<div class="outline-text-4" id="text-org5c87be7">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">bokeh.embed</span> <span class="kn">import</span> <span class="n">autoload_static</span>
-<span class="kn">import</span> <span class="nn">bokeh.resources</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org07eab5c">
-<h4 id="org07eab5c">Set Up the HVPlot</h4>
-<div class="outline-text-4" id="text-org07eab5c">
-<p>I'm not sure exactly what it's doing, but this next import adds an <code>hvplot</code> method to pandas' DataFrames to do the actual plotting.</p>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="kn">import</span> <span class="nn">holoviews</span>
-<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-orgc57a96f">
-<h3 id="orgc57a96f">Typing</h3>
-<div class="outline-text-3" id="text-orgc57a96f">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">PathType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-orgabe06f9">
-<h3 id="orgabe06f9">Constants</h3>
-<div class="outline-text-3" id="text-orgabe06f9">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">FOLDER_PATH</span> <span class="o">=</span> <span class="s2">"../files/posts/libraries/a-first-look-at-hvplot/"</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org959fad7">
-<h3 id="org959fad7">Tables</h3>
-<div class="outline-text-3" id="text-org959fad7">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgb0391ab">
-<h2 id="orgb0391ab">Helpers</h2>
-<div class="outline-text-2" id="text-orgb0391ab"></div>
-<div class="outline-3" id="outline-container-org16d4d22">
-<h3 id="org16d4d22">EmbedBokeh Class</h3>
-<div class="outline-text-3" id="text-org16d4d22">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="k">class</span> <span class="nc">EmbedBokeh</span><span class="p">:</span>
-    <span class="sd">"""Embed a bokeh figure</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">     plot: a hvplot to embed</span>
-<span class="sd">     folder_path: path to the folder to save the file</span>
-<span class="sd">     file_name: name of the file to save the javascript in</span>
-<span class="sd">     create_folder: if the folder doesn't exist create it</span>
-<span class="sd">     make_parents: if creating a folder add the missing folders in the path</span>
-<span class="sd">    """</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot</span><span class="p">:</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">overlay</span><span class="o">.</span><span class="n">NdOverlay</span><span class="p">,</span>
-                 <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                 <span class="n">folder_path</span><span class="p">:</span> <span class="n">PathType</span><span class="p">,</span>
-                 <span class="n">create_folder</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                 <span class="n">make_parents</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">plot</span> <span class="o">=</span> <span class="n">plot</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_figure</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_folder</span> <span class="o">=</span> <span class="n">create_folder</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">make_parents</span> <span class="o">=</span> <span class="n">make_parents</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_folder_path</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span> <span class="o">=</span> <span class="n">folder_path</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span> <span class="o">=</span> <span class="n">file_name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_javascript</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_bokeh_source</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_export_string</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">return</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">folder_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-        <span class="sd">"""The path to the folder to store javascript"""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_folder_path</span>
-
-    <span class="nd">@folder_path.setter</span>
-    <span class="k">def</span> <span class="nf">folder_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="sd">"""Sets the path to the javascript folder"""</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_folder_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_folder</span> <span class="ow">and</span>  <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_folder_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_folder_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">make_parents</span><span class="p">)</span>
-        <span class="k">return</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">file_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">"""The name of the javascript file"""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span>
-
-    <span class="nd">@file_name.setter</span>
-    <span class="k">def</span> <span class="nf">file_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="sd">"""Sets the filename</span>
-
-<span class="sd">       Args:</span>
-<span class="sd">        name: name to save the javascript (without the folder)</span>
-<span class="sd">       """</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="o">=</span> <span class="s2">"{}.js"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
-        <span class="k">return</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">figure</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">bokeh</span><span class="o">.</span><span class="n">plotting</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
-        <span class="sd">"""The Figure to plot"""</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_figure</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_figure</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_figure</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">bokeh_source</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">bokeh</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">Resources</span><span class="p">:</span>
-        <span class="sd">"""The javascript source</span>
-<span class="sd">       """</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bokeh_source</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_bokeh_source</span> <span class="o">=</span> <span class="n">bokeh</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">CDN</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bokeh_source</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">source</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">"""The HTML fragment to export"""</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_javascript</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">autoload_static</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="p">,</span>
-                                                             <span class="bp">self</span><span class="o">.</span><span class="n">bokeh_source</span><span class="p">,</span>
-                                                             <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">javascript</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">"""javascript to save"""</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_javascript</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_javascript</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">autoload_static</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="p">,</span>
-                                                             <span class="bp">self</span><span class="o">.</span><span class="n">bokeh_source</span><span class="p">,</span>
-                                                             <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_javascript</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">export_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">"""The string to embed the figure into org-mode"""</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_export_string</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_export_string</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
-                <span class="sd">"""#+BEGIN_EXPORT html{}</span>
-<span class="sd">#+END_EXPORT"""</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">))</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_export_string</span>
-
-    <span class="k">def</span> <span class="nf">save_figure</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="sd">"""Saves the javascript file"""</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">),</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
-            <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">javascript</span><span class="p">)</span>
-        <span class="k">return</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="sd">"""Creates the bokeh javascript and emits it"""</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">save_figure</span><span class="p">()</span>
-        <span class="k">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">export_string</span><span class="p">)</span>
-        <span class="k">return</span>
-
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="sd">"""Sets the generated (bokeh) properties back to None"""</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_export_string</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_javascript</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_figure</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">return</span>
-</pre></div>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedBokeh</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="n">FOLDER_PATH</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org01ce9cb">
-<h3 id="org01ce9cb">The Timer</h3>
-<div class="outline-text-3" id="text-org01ce9cb">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">TIMER</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgbc96c2f">
-<h2 id="orgbc96c2f">The Data</h2>
-<div class="outline-text-2" id="text-orgbc96c2f"></div>
-<div class="outline-3" id="outline-container-orge8c1db3">
-<h3 id="orge8c1db3">Portland Crime</h3>
-<div class="outline-text-3" id="text-orge8c1db3">
-<p>This is taken from the <a href="https://www.portlandoregon.gov/police/71978">Portland Crime Statistics</a> page.</p>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">portland_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"~/data/datasets/portland/crime-to-january-2018.csv"</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
-<span class="k">assert</span> <span class="n">portland_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
-<span class="k">with</span> <span class="n">TIMER</span><span class="p">:</span>
-    <span class="n">crime</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">portland_path</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-Started: 2019-02-02 18:38:59.025251
-Ended: 2019-02-02 18:39:00.170796
-Elapsed: 0:00:01.145545
-
-</pre>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">crime</span><span class="o">.</span><span class="n">info</span><span class="p">())</span>
-</pre></div>
-<pre class="example">
-&lt;class 'pandas.core.frame.DataFrame'&gt;
-RangeIndex: 217224 entries, 0 to 217223
-Data columns (total 17 columns):
-Address              196626 non-null object
-Case Number          217224 non-null object
-Crime Against        217224 non-null object
-Neighborhood         210788 non-null object
-Number of Records    217224 non-null int64
-Occur Month Year     217224 non-null object
-Occur Date           217224 non-null object
-Occur Time           217224 non-null int64
-Offense Category     217224 non-null object
-Offense Count        217224 non-null int64
-Offense Type         217224 non-null object
-OpenDataLat          193352 non-null float64
-OpenDataLon          193352 non-null float64
-OpenDataX            193352 non-null float64
-OpenDataY            193352 non-null float64
-Report Date          217224 non-null object
-ReportMonthYear      217224 non-null object
-dtypes: float64(4), int64(3), object(10)
-memory usage: 28.2+ MB
-None
-</pre>
-<p>Here's a possible categorical column to use.</p>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">crime</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">crime</span><span class="p">[</span><span class="s2">"Crime Against"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">"category"</span><span class="p">)</span>
-<span class="n">crime</span> <span class="o">=</span> <span class="n">crime</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"Crime Against"</span><span class="p">])</span>
-</pre></div>
-<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
-<colgroup>
-<col class="org-left">
-<col class="org-right"></colgroup>
-<thead>
-<tr>
-<th class="org-left" scope="col">Type</th>
-<th class="org-right" scope="col">Count</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-left">Property</td>
-<td class="org-right">175567</td>
-</tr>
-<tr>
-<td class="org-left">Person</td>
-<td class="org-right">32109</td>
-</tr>
-<tr>
-<td class="org-left">Society</td>
-<td class="org-right">9548</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org2eb7a7c">
-<h2 id="org2eb7a7c">Making the Plot</h2>
-<div class="outline-text-2" id="text-org2eb7a7c">
-<p>Holoviews is expecting you to work in a <a href="https://jupyter.org/">jupyter notebook</a> and isn't quite so easy to work with in org-mode so I'll make the plot with <code>hvplot</code> but then convert it to a <a href="https://bokeh.pydata.org/en/latest/docs/reference/plotting.html">bokeh figure</a> to embed it in this post.</p>
-</div>
-<div class="outline-3" id="outline-container-org9a68630">
-<h3 id="org9a68630">The Plot</h3>
-<div class="outline-text-3" id="text-org9a68630">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="k">with</span> <span class="n">TIMER</span><span class="p">:</span>
-    <span class="n">crime</span><span class="p">[</span><span class="s2">"date"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">crime</span><span class="p">[</span><span class="s2">"Occur Date"</span><span class="p">])</span>
-    <span class="n">crime</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="o">=</span> <span class="n">crime</span><span class="p">[</span><span class="s2">"Case Number"</span><span class="p">]</span>
-    <span class="n">crime</span> <span class="o">=</span> <span class="n">crime</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"Occur Date"</span><span class="p">,</span> <span class="s2">"Case Number"</span><span class="p">])</span>
-    <span class="n">crime_dates</span> <span class="o">=</span> <span class="n">crime</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"date"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-Started: 2019-02-01 20:31:47.668915
-Ended: 2019-02-01 20:32:09.889378
-Elapsed: 0:00:22.220463
-
-</pre>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">weekly</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"W"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-</pre></div>
-<script id="772db8e1-1a48-4157-9c71-2cdeba64b4cc" src="posts/libraries/a-first-look-at-hvplot/weekly_crime.js">
-</script>
-<p>That didn't work out is planned. It turns out that the data starts in 1972, but is mostly empty until around May of 2015. It also looks like January is missing values. I think I'll trim the data set.</p>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org210d704">
-<h3 id="org210d704">Trimmed</h3>
-<div class="outline-text-3" id="text-org210d704">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">crime_dates</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="p">[(</span><span class="n">crime_dates</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">31</span><span class="p">))</span>
-                          <span class="o">&</span> <span class="p">(</span><span class="n">crime_dates</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))]</span>
-<span class="n">weekly</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"W"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-</pre></div>
-<script id="36bd73d0-3379-4f11-8490-89e0572a7ade" src="posts/libraries/a-first-look-at-hvplot/weekly_trimmed_crime.js">
-</script></div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org838e2be">
-<h2 id="org838e2be">By Type</h2>
-<div class="outline-text-2" id="text-org838e2be">
-<p>HoloViews uses this rather odd way of composing figures. Instead of the object-oriented way you might expect it overrides the multiplication sign (<code>*</code> for adding to the same plot) and addition sign (<code>+</code> for adding an adjacent plot) so to plot the types I'll have to multiply their plots.</p>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">types</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">crime_dates</span><span class="p">[</span><span class="n">crime_dates</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="n">name</span><span class="p">]</span>
-         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">crime_dates</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">unique</span><span class="p">()}</span>
-<span class="n">weekly_types</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"W"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">types</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-<span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">weekly_types</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-<span class="n">first</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="n">weekly_types</span><span class="p">[</span><span class="n">first</span><span class="p">]</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"id"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">first</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-    <span class="n">plot</span> <span class="o">*=</span> <span class="n">weekly_types</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"id"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
-</pre></div>
-<script id="ab8f8249-d8a5-4af3-ab7b-7b84af3d7a31" src="posts/libraries/a-first-look-at-hvplot/weekly_crime_by_type.js">
-</script>
-<p>It looks like it could use more trimming, but it also looks like it's mostly property crimes, which is what you'd expect, I guess. Actually I tried another trim and it looks like it always starts at zero because of the way the resampling works, so trimming doesn't make that first anomaly go away. Maybe trimming the weekly would help.</p>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orge86d805">
-<h2 id="orge86d805">Looking a Little More at the Crimes</h2>
-<div class="outline-text-2" id="text-orge86d805"></div>
-<div class="outline-3" id="outline-container-org727956b">
-<h3 id="org727956b">By Neighborhood</h3>
-<div class="outline-text-3" id="text-org727956b">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">top_ten</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="o">.</span><span class="n">Neighborhood</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-<span class="k">print</span><span class="p">(</span><span class="n">table</span><span class="p">(</span><span class="n">top_ten</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"Neighborhood Count"</span><span class="o">.</span><span class="n">split</span><span class="p">()))</span>
-</pre></div>
-<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
-<colgroup>
-<col class="org-left">
-<col class="org-right"></colgroup>
-<thead>
-<tr>
-<th class="org-left" scope="col">Neighborhood</th>
-<th class="org-right" scope="col">Count</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-left">Downtown</td>
-<td class="org-right">10237</td>
-</tr>
-<tr>
-<td class="org-left">Hazelwood</td>
-<td class="org-right">10127</td>
-</tr>
-<tr>
-<td class="org-left">Lents</td>
-<td class="org-right">5681</td>
-</tr>
-<tr>
-<td class="org-left">Powellhurst-Gilbert</td>
-<td class="org-right">5605</td>
-</tr>
-<tr>
-<td class="org-left">Centennial</td>
-<td class="org-right">5016</td>
-</tr>
-<tr>
-<td class="org-left">Old Town/Chinatown</td>
-<td class="org-right">4966</td>
-</tr>
-<tr>
-<td class="org-left">Northwest</td>
-<td class="org-right">4648</td>
-</tr>
-<tr>
-<td class="org-left">Montavilla</td>
-<td class="org-right">4026</td>
-</tr>
-<tr>
-<td class="org-left">Pearl</td>
-<td class="org-right">3905</td>
-</tr>
-<tr>
-<td class="org-left">Lloyd</td>
-<td class="org-right">3699</td>
-</tr>
-</tbody>
-</table>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">neighborhoods</span> <span class="o">=</span> <span class="n">crime_dates</span><span class="p">[</span><span class="s2">"Neighborhood"</span><span class="p">]</span>
-<span class="n">neighborhoods</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">neighborhoods</span><span class="p">)</span>
-</pre></div>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">neighborhoods</span> <span class="o">=</span> <span class="n">neighborhoods</span><span class="p">[</span><span class="n">top_ten</span><span class="p">[</span><span class="s2">"index"</span><span class="p">]]</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"M"</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-</pre></div>
-<script id="83cc6d7d-3efe-4dc0-9765-6ab52eaedba7" src="posts/libraries/a-first-look-at-hvplot/neighborhoods.js">
-</script>
-<p>So the first thing to notice is that the top district ("Downtown") is missing from the legend for some reason and Downtown and Hazelwood dominate the case counts. There also doesn't seem to be any strong upward or downward trend.</p>
-<p>I live in Powelhurst-Gilbert, about a block north of Lents, and it looks like if you considered them one big neighborhood (they are adjacent), then they form the highest-crime Neighborhood, but, sticking to the arbitrariness of the boundaries, we are relegated to numbers three and four.</p>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org0ea5dc4">
-<h2 id="org0ea5dc4">Distribution</h2>
-<div class="outline-text-2" id="text-org0ea5dc4">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">neighborhoods</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">kde</span><span class="p">(</span>
-    <span class="n">by</span><span class="o">=</span><span class="s2">"Neighborhood"</span><span class="p">,</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"Distributions of Top Ten Crime Neighborhoods"</span><span class="p">)</span>
-</pre></div>
-<script id="f36dff14-b71a-4865-a1aa-7d9a69455ee1" src="posts/libraries/a-first-look-at-hvplot/neighborhoods_kde.js">
-</script>
-<p>I don't know what that mysterious bulge around zero is, all the neighborhoods are in the other peaks.</p>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org8f0e501">
-<h2 id="org8f0e501">Irises</h2>
-<div class="outline-text-2" id="text-org8f0e501">
-<p>Since the previous data was time-series data I thought I'd load a data set that wasn't to illustrate the use of the <code>by</code> parameter.</p>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">irises</span> <span class="o">=</span> <span class="n">load_iris</span><span class="p">()</span>
-<span class="k">print</span><span class="p">(</span><span class="n">irises</span><span class="o">.</span><span class="n">DESCR</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-.. _iris_dataset:
-
-Iris plants dataset
---------------------
-
-**Data Set Characteristics:**
-
-    :Number of Instances: 150 (50 in each of three classes)
-    :Number of Attributes: 4 numeric, predictive attributes and the class
-    :Attribute Information:
-        - sepal length in cm
-        - sepal width in cm
-        - petal length in cm
-        - petal width in cm
-        - class:
-                - Iris-Setosa
-                - Iris-Versicolour
-                - Iris-Virginica
-                
-    :Summary Statistics:
-
-    ============== ==== ==== ======= ===== ====================
-                    Min  Max   Mean    SD   Class Correlation
-    ============== ==== ==== ======= ===== ====================
-    sepal length:   4.3  7.9   5.84   0.83    0.7826
-    sepal width:    2.0  4.4   3.05   0.43   -0.4194
-    petal length:   1.0  6.9   3.76   1.76    0.9490  (high!)
-    petal width:    0.1  2.5   1.20   0.76    0.9565  (high!)
-    ============== ==== ==== ======= ===== ====================
-
-    :Missing Attribute Values: None
-    :Class Distribution: 33.3% for each of 3 classes.
-    :Creator: R.A. Fisher
-    :Donor: Michael Marshall (MARSHALL%PLU@io.arc.nasa.gov)
-    :Date: July, 1988
-
-The famous Iris database, first used by Sir R.A. Fisher. The dataset is taken
-from Fisher's paper. Note that it's the same as in R, but not as in the UCI
-Machine Learning Repository, which has two wrong data points.
-
-This is perhaps the best known database to be found in the
-pattern recognition literature.  Fisher's paper is a classic in the field and
-is referenced frequently to this day.  (See Duda & Hart, for example.)  The
-data set contains 3 classes of 50 instances each, where each class refers to a
-type of iris plant.  One class is linearly separable from the other 2; the
-latter are NOT linearly separable from each other.
-
-.. topic:: References
-
-   - Fisher, R.A. "The use of multiple measurements in taxonomic problems"
-     Annual Eugenics, 7, Part II, 179-188 (1936); also in "Contributions to
-     Mathematical Statistics" (John Wiley, NY, 1950).
-   - Duda, R.O., & Hart, P.E. (1973) Pattern Classification and Scene Analysis.
-     (Q327.D83) John Wiley & Sons.  ISBN 0-471-22361-1.  See page 218.
-   - Dasarathy, B.V. (1980) "Nosing Around the Neighborhood: A New System
-     Structure and Classification Rule for Recognition in Partially Exposed
-     Environments".  IEEE Transactions on Pattern Analysis and Machine
-     Intelligence, Vol. PAMI-2, No. 1, 67-71.
-   - Gates, G.W. (1972) "The Reduced Nearest Neighbor Rule".  IEEE Transactions
-     on Information Theory, May 1972, 431-433.
-   - See also: 1988 MLC Proceedings, 54-64.  Cheeseman et al"s AUTOCLASS II
-     conceptual clustering system finds 3 classes in the data.
-   - Many, many more ...
-</pre>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">iris_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">irises</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">irises</span><span class="o">.</span><span class="n">feature_names</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">iris_data</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
-</pre></div>
-<pre class="example">
-   sepal length (cm)  sepal width (cm)  petal length (cm)  petal width (cm)
-0                5.1               3.5                1.4               0.2
-1                4.9               3.0                1.4               0.2
-2                4.7               3.2                1.3               0.2
-3                4.6               3.1                1.5               0.2
-4                5.0               3.6                1.4               0.2
-
-</pre>
-<p>I don't know where this convention came from, but you can use the <code>by</code> keyword to specify a categorical column to differentiate the data points. In this case I'll use it to differentiate the species.</p>
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">target</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">irises</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
-<span class="n">target_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">irises</span><span class="o">.</span><span class="n">target_names</span><span class="p">))</span>
-<span class="n">iris_data</span><span class="p">[</span><span class="s2">"target"</span><span class="p">]</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">target_map</span><span class="p">[</span><span class="n">x</span><span class="p">])</span>
-</pre></div>
-<script id="410280c0-48c7-445f-9e4c-001a2b350d06" src="posts/libraries/a-first-look-at-hvplot/irises.js">
-</script></div>
-<div class="outline-3" id="outline-container-orgb1500dd">
-<h3 id="orgb1500dd">Scatter Matrix</h3>
-<div class="outline-text-3" id="text-orgb1500dd">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">hvplot</span><span class="o">.</span><span class="n">scatter_matrix</span><span class="p">(</span><span class="n">iris_data</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">"target"</span><span class="p">)</span>
-</pre></div>
-<script id="a9512677-2eb3-4fce-8188-5e9a4a22dc45" src="posts/libraries/a-first-look-at-hvplot/iris_scatter_matrix.js">
-</script></div>
-</div>
-<div class="outline-3" id="outline-container-orgc326cd7">
-<h3 id="orgc326cd7">Parallel Coordinates</h3>
-<div class="outline-text-3" id="text-orgc326cd7">/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-<div class="highlight">
-<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">hvplot</span><span class="o">.</span><span class="n">parallel_coordinates</span><span class="p">(</span><span class="n">iris_data</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">)</span>
-</pre></div>
-<script id="d8e70c60-c084-47d6-81b0-a27c91b65ccc" src="posts/libraries/a-first-look-at-hvplot/iris_parallel_coordinates.js">
-</script></div>
-</div>
 </div>
 </div>
 </article>
@@ -4839,7 +4382,11 @@ latter are NOT linearly separable from each other.
 </div>
 </div>
 <script src="assets/js/all-nocdn.js">
-</script>
+</script><!-- fancy dates -->
+<script>
+    moment.locale("en");
+    fancydates(0, "YYYY-MM-DD HH:mm");
+</script><!-- end fancy dates -->
 <script>
     baguetteBox.run('div#content', {
         ignoreClass: 'islink',
