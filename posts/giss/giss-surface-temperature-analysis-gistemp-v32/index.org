@@ -1,5 +1,5 @@
 #+BEGIN_COMMENT
-.. title: GISS Surface Temperature Analysis (GISTEMP v32
+.. title: GISS Surface Temperature Analysis (GISTEMP v32)
 .. slug: giss-surface-temperature-analysis-gistemp-v32
 .. date: 2019-02-27 13:17:35 UTC-08:00
 .. tags: coursera,giss,assignment
@@ -16,28 +16,28 @@
 * Set Up
 ** Imports
 *** Python
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 from pathlib import Path
 import os
 #+end_src
 *** PyPi
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 from dotenv import load_dotenv
 import pandas
 #+end_src
 ** Load Dotenv
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 load_dotenv(".env")
 #+end_src
 * Load the Data
 ** Take One
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 path = Path(os.environ.get("GLOBAL")).expanduser()
 assert path.is_file()
 with path.open() as reader:
     giss = pandas.read_csv(path)
 #+end_src
-#+begin_src ipython :session giss :results output :exports both
+#+begin_src python :session giss :results output :exports both
 print(giss.head())
 #+end_src
 
@@ -51,7 +51,7 @@ print(giss.head())
 
 One thing to notice is that the first line got read in as columns and the columns got read in as the first row.
 
-#+begin_src ipython :session giss :results output :exports both
+#+begin_src python :session giss :results output :exports both
 print(giss.iloc[0])
 #+end_src
 
@@ -62,13 +62,13 @@ print(giss.iloc[0])
 So we're going to have to skip the first row.
 
 ** Take Two
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 path = Path(os.environ.get("GLOBAL")).expanduser()
 assert path.is_file()
 with path.open() as reader:
     giss = pandas.read_csv(path, skiprows=1)
 #+end_src
-#+begin_src ipython :session giss :results output :exports both
+#+begin_src python :session giss :results output :exports both
 print(giss.head())
 #+end_src
 
@@ -89,7 +89,7 @@ print(giss.head())
 4  -.29  -.29  -.28  -.13  -.38  -.34  -.27  
 #+end_example
 
-#+begin_src ipython :session giss :results output :exports both
+#+begin_src python :session giss :results output :exports both
 print(giss.columns)
 #+end_src
 
@@ -98,7 +98,7 @@ print(giss.columns)
 :        'Oct', 'Nov', 'Dec', 'J-D', 'D-N', 'DJF', 'MAM', 'JJA', 'SON'],
 :       dtype='object')
 
-#+begin_src ipython :session giss :results output :exports both
+#+begin_src python :session giss :results output :exports both
 print(giss.describe())
 #+end_src
 
@@ -115,11 +115,11 @@ print(giss.describe())
 
 So most of the columns weren't read as numeric, probably because of the use of =***= for missing data.
 ** Take Three
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 with path.open() as reader:
     giss = pandas.read_csv(path, skiprows=1, na_values="***")
 #+end_src
-#+begin_src ipython :session giss :results output :exports both
+#+begin_src python :session giss :results output :exports both
 print(giss.describe())
 #+end_src
 
@@ -169,14 +169,14 @@ max      0.970000
 Actually I just looked at the "official" file given by Coursera and I downloaded the wrong one.
 * The Real Data
   The data I was supposed to pull was the /Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'/ [[https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv][Zonal Annual Means]] which shows the different annual mean for each zone in a given year (rather than monthly global averages).
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 zone_path = Path(os.environ.get("ZONES")).expanduser()
 assert zone_path.is_file()
 with zone_path.open() as reader:
     giss = pandas.read_csv(reader)
 #+end_src
 
-#+begin_src ipython :session giss :results output :exports both
+#+begin_src python :session giss :results output :exports both
 print(giss.describe())
 #+end_src
 
@@ -213,7 +213,7 @@ min     -0.580000   -0.430000   -0.540000   -2.570000
 max      1.020000    0.780000    0.450000    1.270000  
 #+end_example
 
-#+begin_src ipython :session giss :results output :exports both
+#+begin_src python :session giss :results output :exports both
 print(giss.iloc[0])
 #+end_src
 
@@ -253,7 +253,6 @@ How interesting is the result? Does this represent an interesting choice of data
 | *Appropriate Chart Selection and Variables* | Chart is indecipherable or significantly misleading because of poor chart type or assignment of variables to elements | Major problem(s) with chart selection or assignment of elements to variables     | Minor problem(s) with chart selection or assignment of elements to variables | Chart selection is appropriate for data and its elements properly assigned to appropriate data variables |
 | *Design of the Chart*                       | No apparent attention paid to design                                                                                  | Evidence that several of the design rules should have been followed but were not | Evidence that one of the design rules should have been followed but was not  | Attention paid to all design rules                                                                       |
 | *Content*                                   | Misleading                                                                                                            | Boring                                                                           | Not boring                                                                   | Interesting                                                                                              |
-
 
 * Citation
 - GISTEMP Team, 2019: GISS Surface Temperature Analysis (GISTEMP). NASA Goddard Institute for Space Studies. Dataset accessed 2019-02-27 at https://data.giss.nasa.gov/gistemp/.
