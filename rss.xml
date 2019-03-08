@@ -1,51 +1,161 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2019 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Tue, 05 Mar 2019 05:44:14 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>HoloViews Gridded Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2019 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Fri, 08 Mar 2019 02:32:40 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>GISS Zone Anomalies</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-zone-anomalies/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="outline-container-orged41ac4" class="outline-2"&gt;
+&lt;h2 id="orged41ac4"&gt;Introduction&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orged41ac4"&gt;
+&lt;p&gt;
+This is a look at the &lt;a href="https://data.giss.nasa.gov/gistemp/"&gt;Godard Institute for Space Studies' surface temperature data&lt;/a&gt;. I'll look at the mean difference between the yearly mean and the historical "normal" mean.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgd045e12" class="outline-2"&gt;
+&lt;h2 id="orgd045e12"&gt;Set Up&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgd045e12"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orge00c4a1" class="outline-3"&gt;
+&lt;h3 id="orge00c4a1"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orge00c4a1"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgc4569bc" class="outline-4"&gt;
+&lt;h4 id="orgc4569bc"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgc4569bc"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from pathlib import Path
+import os
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org5bbb7b6" class="outline-4"&gt;
+&lt;h4 id="org5bbb7b6"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org5bbb7b6"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from dotenv import load_dotenv
+import pandas
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org1f7c807" class="outline-3"&gt;
+&lt;h3 id="org1f7c807"&gt;Load Dotenv&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org1f7c807"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;load_dotenv(".env")
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org7ba02c7" class="outline-2"&gt;
+&lt;h2 id="org7ba02c7"&gt;The Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org7ba02c7"&gt;
+&lt;p&gt;
+The data is the &lt;i&gt;Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'&lt;/i&gt; &lt;a href="https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv"&gt;Zonal Annual Means&lt;/a&gt; which shows the different annual mean for each zone in a given year.
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;zone_path = Path(os.environ.get("ZONES")).expanduser()
+assert zone_path.is_file()
+with zone_path.open() as reader:
+    giss = pandas.read_csv(reader)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(giss.describe())
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+              Year        Glob        NHem        SHem     24N-90N  \
+count   139.000000  139.000000  139.000000  139.000000  139.000000   
+mean   1949.000000    0.032302    0.056043    0.008561    0.077698   
+std      40.269923    0.336896    0.393435    0.301848    0.464606   
+min    1880.000000   -0.490000   -0.540000   -0.490000   -0.580000   
+25%    1914.500000   -0.200000   -0.220000   -0.235000   -0.280000   
+50%    1949.000000   -0.070000   -0.010000   -0.080000    0.020000   
+75%    1983.500000    0.215000    0.210000    0.265000    0.255000   
+max    2018.000000    0.980000    1.260000    0.710000    1.500000   
+
+          24S-24N     90S-24S     64N-90N     44N-64N     24N-44N     EQU-24N  \
+count  139.000000  139.000000  139.000000  139.000000  139.000000  139.000000   
+mean     0.036115   -0.018561    0.111079    0.117770    0.027698    0.027626   
+std      0.331384    0.295695    0.917715    0.516729    0.356416    0.326111   
+min     -0.650000   -0.470000   -1.640000   -0.710000   -0.590000   -0.720000   
+25%     -0.215000   -0.250000   -0.545000   -0.270000   -0.200000   -0.230000   
+50%     -0.030000   -0.100000    0.020000    0.000000   -0.070000    0.000000   
+75%      0.255000    0.230000    0.660000    0.360000    0.135000    0.240000   
+max      0.970000    0.700000    3.050000    1.440000    1.060000    0.930000   
+
+          24S-EQU     44S-24S     64S-44S     90S-64S  
+count  139.000000  139.000000  139.000000  139.000000  
+mean     0.045683    0.020432   -0.069353   -0.078129  
+std      0.343385    0.312688    0.269380    0.732359  
+min     -0.580000   -0.430000   -0.540000   -2.570000  
+25%     -0.210000   -0.220000   -0.265000   -0.490000  
+50%     -0.030000   -0.080000   -0.090000    0.050000  
+75%      0.290000    0.260000    0.180000    0.410000  
+max      1.020000    0.780000    0.450000    1.270000  
+&lt;/pre&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(giss.iloc[0])
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+Year       1880.00
+Glob         -0.18
+NHem         -0.31
+SHem         -0.06
+24N-90N      -0.38
+24S-24N      -0.17
+90S-24S      -0.01
+64N-90N      -0.97
+44N-64N      -0.47
+24N-44N      -0.25
+EQU-24N      -0.21
+24S-EQU      -0.13
+44S-24S      -0.04
+64S-44S       0.05
+90S-64S       0.67
+Name: 0, dtype: float64
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>assignment</category><category>coursera</category><category>giss</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-zone-anomalies/</guid><pubDate>Fri, 08 Mar 2019 01:58:41 GMT</pubDate></item><item><title>HoloViews Gridded Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org129eecd"&gt;The Beginning&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org56e234d"&gt;The Middle&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#orgfee8772"&gt;The Beginning&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org9065c87"&gt;The Middle&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org539b0d4"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org2967307"&gt;Build It&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org1a269d8"&gt;Save It&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org2135c6c"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org804aa13"&gt;Build It&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org57109ea"&gt;Save It&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org5ba640c"&gt;The End&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/#org48e8fe2"&gt;The End&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org129eecd" class="outline-2"&gt;
-&lt;h2 id="org129eecd"&gt;The Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org129eecd"&gt;
+&lt;div id="outline-container-orgfee8772" class="outline-2"&gt;
+&lt;h2 id="orgfee8772"&gt;The Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgfee8772"&gt;
 &lt;p&gt;
 This is a reproduction of the HoloViews &lt;a href="http://holoviews.org/getting_started/Gridded_Datasets.html"&gt;Gridded Datasets&lt;/a&gt; example in the Getting Started section of their documentation to make sure that I can do it myself. The &lt;i&gt;Gridded Data&lt;/i&gt; that they're referring to is data with more than two dimensions (a table has two dimensions - &lt;i&gt;columns&lt;/i&gt; and &lt;i&gt;rows&lt;/i&gt;). One way to display this type of data might be to use three dimensions (assuming there's only three), but the suggestion here is to use a slider to step through the data instead (so the third dimension is time or something similar).
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org56e234d" class="outline-2"&gt;
-&lt;h2 id="org56e234d"&gt;The Middle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org56e234d"&gt;
+&lt;div id="outline-container-org9065c87" class="outline-2"&gt;
+&lt;h2 id="org9065c87"&gt;The Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org9065c87"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org539b0d4" class="outline-3"&gt;
-&lt;h3 id="org539b0d4"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org539b0d4"&gt;
+&lt;div id="outline-container-org2135c6c" class="outline-3"&gt;
+&lt;h3 id="org2135c6c"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org2135c6c"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org52b24d9" class="outline-4"&gt;
-&lt;h4 id="org52b24d9"&gt;Imports&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org52b24d9"&gt;
+&lt;div id="outline-container-org7d769d4" class="outline-4"&gt;
+&lt;h4 id="org7d769d4"&gt;Imports&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org7d769d4"&gt;
 &lt;/div&gt;
 &lt;ul class="org-ul"&gt;
-&lt;li&gt;&lt;a id="orgb27c5a3"&gt;&lt;/a&gt;Python&lt;br&gt;
-&lt;div class="outline-text-5" id="text-orgb27c5a3"&gt;
+&lt;li&gt;&lt;a id="org0f7bb47"&gt;&lt;/a&gt;Python&lt;br&gt;
+&lt;div class="outline-text-5" id="text-org0f7bb47"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from functools import partial
 from pathlib import Path
 import os
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a id="orgc1da2f8"&gt;&lt;/a&gt;PyPi&lt;br&gt;
-&lt;div class="outline-text-5" id="text-orgc1da2f8"&gt;
+&lt;li&gt;&lt;a id="org291b51a"&gt;&lt;/a&gt;PyPi&lt;br&gt;
+&lt;div class="outline-text-5" id="text-org291b51a"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from dotenv import load_dotenv
 import holoviews
 from holoviews import opts
@@ -53,32 +163,32 @@ import numpy
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a id="orge6870c6"&gt;&lt;/a&gt;This Project&lt;br&gt;
-&lt;div class="outline-text-5" id="text-orge6870c6"&gt;
+&lt;li&gt;&lt;a id="org37801a7"&gt;&lt;/a&gt;This Project&lt;br&gt;
+&lt;div class="outline-text-5" id="text-org37801a7"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orga41db12" class="outline-4"&gt;
-&lt;h4 id="orga41db12"&gt;The Dotenv&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orga41db12"&gt;
+&lt;div id="outline-container-org31ff003" class="outline-4"&gt;
+&lt;h4 id="org31ff003"&gt;The Dotenv&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org31ff003"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;load_dotenv(".env")
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org09bff23" class="outline-4"&gt;
-&lt;h4 id="org09bff23"&gt;Bokeh&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org09bff23"&gt;
+&lt;div id="outline-container-org7145084" class="outline-4"&gt;
+&lt;h4 id="org7145084"&gt;Bokeh&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org7145084"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;#+begin_src python :session holoviews :results none
 holoviews.extension("bokeh")
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org5a7bac3" class="outline-4"&gt;
-&lt;h4 id="org5a7bac3"&gt;The Embedder&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org5a7bac3"&gt;
+&lt;div id="outline-container-org4c7ee65" class="outline-4"&gt;
+&lt;h4 id="org4c7ee65"&gt;The Embedder&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org4c7ee65"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;files_path = Path("../../files/posts/libraries/holoviews-gridded-data/")
 Embed = partial(
     EmbedBokeh,
@@ -86,9 +196,9 @@ Embed = partial(
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8fe176d" class="outline-4"&gt;
-&lt;h4 id="org8fe176d"&gt;The Output Path&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org8fe176d"&gt;
+&lt;div id="outline-container-org3f4341a" class="outline-4"&gt;
+&lt;h4 id="org3f4341a"&gt;The Output Path&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org3f4341a"&gt;
 &lt;p&gt;
 This is where to store files and images that get created and need to get grabbed by nikola.
 &lt;/p&gt;
@@ -97,9 +207,9 @@ assert OUTPUT_PATH.is_dir()
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org9bde04f" class="outline-4"&gt;
-&lt;h4 id="org9bde04f"&gt;The Data&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org9bde04f"&gt;
+&lt;div id="outline-container-orgea00263" class="outline-4"&gt;
+&lt;h4 id="orgea00263"&gt;The Data&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgea00263"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;data_path = Path(os.environ.get("PHOTONS")).expanduser()
 assert data_path.is_file()
 data = numpy.load(str(data_path))
@@ -159,13 +269,13 @@ But we want to use a Dataset, not an x-array so this was just for illustration�
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org2967307" class="outline-3"&gt;
-&lt;h3 id="org2967307"&gt;Build It&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org2967307"&gt;
+&lt;div id="outline-container-org804aa13" class="outline-3"&gt;
+&lt;h3 id="org804aa13"&gt;Build It&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org804aa13"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgde48920" class="outline-4"&gt;
-&lt;h4 id="orgde48920"&gt;Set Up the Plot&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgde48920"&gt;
+&lt;div id="outline-container-org2a6be34" class="outline-4"&gt;
+&lt;h4 id="org2a6be34"&gt;Set Up the Plot&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2a6be34"&gt;
 &lt;p&gt;
 Before doing the plot I'll set the defaults for it.
 &lt;/p&gt;
@@ -197,9 +307,9 @@ print("[[file:{}][Link to the plot.]]".format(file_name))
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org7f8a6ca" class="outline-4"&gt;
-&lt;h4 id="org7f8a6ca"&gt;Zoom In&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org7f8a6ca"&gt;
+&lt;div id="outline-container-org04c1776" class="outline-4"&gt;
+&lt;h4 id="org04c1776"&gt;Zoom In&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org04c1776"&gt;
 &lt;p&gt;
 HoloViews provides a way to select out Regions of Interest (ROI). The pickle we loaded earlier has coordinates for rectangular bounding boxes in it (under the &lt;code&gt;ROIs&lt;/code&gt; key).
 &lt;/p&gt;
@@ -224,9 +334,9 @@ Embed(plot, file_name)()
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org4afc6db" class="outline-4"&gt;
-&lt;h4 id="org4afc6db"&gt;Select the Facet&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org4afc6db"&gt;
+&lt;div id="outline-container-org1fe0703" class="outline-4"&gt;
+&lt;h4 id="org1fe0703"&gt;Select the Facet&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1fe0703"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;x0, y0, x1, y1 = regions_of_interest[60]
 roi = data_set.select(x=(x0, x1), y=(y0, y1), time=(250, 280)).relabel('ROI #60')
 plot = roi.to(holoviews.Image, ['x', 'y'])
@@ -242,9 +352,9 @@ print("[[file:{}][link]]".format(file_name))
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgdc838ab" class="outline-4"&gt;
-&lt;h4 id="orgdc838ab"&gt;Mean and Standard Deviation&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgdc838ab"&gt;
+&lt;div id="outline-container-orgdaa205a" class="outline-4"&gt;
+&lt;h4 id="orgdaa205a"&gt;Mean and Standard Deviation&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgdaa205a"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;agg = roi.aggregate('Time', numpy.mean, spreadfn=numpy.std)
 plot = holoviews.Spread(agg) * holoviews.Curve(agg)
 file_name = "spread.html"
@@ -260,50 +370,50 @@ print("[[file:{}][Link]]".format(file_name))
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org1a269d8" class="outline-3"&gt;
-&lt;h3 id="org1a269d8"&gt;Save It&lt;/h3&gt;
+&lt;div id="outline-container-org57109ea" class="outline-3"&gt;
+&lt;h3 id="org57109ea"&gt;Save It&lt;/h3&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org5ba640c" class="outline-2"&gt;
-&lt;h2 id="org5ba640c"&gt;The End&lt;/h2&gt;
+&lt;div id="outline-container-org48e8fe2" class="outline-2"&gt;
+&lt;h2 id="org48e8fe2"&gt;The End&lt;/h2&gt;
 &lt;/div&gt;</description><category>holoviews</category><category>tutorila</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-gridded-data/</guid><pubDate>Tue, 05 Mar 2019 00:50:25 GMT</pubDate></item><item><title>Aggregating Tabular Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org20d8efb"&gt;Set Up&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org6757792"&gt;Set Up&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#orgbb6c321"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org063551b"&gt;Holoviews Bokeh&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org426a95e"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org8c1bc31"&gt;Dotenv&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#orgfc86770"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org6682ddb"&gt;Holoviews Bokeh&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#orgfadb4d7"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org2ea0dbe"&gt;Dotenv&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org8e46700"&gt;Load the Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org38b047e"&gt;Convert the DataFrame to a Dataset&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#orge911d52"&gt;Aggregate the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org2f36520"&gt;Load the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#org1d4210b"&gt;Convert the DataFrame to a Dataset&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/aggregating-tabular-data/#orgc58cf93"&gt;Aggregate the Data&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org20d8efb" class="outline-2"&gt;
-&lt;h2 id="org20d8efb"&gt;Set Up&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org20d8efb"&gt;
+&lt;div id="outline-container-org6757792" class="outline-2"&gt;
+&lt;h2 id="org6757792"&gt;Set Up&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org6757792"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgbb6c321" class="outline-3"&gt;
-&lt;h3 id="orgbb6c321"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgbb6c321"&gt;
+&lt;div id="outline-container-orgfc86770" class="outline-3"&gt;
+&lt;h3 id="orgfc86770"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgfc86770"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orga206010" class="outline-4"&gt;
-&lt;h4 id="orga206010"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orga206010"&gt;
+&lt;div id="outline-container-org596cefe" class="outline-4"&gt;
+&lt;h4 id="org596cefe"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org596cefe"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from functools import partial
 from pathlib import Path
 import os
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orge5f13ec" class="outline-4"&gt;
-&lt;h4 id="orge5f13ec"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orge5f13ec"&gt;
+&lt;div id="outline-container-org675e64b" class="outline-4"&gt;
+&lt;h4 id="org675e64b"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org675e64b"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from dotenv import load_dotenv
 from holoviews import opts
 from tabulate import tabulate
@@ -313,17 +423,17 @@ import pandas
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org31f3ff7" class="outline-4"&gt;
-&lt;h4 id="org31f3ff7"&gt;My Projects&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org31f3ff7"&gt;
+&lt;div id="outline-container-orgcbd9759" class="outline-4"&gt;
+&lt;h4 id="orgcbd9759"&gt;My Projects&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgcbd9759"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org063551b" class="outline-3"&gt;
-&lt;h3 id="org063551b"&gt;Holoviews Bokeh&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org063551b"&gt;
+&lt;div id="outline-container-org6682ddb" class="outline-3"&gt;
+&lt;h3 id="org6682ddb"&gt;Holoviews Bokeh&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org6682ddb"&gt;
 &lt;p&gt;
 I don't know why but you have to specify that you're using &lt;code&gt;bokeh&lt;/code&gt;, even though it looks like it's working when you don't.
 &lt;/p&gt;
@@ -331,9 +441,9 @@ I don't know why but you have to specify that you're using &lt;code&gt;bokeh&lt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org426a95e" class="outline-3"&gt;
-&lt;h3 id="org426a95e"&gt;The Embedder&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org426a95e"&gt;
+&lt;div id="outline-container-orgfadb4d7" class="outline-3"&gt;
+&lt;h3 id="orgfadb4d7"&gt;The Embedder&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgfadb4d7"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;files_path = Path("../../files/posts/libraries/aggregating-tabular-data/")
 Embed = partial(
     EmbedBokeh,
@@ -341,9 +451,9 @@ Embed = partial(
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8c1bc31" class="outline-3"&gt;
-&lt;h3 id="org8c1bc31"&gt;Dotenv&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org8c1bc31"&gt;
+&lt;div id="outline-container-org2ea0dbe" class="outline-3"&gt;
+&lt;h3 id="org2ea0dbe"&gt;Dotenv&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org2ea0dbe"&gt;
 &lt;p&gt;
 I have the path to the data-set in a &lt;code&gt;.env&lt;/code&gt; file so I'll load it into the environment dictionary.
 &lt;/p&gt;
@@ -353,9 +463,9 @@ I have the path to the data-set in a &lt;code&gt;.env&lt;/code&gt; file so I'll 
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org8e46700" class="outline-2"&gt;
-&lt;h2 id="org8e46700"&gt;Load the Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org8e46700"&gt;
+&lt;div id="outline-container-org2f36520" class="outline-2"&gt;
+&lt;h2 id="org2f36520"&gt;Load the Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org2f36520"&gt;
 &lt;p&gt;
 This is the same measles/pertusis data that I used before.
 &lt;/p&gt;
@@ -366,18 +476,18 @@ with path.open() as reader:
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org38b047e" class="outline-2"&gt;
-&lt;h2 id="org38b047e"&gt;Convert the DataFrame to a Dataset&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org38b047e"&gt;
+&lt;div id="outline-container-org1d4210b" class="outline-2"&gt;
+&lt;h2 id="org1d4210b"&gt;Convert the DataFrame to a Dataset&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org1d4210b"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;key_dimensions = "Year State".split()
 value_dimensions = [("measles", "Measles Incidence"), ("pertussis", "Pertusis Incidence")]
 dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orge911d52" class="outline-2"&gt;
-&lt;h2 id="orge911d52"&gt;Aggregate the Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orge911d52"&gt;
+&lt;div id="outline-container-orgc58cf93" class="outline-2"&gt;
+&lt;h2 id="orgc58cf93"&gt;Aggregate the Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgc58cf93"&gt;
 &lt;p&gt;
 While I had aggregated the data before, this time I'm going to pass in the "Year" column as an argument so it won't keep the states separate.
 &lt;/p&gt;
@@ -397,43 +507,43 @@ plot = overlay.opts(height=500, width=1000, tools=["hover"])
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#orgb9568f6"&gt;Set Up&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org58c00c8"&gt;Set Up&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org4494ae9"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#orgddbd038"&gt;Holoviews Bokeh&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org47aa4f3"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org3797b09"&gt;Dotenv&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#orgb4e4949"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org9b0c9dd"&gt;Holoviews Bokeh&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org54abd86"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org08eac85"&gt;Dotenv&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#orgb46c74d"&gt;Load the Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org6af98c6"&gt;Convert the DataFrame to a Dataset&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org95e36cb"&gt;Aggregate The Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org819211b"&gt;Plot a Subset&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org4777d0b"&gt;Facets&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org910d574"&gt;Overlays&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org811b9f0"&gt;Load the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#orgd021ee5"&gt;Convert the DataFrame to a Dataset&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org62a7cc1"&gt;Aggregate The Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#orgb89abbc"&gt;Plot a Subset&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#orge8fc643"&gt;Facets&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/selecting-tabular-data/#org44b4177"&gt;Overlays&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgb9568f6" class="outline-2"&gt;
-&lt;h2 id="orgb9568f6"&gt;Set Up&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgb9568f6"&gt;
+&lt;div id="outline-container-org58c00c8" class="outline-2"&gt;
+&lt;h2 id="org58c00c8"&gt;Set Up&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org58c00c8"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org4494ae9" class="outline-3"&gt;
-&lt;h3 id="org4494ae9"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org4494ae9"&gt;
+&lt;div id="outline-container-orgb4e4949" class="outline-3"&gt;
+&lt;h3 id="orgb4e4949"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgb4e4949"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8b3aae1" class="outline-4"&gt;
-&lt;h4 id="org8b3aae1"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org8b3aae1"&gt;
+&lt;div id="outline-container-orgee5965a" class="outline-4"&gt;
+&lt;h4 id="orgee5965a"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgee5965a"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from functools import partial
 from pathlib import Path
 import os
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org4b145d5" class="outline-4"&gt;
-&lt;h4 id="org4b145d5"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org4b145d5"&gt;
+&lt;div id="outline-container-org1f28436" class="outline-4"&gt;
+&lt;h4 id="org1f28436"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1f28436"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from dotenv import load_dotenv
 from holoviews import opts
 from tabulate import tabulate
@@ -443,17 +553,17 @@ import pandas
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org6d620dc" class="outline-4"&gt;
-&lt;h4 id="org6d620dc"&gt;My Projects&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org6d620dc"&gt;
+&lt;div id="outline-container-org93760be" class="outline-4"&gt;
+&lt;h4 id="org93760be"&gt;My Projects&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org93760be"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgddbd038" class="outline-3"&gt;
-&lt;h3 id="orgddbd038"&gt;Holoviews Bokeh&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgddbd038"&gt;
+&lt;div id="outline-container-org9b0c9dd" class="outline-3"&gt;
+&lt;h3 id="org9b0c9dd"&gt;Holoviews Bokeh&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org9b0c9dd"&gt;
 &lt;p&gt;
 I don't know why but you have to specify that you're using &lt;code&gt;bokeh&lt;/code&gt;, even though it looks like it's working when you don't.
 &lt;/p&gt;
@@ -461,9 +571,9 @@ I don't know why but you have to specify that you're using &lt;code&gt;bokeh&lt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org47aa4f3" class="outline-3"&gt;
-&lt;h3 id="org47aa4f3"&gt;The Embedder&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org47aa4f3"&gt;
+&lt;div id="outline-container-org54abd86" class="outline-3"&gt;
+&lt;h3 id="org54abd86"&gt;The Embedder&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org54abd86"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;files_path = Path("../../files/posts/libraries/selecting-tabular-data/")
 Embed = partial(
     EmbedBokeh,
@@ -471,9 +581,9 @@ Embed = partial(
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org3797b09" class="outline-3"&gt;
-&lt;h3 id="org3797b09"&gt;Dotenv&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org3797b09"&gt;
+&lt;div id="outline-container-org08eac85" class="outline-3"&gt;
+&lt;h3 id="org08eac85"&gt;Dotenv&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org08eac85"&gt;
 &lt;p&gt;
 I have the path to the data-set in a &lt;code&gt;.env&lt;/code&gt; file so I'll load it into the environment dictionary.
 &lt;/p&gt;
@@ -482,9 +592,9 @@ I have the path to the data-set in a &lt;code&gt;.env&lt;/code&gt; file so I'll 
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgb46c74d" class="outline-2"&gt;
-&lt;h2 id="orgb46c74d"&gt;Load the Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgb46c74d"&gt;
+&lt;div id="outline-container-org811b9f0" class="outline-2"&gt;
+&lt;h2 id="org811b9f0"&gt;Load the Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org811b9f0"&gt;
 &lt;p&gt;
 This is the same measles/pertusis data that I used before.
 &lt;/p&gt;
@@ -565,9 +675,9 @@ with path.open() as reader:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org6af98c6" class="outline-2"&gt;
-&lt;h2 id="org6af98c6"&gt;Convert the DataFrame to a Dataset&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org6af98c6"&gt;
+&lt;div id="outline-container-orgd021ee5" class="outline-2"&gt;
+&lt;h2 id="orgd021ee5"&gt;Convert the DataFrame to a Dataset&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgd021ee5"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;key_dimensions = "Year State".split()
 value_dimensions = [("measles", "Measles Incidence"), ("pertussis", "Pertusis Incidence")]
 dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
@@ -575,9 +685,9 @@ dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org95e36cb" class="outline-2"&gt;
-&lt;h2 id="org95e36cb"&gt;Aggregate The Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org95e36cb"&gt;
+&lt;div id="outline-container-org62a7cc1" class="outline-2"&gt;
+&lt;h2 id="org62a7cc1"&gt;Aggregate The Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org62a7cc1"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;dataset = dataset.aggregate(function=numpy.mean)
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -593,9 +703,9 @@ print(dataset.shape)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org819211b" class="outline-2"&gt;
-&lt;h2 id="org819211b"&gt;Plot a Subset&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org819211b"&gt;
+&lt;div id="outline-container-orgb89abbc" class="outline-2"&gt;
+&lt;h2 id="orgb89abbc"&gt;Plot a Subset&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgb89abbc"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;northwest = ["Oregon", "Washington", "Idaho"]
 bars = dataset.select(State=northwest, Year=(1928, 1938)).to(
     holoviews.Bars, ["Year", "State"], "measles").sort()
@@ -619,9 +729,9 @@ Interesting how Oregon spiked up in 1935 and 1936 then dropped down in 1937. Acc
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org4777d0b" class="outline-2"&gt;
-&lt;h2 id="org4777d0b"&gt;Facets&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org4777d0b"&gt;
+&lt;div id="outline-container-orge8fc643" class="outline-2"&gt;
+&lt;h2 id="orge8fc643"&gt;Facets&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orge8fc643"&gt;
 &lt;p&gt;
 The bar-plot is okay for comparing the cities within any given year but they are hard to get trends from. Here's how to use selecting to plot lines for each city.
 &lt;/p&gt;
@@ -640,9 +750,9 @@ plot = gridspace.opts(
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org910d574" class="outline-2"&gt;
-&lt;h2 id="org910d574"&gt;Overlays&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org910d574"&gt;
+&lt;div id="outline-container-org44b4177" class="outline-2"&gt;
+&lt;h2 id="org44b4177"&gt;Overlays&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org44b4177"&gt;
 &lt;p&gt;
 While the side-by-side plots are clearer than the bar-plots, it's harder to compare the cities year-by-year, so it might be better to plot them over each other.
 &lt;/p&gt;
@@ -733,10 +843,10 @@ plot = overlay.opts(
 
 
 
-&lt;div id="07b377e3-2ce1-4452-9603-c03c6366a7af"&gt;&lt;/div&gt;
+&lt;div id="b8e1264d-ea27-4046-bdea-66c462a8f839"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#07b377e3-2ce1-4452-9603-c03c6366a7af');
+var element = $('#b8e1264d-ea27-4046-bdea-66c462a8f839');
 
 (function(root) {
   function now() {
@@ -1071,10 +1181,10 @@ var element = $('#07b377e3-2ce1-4452-9603-c03c6366a7af');
 
 
 
-&lt;div id="791f3e92-2ca8-49de-b1d1-e5fe7a9af12e"&gt;&lt;/div&gt;
+&lt;div id="7ef26089-fb05-43ff-a23f-3d36204225a3"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#791f3e92-2ca8-49de-b1d1-e5fe7a9af12e');
+var element = $('#7ef26089-fb05-43ff-a23f-3d36204225a3');
 
 (function(root) {
   function now() {
@@ -1751,10 +1861,10 @@ div.hologroup {
 
 
 
-&lt;div id="f20b9bec-e021-4395-8176-f74ec0046c45"&gt;&lt;/div&gt;
+&lt;div id="1a0863dd-ee0e-4e69-bedf-ec0123d310f1"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#f20b9bec-e021-4395-8176-f74ec0046c45');
+var element = $('#1a0863dd-ee0e-4e69-bedf-ec0123d310f1');
 function HoloViewsWidget() {
 }
 
@@ -2760,10 +2870,10 @@ if (window.Jupyter !== undefined) {
 
 
 
-&lt;div id="217618c0-348d-4ef2-8824-07340cb41cb8"&gt;&lt;/div&gt;
+&lt;div id="8dea28b4-09d5-409d-b763-ab23f15606d3"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript output_execute_result"&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#217618c0-348d-4ef2-8824-07340cb41cb8');
+var element = $('#8dea28b4-09d5-409d-b763-ab23f15606d3');
 
 // Ugly hack - see HoloViews #2574 for more information
 if (!(document.getElementById('5341')) &amp;&amp; !(document.getElementById('_anim_img45a5bc2a41ac4e4984bedc826209bc9f'))) {
@@ -3031,29 +3141,29 @@ if (!(document.getElementById('5341')) &amp;&amp; !(document.getElementById('_an
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org10604a7"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgfbdc19e"&gt;Set Up&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org7ed84a6"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orga31fb40"&gt;Set Up&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgcf2fa7c"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgbc47545"&gt;Holoviews Bokeh&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org8d4f80b"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgfc27cbc"&gt;Dotenv&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org560f8bf"&gt;Tabulate&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgdd1100a"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgae755d6"&gt;Holoviews Bokeh&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgc74028d"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org74fe15a"&gt;Dotenv&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org23a1e7a"&gt;Tabulate&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org589cad7"&gt;Load the Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgaa14009"&gt;Create a Dataset&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org78a663e"&gt;Load the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org4d93c52"&gt;Create a Dataset&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orga2d4768"&gt;Aggregate The Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgd36747c"&gt;Save the HTML&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#orgd08d692"&gt;Aggregate The Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-tabular-datasets/#org07141b7"&gt;Save the HTML&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org10604a7" class="outline-2"&gt;
-&lt;h2 id="org10604a7"&gt;Introduction&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org10604a7"&gt;
+&lt;div id="outline-container-org7ed84a6" class="outline-2"&gt;
+&lt;h2 id="org7ed84a6"&gt;Introduction&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org7ed84a6"&gt;
 &lt;p&gt;
 This is a walk through the &lt;a href="https://holoviews.org/getting_started/Tabular_Datasets.html"&gt;HoloViews page on Tabular Datasets&lt;/a&gt;. The data-set was created by the Wall Street Journal using Project Tycho, but I'm getting it from the &lt;a href="https://github.com/pyviz/holoviews"&gt;HoloViews github repository&lt;/a&gt;. The Wall Street Journal page is &lt;a href="https://graphics.wsj.com/infectious-diseases-and-vaccines/#b02g20t20w15"&gt;here&lt;/a&gt;. Unfortunately it has mixed content types (https and http) as well as some other problems which prevent Firefox and Chrome-based browsers from rendering it the visualization so I don't know what it actually looks like. Given that it's a commercial site I'm assuming it's an old page that they don't care about anymore.
 &lt;/p&gt;
@@ -3064,26 +3174,26 @@ This is a walk through the &lt;a href="https://holoviews.org/getting_started/Tab
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgfbdc19e" class="outline-2"&gt;
-&lt;h2 id="orgfbdc19e"&gt;Set Up&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgfbdc19e"&gt;
+&lt;div id="outline-container-orga31fb40" class="outline-2"&gt;
+&lt;h2 id="orga31fb40"&gt;Set Up&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orga31fb40"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgcf2fa7c" class="outline-3"&gt;
-&lt;h3 id="orgcf2fa7c"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgcf2fa7c"&gt;
+&lt;div id="outline-container-orgdd1100a" class="outline-3"&gt;
+&lt;h3 id="orgdd1100a"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgdd1100a"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org75a96ac" class="outline-4"&gt;
-&lt;h4 id="org75a96ac"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org75a96ac"&gt;
+&lt;div id="outline-container-orgd0904eb" class="outline-4"&gt;
+&lt;h4 id="orgd0904eb"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd0904eb"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;functools&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pathlib&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;
 &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org1de0db4" class="outline-4"&gt;
-&lt;h4 id="org1de0db4"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org1de0db4"&gt;
+&lt;div id="outline-container-org3d26ec4" class="outline-4"&gt;
+&lt;h4 id="org3d26ec4"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org3d26ec4"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;bokeh.io&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;output_notebook&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;dotenv&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;load_dotenv&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;holoviews&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;opts&lt;/span&gt;
@@ -3094,17 +3204,17 @@ This is a walk through the &lt;a href="https://holoviews.org/getting_started/Tab
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org9bda96f" class="outline-4"&gt;
-&lt;h4 id="org9bda96f"&gt;My Projects&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org9bda96f"&gt;
+&lt;div id="outline-container-orga51b045" class="outline-4"&gt;
+&lt;h4 id="orga51b045"&gt;My Projects&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orga51b045"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;bartleby_the_penguin.tangles.embed_bokeh&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;EmbedBokeh&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgbc47545" class="outline-3"&gt;
-&lt;h3 id="orgbc47545"&gt;Holoviews Bokeh&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgbc47545"&gt;
+&lt;div id="outline-container-orgae755d6" class="outline-3"&gt;
+&lt;h3 id="orgae755d6"&gt;Holoviews Bokeh&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgae755d6"&gt;
 &lt;p&gt;
 I don't know why but you have to specify that you're using &lt;code&gt;bokeh&lt;/code&gt;, even though it looks like it's working when you don't.
 &lt;/p&gt;
@@ -3113,9 +3223,9 @@ I don't know why but you have to specify that you're using &lt;code&gt;bokeh&lt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8d4f80b" class="outline-3"&gt;
-&lt;h3 id="org8d4f80b"&gt;The Embedder&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org8d4f80b"&gt;
+&lt;div id="outline-container-orgc74028d" class="outline-3"&gt;
+&lt;h3 id="orgc74028d"&gt;The Embedder&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgc74028d"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;files_path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"../../files/posts/libraries/holoviews-tabular-datasets/"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="n"&gt;Embed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
     &lt;span class="n"&gt;EmbedBokeh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -3124,9 +3234,9 @@ I don't know why but you have to specify that you're using &lt;code&gt;bokeh&lt;
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgfc27cbc" class="outline-3"&gt;
-&lt;h3 id="orgfc27cbc"&gt;Dotenv&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgfc27cbc"&gt;
+&lt;div id="outline-container-org74fe15a" class="outline-3"&gt;
+&lt;h3 id="org74fe15a"&gt;Dotenv&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org74fe15a"&gt;
 &lt;p&gt;
 I have the path to the data-set in a &lt;code&gt;.env&lt;/code&gt; file so I'll load it into the environment dictionary.
 &lt;/p&gt;
@@ -3134,9 +3244,9 @@ I have the path to the data-set in a &lt;code&gt;.env&lt;/code&gt; file so I'll 
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org560f8bf" class="outline-3"&gt;
-&lt;h3 id="org560f8bf"&gt;Tabulate&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org560f8bf"&gt;
+&lt;div id="outline-container-org23a1e7a" class="outline-3"&gt;
+&lt;h3 id="org23a1e7a"&gt;Tabulate&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org23a1e7a"&gt;
 &lt;p&gt;
 This will print a table that org knows how to render.
 &lt;/p&gt;
@@ -3146,9 +3256,9 @@ This will print a table that org knows how to render.
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org589cad7" class="outline-2"&gt;
-&lt;h2 id="org589cad7"&gt;Load the Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org589cad7"&gt;
+&lt;div id="outline-container-org78a663e" class="outline-2"&gt;
+&lt;h2 id="org78a663e"&gt;Load the Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org78a663e"&gt;
 &lt;p&gt;
 The data comes from &lt;a href="https://www.tycho.pitt.edu/"&gt;Project Tycho&lt;/a&gt;, which provides health-related data sets for research. The &lt;code&gt;.env&lt;/code&gt; file assumes that I cloned the &lt;code&gt;HoloViews&lt;/code&gt; repository so that I can load the data from it.
 &lt;/p&gt;
@@ -3251,9 +3361,9 @@ The &lt;code&gt;State&lt;/code&gt; column includes Washington D.C., which is why
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgaa14009" class="outline-2"&gt;
-&lt;h2 id="orgaa14009"&gt;Create a Dataset&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgaa14009"&gt;
+&lt;div id="outline-container-org4d93c52" class="outline-2"&gt;
+&lt;h2 id="org4d93c52"&gt;Create a Dataset&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org4d93c52"&gt;
 &lt;p&gt;
 HoloViews has a class called a Dataset that lets you declare the dependent (&lt;i&gt;value dimensions (vdims)&lt;/i&gt;) and independent variables (&lt;i&gt;key dimensions (kdims)&lt;/i&gt;).
 &lt;/p&gt;
@@ -3268,9 +3378,9 @@ The &lt;code&gt;value_dimensions&lt;/code&gt; list has tuples - these take the f
 &lt;/p&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orga2d4768" class="outline-3"&gt;
-&lt;h3 id="orga2d4768"&gt;Aggregate The Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orga2d4768"&gt;
+&lt;div id="outline-container-orgd08d692" class="outline-3"&gt;
+&lt;h3 id="orgd08d692"&gt;Aggregate The Data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgd08d692"&gt;
 &lt;p&gt;
 The one column that I didn't add is the &lt;code&gt;Week&lt;/code&gt; column. The &lt;code&gt;Dataset&lt;/code&gt; has a rather confusing &lt;code&gt;aggregate&lt;/code&gt; method (confusing because you only pass in the function to aggregate with) that apparently knows how to use the &lt;code&gt;key_dimensions&lt;/code&gt; variables we passed in to figure out what to aggregate.
 &lt;/p&gt;
@@ -3311,9 +3421,9 @@ Actually, I think it might be a conflict with &lt;code&gt;nikola&lt;/code&gt;, t
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgd36747c" class="outline-3"&gt;
-&lt;h3 id="orgd36747c"&gt;Save the HTML&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgd36747c"&gt;
+&lt;div id="outline-container-org07141b7" class="outline-3"&gt;
+&lt;h3 id="org07141b7"&gt;Save the HTML&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org07141b7"&gt;
 &lt;p&gt;
 I'll see if you can do it directly here without using jupyter.
 &lt;/p&gt;
@@ -3332,43 +3442,42 @@ I'll see if you can do it directly here without using jupyter.
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#orge5271d4"&gt;Set Up&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#orgdbb2c40"&gt;Set Up&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#org4e70259"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#org4baa8bd"&gt;Setup the Embed&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#org54dbc51"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#org443dea5"&gt;Setup the Embed&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#org88042c3"&gt;Load the Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#orge55d3c7"&gt;Plot&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#org83f8580"&gt;Load the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#orgd4a8c8f"&gt;Plot&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#orgdc10b69"&gt;Global/Hemispheric&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#org5151ab5"&gt;Embed the Plot&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#org8a86407"&gt;Latitude And Longitude&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#org1fd9528"&gt;Global/Hemispheric&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/#org9f466cb"&gt;Embed the Plot&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orge5271d4" class="outline-2"&gt;
-&lt;h2 id="orge5271d4"&gt;Set Up&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orge5271d4"&gt;
+&lt;div id="outline-container-orgdbb2c40" class="outline-2"&gt;
+&lt;h2 id="orgdbb2c40"&gt;Set Up&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgdbb2c40"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org4e70259" class="outline-3"&gt;
-&lt;h3 id="org4e70259"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org4e70259"&gt;
+&lt;div id="outline-container-org54dbc51" class="outline-3"&gt;
+&lt;h3 id="org54dbc51"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org54dbc51"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org0f8db26" class="outline-4"&gt;
-&lt;h4 id="org0f8db26"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org0f8db26"&gt;
+&lt;div id="outline-container-org28d29b0" class="outline-4"&gt;
+&lt;h4 id="org28d29b0"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org28d29b0"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from functools import partial
 from pathlib import Path
 import os
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orge32dbb0" class="outline-4"&gt;
-&lt;h4 id="orge32dbb0"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orge32dbb0"&gt;
+&lt;div id="outline-container-orgfbf60c1" class="outline-4"&gt;
+&lt;h4 id="orgfbf60c1"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgfbf60c1"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from bokeh.layouts import column
 from bokeh.palettes import Set1
 from bokeh.models import (
@@ -3391,26 +3500,26 @@ import pandas
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org3aba2af" class="outline-4"&gt;
-&lt;h4 id="org3aba2af"&gt;This Project&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org3aba2af"&gt;
+&lt;div id="outline-container-org0f4b344" class="outline-4"&gt;
+&lt;h4 id="org0f4b344"&gt;This Project&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org0f4b344"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org4baa8bd" class="outline-3"&gt;
-&lt;h3 id="org4baa8bd"&gt;Setup the Embed&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org4baa8bd"&gt;
+&lt;div id="outline-container-org443dea5" class="outline-3"&gt;
+&lt;h3 id="org443dea5"&gt;Setup the Embed&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org443dea5"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;files_path = Path("../../files/posts/giss/giss-globalhemispheric-temperatures/")
 Embed = partial(
     EmbedBokeh,
     folder_path=files_path)
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org23760dc" class="outline-4"&gt;
-&lt;h4 id="org23760dc"&gt;Set Up Bokeh&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org23760dc"&gt;
+&lt;div id="outline-container-org3616f9d" class="outline-4"&gt;
+&lt;h4 id="org3616f9d"&gt;Set Up Bokeh&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org3616f9d"&gt;
 &lt;p&gt;
 I originally createde EmbedBokeh to use HoloViews to do the rendering so you have to set bokeh to be the backend or it will try to use &lt;code&gt;matplotlib&lt;/code&gt; instead.
 &lt;/p&gt;
@@ -3420,9 +3529,9 @@ I originally createde EmbedBokeh to use HoloViews to do the rendering so you hav
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org88042c3" class="outline-2"&gt;
-&lt;h2 id="org88042c3"&gt;Load the Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org88042c3"&gt;
+&lt;div id="outline-container-org83f8580" class="outline-2"&gt;
+&lt;h2 id="org83f8580"&gt;Load the Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org83f8580"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;load_dotenv(".env")
 path = Path(os.environ.get("ZONES")).expanduser()
 assert path.is_file()
@@ -3529,18 +3638,19 @@ Index(['Year', 'Global', 'Northern Hemisphere', 'Southern Hemisphere',
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orge55d3c7" class="outline-2"&gt;
-&lt;h2 id="orge55d3c7"&gt;Plot&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orge55d3c7"&gt;
+&lt;div id="outline-container-orgd4a8c8f" class="outline-2"&gt;
+&lt;h2 id="orgd4a8c8f"&gt;Plot&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgd4a8c8f"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgdc10b69" class="outline-3"&gt;
-&lt;h3 id="orgdc10b69"&gt;Global/Hemispheric&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgdc10b69"&gt;
+&lt;div id="outline-container-org1fd9528" class="outline-3"&gt;
+&lt;h3 id="org1fd9528"&gt;Global/Hemispheric&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org1fd9528"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;class Plot:
     width = 1000
     height = 800
     line_width = 4
     alpha = 0.8
+    light_alpha = 0.2
     title_font_size = "14pt"
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -3568,34 +3678,39 @@ plot = figure(plot_width=Plot.width, plot_height=Plot.height,
 
 plot.title.text = "Yearly Temperature Difference from Mean 1931-1980 Temperature by Hemisphere"
 plot.title.text_font_size = Plot.title_font_size
-plot.renderers.extend([horizontal])
+
 horizontal = Span(location=0, dimension="width", line_color="darkgray",
 		  line_width=Plot.line_width, 
 		  line_cap="round",
 		  line_dash="dashed")
-
+plot.renderers.extend([horizontal])
 locations = ["Global", "Northern Hemisphere", "Southern Hemisphere"]
 for location, color in zip(locations, Set1[3]):
     columns = ColumnDataSource(
 	data=dict(
 	    year=giss.Year,
-	    anomaly=giss[location]
-
+	    anomaly=giss[location],
+	    smoothed=giss.rolling(5, on="Year", min_periods=1)[location].mean(),
 	)
     )
-    line = plot.line("year", "anomaly", source=columns, 
-		     color=color, 
+    line = plot.circle("year", "anomaly", source=columns, 
+		       color=color, 
+		       line_width=Plot.line_width, 
+		       alpha=Plot.light_alpha,
+		       legend=location)
+    line = plot.line("year", "smoothed", source=columns,
+		     color=color,
 		     line_width=Plot.line_width, alpha=Plot.alpha,
-		     legend=location)
+		     legend="{} Rolling 5 Year Mean".format(location))
 plot.legend.click_policy = "hide"
 plot.legend.location = "top_left"
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org5151ab5" class="outline-3"&gt;
-&lt;h3 id="org5151ab5"&gt;Embed the Plot&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org5151ab5"&gt;
+&lt;div id="outline-container-org9f466cb" class="outline-3"&gt;
+&lt;h3 id="org9f466cb"&gt;Embed the Plot&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org9f466cb"&gt;
 &lt;p&gt;
 I need to fix the &lt;code&gt;EmbedBokeh&lt;/code&gt; class.
 &lt;/p&gt;
@@ -3604,101 +3719,94 @@ embed._figure = plot
 embed()
 &lt;/pre&gt;&lt;/div&gt;
 
-&lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/global_temperature_anomalies.js" id="c46002a4-86c3-497f-8734-0cba02939fed"&gt;&lt;/script&gt;
+&lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/global_temperature_anomalies.js" id="dc18ca51-6ee7-4d09-8658-d696c50a9e60"&gt;&lt;/script&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8a86407" class="outline-3"&gt;
-&lt;h3 id="org8a86407"&gt;Latitude And Longitude&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org8a86407"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;</description><category>giss</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/</guid><pubDate>Thu, 28 Feb 2019 20:58:07 GMT</pubDate></item><item><title>GISS Surface Temperature Analysis (GISTEMP v32</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;/div&gt;</description><category>giss</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-globalhemispheric-temperatures/</guid><pubDate>Thu, 28 Feb 2019 20:58:07 GMT</pubDate></item><item><title>GISS Surface Temperature Analysis (GISTEMP v32)</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org7b9717b"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org1d7d445"&gt;Set Up&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org9f45d3c"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgf634b10"&gt;Set Up&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org2b6dc66"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgf11479c"&gt;Load Dotenv&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org7dee04f"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org187e353"&gt;Load Dotenv&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org381f1b2"&gt;Load the Data&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgb6f4a53"&gt;Load the Data&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgc52be5a"&gt;Take One&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org0b3fa95"&gt;Take Two&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org4b0a0fc"&gt;Take Three&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org2b548da"&gt;Take One&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orge6b7bb5"&gt;Take Two&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org1fc1879"&gt;Take Three&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org1866a70"&gt;The Real Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org441f298"&gt;Criteria&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org74550a8"&gt;The Real Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org9fccf9b"&gt;Criteria&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orge55cd6d"&gt;Appropriate Chart Selection and Variables&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orge9553ad"&gt;Design of the Chart&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org876c578"&gt;Content&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgee3e49f"&gt;Grading&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org0982ead"&gt;Appropriate Chart Selection and Variables&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org74f3fc4"&gt;Design of the Chart&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgad79803"&gt;Content&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#orgfb0b4ee"&gt;Grading&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org8425e92"&gt;Citation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/#org13be822"&gt;Citation&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org7b9717b" class="outline-2"&gt;
-&lt;h2 id="org7b9717b"&gt;Introduction&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org7b9717b"&gt;
+&lt;div id="outline-container-org9f45d3c" class="outline-2"&gt;
+&lt;h2 id="org9f45d3c"&gt;Introduction&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org9f45d3c"&gt;
 &lt;p&gt;
 This is a look at the &lt;a href="https://data.giss.nasa.gov/gistemp/"&gt;Godard Institute for Space Studies' surface temperature data&lt;/a&gt;. In particular it is the &lt;b&gt;&lt;b&gt;Global-mean monthly, seasonal, and annual means&lt;/b&gt;&lt;/b&gt; data which has data from 1880 to the present &lt;a href="https://data.giss.nasa.gov/gistemp/tabledata_v3/GLB.Ts+dSST.csv"&gt;(CSV Download Link&lt;/a&gt;).
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org1d7d445" class="outline-2"&gt;
-&lt;h2 id="org1d7d445"&gt;Set Up&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org1d7d445"&gt;
+&lt;div id="outline-container-orgf634b10" class="outline-2"&gt;
+&lt;h2 id="orgf634b10"&gt;Set Up&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgf634b10"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org2b6dc66" class="outline-3"&gt;
-&lt;h3 id="org2b6dc66"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org2b6dc66"&gt;
+&lt;div id="outline-container-org7dee04f" class="outline-3"&gt;
+&lt;h3 id="org7dee04f"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org7dee04f"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org7723b64" class="outline-4"&gt;
-&lt;h4 id="org7723b64"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org7723b64"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from pathlib import Path
-import os
+&lt;div id="outline-container-org059a9e0" class="outline-4"&gt;
+&lt;h4 id="org059a9e0"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org059a9e0"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pathlib&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgb61ce2f" class="outline-4"&gt;
-&lt;h4 id="orgb61ce2f"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgb61ce2f"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from dotenv import load_dotenv
-import pandas
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgf11479c" class="outline-3"&gt;
-&lt;h3 id="orgf11479c"&gt;Load Dotenv&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgf11479c"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;load_dotenv(".env")
+&lt;div id="outline-container-org5300672" class="outline-4"&gt;
+&lt;h4 id="org5300672"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org5300672"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;dotenv&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;load_dotenv&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pandas&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org381f1b2" class="outline-2"&gt;
-&lt;h2 id="org381f1b2"&gt;Load the Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org381f1b2"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgc52be5a" class="outline-3"&gt;
-&lt;h3 id="orgc52be5a"&gt;Take One&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgc52be5a"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;path = Path(os.environ.get("GLOBAL")).expanduser()
-assert path.is_file()
-with path.open() as reader:
-    giss = pandas.read_csv(path)
+&lt;div id="outline-container-org187e353" class="outline-3"&gt;
+&lt;h3 id="org187e353"&gt;Load Dotenv&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org187e353"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;load_dotenv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;".env"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(giss.head())
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgb6f4a53" class="outline-2"&gt;
+&lt;h2 id="orgb6f4a53"&gt;Load the Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgb6f4a53"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org2b548da" class="outline-3"&gt;
+&lt;h3 id="org2b548da"&gt;Take One&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org2b548da"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;environ&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"GLOBAL"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;expanduser&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_file&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;reader&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;giss&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;giss&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;pre class="example"&gt;
@@ -3715,7 +3823,7 @@ Year Jan  Feb  Mar  Apr  May  Jun  Jul  Aug  Sep  Oct  Nov  Dec  J-D  D-N  DJF  
 One thing to notice is that the first line got read in as columns and the columns got read in as the first row.
 &lt;/p&gt;
 
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(giss.iloc[0])
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;giss&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iloc&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;pre class="example"&gt;
@@ -3730,15 +3838,15 @@ So we're going to have to skip the first row.
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org0b3fa95" class="outline-3"&gt;
-&lt;h3 id="org0b3fa95"&gt;Take Two&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org0b3fa95"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;path = Path(os.environ.get("GLOBAL")).expanduser()
-assert path.is_file()
-with path.open() as reader:
-    giss = pandas.read_csv(path, skiprows=1)
+&lt;div id="outline-container-orge6b7bb5" class="outline-3"&gt;
+&lt;h3 id="orge6b7bb5"&gt;Take Two&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orge6b7bb5"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;environ&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"GLOBAL"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;expanduser&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_file&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;reader&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;giss&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;skiprows&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(giss.head())
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;giss&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;pre class="example"&gt;
@@ -3757,7 +3865,7 @@ with path.open() as reader:
 4  -.29  -.29  -.28  -.13  -.38  -.34  -.27  
 &lt;/pre&gt;
 
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(giss.columns)
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;giss&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;columns&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;pre class="example"&gt;
@@ -3767,7 +3875,7 @@ Index(['Year', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
 
 &lt;/pre&gt;
 
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(giss.describe())
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;giss&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;describe&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;pre class="example"&gt;
@@ -3788,13 +3896,13 @@ So most of the columns weren't read as numeric, probably because of the use of &
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org4b0a0fc" class="outline-3"&gt;
-&lt;h3 id="org4b0a0fc"&gt;Take Three&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org4b0a0fc"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;with path.open() as reader:
-    giss = pandas.read_csv(path, skiprows=1, na_values="***")
+&lt;div id="outline-container-org1fc1879" class="outline-3"&gt;
+&lt;h3 id="org1fc1879"&gt;Take Three&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org1fc1879"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;reader&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;giss&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;skiprows&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;na_values&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"***"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(giss.describe())
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;giss&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;describe&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;pre class="example"&gt;
@@ -3845,19 +3953,19 @@ Actually I just looked at the "official" file given by Coursera and I downloaded
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org1866a70" class="outline-2"&gt;
-&lt;h2 id="org1866a70"&gt;The Real Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org1866a70"&gt;
+&lt;div id="outline-container-org74550a8" class="outline-2"&gt;
+&lt;h2 id="org74550a8"&gt;The Real Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org74550a8"&gt;
 &lt;p&gt;
 The data I was supposed to pull was the &lt;i&gt;Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'&lt;/i&gt; &lt;a href="https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv"&gt;Zonal Annual Means&lt;/a&gt; which shows the different annual mean for each zone in a given year (rather than monthly global averages).
 &lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;zone_path = Path(os.environ.get("ZONES")).expanduser()
-assert zone_path.is_file()
-with zone_path.open() as reader:
-    giss = pandas.read_csv(reader)
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;zone_path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;environ&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"ZONES"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;expanduser&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;zone_path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_file&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;zone_path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;reader&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;giss&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;reader&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(giss.describe())
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;giss&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;describe&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;pre class="example"&gt;
@@ -3892,7 +4000,7 @@ min     -0.580000   -0.430000   -0.540000   -2.570000
 max      1.020000    0.780000    0.450000    1.270000  
 &lt;/pre&gt;
 
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(giss.iloc[0])
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;giss&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iloc&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;pre class="example"&gt;
@@ -3916,37 +4024,37 @@ Name: 0, dtype: float64
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org441f298" class="outline-2"&gt;
-&lt;h2 id="org441f298"&gt;Criteria&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org441f298"&gt;
+&lt;div id="outline-container-org9fccf9b" class="outline-2"&gt;
+&lt;h2 id="org9fccf9b"&gt;Criteria&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org9fccf9b"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orge55cd6d" class="outline-3"&gt;
-&lt;h3 id="orge55cd6d"&gt;Appropriate Chart Selection and Variables&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orge55cd6d"&gt;
+&lt;div id="outline-container-org0982ead" class="outline-3"&gt;
+&lt;h3 id="org0982ead"&gt;Appropriate Chart Selection and Variables&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org0982ead"&gt;
 &lt;p&gt;
 Did you select the appropriate chart and use the correct chart elements to visualize the nominal, ordinal, discrete, and continuous variables, as described in lecture 2.1.3? Continuous data variables should be assigned to continuous chart elements (e.g., lines between data points), whereas discrete variables should be assigned to discrete chart elements (e.g., separate bars). Furthermore, the assignment of variables to elements should follow the priorities in lecture 2.1.2.
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orge9553ad" class="outline-3"&gt;
-&lt;h3 id="orge9553ad"&gt;Design of the Chart&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orge9553ad"&gt;
+&lt;div id="outline-container-org74f3fc4" class="outline-3"&gt;
+&lt;h3 id="org74f3fc4"&gt;Design of the Chart&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org74f3fc4"&gt;
 &lt;p&gt;
 Does the chart effectively display the data, based on the design rules in lecture 2.3.1?
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org876c578" class="outline-3"&gt;
-&lt;h3 id="org876c578"&gt;Content&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org876c578"&gt;
+&lt;div id="outline-container-orgad79803" class="outline-3"&gt;
+&lt;h3 id="orgad79803"&gt;Content&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgad79803"&gt;
 &lt;p&gt;
 How interesting is the result? Does this represent an interesting choice of data and/or an interesting way to display the data? For example, was a streamgraph used instead of an ordinary bar chart?
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgee3e49f" class="outline-3"&gt;
-&lt;h3 id="orgee3e49f"&gt;Grading&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgee3e49f"&gt;
+&lt;div id="outline-container-orgfb0b4ee" class="outline-3"&gt;
+&lt;h3 id="orgfb0b4ee"&gt;Grading&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgfb0b4ee"&gt;
 &lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
 
 
@@ -4000,10 +4108,9 @@ How interesting is the result? Does this represent an interesting choice of data
 &lt;/div&gt;
 &lt;/div&gt;
 
-
-&lt;div id="outline-container-org8425e92" class="outline-2"&gt;
-&lt;h2 id="org8425e92"&gt;Citation&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org8425e92"&gt;
+&lt;div id="outline-container-org13be822" class="outline-2"&gt;
+&lt;h2 id="org13be822"&gt;Citation&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org13be822"&gt;
 &lt;ul class="org-ul"&gt;
 &lt;li&gt;GISTEMP Team, 2019: GISS Surface Temperature Analysis (GISTEMP). NASA Goddard Institute for Space Studies. Dataset accessed 2019-02-27 at &lt;a href="https://data.giss.nasa.gov/gistemp/"&gt;https://data.giss.nasa.gov/gistemp/&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;Hansen, J., R. Ruedy, M. Sato, and K. Lo, 2010: Global surface temperature change, Rev. Geophys., 48, RG4004, &lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-surface-temperature-analysis-gistemp-v32/10.1029/2010RG000345"&gt;10.1029/2010RG000345&lt;/a&gt;.&lt;/li&gt;
@@ -4013,46 +4120,46 @@ How interesting is the result? Does this represent an interesting choice of data
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#orgbbbecfe"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#orgbc90b2c"&gt;Set Up&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#orgc5c3db7"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#org25f3007"&gt;Set Up&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#orgfdb3c07"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#org876e0ce"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#org7565dda"&gt;The Bokeh Backend&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#org7a444fb"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#org0c13cda"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#orgae028bd"&gt;The Bokeh Backend&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#orga5e2330"&gt;Hide Plots&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#org6dc4ee1"&gt;Hide Plots&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#orgdabbdd5"&gt;Output The Plot&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#org072cc6a"&gt;Output The Plot&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#orgaffddd2"&gt;Fade Plots&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#org3a5ca71"&gt;Fade Plots&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#org84a4f60"&gt;Output The Plot&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/#orgcb3c1d7"&gt;Output The Plot&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgbbbecfe" class="outline-2"&gt;
-&lt;h2 id="orgbbbecfe"&gt;Introduction&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgbbbecfe"&gt;
+&lt;div id="outline-container-orgc5c3db7" class="outline-2"&gt;
+&lt;h2 id="orgc5c3db7"&gt;Introduction&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgc5c3db7"&gt;
 &lt;p&gt;
 This is a reproduction of the &lt;a href="https://bokeh.pydata.org/en/latest/docs/user_guide/interaction/legends.html"&gt;bokeh interactive legends example&lt;/a&gt;.
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgbc90b2c" class="outline-2"&gt;
-&lt;h2 id="orgbc90b2c"&gt;Set Up&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgbc90b2c"&gt;
+&lt;div id="outline-container-org25f3007" class="outline-2"&gt;
+&lt;h2 id="org25f3007"&gt;Set Up&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org25f3007"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgfdb3c07" class="outline-3"&gt;
-&lt;h3 id="orgfdb3c07"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgfdb3c07"&gt;
+&lt;div id="outline-container-org7a444fb" class="outline-3"&gt;
+&lt;h3 id="org7a444fb"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org7a444fb"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8489753" class="outline-4"&gt;
-&lt;h4 id="org8489753"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org8489753"&gt;
+&lt;div id="outline-container-orgf02554f" class="outline-4"&gt;
+&lt;h4 id="orgf02554f"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgf02554f"&gt;
 &lt;p&gt;
 I have a class that I use to embed the bokeh and I'm going to make it easier to reuse by binding some values to it with &lt;a href="https://docs.python.org/3.6/library/functools.html"&gt;partial&lt;/a&gt;.
 &lt;/p&gt;
@@ -4060,13 +4167,13 @@ I have a class that I use to embed the bokeh and I'm going to make it easier to 
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8eb8dea" class="outline-4"&gt;
-&lt;h4 id="org8eb8dea"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org8eb8dea"&gt;
+&lt;div id="outline-container-org1c97f3e" class="outline-4"&gt;
+&lt;h4 id="org1c97f3e"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1c97f3e"&gt;
 &lt;/div&gt;
 &lt;ul class="org-ul"&gt;
-&lt;li&gt;&lt;a id="org8925a27"&gt;&lt;/a&gt;Bokeh&lt;br&gt;
-&lt;div class="outline-text-5" id="text-org8925a27"&gt;
+&lt;li&gt;&lt;a id="orga78147b"&gt;&lt;/a&gt;Bokeh&lt;br&gt;
+&lt;div class="outline-text-5" id="text-orga78147b"&gt;
 &lt;p&gt;
 The &lt;code&gt;Spectral&lt;/code&gt; color scheme from &lt;a href="https://bokeh.pydata.org/en/latest/docs/reference/palettes.html"&gt;bokeh.palettes&lt;/a&gt; is a categorical color scheme from &lt;a href="http://colorbrewer2.org/#type=sequential&amp;amp;scheme=BuGn&amp;amp;n=3"&gt;Color Brewer&lt;/a&gt;, a color scheme helper for cartographers.
 &lt;/p&gt;
@@ -4077,8 +4184,8 @@ The &lt;code&gt;Spectral&lt;/code&gt; color scheme from &lt;a href="https://boke
 &lt;/div&gt;
 &lt;/li&gt;
 
-&lt;li&gt;&lt;a id="org58b0366"&gt;&lt;/a&gt;Pandas And HoloViews&lt;br&gt;
-&lt;div class="outline-text-5" id="text-org58b0366"&gt;
+&lt;li&gt;&lt;a id="org6ee6f8a"&gt;&lt;/a&gt;Pandas And HoloViews&lt;br&gt;
+&lt;div class="outline-text-5" id="text-org6ee6f8a"&gt;
 &lt;p&gt;
 Pandas is for the data, holoviews is because I created the EmbedBokeh class expecting to always use it..
 &lt;/p&gt;
@@ -4089,9 +4196,9 @@ Pandas is for the data, holoviews is because I created the EmbedBokeh class expe
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org781449e" class="outline-4"&gt;
-&lt;h4 id="org781449e"&gt;My Stuff&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org781449e"&gt;
+&lt;div id="outline-container-org1c8c505" class="outline-4"&gt;
+&lt;h4 id="org1c8c505"&gt;My Stuff&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1c8c505"&gt;
 &lt;p&gt;
 This is a convenience class for embedding the javascript that bokeh creates into this post.
 &lt;/p&gt;
@@ -4101,9 +4208,9 @@ This is a convenience class for embedding the javascript that bokeh creates into
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org876e0ce" class="outline-3"&gt;
-&lt;h3 id="org876e0ce"&gt;The Embedder&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org876e0ce"&gt;
+&lt;div id="outline-container-org0c13cda" class="outline-3"&gt;
+&lt;h3 id="org0c13cda"&gt;The Embedder&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org0c13cda"&gt;
 &lt;p&gt;
 The &lt;code&gt;files_path&lt;/code&gt; is where the javascript needs to be stored for &lt;code&gt;nikola&lt;/code&gt; to copy it to the right place.
 &lt;/p&gt;
@@ -4115,9 +4222,9 @@ The &lt;code&gt;files_path&lt;/code&gt; is where the javascript needs to be stor
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org7565dda" class="outline-3"&gt;
-&lt;h3 id="org7565dda"&gt;The Bokeh Backend&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org7565dda"&gt;
+&lt;div id="outline-container-orgae028bd" class="outline-3"&gt;
+&lt;h3 id="orgae028bd"&gt;The Bokeh Backend&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgae028bd"&gt;
 &lt;p&gt;
 For some reason the backend is defaulting to &lt;code&gt;matplotlib&lt;/code&gt; so this fixes it.
 &lt;/p&gt;
@@ -4126,9 +4233,9 @@ For some reason the backend is defaulting to &lt;code&gt;matplotlib&lt;/code&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orga5e2330" class="outline-2"&gt;
-&lt;h2 id="orga5e2330"&gt;Hide Plots&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orga5e2330"&gt;
+&lt;div id="outline-container-org6dc4ee1" class="outline-2"&gt;
+&lt;h2 id="org6dc4ee1"&gt;Hide Plots&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org6dc4ee1"&gt;
 &lt;p&gt;
 This creates a plot where the entry fore each line in the legend becomes a button that toggles the plot's visibility.
 &lt;/p&gt;
@@ -4147,16 +4254,16 @@ This creates a plot where the entry fore each line in the legend becomes a butto
 &lt;span class="n"&gt;plot&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;text_font_size&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"14pt"&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgdabbdd5" class="outline-3"&gt;
-&lt;h3 id="orgdabbdd5"&gt;Output The Plot&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgdabbdd5"&gt;
+&lt;div id="outline-container-org072cc6a" class="outline-3"&gt;
+&lt;h3 id="org072cc6a"&gt;Output The Plot&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org072cc6a"&gt;
 &lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/interactive_legend.js" id="11761887-e983-4882-8f9e-2ea31dcf69b0"&gt;&lt;/script&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgaffddd2" class="outline-2"&gt;
-&lt;h2 id="orgaffddd2"&gt;Fade Plots&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgaffddd2"&gt;
+&lt;div id="outline-container-org3a5ca71" class="outline-2"&gt;
+&lt;h2 id="org3a5ca71"&gt;Fade Plots&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org3a5ca71"&gt;
 &lt;p&gt;
 Clicking on the line in the legend will change the alpha-value for the line (to make it less visible). This has the effect of keeping the hovertool working for the line, while hiding it disables the hover tool.
 &lt;/p&gt;
@@ -4175,9 +4282,9 @@ Clicking on the line in the legend will change the alpha-value for the line (to 
 &lt;span class="n"&gt;fade_plot&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;legend&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;click_policy&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"mute"&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org84a4f60" class="outline-3"&gt;
-&lt;h3 id="org84a4f60"&gt;Output The Plot&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org84a4f60"&gt;
+&lt;div id="outline-container-orgcb3c1d7" class="outline-3"&gt;
+&lt;h3 id="orgcb3c1d7"&gt;Output The Plot&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgcb3c1d7"&gt;
 &lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/interactive-bokeh-legends/interactive_muted_legend.js" id="684bd0ee-2d92-45ff-b123-7b90d171bf2c"&gt;&lt;/script&gt;
 &lt;/div&gt;
 &lt;/div&gt;
@@ -4185,43 +4292,43 @@ Clicking on the line in the legend will change the alpha-value for the line (to 
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org61fb5b4"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org32f8fe6"&gt;Set Up&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org3fc72ed"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org1514031"&gt;Set Up&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org2348aaa"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#orgd2654f1"&gt;The Timer&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org5501994"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org7437bf7"&gt;Bokeh Backend&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org14f67c2"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org0745287"&gt;The Timer&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org5d19388"&gt;The Embedder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#orgdb9a608"&gt;Bokeh Backend&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#orgc83b931"&gt;The Data&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org73282af"&gt;The Data&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org12b1f17"&gt;Plot time vs Latitude.&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#orge808bfc"&gt;Take Two&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#orgc5a453f"&gt;Plot time vs Latitude.&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/#org74a2c97"&gt;Take Two&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org61fb5b4" class="outline-2"&gt;
-&lt;h2 id="org61fb5b4"&gt;Introduction&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org61fb5b4"&gt;
+&lt;div id="outline-container-org3fc72ed" class="outline-2"&gt;
+&lt;h2 id="org3fc72ed"&gt;Introduction&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org3fc72ed"&gt;
 &lt;p&gt;
 This is another exploration - this time looking at what they call &lt;a href="http://holoviews.org/getting_started/Customization.html"&gt;Customization&lt;/a&gt;. In my introduction post when I made a scatter plot with a hover tool I first had to make the Scatter element and then add the hover tool as part of the options. HoloViews does this to try and emphasize a separation of content and presentation. When making the Scatter element I was supposed to only be thinking about the data that I wanted to add, then when working with the options I was turning to focus on the aesthetics.
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org32f8fe6" class="outline-2"&gt;
-&lt;h2 id="org32f8fe6"&gt;Set Up&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org32f8fe6"&gt;
+&lt;div id="outline-container-org1514031" class="outline-2"&gt;
+&lt;h2 id="org1514031"&gt;Set Up&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org1514031"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org2348aaa" class="outline-3"&gt;
-&lt;h3 id="org2348aaa"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org2348aaa"&gt;
+&lt;div id="outline-container-org14f67c2" class="outline-3"&gt;
+&lt;h3 id="org14f67c2"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org14f67c2"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgad0f331" class="outline-4"&gt;
-&lt;h4 id="orgad0f331"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgad0f331"&gt;
+&lt;div id="outline-container-orgdf36e38" class="outline-4"&gt;
+&lt;h4 id="orgdf36e38"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgdf36e38"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;datetime&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;functools&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pathlib&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;
@@ -4229,34 +4336,34 @@ This is another exploration - this time looking at what they call &lt;a href="ht
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org1e3d89b" class="outline-4"&gt;
-&lt;h4 id="org1e3d89b"&gt;PyPi&lt;/h4&gt;
+&lt;div id="outline-container-org8e902b8" class="outline-4"&gt;
+&lt;h4 id="org8e902b8"&gt;PyPi&lt;/h4&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org6c150f6" class="outline-4"&gt;
-&lt;h4 id="org6c150f6"&gt;Related Projects&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org6c150f6"&gt;
+&lt;div id="outline-container-orga5ca6ed" class="outline-4"&gt;
+&lt;h4 id="orga5ca6ed"&gt;Related Projects&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orga5ca6ed"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;neurotic.tangles.timer&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Timer&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org9721328" class="outline-4"&gt;
-&lt;h4 id="org9721328"&gt;This Project&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org9721328"&gt;
+&lt;div id="outline-container-org2e15538" class="outline-4"&gt;
+&lt;h4 id="org2e15538"&gt;This Project&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2e15538"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;bartleby_the_penguin.tangles.embed_bokeh&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;EmbedBokeh&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgd2654f1" class="outline-3"&gt;
-&lt;h3 id="orgd2654f1"&gt;The Timer&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgd2654f1"&gt;
+&lt;div id="outline-container-org0745287" class="outline-3"&gt;
+&lt;h3 id="org0745287"&gt;The Timer&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org0745287"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;TIMER&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Timer&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org5501994" class="outline-3"&gt;
-&lt;h3 id="org5501994"&gt;The Embedder&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org5501994"&gt;
+&lt;div id="outline-container-org5d19388" class="outline-3"&gt;
+&lt;h3 id="org5d19388"&gt;The Embedder&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org5d19388"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;files_path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"../../files/posts/libraries/customizing-holoviews/"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="n"&gt;Embed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
     &lt;span class="n"&gt;EmbedBokeh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -4264,9 +4371,9 @@ This is another exploration - this time looking at what they call &lt;a href="ht
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org7437bf7" class="outline-3"&gt;
-&lt;h3 id="org7437bf7"&gt;Bokeh Backend&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org7437bf7"&gt;
+&lt;div id="outline-container-orgdb9a608" class="outline-3"&gt;
+&lt;h3 id="orgdb9a608"&gt;Bokeh Backend&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgdb9a608"&gt;
 &lt;p&gt;
 When I ran the code further down in the notebook to render the javascript I was getting this error:
 &lt;/p&gt;
@@ -4284,9 +4391,9 @@ It was because I forgot the next step and it was defaulting to Matplotlib for so
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgc83b931" class="outline-2"&gt;
-&lt;h2 id="orgc83b931"&gt;The Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgc83b931"&gt;
+&lt;div id="outline-container-org73282af" class="outline-2"&gt;
+&lt;h2 id="org73282af"&gt;The Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org73282af"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;load_dotenv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;".env"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -4358,9 +4465,9 @@ Name: date, dtype: datetime64[ns]
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;selection&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2018&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;24&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sort_values&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"date"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org12b1f17" class="outline-3"&gt;
-&lt;h3 id="org12b1f17"&gt;Plot time vs Latitude.&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org12b1f17"&gt;
+&lt;div id="outline-container-orgc5a453f" class="outline-3"&gt;
+&lt;h3 id="orgc5a453f"&gt;Plot time vs Latitude.&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgc5a453f"&gt;
 &lt;p&gt;
 First we get our content.
 &lt;/p&gt;
@@ -4378,9 +4485,9 @@ Now we make our presentation.
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orge808bfc" class="outline-3"&gt;
-&lt;h3 id="orge808bfc"&gt;Take Two&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orge808bfc"&gt;
+&lt;div id="outline-container-org74a2c97" class="outline-3"&gt;
+&lt;h3 id="org74a2c97"&gt;Take Two&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org74a2c97"&gt;
 &lt;p&gt;
 Although the defaults give us a plot that's hard to read, by adjusting the width of the plot we can make it something more interpretable.
 &lt;/p&gt;
@@ -4393,236 +4500,4 @@ Although the defaults give us a plot that's hard to read, by adjusting the width
 &lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/latitude_time_2.js" id="9453cc0e-bdec-4716-874a-a8d149b9e6dd"&gt;&lt;/script&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description><category>exploration</category><category>holoviews</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/</guid><pubDate>Sun, 03 Feb 2019 01:07:31 GMT</pubDate></item><item><title>HoloViews Introduction</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
-&lt;h2&gt;Table of Contents&lt;/h2&gt;
-&lt;div id="text-table-of-contents"&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/#org94c12f1"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/#org91cf243"&gt;Set Up&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/#orgdf216e0"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/#org541c91a"&gt;This Project&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/#org303c950"&gt;The HoloViews Backend&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/#org6431745"&gt;A Partial Bokeh Embedder&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/#orge9d6f23"&gt;The Data Set&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/#org49605b5"&gt;Load It&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/#orga9fd71e"&gt;Make The DataFrame&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/#orge48b24f"&gt;A Plot&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/#orgfa7fa6c"&gt;Adding To the Layout&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org94c12f1" class="outline-2"&gt;
-&lt;h2 id="org94c12f1"&gt;Introduction&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org94c12f1"&gt;
-&lt;p&gt;
-Having taken an initial look at HVPlot, I'm going to look at &lt;a href="http://holoviews.org/"&gt;HoloViews&lt;/a&gt; which acts as an intermediate layer between the main plotting libraries like bokeh and matplotlib and the upper layer given by HVPlot. I haven't used it before so I'm not really sure when you would use what. I guess &lt;code&gt;HVPlot&lt;/code&gt; gives you access to the &lt;code&gt;pandas&lt;/code&gt; plots in bokeh without a lot of work, which is nice, although I noticed that the plots tended to be missing things sometimes (like the Hover tool) so if you want to add more back in you probably have to understand &lt;code&gt;HoloViews&lt;/code&gt; which itself sometimes doesn't give you what you want (like the ability to render it in org-mode posts) so you still need bokeh too, sometimes. And of course I'm only using the static-page versions of everything, not the features that work with a bokeh or jupyter server. But I guess that's for later.
-&lt;/p&gt;
-
-&lt;p&gt;
-I'm going to be working from the &lt;a href="http://holoviews.org/getting_started/Introduction.html"&gt;Introduction&lt;/a&gt; of their Getting Started guide.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org91cf243" class="outline-2"&gt;
-&lt;h2 id="org91cf243"&gt;Set Up&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org91cf243"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgdf216e0" class="outline-3"&gt;
-&lt;h3 id="orgdf216e0"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgdf216e0"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org0779338" class="outline-4"&gt;
-&lt;h4 id="org0779338"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org0779338"&gt;
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;functools&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pathlib&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org12d4d2d" class="outline-4"&gt;
-&lt;h4 id="org12d4d2d"&gt;From PiPy&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org12d4d2d"&gt;
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;holoviews&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;opts&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;sklearn.datasets&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;fetch_california_housing&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;holoviews&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;numpy&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pandas&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org541c91a" class="outline-3"&gt;
-&lt;h3 id="org541c91a"&gt;This Project&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org541c91a"&gt;
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;bartleby_the_penguin.tangles.embed_bokeh&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;EmbedBokeh&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org303c950" class="outline-3"&gt;
-&lt;h3 id="org303c950"&gt;The HoloViews Backend&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org303c950"&gt;
-&lt;p&gt;
-If you use &lt;code&gt;HVPlot&lt;/code&gt; you don't need to set the backend (because it defaults to 'bokeh', I think) but this is going to be about &lt;code&gt;HoloViews&lt;/code&gt; so I'm going to do it their way, rather than relying on all the &lt;code&gt;pandas&lt;/code&gt; methods.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;holoviews&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;extension&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"bokeh"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org6431745" class="outline-3"&gt;
-&lt;h3 id="org6431745"&gt;A Partial Bokeh Embedder&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org6431745"&gt;
-&lt;p&gt;
-Since the output folder is always the same I'm going to bind it to the EmbedBokeh definition.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"../../files/posts/libraries/holoviews-introduction/"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;Embed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;EmbedBokeh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;folder_path&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;plot_path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orge9d6f23" class="outline-2"&gt;
-&lt;h2 id="orge9d6f23"&gt;The Data Set&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orge9d6f23"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org49605b5" class="outline-3"&gt;
-&lt;h3 id="org49605b5"&gt;Load It&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org49605b5"&gt;
-&lt;p&gt;
-Sklearn downloads it as a 'bunch' so we need to get it in that form first and then turn it into a data frame (I'm sure there's a way to skip this step but this is the way I already know how to do it).
-&lt;/p&gt;
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;folder&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"~/data/datasets/california-housing"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;expanduser&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;folder&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_dir&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;folder&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;bunch&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;fetch_california_housing&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;folder&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bunch&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DESCR&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-/home/hades/data/datasets/california-housing
-.. _california_housing_dataset:
-
-California Housing dataset
---------------------------
-
-**Data Set Characteristics:**
-
-    :Number of Instances: 20640
-
-    :Number of Attributes: 8 numeric, predictive attributes and the target
-
-    :Attribute Information:
-        - MedInc        median income in block
-        - HouseAge      median house age in block
-        - AveRooms      average number of rooms
-        - AveBedrms     average number of bedrooms
-        - Population    block population
-        - AveOccup      average house occupancy
-        - Latitude      house block latitude
-        - Longitude     house block longitude
-
-    :Missing Attribute Values: None
-
-This dataset was obtained from the StatLib repository.
-http://lib.stat.cmu.edu/datasets/
-
-The target variable is the median house value for California districts.
-
-This dataset was derived from the 1990 U.S. census, using one row per census
-block group. A block group is the smallest geographical unit for which the U.S.
-Census Bureau publishes sample data (a block group typically has a population
-of 600 to 3,000 people).
-
-It can be downloaded/loaded using the
-:func:`sklearn.datasets.fetch_california_housing` function.
-
-.. topic:: References
-
-    - Pace, R. Kelley and Ronald Barry, Sparse Spatial Autoregressions,
-      Statistics and Probability Letters, 33 (1997) 291-297
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orga9fd71e" class="outline-3"&gt;
-&lt;h3 id="orga9fd71e"&gt;Make The DataFrame&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orga9fd71e"&gt;
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DataFrame&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bunch&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;columns&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;bunch&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;feature_names&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"median_value"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;bunch&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-   MedInc  HouseAge  AveRooms  AveBedrms  Population  AveOccup  Latitude  \
-0  8.3252      41.0  6.984127   1.023810       322.0  2.555556     37.88   
-1  8.3014      21.0  6.238137   0.971880      2401.0  2.109842     37.86   
-2  7.2574      52.0  8.288136   1.073446       496.0  2.802260     37.85   
-3  5.6431      52.0  5.817352   1.073059       558.0  2.547945     37.85   
-4  3.8462      52.0  6.281853   1.081081       565.0  2.181467     37.85   
-
-   Longitude  median_value  
-0    -122.23         4.526  
-1    -122.22         3.585  
-2    -122.24         3.521  
-3    -122.25         3.413  
-4    -122.25         3.422  
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orge48b24f" class="outline-2"&gt;
-&lt;h2 id="orge48b24f"&gt;A Plot&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orge48b24f"&gt;
-&lt;p&gt;
-Our target is the median value of the house. Does that correlate with median income?
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;scatter&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;holoviews&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Scatter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-			    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"MedInc"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Median Income"&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
-			    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"median_value"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Median Value"&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
-			    &lt;span class="n"&gt;label&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"California Housing"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;
-After setting up the basic plot we can do things to affect the appearance like setting the color or adding tools.
-&lt;/p&gt;
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;scatter&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;scatter&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;opts&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;opts&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Scatter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;color&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"red"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tools&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"hover"&lt;/span&gt;&lt;span class="p"&gt;]))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/income_vs_value.js" id="bfbe3866-7981-492f-b2f8-918396abac02"&gt;&lt;/script&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgfa7fa6c" class="outline-2"&gt;
-&lt;h2 id="orgfa7fa6c"&gt;Adding To the Layout&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgfa7fa6c"&gt;
-&lt;p&gt;
-What if we want to add a distrbution to the plot? HoloViews uses the &lt;code&gt;+&lt;/code&gt; operator to indicate that you want to append a plot to another one.
-&lt;/p&gt;
-
-/home/athena/.virtualenvs/Visions-Voices-Data/bin/python3: No module named virtualfish
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;scatter&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;holoviews&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Histogram&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
-    &lt;span class="n"&gt;numpy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;histogram&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;HouseAge&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;bins&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;24&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;kdims&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"HouseAge"&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
-&lt;span class="n"&gt;layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;layout&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;opts&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;opts&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Histogram&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;tools&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"hover"&lt;/span&gt;&lt;span class="p"&gt;]))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/income_vs_value_with_house_age.js" id="728203cb-7d9b-4ecd-aeb0-a30aec6a7655"&gt;&lt;/script&gt;
-&lt;/div&gt;
-&lt;/div&gt;</description><category>exploration</category><category>holoviews</category><category>visualization</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/holoviews-introduction/</guid><pubDate>Sat, 02 Feb 2019 22:15:01 GMT</pubDate></item></channel></rss>
+&lt;/div&gt;</description><category>exploration</category><category>holoviews</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/customizing-holoviews/</guid><pubDate>Sun, 03 Feb 2019 01:07:31 GMT</pubDate></item></channel></rss>

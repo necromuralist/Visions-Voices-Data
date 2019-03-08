@@ -246,7 +246,7 @@ crime["type"] = crime["Crime Against"].astype("category")
 crime = crime.drop(columns=["Crime Against"])
 #+END_SRC
 
-#+BEGIN_SRC python :session hvplot :results output raw :exports results
+#+BEGIN_SRC python :session hvplot :results output raw :exports both
 print(table(crime.type.value_counts().reset_index(), headers=["Type", "Count"]))
 #+END_SRC
 
@@ -279,7 +279,7 @@ with TIMER:
 weekly = crime_dates.resample("W").count()
 #+END_SRC
 
-#+BEGIN_SRC python :session hvplot :results output raw :exports results
+#+BEGIN_SRC python :session hvplot :results output raw :exports both
 plot = weekly.id.hvplot()
 Embed(plot, "weekly_crime.js")()
 #+END_SRC
@@ -363,7 +363,7 @@ neighborhoods = pandas.get_dummies(neighborhoods)
 neighborhoods = neighborhoods[top_ten["index"]].resample("M").sum()
 #+END_SRC
 
-#+BEGIN_SRC python :session hvplot :results output raw :exports results
+#+BEGIN_SRC python :session hvplot :results output raw :exports both
 plot = (neighborhoods.hvplot(title="Top Ten Monthly Neighborhood Crime Counts")
         + neighborhoods.hvplot.table(columns=["Downtown", "Hazelwood",
                                               "Lents", "Powellhurst-Gilbert"]))
@@ -375,7 +375,7 @@ Embed(plot, "neighborhoods")()
 <script src="neighborhoods.js" id="83cc6d7d-3efe-4dc0-9765-6ab52eaedba7"></script>
 #+END_EXPORT
 
-So the first thing to notice is that the top district ("Downtown") is missing from the legend for some reason and Downtown and Hazelwood dominate the case counts. There also doesn't seem to be any strong upward or downward trend.
+So the first thing to notice is that Downtown and Hazelwood dominate the case counts. There doesn't seem to be any strong upward or downward trend.
 
 I live in Powelhurst-Gilbert, about a block north of Lents, and it looks like if you considered them one big neighborhood (they are adjacent), then they form the highest-crime Neighborhood, but, sticking to the arbitrariness of the boundaries, we are relegated to numbers three and four.
 
@@ -386,7 +386,7 @@ plot = neighborhoods.hvplot.kde(
     by="Neighborhood",
     title="Distributions of Top Ten Crime Neighborhoods")
 #+END_SRC
-#+BEGIN_SRC python :session hvplot :results output raw :exports results
+#+BEGIN_SRC python :session hvplot :results output raw :exports both
 Embed(plot, "neighborhoods_kde")()
 #+END_SRC
 
@@ -490,7 +490,7 @@ target_map = dict(zip(range(3), irises.target_names))
 iris_data["target"] = target.apply(lambda x: target_map[x])
 #+END_SRC
 
-#+BEGIN_SRC python :session hvplot :results output raw :exports results
+#+BEGIN_SRC python :session hvplot :results output raw :exports both
 plot = iris_data.hvplot.scatter(x="sepal length (cm)", y="petal length (cm)",
                                 by="target", alpha=0.5,
                                 title="Iris Sepal Length vs Petal Length")
@@ -505,7 +505,7 @@ EmbedBokeh(plot, folder_path=FOLDER_PATH, file_name="irises.js")()
 #+BEGIN_SRC python :session hvplot :results none
 plot = hvplot.scatter_matrix(iris_data, c="target")
 #+END_SRC
-#+BEGIN_SRC python :session hvplot :results output raw :exports results
+#+BEGIN_SRC python :session hvplot :results output raw :exports both
 Embed(plot, "iris_scatter_matrix")()
 #+END_SRC
 
@@ -519,7 +519,7 @@ Embed(plot, "iris_scatter_matrix")()
 #+BEGIN_SRC python :session hvplot :results none
 plot = hvplot.parallel_coordinates(iris_data, "target")
 #+END_SRC
-#+BEGIN_SRC python :session hvplot :results output raw :exports results
+#+BEGIN_SRC python :session hvplot :results output raw :exports both
 Embed(plot, "iris_parallel_coordinates")()
 #+END_SRC
 
