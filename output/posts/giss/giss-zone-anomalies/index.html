@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="Visualizing the temperature anomalies by zone." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>GISS Zone Anomalies | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-zone-anomalies/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
+</script>
+<meta content="Cloistered Monkey" name="author">
+<link href="../../libraries/holoviews-gridded-data/" rel="prev" title="HoloViews Gridded Data" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="GISS Zone Anomalies" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-zone-anomalies/" property="og:url">
+<meta content="Visualizing the temperature anomalies by zone." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2019-03-07T17:58:41-08:00" property="article:published_time">
+<meta content="assignment" property="article:tag">
+<meta content="coursera" property="article:tag">
+<meta content="giss" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="../../../archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../rss.xml">RSS feed</a></li>
+<li class="nav-item"><a class="nav-link" href="https://necromuralist.github.io/">Cloistered Monkey</a></li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"><input name="k8" type="hidden" value="#444444"><input name="k9" type="hidden" value="#D51920"><input name="kt" type="hidden" value="h"><input class="span2" maxlength="255" name="q" placeholder="Search…" style="margin-top: 4px;" type="text"><input style="visibility: hidden;" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href=".">GISS Zone Anomalies</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2019-03-07T17:58:41-08:00" itemprop="datePublished" title="2019-03-07 17:58">2019-03-07 17:58</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div class="outline-2" id="outline-container-orged41ac4">
+<h2 id="orged41ac4">Introduction</h2>
+<div class="outline-text-2" id="text-orged41ac4">
+<p>This is a look at the <a href="https://data.giss.nasa.gov/gistemp/">Godard Institute for Space Studies' surface temperature data</a>. I'll look at the mean difference between the yearly mean and the historical "normal" mean.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgd045e12">
+<h2 id="orgd045e12">Set Up</h2>
+<div class="outline-text-2" id="text-orgd045e12"></div>
+<div class="outline-3" id="outline-container-orge00c4a1">
+<h3 id="orge00c4a1">Imports</h3>
+<div class="outline-text-3" id="text-orge00c4a1"></div>
+<div class="outline-4" id="outline-container-orgc4569bc">
+<h4 id="orgc4569bc">Python</h4>
+<div class="outline-text-4" id="text-orgc4569bc">
+<div class="highlight">
+<pre><span></span>from pathlib import Path
+import os
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org5bbb7b6">
+<h4 id="org5bbb7b6">PyPi</h4>
+<div class="outline-text-4" id="text-org5bbb7b6">
+<div class="highlight">
+<pre><span></span>from dotenv import load_dotenv
+import pandas
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org1f7c807">
+<h3 id="org1f7c807">Load Dotenv</h3>
+<div class="outline-text-3" id="text-org1f7c807">
+<div class="highlight">
+<pre><span></span>load_dotenv(".env")
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org7ba02c7">
+<h2 id="org7ba02c7">The Data</h2>
+<div class="outline-text-2" id="text-org7ba02c7">
+<p>The data is the <i>Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'</i> <a href="https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv">Zonal Annual Means</a> which shows the different annual mean for each zone in a given year.</p>
+<div class="highlight">
+<pre><span></span>zone_path = Path(os.environ.get("ZONES")).expanduser()
+assert zone_path.is_file()
+with zone_path.open() as reader:
+    giss = pandas.read_csv(reader)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(giss.describe())
+</pre></div>
+<pre class="example">
+              Year        Glob        NHem        SHem     24N-90N  \
+count   139.000000  139.000000  139.000000  139.000000  139.000000   
+mean   1949.000000    0.032302    0.056043    0.008561    0.077698   
+std      40.269923    0.336896    0.393435    0.301848    0.464606   
+min    1880.000000   -0.490000   -0.540000   -0.490000   -0.580000   
+25%    1914.500000   -0.200000   -0.220000   -0.235000   -0.280000   
+50%    1949.000000   -0.070000   -0.010000   -0.080000    0.020000   
+75%    1983.500000    0.215000    0.210000    0.265000    0.255000   
+max    2018.000000    0.980000    1.260000    0.710000    1.500000   
+
+          24S-24N     90S-24S     64N-90N     44N-64N     24N-44N     EQU-24N  \
+count  139.000000  139.000000  139.000000  139.000000  139.000000  139.000000   
+mean     0.036115   -0.018561    0.111079    0.117770    0.027698    0.027626   
+std      0.331384    0.295695    0.917715    0.516729    0.356416    0.326111   
+min     -0.650000   -0.470000   -1.640000   -0.710000   -0.590000   -0.720000   
+25%     -0.215000   -0.250000   -0.545000   -0.270000   -0.200000   -0.230000   
+50%     -0.030000   -0.100000    0.020000    0.000000   -0.070000    0.000000   
+75%      0.255000    0.230000    0.660000    0.360000    0.135000    0.240000   
+max      0.970000    0.700000    3.050000    1.440000    1.060000    0.930000   
+
+          24S-EQU     44S-24S     64S-44S     90S-64S  
+count  139.000000  139.000000  139.000000  139.000000  
+mean     0.045683    0.020432   -0.069353   -0.078129  
+std      0.343385    0.312688    0.269380    0.732359  
+min     -0.580000   -0.430000   -0.540000   -2.570000  
+25%     -0.210000   -0.220000   -0.265000   -0.490000  
+50%     -0.030000   -0.080000   -0.090000    0.050000  
+75%      0.290000    0.260000    0.180000    0.410000  
+max      1.020000    0.780000    0.450000    1.270000  
+</pre>
+<div class="highlight">
+<pre><span></span>print(giss.iloc[0])
+</pre></div>
+<pre class="example">
+Year       1880.00
+Glob         -0.18
+NHem         -0.31
+SHem         -0.06
+24N-90N      -0.38
+24S-24N      -0.17
+90S-24S      -0.01
+64N-90N      -0.97
+44N-64N      -0.47
+24N-44N      -0.25
+EQU-24N      -0.21
+24S-EQU      -0.13
+44S-24S      -0.04
+64S-44S       0.05
+90S-64S       0.67
+Name: 0, dtype: float64
+</pre></div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="../../../categories/assignment/" rel="tag">assignment</a></li>
+<li><a class="tag p-category" href="../../../categories/coursera/" rel="tag">coursera</a></li>
+<li><a class="tag p-category" href="../../../categories/giss/" rel="tag">giss</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="../../libraries/holoviews-gridded-data/" rel="prev" title="HoloViews Gridded Data">Previous post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="../../../assets/js/all-nocdn.js">
+</script><!-- fancy dates -->
+<script>
+    moment.locale("en");
+    fancydates(0, "YYYY-MM-DD HH:mm");
+</script><!-- end fancy dates -->
+<script>
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script>
+</body>
+</html>
