@@ -21,7 +21,7 @@
 <meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/giss/giss-zone-anomalies/" property="og:url">
 <meta content="Visualizing the temperature anomalies by zone." property="og:description">
 <meta content="article" property="og:type">
-<meta content="2019-03-07T17:58:41-08:00" property="article:published_time">
+<meta content="2019-03-08T12:58:41-08:00" property="article:published_time">
 <meta content="assignment" property="article:tag">
 <meta content="coursera" property="article:tag">
 <meta content="giss" property="article:tag">
@@ -55,54 +55,101 @@
 <h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href=".">GISS Zone Anomalies</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2019-03-07T17:58:41-08:00" itemprop="datePublished" title="2019-03-07 17:58">2019-03-07 17:58</time></a></p>
+<p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2019-03-08T12:58:41-08:00" itemprop="datePublished" title="2019-03-08 12:58">2019-03-08 12:58</time></a></p>
 <p class="sourceline"><a class="sourcelink" href="index.org">Source</a></p>
 </div>
 </header>
 <div class="e-content entry-content" itemprop="articleBody text">
-<div class="outline-2" id="outline-container-orged41ac4">
-<h2 id="orged41ac4">Introduction</h2>
-<div class="outline-text-2" id="text-orged41ac4">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgc9e2d6a">Introduction</a></li>
+<li><a href="#org7fd316c">Set Up</a>
+<ul>
+<li><a href="#orged2d569">Imports</a></li>
+<li><a href="#org5e88c64">Load Dotenv</a></li>
+<li><a href="#org15999c2">Holviews Backend</a></li>
+<li><a href="#org042d8f6">The Embedder</a></li>
+</ul>
+</li>
+<li><a href="#orgc0cf852">The Data</a></li>
+<li><a href="#org46ad7a0">Frigid North</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc9e2d6a">
+<h2 id="orgc9e2d6a">Introduction</h2>
+<div class="outline-text-2" id="text-orgc9e2d6a">
 <p>This is a look at the <a href="https://data.giss.nasa.gov/gistemp/">Godard Institute for Space Studies' surface temperature data</a>. I'll look at the mean difference between the yearly mean and the historical "normal" mean.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgd045e12">
-<h2 id="orgd045e12">Set Up</h2>
-<div class="outline-text-2" id="text-orgd045e12"></div>
-<div class="outline-3" id="outline-container-orge00c4a1">
-<h3 id="orge00c4a1">Imports</h3>
-<div class="outline-text-3" id="text-orge00c4a1"></div>
-<div class="outline-4" id="outline-container-orgc4569bc">
-<h4 id="orgc4569bc">Python</h4>
-<div class="outline-text-4" id="text-orgc4569bc">
+<div class="outline-2" id="outline-container-org7fd316c">
+<h2 id="org7fd316c">Set Up</h2>
+<div class="outline-text-2" id="text-org7fd316c"></div>
+<div class="outline-3" id="outline-container-orged2d569">
+<h3 id="orged2d569">Imports</h3>
+<div class="outline-text-3" id="text-orged2d569"></div>
+<div class="outline-4" id="outline-container-org87ddb99">
+<h4 id="org87ddb99">Python</h4>
+<div class="outline-text-4" id="text-org87ddb99">
 <div class="highlight">
-<pre><span></span>from pathlib import Path
+<pre><span></span>from functools import partial
+from pathlib import Path
 import os
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org5bbb7b6">
-<h4 id="org5bbb7b6">PyPi</h4>
-<div class="outline-text-4" id="text-org5bbb7b6">
+<div class="outline-4" id="outline-container-org6899c0a">
+<h4 id="org6899c0a">PyPi</h4>
+<div class="outline-text-4" id="text-org6899c0a">
 <div class="highlight">
 <pre><span></span>from dotenv import load_dotenv
+from holoviews import opts
+import holoviews
+from holoviews.plotting.links import RangeToolLink
 import pandas
 </pre></div>
 </div>
 </div>
+<div class="outline-4" id="outline-container-orgcb3183f">
+<h4 id="orgcb3183f">This Project</h4>
+<div class="outline-text-4" id="text-orgcb3183f">
+<div class="highlight">
+<pre><span></span>from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+</pre></div>
 </div>
-<div class="outline-3" id="outline-container-org1f7c807">
-<h3 id="org1f7c807">Load Dotenv</h3>
-<div class="outline-text-3" id="text-org1f7c807">
+</div>
+</div>
+<div class="outline-3" id="outline-container-org5e88c64">
+<h3 id="org5e88c64">Load Dotenv</h3>
+<div class="outline-text-3" id="text-org5e88c64">
 <div class="highlight">
 <pre><span></span>load_dotenv(".env")
 </pre></div>
 </div>
 </div>
+<div class="outline-3" id="outline-container-org15999c2">
+<h3 id="org15999c2">Holviews Backend</h3>
+<div class="outline-text-3" id="text-org15999c2">
+<div class="highlight">
+<pre><span></span>holoviews.extension("bokeh")
+</pre></div>
 </div>
-<div class="outline-2" id="outline-container-org7ba02c7">
-<h2 id="org7ba02c7">The Data</h2>
-<div class="outline-text-2" id="text-org7ba02c7">
+</div>
+<div class="outline-3" id="outline-container-org042d8f6">
+<h3 id="org042d8f6">The Embedder</h3>
+<div class="outline-text-3" id="text-org042d8f6">
+<div class="highlight">
+<pre><span></span>Embed = partial(EmbedBokeh, 
+                folder_path="../../files/posts/giss/giss-zone-anomalies/")
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc0cf852">
+<h2 id="orgc0cf852">The Data</h2>
+<div class="outline-text-2" id="text-orgc0cf852">
 <p>The data is the <i>Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'</i> <a href="https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv">Zonal Annual Means</a> which shows the different annual mean for each zone in a given year.</p>
 <div class="highlight">
 <pre><span></span>zone_path = Path(os.environ.get("ZONES")).expanduser()
@@ -144,6 +191,7 @@ min     -0.580000   -0.430000   -0.540000   -2.570000
 75%      0.290000    0.260000    0.180000    0.410000  
 max      1.020000    0.780000    0.450000    1.270000  
 </pre>
+<p>So we have years from 1880 through 2018.</p>
 <div class="highlight">
 <pre><span></span>print(giss.iloc[0])
 </pre></div>
@@ -165,6 +213,30 @@ EQU-24N      -0.21
 90S-64S       0.67
 Name: 0, dtype: float64
 </pre></div>
+</div>
+<div class="outline-2" id="outline-container-org46ad7a0">
+<h2 id="org46ad7a0">Frigid North</h2>
+<div class="outline-text-2" id="text-org46ad7a0">
+<div class="highlight">
+<pre><span></span>curve = holoviews.Curve(
+    giss, "Year",
+    ("24N-90N", "Temperature Anomaly (C)")
+)
+
+main = curve.relabel("North Frigid Zone").opts(width=800, labelled=["y"], 
+                                                 tools=["pan", "zoom_in", "hover", "reset"]) # * holoviews.HiLne(0)
+range_finder = curve.opts(width=800, height=100, yaxis=None, default_tools=[])
+
+RangeToolLink(range_finder, main)
+
+layout = (main + range_finder).cols(1)
+layout = layout.opts(
+    opts.Layout(shared_axes=False, merge_tools=False)) #,
+#    opts.HLine(color="black", alpha=0.2, line_width=2))
+Embed(layout, "north_frigid_zone")()
+</pre></div>
+<script id="dc917e1b-f53e-4369-89cf-ec82319e0227" src="north_frigid_zone.js">
+</script></div>
 </div>
 </div>
 <aside class="postpromonav">
