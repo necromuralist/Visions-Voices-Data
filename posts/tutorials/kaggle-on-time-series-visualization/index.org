@@ -10,7 +10,11 @@
 
 #+END_COMMENT
 #+OPTIONS: ^:{}
-#+TOC: headlines 2
+#+TOC: headlines 3
+#+BEGIN_SRC ipython :session kaggle :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
 * Introduction
   This is a walk-through of the kaggle notebook on [[https://www.kaggle.com/residentmario/time-series-plotting-optional][Time-Series Plotting]] by Aleksey Bilogur.
 * Set Up
@@ -25,13 +29,25 @@ import os
 *** From PyPi
 #+BEGIN_SRC ipython :session kaggle :results none
 from dotenv import load_dotenv
+from bokeh.io.doc import curdoc
+from bokeh.models import CrosshairTool, HoverTool
+from bokeh.themes import Theme
+from bokeh.palettes import Category20
+from holoviews import opts
+from holoviews.plotting.links import RangeToolLink
 from pandas.plotting import autocorrelation_plot, lag_plot
 from tabulate import tabulate
+import holoviews
 import matplotlib
 import matplotlib.pyplot as pyplot
 import pandas
 import seaborn
 #+END_SRC
+*** My Projects
+#+begin_src ipython :session kaggle :results none
+from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+from graeae.tables import CountPercentage
+#+end_src
 ** Plotting
 #+BEGIN_SRC ipython :session kaggle :results none
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -43,6 +59,44 @@ seaborn.set(style="whitegrid",
                 "figure.figsize": (8, 6)},
             font_scale=1)
 #+END_SRC
+*** Holoviews Backend
+#+begin_src ipython :session kaggle :results none
+holoviews.extension("bokeh")
+#+end_src
+*** Bokeh
+#+BEGIN_SRC ipython :session kaggle :results none
+class Plots:
+    width = 1100
+    height = 600
+    font = "Open Sans"
+    font_size = "24pt"
+    line_width = 3
+    tools =  ["hover"]
+    blue = seaborn.color_palette()[0]
+    light_blue = Category20[3][1]
+    red = seaborn.color_palette()[3]
+    yellow = seaborn.color_palette()[1]
+    green = seaborn.color_palette()[2]
+    gray = seaborn.color_palette()[7]
+
+theme = Theme(json={
+    "attrs": {
+        "Figure": {
+            "text_font": "Open Sans",
+            "text_font_size": "18pt",
+            "line_color": Category20[3][0],
+            "plot_width": Plots.width,
+            "plot_height": Plots.height,
+            "tools": ["pan", "zoom_in", "hover", "reset"],
+        },
+        "Title": {
+            "text_font_style": "bold",
+        },
+    },
+})
+curdoc().theme = theme
+#+END_SRC
+
 ** Setup Libraries
 #+BEGIN_SRC ipython :session kaggle :results none
 load_dotenv()
@@ -50,6 +104,13 @@ table = partial(tabulate, headers="keys", tablefmt="orgtbl")
 kaggle_path = Path(os.environ.get("KAGGLE")).expanduser()
 assert kaggle_path.is_dir()
 #+END_SRC
+
+** The Embedder
+#+begin_src ipython :session kaggle :results none
+Embed = partial(
+    EmbedBokeh, 
+    folder_path="../../files/posts/tutorials/kaggle-on-time-series-visualization/")
+#+end_src
 * The Data
 ** New York Stock Exchange Prices
 #+BEGIN_SRC ipython :session kaggle :results none
@@ -180,27 +241,69 @@ print(table(currency.head(), showindex=True))
 
 * Grouping
 ** Birth Dates
+*** Per Date
    Here's a plot of the birth dates of the animals in the shelter.
 
-#+BEGIN_SRC ipython :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/births.png
-figure, axe = pyplot.subplots()
-figure.suptitle("Count of Births By Date", weight="bold")
-axe.set_xlabel("Date of Birth")
-births = shelter.date_of_birth.value_counts().sort_values().plot.line(ax=axe)
+#+BEGIN_SRC ipython :session kaggle :results none
+births = shelter.date_of_birth.value_counts()
+births_peak = births.idxmax()
+births = births.reset_index().sort_values(by="index")
+births.columns = ["birth_date", "Births"]
+#+END_SRC
+
+#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+hover = HoverTool(
+tooltips=[
+    ("Date", "@birth_date{%Y-%m-%d}"),
+    ("Births", "@Births{0,0}"),
+],
+    formatters= {"birth_date": "datetime", 
+                 "Births": "numeral"},
+    mode="vline",
+)
+line = holoviews.VLine(births_peak)
+curve = holoviews.Curve(
+    births, ("birth_date", "Date of Birth"), "Births",
+)
+
+main = curve.relabel("Count of Births By Date").opts(labelled=["y"], 
+                                                     tools=[hover], 
+                                                     height=Plots.height, 
+                                                     ylabel="Births", 
+                                                     xaxis=None)
+range_finder = curve.opts(height=100, yaxis=None, default_tools=[], 
+                          xlabel="Birth Dates")
+
+link = RangeToolLink(range_finder, main)
+
+combination = (main * line + range_finder * line)
+
+layout = combination.opts(
+    opts.Layout(shared_axes=False, merge_tools=False, fontsize=Plots.font_size),
+    opts.Curve(width=Plots.width, 
+               color=Category20[3][0], 
+               fontsize=Plots.font_size,
+               line_width=Plots.line_width),
+    opts.VLine(color=Plots.red, line_dash="dotted")
+).cols(1)
+Embed(layout, "shelter_births")()
 #+END_SRC
 
 #+RESULTS:
-:results:
-# Out[20]:
-[[file:../../files/posts/tutorials/kaggle-on-time-series-visualization/births.png]]
-:end:
+#+begin_export html
+<script src="shelter_births.js" id="8252b014-fc6f-4d96-896c-b5c0c0dc31cd"></script>
+#+end_export
 
-[[file:births.png]]
+It lools like there was an upward trend until about 2016 when it started to taper off, but since we're counting by days there's a lot of variance so we're going to group the data using pandas' [[https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.resample.html][resample]] method.
 
-It lools like there was an upward trend until about 2016 when it started to taper off, but since we're counting by days there's a lot of variance so we're going to group the data using pandas' [[https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.resample.html][resample]] method. 
+#+begin_quote
+*Note:* One interesting problem I found is that unless I zoom in I can't get my mouse to trigger the hover-tool for the day with the greatest value (May 5, 2014).
+#+end_quote
 
-There's a couple of different ways to do this, but the simplest way is to take the count for each date using [[https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.value_counts.html][value_counts]]. This will leave us with a [[https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html][Series]] with the dates in the index and the counts as values. Once we have this we can aggregate the dates by year and then count how many births there were per year.
+There's a couple of different ways to do the grouping of the days, but the simplest way is to take the count for each date using [[https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.value_counts.html][value_counts]]. This will leave us with a [[https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html][Series]] with the dates in the index and the counts as values. Once we have this we can aggregate the dates by year and then count how many births there were per year.
 
+*** By Year
+First I'll get the counts for each day using =value_counts= and print off the first values to see what it looks like. Calling =reset_index= changes the Series to a DataFrame with the dates as a column.
 
 #+BEGIN_SRC ipython :session kaggle :results output raw :exports both
 counts = shelter.date_of_birth.value_counts()
@@ -216,6 +319,8 @@ print(table(counts.head().reset_index(), showindex=False))
 | 2015-04-28 00:00:00 |           104 |
 | 2016-05-01 00:00:00 |           102 |
 
+Now we can aggregate the birth-counts by year using [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.resample.html][resample]].
+
 #+BEGIN_SRC ipython :session kaggle :results output :exports both
 year_counts = counts.resample("Y")
 print(year_counts)
@@ -224,67 +329,219 @@ print(year_counts)
 #+RESULTS:
 : DatetimeIndexResampler [freq=<YearEnd: month=12>, axis=0, closed=right, label=right, convention=start, base=0]
 
-Note that this is an aggregator, we don't get what we want until we call a method (like =count=) on it. In this case since we have value counts we want to sum all of the counts for a year (so we need =sum=).
+#+begin_quote
+Note that this is a grouper, we don't get what we want until we call a method (like =count=) on it. In this case since we have value counts we want to sum all of the counts for a year (so we need =sum=).
+#+end_quote
 
-#+BEGIN_SRC ipython :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/births_by_year.png
-figure, axe = pyplot.subplots()
+Now I'm going to aggregate the yearly counts using the =sum= method.
+#+BEGIN_SRC ipython :session kaggle :results none
 sums = year_counts.sum()
-first = counts.index.min()
-last = counts.index.max()
-figure.suptitle("Births Per Year ({} - {})".format(first.year,
-                                                   last.year),
-                weight="bold")
-axe.set_xlim((first, last))
-peak = sums.idxmax()
-axe.axvline(peak, color="r", linestyle=":", label=peak.year)
+#+END_SRC
 
-plotted = sums.plot.line(ax=axe, label="_")
-axe.legend()
-lim = axe.set_ylim(bottom=0)
+Calling =sum= gives us a Series with the dates in the index and the sums as the values.
+
+#+BEGIN_SRC ipython :session kaggle :results output :exports both
+print(sums.head())
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
-# Out[38]:
-[[file:../../files/posts/tutorials/kaggle-on-time-series-visualization/births_by_year.png]]
-:END:
+: 1991-12-31    1
+: 1992-12-31    1
+: 1993-12-31    1
+: 1994-12-31    9
+: 1995-12-31    7
+: Freq: A-DEC, Name: date_of_birth, dtype: int64
 
-[[file:births_by_year.png]]
+The [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.idxmax.html][=idxmax=]] method gives us the index of the greatest value and since the dates are in the index, using it will give us the date of the year with the most births, which I'll call =sum_peak=.
+#+begin_src ipython :session kaggle :results none
+sum_peak = sums.idxmax()
+#+END_SRC
 
+As you may have noticed, all the dates are set for December 31, but for plotting it's better to have them set to January 1 so I'll set it here and do a some other cleanup.
+
+#+begin_src ipython :session kaggle :results none
+sums = sums.reset_index()
+sums.columns = ["birth_date", "Births"]
+sum_peak = datetime(sum_peak.year, 1, 1)
+sums["birth_date"] = sums.birth_date.apply(lambda date: datetime(date.year, 1, 1))
+#+END_SRC
+
+And now for the plot.
+
+**** The Tools
+First set up the tools
+
+#+begin_src ipython :session kaggle :results none
+hover = HoverTool(
+tooltips=[
+    ("Year", "@birth_date{%Y}"),
+    ("Births", "@Births{0,0}"),
+],
+    formatters= {"birth_date": "datetime", 
+                 "Births": "numeral"},
+    mode="vline",
+)
+#+end_src
+
+**** The Plot Parts
+Now I'll create our plotting objects.
+
+The vertical line will mark the peak year.
+#+begin_src ipython :session kaggle :results none
+line = holoviews.VLine(sum_peak, label=sum_peak.strftime("%Y"))
+#+end_src
+
+Now our data-curve.
+
+#+begin_src ipython :session kaggle :results none
+curve = holoviews.Curve(
+    sums, ("birth_date", "Date of Birth"), "Births",
+)
+#+end_src
+
+Next I'll make two copies of the curve - =main= will be the larger curve and =range_finder= will 
+create a plot below it to let us select a range of dates which get linked using the =RangeToolLink=.
+
+#+begin_src ipython :session kaggle :results none
+main = curve.relabel("Births Per Year (1991- 2017)").opts(
+    labelled=["y"], 
+    tools=[hover], 
+    xaxis=None,
+    ylabel="Births",
+    height=Plots.height)
+range_finder = curve.opts(height=100, yaxis=None, 
+                          default_tools=[],
+                          xlabel="Year")
+
+link = RangeToolLink(range_finder, main)
+#+end_src
+
+Now combine the parts to make our visible plot.
+
+#+begin_src ipython :session kaggle :results none
+combination = (line * main + line * range_finder).cols(1)
+#+end_src
+
+This next bit is to set some styling on the plot.
+**** The Options
+#+begin_src ipython :session kaggle :results none
+layout = combination.opts(
+    opts.Layout(shared_axes=False, merge_tools=False, fontsize=Plots.font_size),
+    opts.Curve(width=Plots.width, 
+               color=Plots.blue, 
+               fontsize=Plots.font_size, 
+               line_width=Plots.line_width),
+    opts.VLine(color=Plots.red, line_dash="dotted")
+)
+#+end_src
+**** Embed
+Finally, create the javascript and embed it in this notebook.
+
+#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+Embed(layout, "shelter_births_per_year")()
+#+END_SRC
+
+#+RESULTS:
+#+begin_export html
+<script src="shelter_births_per_year.js" id="1240d42b-9227-4537-83d7-f0c4934c820b"></script>
+#+end_export
+*** Lollipop Plot
 An alternative way to look at this would be a lollipop plot.
 
-#+BEGIN_SRC ipython :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/births_lollipop.png
-figure, axe = pyplot.subplots()
-figure.suptitle("Births Per Year ({} - {})".format(first.year,
-                                                   last.year),
-                weight="bold")
+#+BEGIN_SRC ipython :session kaggle :results output raw :exports bothh
+# The Tools
+hover = HoverTool(
+tooltips=[
+    ("Year", "@birth_date{%Y}"),
+    ("Births", "@Births{0,0}"),
+],
+    formatters= {"birth_date": "datetime", 
+                 "Births": "numeral"},
+    mode="vline",
+)
 
-x_labels = pandas.Series([x.year for x in sums.index])
-peak_index = int(x_labels[x_labels==peak.year])
-axe.axvline(peak_index, color="r", linestyle=":", label="{} (Peak Year)".format(peak.year))
-stems = axe.stem(x_labels, sums)
-axe.set_xlim(left=first.year)
-figure.autofmt_xdate()
-legend = axe.legend()
+# The Parts
+line = holoviews.VLine(sum_peak, label=peak.strftime("%Y"))
+spikes = holoviews.Spikes(sums, ("birth_date", "Date of Birth"), "Births")
+circles = holoviews.Scatter(sums, "birth_date", "Births")
+
+# The Range Finder
+main = circles.relabel().opts(
+    labelled=["y"], 
+    tools=[hover], 
+    xaxis=None,
+    ylabel="Births",
+    height=Plots.height,
+    size=10,
+    padding=(0, (0, 0.1)))
+range_finder = circles.opts(height=100, 
+                            yaxis=None, 
+                            default_tools=[],
+                            size=5,
+                            fontsize={"ticks": "14pt"},
+                            xlabel="Year of Birth")
+
+link = RangeToolLink(range_finder, main)
+
+# The Layout
+combination = (spikes * line * main + spikes * line * range_finder)
+
+# The Styling Options
+layout = combination.opts(
+    opts.Layout(shared_axes=False, 
+                merge_tools=False,
+                title="Shelter Animal Births Per Year (1991- 2017)",
+                show_title=True,
+                fontsize=Plots.font_size),
+    opts.Spikes(width=Plots.width, 
+                color=Plots.red, 
+                fontsize=Plots.font_size,
+                line_width=Plots.line_width),
+    opts.Scatter(color=Plots.blue, fontsize={"ticks": "14pt"}, legend_position="left"),
+    opts.VLine(color=Plots.green),
+).cols(1)
+
+# The HTML and Javascript
+Embed(layout, "births_per_year_spikes")()
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
-# Out[212]:
-[[file:../../files/posts/tutorials/kaggle-on-time-series-visualization/births_lollipop.png]]
-:END:
+#+begin_export html
+<script src="births_per_year_spikes.js" id="479c8e63-eba4-439f-946b-5a087796c709"></script>
+#+end_export
 
-[[file:births_lollipop.png]]
+#+begin_quote
+Note that putting the title in the Layout changes the font. I was trying to set it to Open Sans but HoloViews is horribly documented for most things so I couldn't figure out how to do it.
+#+end_quote
+** Animal Shelter Outcomes
+   While knowing the birthdates of the animals in the shelter is interesting, what about the dates when their cases were resolved? I originally called this /Animal Shelter Adoptions/ but "outcome" doesn't always mean "adopted", unfortunately.
 
-There's something funny going on with the dates, passing in the index instead of a list of years shifts all the years to the left by one (what's 2015 on the plot above would be 2016). I don't know what's doing this.
+#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+CountPercentage(shelter.outcome_type)()
+#+END_SRC
 
-** Outcomes
-   While knowing the birthdates of the animals in the shelter is interesting, what about the dates when their cases were resolved?
+#+RESULTS:
+| Value           | Count | Percentage |
+|-----------------+-------+------------|
+| Adoption        | 33112 |      42.32 |
+| Transfer        | 23499 |      30.03 |
+| Return to Owner | 14354 |      18.35 |
+| Euthanasia      |  6080 |       7.77 |
+| Died            |   680 |       0.87 |
+| Disposal        |   307 |       0.39 |
+| Rto-Adopt       |   150 |       0.19 |
+| Missing         |    46 |       0.06 |
+| Relocate        |    16 |       0.02 |
+
+I don't know what /Disposal/ means, but it doesn't sound good. Neither does /Missing/, really, especially if there are any restaurants nearby. Anyway, on to the plotting. I'll aggregate the outcome-counts by year.
 
 #+BEGIN_SRC ipython :session kaggle :results output raw :exports both
 outcome_counts = shelter.datetime.value_counts()
 outcomes = outcome_counts.resample("Y").sum()
 print(table(outcome_counts.head().reset_index(), showindex=False))
+outcomes = outcomes.reset_index()
+outcomes.columns = ["date", "count"]
+outcomes["date"] = outcomes.date.apply(lambda date: datetime(date.year, 1, 1))
 #+END_SRC
 
 #+RESULTS:
@@ -296,50 +553,190 @@ print(table(outcome_counts.head().reset_index(), showindex=False))
 | 2015-11-17 00:00:00 |       22 |
 | 2015-07-02 00:00:00 |       22 |
 
+This next part isn't really necessary but I think keeping the names consistent is helpful, especially since I was struggling so much with HoloViews and didn't need the extra confusion about column-names being wrong.
 
-#+BEGIN_SRC ipython :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/outcomes.png
-figure, axe = pyplot.subplots()
-x_labels = pandas.Series([x.year for x in sums.index])
-figure.suptitle("Outcomes Per Year", weight="bold")
-stems = axe.stem(outcomes.index, outcomes, label="Outcome")
-axe.plot(sums.index, sums, "r.", label="Births")
-# axe.set_xticklabels(x_labels)
-figure.autofmt_xdate()
-legend = axe.legend()
+#+BEGIN_SRC ipython :session kaggle :results none
+sums = sums.rename(columns=dict(birth_date="date", Births="count"))
+#+END_SRC
+
+This is going to be like the previous plot but I'm going to add a crosshair tool to make it easier to see how things line up with the axis.
+
+#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+# The Tools
+hover = HoverTool(
+tooltips=[
+    ("Year", "@date{%Y}"),
+    ("Count", "@count{0,0}"),
+],
+    formatters= {"date": "datetime", 
+                 "count": "numeral"},
+    mode="vline",
+)
+crosshairs = CrosshairTool(line_color=Plots.light_blue)
+
+# The Parts
+births = holoviews.Scatter(sums, "date", "count", label="Births")
+outcome_circles = holoviews.Scatter(outcomes, "date", "count", 
+                                    group="outcome", label="Outcomes")
+spikes = holoviews.Spikes(outcomes, ("date", 'Year'), ("count", "Count"), 
+                          group="outcome")
+
+# The Layout
+combination = spikes * outcome_circles * births
+
+# The Styling
+layout = combination.opts(
+    opts.Layout(shared_axes=False,
+                height=Plots.height,
+                merge_tools=False,
+                show_title=True,
+                fontsize=Plots.font_size),
+    opts.Spikes(width=Plots.width, 
+                height=Plots.height,
+                title="Shelter Animal Births vs Outcomes Per Year",
+                show_title=True,
+                fontsize=Plots.font_size,
+                padding=(0, (0, .1)),
+                color=Plots.blue,
+                line_width=Plots.line_width),
+    opts.Scatter("outcome", color=Plots.blue, size=10, legend_position="top_left"),
+    opts.Scatter(fontsize={"ticks": "14pt"}, color=Plots.red, size=10, 
+                 tools=[hover, crosshairs]),
+)
+
+# The HTML
+Embed(layout, "outcome_lollipops")()
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
-# Out[64]:
-[[file:../../files/posts/tutorials/kaggle-on-time-series-visualization/outcomes.png]]
-:END:
+#+begin_export html
+<script src="outcome_lollipops.js" id="6ca452e8-d318-45b0-bd37-b3ed8d32fe8b"></script>
+#+end_export
 
-[[file:outcomes.png]]
-
-So, I've re-introduced the messed up dates on the x-axis (I kind of tried to fix it but gave up), but, ignoring the actual years you can see that there are only six years of adoption outcomes although there are sixteen years of birth dates.
+You can see that there are only six years of adoption outcomes although there are sixteen years of birth dates, with a sudden uptick to the peak year of 2014. It's interesting that the births drop off much faster than the outcomes - the animals seemed to be getting older for some reason.
 
 ** Trading Volume
    
-The previous plot was a count-plot. You can also use other summary-statistics like a mean to see how things changed over time.
+The previous plot was a count-plot. You can also use other summary-statistics like a mean to see how things changed over time. I'll plot the mean volume per year for the New York Stock Exchange.
 
-#+BEGIN_SRC ipython :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/volume.png
-figure, axe = pyplot.subplots()
+#+begin_src ipython :session kaggle :results none
 volume = nyse.volume.resample("Y")
-means = volume.mean()
-figure.suptitle("Mean NYSE Trading Volume Per Year", weight="bold")
-stem = axe.stem(means.index, means)
+means = volume.mean().reset_index()
+means["date"] = means.date.apply(lambda date: datetime(date.year, 1, 1))
+#+end_src
+
+Along with the standard deviations.
+
+#+begin_src ipython :session kaggle :results none
+deviations = volume.std().reset_index()
+means["two_sigma"] = means.volume + 2 * deviations.volume
+#+end_src
+
+And now our plot.
+
+#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+# The Tools
+hover = HoverTool(
+tooltips=[
+    ("Year", "@date{%Y}"),
+    ("Volume", "@volume{0,0.00}"),
+],
+    formatters= {"date": "datetime", 
+                 "volume": "numeral",
+    },
+    mode="vline",
+)
+
+# The Parts
+top_spread = holoviews.Spread((means.date, means.volume, means.two_sigma),
+                              group="volume")
+
+volume_curve = holoviews.Curve(means, 
+                               ("date", "Year"), 
+                               ("volume", "Volume"), 
+                               group="volume")
+
+zero_line = holoviews.HLine(0)
+
+# The Layout
+layout = volume_curve * top_spread * zero_line
+
+# The Styling
+layout = layout.opts(
+    opts.Layout(shared_axes=False,
+                height=Plots.height,
+                merge_tools=False,
+                show_title=True,
+                fontsize=Plots.font_size),
+    opts.Curve(width=Plots.width, 
+               height=Plots.height,
+               title="Mean NYSE Trading Volume Per Year",
+               show_title=True,
+               fontsize=Plots.font_size,
+               padding=(0, (0, .1)),
+               color=Plots.blue,
+               line_width=Plots.line_width,
+               tools=[hover]),
+    opts.HLine(line_color=Plots.gray)
+)
+
+# The HTML
+Embed(layout, "stock_mean_volume")()
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
-# Out[231]:
-[[file:../../files/posts/tutorials/kaggle-on-time-series-visualization/volume.png]]
-:END:
+#+begin_export html
+<script src="stock_mean_volume.js" id="2d83123f-ed75-4579-83e0-474bcb95fde5"></script>
+#+end_export
 
-[[file:volume.png]]
+While the standard deviation is important, in this case it's so large that it smashes the mean down flat (although maybe the fact that it's so large tells us that the mean isn't so accurate).
 
-I tried putting standard deviations in there too but the values are so big it squashed the means.
+#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+hover = HoverTool(
+tooltips=[
+    ("Year", "@date{%Y}"),
+    ("Volume", "@volume{0,0.00}"),
+],
+    formatters= {"date": "datetime", 
+                 "volume": "numeral"},
+    mode="vline",
+)
 
+volume_circles = holoviews.Scatter(means, "date", "volume")
+volume_spikes = holoviews.Spikes(means, ("date", "Date"), 
+                                 ("volume", "Volume"))
+combination = volume_spikes * volume_circles
+crosshairs = CrosshairTool(line_color=Plots.light_blue)
+
+layout = combination.opts(
+    opts.Layout(shared_axes=False,
+                height=Plots.height,
+                merge_tools=False,
+                show_title=True,
+                fontsize=Plots.font_size),
+    opts.Spikes(width=Plots.width, 
+                height=Plots.height,
+                title="NYSE Mean Annual Trading Volume",
+                show_title=True,
+                fontsize=Plots.font_size,
+                padding=(0, (0, .1)),
+                color=Plots.blue,
+                line_width=Plots.line_width),
+    opts.Scatter(color=Plots.blue,
+                 size=10, 
+                 tools=[hover, crosshairs]),
+)
+Embed(layout, "stock_lollipops")()
+#+END_SRC
+
+#+RESULTS:
+#+begin_export html
+<script src="stock_lollipops.js" id="dadfcccd-a5b1-4ccb-8a2e-92f3ff0c7e4e"></script>
+#+end_export
+
+#+begin_quote
+I took the cross-hairs out of the plot with the standard deviations but it was (a little) more helpful for the lollipop plots because you have to be directly above the points to trigger the hover tool, whereas you can be above any part of a segment in the =Curve= plot and it triggers the hover tool.
+#+end_quote
 * Lag Plots
   The [[https://pandas.pydata.org/pandas-docs/stable/visualization.html#lag-plot][Lag Plot]] helps you check if there is a significance to the ordering of the data. You are plotting the value in the inputs vs the next value (e.g. one day against the following day). If there is no significance to the ordering then the plot will look random.
 ** NYSE
