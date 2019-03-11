@@ -11,12 +11,18 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 1
+#+BEGIN_SRC python :session portland :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+
 * Introduction
   I'm going to work with the Daily Temperatures data set for Portland, Oregon (measured at the airport) taken from the [[https://w2.weather.gov/climate/local_data.php?wfo=pqr][National Weather Service]]. I cleaned it up a little already, removing the extra header rows and adding a missing column header (=Metric=) but the data is arranged with the year and month as a column and then each day is given its own column, which isn't how I want to work with it, so I'm going to transform it a little to make it more like what I expect it to look like.}
 * Set Up
 ** Imports
 *** Python
 #+BEGIN_SRC python :session portland :results none
+from functools import partial
 from datetime import datetime
 from pathlib import Path
 from typing import Union
@@ -25,9 +31,15 @@ import os
 *** From PyPi
 #+BEGIN_SRC python :session portland :results none
 from dotenv import load_dotenv
+import hvplot.pandas
 import matplotlib.pyplot as pyplot
 import pandas
 import seaborn
+#+END_SRC
+*** My Stuff
+#+BEGIN_SRC python :session portland :results none
+from graeae.timers import Timer
+from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 #+END_SRC
 ** Plotting
 #+BEGIN_SRC python :session portland :results none
@@ -40,6 +52,16 @@ seaborn.set(style="whitegrid",
                 "figure.figsize": (8, 6)},
             font_scale=1)
 #+END_SRC
+** The Timer
+#+BEGIN_SRC python :session portland :results none
+TIMER = Timer()
+#+END_SRC
+** The Embedder
+#+BEGIN_SRC python :session portland :results none
+Embed = partial(
+    EmbedBokeh, 
+    folder_path="../../files/posts/portland-daily-climate/portland-daily-temperatures-data/")
+#+END_SRC
 * Loading the Data
 #+BEGIN_SRC python :session portland :results output :exports both
 load_dotenv()
@@ -49,7 +71,7 @@ assert path.is_file()
 #+END_SRC
 
 #+RESULTS:
-: /home/hades/data/datasets/necromuralist/daily-climate-data/portland_1940_to_april_2018.csv
+: /home/athena/data/datasets/necromuralist/daily-climate-data/portland_1940_to_april_2018.csv
 
 ** Some Preparation
    The first thing to work with is that there are three characters representing "missing" data (that I noticed) - /M/, /T/, and /-/ - that we have to tell pandas about when we use [[https://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_csv.html][read_csv]].
@@ -61,11 +83,15 @@ missing = ["M", "T", "-"]
 I was going to load the measurement type (e.g. "TX"), but I realized that I was planning to turn those into column headers so maybe it's not a good idea.
 
 #+BEGIN_SRC python :session portland :results output :exports both
-data = pandas.read_csv(path, na_values=missing)
+with TIMER:
+    data = pandas.read_csv(path, na_values=missing)
 print(data.shape)
 #+END_SRC
 
 #+RESULTS:
+: Started: 2019-03-10 18:50:58.399150
+: Ended: 2019-03-10 18:50:58.410684
+: Elapsed: 0:00:00.011534
 : (3756, 35)
 
 #+BEGIN_SRC python :session portland :results output :exports both
@@ -253,10 +279,11 @@ print(type(melted.iloc[0].Day))
    Now I'll make a single date column.
 
 #+BEGIN_SRC python :session portland :results output :exports both
-melted["date"] = melted.apply(lambda row: datetime(year=row.YR,
-                                                   month=row.MO,
-                                                   day=row.Day),
-                              axis="columns")
+with TIMER:
+    melted["date"] = melted.apply(lambda row: datetime(year=row.YR,
+                                                       month=row.MO,
+                                                       day=row.Day),
+                                  axis="columns")
 print(melted.head())
 #+END_SRC
 
@@ -275,10 +302,20 @@ print(melted.iloc[105184])
 : MO           2
 : Metric      TX
 : Day         29
-: Value        -
+: Value      NaN
 : Name: 105184, dtype: object
 
-Okay, so here we have a problem in that not all the dates exist. Also, for some reason the '-' didn't get converted to a NaN, but one thing at a time.
+February 29? Was 1941 a leap year? According to [[https://en.wikipedia.org/wiki/Leap_year][wikipedia]], leap years have to be divisible by four.
+
+#+begin_src python :session portland :results output :exports both
+print(melted.iloc[105184].YR/4)
+#+end_src
+
+#+RESULTS:
+: 485.25
+
+It doesn't look like there was a February 29 in 1941, so here we have a problem in that not all the dates exist. Also, for some reason the '-' didn't get converted to a NaN, but one thing at a time.
+
 
 #+BEGIN_SRC python :session portland :results none
 def to_datetime(row: pandas.Series) -> Union[datetime, None]:
@@ -298,21 +335,26 @@ def to_datetime(row: pandas.Series) -> Union[datetime, None]:
 #+END_SRC
 
 #+BEGIN_SRC python :session portland :results output :exports both
-started = datetime.now()
-melted["date"] = melted.apply(to_datetime, axis="columns")
-print(melted.head())
-print("Elapsed: {}".format(datetime.now() - started))
+with TIMER:
+    melted["date"] = melted.apply(to_datetime, axis="columns")
+    print(melted.head())
 #+END_SRC
 
 #+RESULTS:
-: day is out of range for month
-:      YR  MO Metric  Day  Value       date
-: 0  1940  10     TX    1    NaN        NaT
-: 1  1940  10     TN    1    NaN        NaT
-: 2  1940  10     PR    1    NaN        NaT
-: 3  1940  10     SN    1    NaN        NaT
-: 4  1940  11     TX    1   52.0 1940-11-01
-: Elapsed: 0:00:09.351053
+#+begin_example
+Started: 2019-03-10 18:56:57.314885
+day is out of range for month
+     YR  MO Metric  Day  Value       date
+0  1940  10     TX    1    NaN        NaT
+1  1940  10     TN    1    NaN        NaT
+2  1940  10     PR    1    NaN        NaT
+3  1940  10     SN    1    NaN        NaT
+4  1940  11     TX    1   52.0 1940-11-01
+Ended: 2019-03-10 18:57:01.094165
+Elapsed: 0:00:03.779280
+#+end_example
+
+It looks like there was only one case where the date didn't exist, but there are multiple entries with missing values.
 
 #+BEGIN_SRC python :session portland :results output :exports both
 print("Fraction Missing: {:.2f}".format(
@@ -323,7 +365,7 @@ print("Fraction Missing: {:.2f}".format(
 : Fraction Missing: 0.06
 
 ** Drop the Missing
-  Here I'll drop the dates that didn't have data.
+   I'll drop the dates that didn't have data.
 
 #+BEGIN_SRC python :session portland :results output :exports both
 cleaned = melted.dropna(subset=["Value"])
@@ -338,8 +380,8 @@ print(cleaned.head())
 : 7  1940  11     SN    1   0.00 1940-11-01
 : 8  1940  12     TX    1  51.00 1940-12-01
 
-** Drop the Extra Date Coulmns
-   Since we have a date column I'll get rid of the columns that made it up.
+** Drop the Extra Date Columns
+   Since we have a date column I'll get rid of the columns that I used to make it.
 
 #+BEGIN_SRC python :session portland :results output :exports both
 cleaned = cleaned.drop(["YR", "MO", "Day"], axis="columns")
@@ -378,7 +420,15 @@ print(melted.iloc[105427])
 : date       NaT
 : Name: 105427, dtype: object
 
-I looked it up and 1946 isn't a leap-year, so there's no February 29, 1946. Did something get lost in translation?
+
+#+begin_src python :session portland :results output :exports both
+print(melted.iloc[105427].YR/4)
+#+end_src
+
+#+RESULTS:
+: 486.5
+
+Okay, this is another non-leap year. What's going on?
 
 #+BEGIN_SRC python :session portland :results output :exports both
 print(data[(data.YR==1946) & (data.MO==2)])
@@ -386,23 +436,17 @@ print(data[(data.YR==1946) & (data.MO==2)])
 
 #+RESULTS:
 #+begin_example
-       YR  MO Metric      1      2     3      4      5      6      7  \
-256  1946   2     TX  48.00  47.00  45.0  43.00  48.00  48.00  43.00   
-257  1946   2     TN  44.00  35.00  32.0  32.00  37.00  39.00  33.00   
-258  1946   2     PR   0.05   0.02   NaN   0.01   1.54   0.63   0.06   
-259  1946   2     SN   0.00   0.00   0.0   0.00   0.00   0.00   0.00   
+       YR  MO Metric      1      2     3      4      5      6      7  ...  \
+256  1946   2     TX  48.00  47.00  45.0  43.00  48.00  48.00  43.00  ...   
+257  1946   2     TN  44.00  35.00  32.0  32.00  37.00  39.00  33.00  ...   
+258  1946   2     PR   0.05   0.02   NaN   0.01   1.54   0.63   0.06  ...   
+259  1946   2     SN   0.00   0.00   0.0   0.00   0.00   0.00   0.00  ...   
 
-         ...         23     24    25     26     27     28    29  30  31  \
-256      ...       58.0  52.00  53.0  49.00  53.00  55.00   NaN NaN NaN   
-257      ...       43.0  40.00  39.0  35.00  44.00  40.00   NaN NaN NaN   
-258      ...        0.1   0.26   NaN   0.57   0.64   0.04   NaN NaN NaN   
-259      ...        0.0   0.00   0.0   0.00   0.00   0.00  34.0 NaN NaN   
-
-     AVG or Total  
-256         49.40  
-257         36.00  
-258          4.99  
-259          0.00  
+       23     24    25     26     27     28    29  30  31  AVG or Total  
+256  58.0  52.00  53.0  49.00  53.00  55.00   NaN NaN NaN         49.40  
+257  43.0  40.00  39.0  35.00  44.00  40.00   NaN NaN NaN         36.00  
+258   0.1   0.26   NaN   0.57   0.64   0.04   NaN NaN NaN          4.99  
+259   0.0   0.00   0.0   0.00   0.00   0.00  34.0 NaN NaN          0.00  
 
 [4 rows x 35 columns]
 #+end_example
@@ -414,11 +458,11 @@ print(data[(data.YR==1946) & (data.MO==2) & (data.Metric=="SN")])
 #+END_SRC
 
 #+RESULTS:
-:        YR  MO Metric    1    2    3    4    5    6    7      ...        23  \
-: 259  1946   2     SN  0.0  0.0  0.0  0.0  0.0  0.0  0.0      ...       0.0   
+:        YR  MO Metric    1    2    3    4    5    6    7  ...   23   24   25  \
+: 259  1946   2     SN  0.0  0.0  0.0  0.0  0.0  0.0  0.0  ...  0.0  0.0  0.0   
 : 
-:       24   25   26   27   28    29  30  31  AVG or Total  
-: 259  0.0  0.0  0.0  0.0  0.0  34.0 NaN NaN           0.0  
+:       26   27   28    29  30  31  AVG or Total  
+: 259  0.0  0.0  0.0  34.0 NaN NaN           0.0  
 : 
 : [1 rows x 35 columns]
 
@@ -471,7 +515,7 @@ missing.loc[:, "missing"] = 1
 monthly = missing.missing.resample("M")
 #+END_SRC
 
-#+BEGIN_SRC python :session portland :results raw drawer :ipyfile ../../files/posts/portland-daily-temperatures-data/missing_pr.png
+#+BEGIN_SRC python :session portland :results raw drawer :ipyfile ../../files/posts/portland-daily-climate/portland-daily-temperatures-data/missing_pr.png
 figure, axe = pyplot.subplots()
 figure.suptitle("Missing Monthly Precipitation", weight="bold")
 counts = monthly.count()
@@ -479,19 +523,20 @@ stem = axe.stem(counts.index, counts)
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
-# Out[165]:
-[[file:../../files/posts/portland-daily-temperatures-data/missing_pr.png]]
-:END:
+:results:
+# Out[87]:
+[[file:../../files/posts/portland-daily-climate/portland-daily-temperatures-data/missing_pr.png]]
+:end:
 
 [[file:missing_pr.png]]
+
 So, I was expecting this to be a problem that happened early and then died out, but it appears there's an ongoing problem with collecting precipitation - or maybe they use a symbol for 0 that I'm interpreting as missing?
 
 #+BEGIN_SRC python :session portland :results none
 yearly = missing.missing.resample("Y")
 #+END_SRC
 
-#+BEGIN_SRC python :session portland :results raw drawer :ipyfile ../../files/posts/portland-daily-temperatures-data/missing_yearly_pr.png
+#+BEGIN_SRC python :session portland :results raw drawer :ipyfile ../../files/posts/portland-daily-climate/portland-daily-temperatures-data/missing_yearly_pr.png
 figure, axe = pyplot.subplots()
 figure.suptitle("Missing Yearly Precipitation", weight="bold")
 counts = yearly.count()
@@ -499,10 +544,10 @@ stem = axe.stem(counts.index, counts)
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
-# Out[166]:
-[[file:../../files/posts/portland-daily-temperatures-data/missing_yearly_pr.png]]
-:END:
+:results:
+# Out[88]:
+[[file:../../files/posts/portland-daily-climate/portland-daily-temperatures-data/missing_yearly_pr.png]]
+:end:
 
 [[file:missing_yearly_pr.png]]
 
@@ -548,23 +593,46 @@ assert pack_path.is_file()
 
 * Looking at Some Plots
 
-#+BEGIN_SRC python :session portland :results raw drawer :ipyfile ../../files/posts/portland-daily-temperatures-data/median_yearly_temperature.png
+#+BEGIN_SRC python :session portland :results raw drawer :ipyfile ../../files/posts/portland-daily-climate/portland-daily-temperatures-data/median_yearly_temperature.png
 maximum_temperature = renamed.maximum_temperature.resample("Y")
 medians = maximum_temperature.median()
 maxes = maximum_temperature.max()
 mins = maximum_temperature.min()
 figure, axe = pyplot.subplots()
-figure.suptitle("Portland, OR Yearly Maximum Daily Temperatures", weight="bold")
+figure.suptitle("Portland, OR Yearly Daily Temperatures", weight="bold")
 axe.stem(maxes.index, maxes, markerfmt="ro",label="Maximum")
 axe.stem(mins.index, mins, markerfmt="go", label="Minimum")
 stem = axe.stem(medians.index, medians, label="Median")
+axe.set_xlabel("Year")
+axe.set_ylabel("Temperature (F)")
 legend = axe.legend(bbox_to_anchor=(1, 1))
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
-# Out[196]:
-[[file:../../files/posts/portland-daily-temperatures-data/median_yearly_temperature.png]]
-:END:
+:results:
+# Out[91]:
+[[file:../../files/posts/portland-daily-climate/portland-daily-temperatures-data/median_yearly_temperature.png]]
+:end:
 
 [[file:median_yearly_temperature.png]]
+
+#+BEGIN_SRC python :session portland :results output raw :exports both
+maximum_temperature = renamed.maximum_temperature.resample("Y")
+frame = pandas.DataFrame.from_dict(
+    {"Maximum": maximum_temperature.max(),
+     "Median": maximum_temperature.median(),
+     "Minimum": maximum_temperature.min(),
+    }
+)
+output = frame.hvplot(width=1000, height=600, 
+                      title="Mean Maximum Portland Temperatures Per Year",
+                      fontsize="18pt")
+Embed(output, "min_median_max")()
+#+END_SRC
+
+#+RESULTS:
+#+begin_export html
+<script src="min_median_max.js" id="7c709de1-0f61-4c48-a13b-23db78f0d775"></script>
+#+end_export
+
+On the one hand, it's pretty neat what you get for such little code, on the other hand it's not at all obvious how to fix all the styling to make it a better plot.
