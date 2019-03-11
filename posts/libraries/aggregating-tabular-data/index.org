@@ -11,20 +11,20 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 2
-#+BEGIN_SRC ipython :session holoviews :results none :exports none
+#+BEGIN_SRC python :session holoviews :results none :exports none
 %load_ext autoreload
 %autoreload 2
 #+END_SRC
 * Set Up
 ** Imports
 *** Python
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 from functools import partial
 from pathlib import Path
 import os
 #+end_src
 *** PyPi
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 from dotenv import load_dotenv
 from holoviews import opts
 from tabulate import tabulate
@@ -33,16 +33,16 @@ import numpy
 import pandas
 #+end_src
 *** My Projects
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 #+END_SRC
 ** Holoviews Bokeh
    I don't know why but you have to specify that you're using =bokeh=, even though it looks like it's working when you don't.
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 holoviews.extension("bokeh")
 #+end_src
 ** The Embedder
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 files_path = Path("../../files/posts/libraries/aggregating-tabular-data/")
 Embed = partial(
     EmbedBokeh,
@@ -50,20 +50,20 @@ Embed = partial(
 #+END_SRC
 ** Dotenv
    I have the path to the data-set in a =.env= file so I'll load it into the environment dictionary.
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 load_dotenv(".env")
 #+end_src
 
 * Load the Data
   This is the same measles/pertusis data that I used before.
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 path = Path(os.environ.get("DISEASES")).expanduser()
 assert path.is_file()
 with path.open() as reader:
     diseases = pandas.read_csv(path)
 #+end_src
 * Convert the DataFrame to a Dataset
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 key_dimensions = "Year State".split()
 value_dimensions = [("measles", "Measles Incidence"), ("pertussis", "Pertusis Incidence")]
 dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
@@ -71,14 +71,14 @@ dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
 * Aggregate the Data
   While I had aggregated the data before, this time I'm going to pass in the "Year" column as an argument so it won't keep the states separate.
 
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 aggregator = dataset.aggregate("Year", function=numpy.mean, spreadfn=numpy.std)
 error_bars = holoviews.ErrorBars(aggregator, vdims=["measles", "measles_std"]).iloc[::2]
 overlay = (holoviews.Curve(aggregator) * error_bars).redim.range(measles=(0, None))
 plot = overlay.opts(height=500, width=1000, tools=["hover"])
 #+end_src
 
-#+begin_src ipython :session holoviews :results output raw :exports both
+#+begin_src python :session holoviews :results output raw :exports both
 Embed(plot, "northwest_measles_aggregated")()
 #+end_src
 

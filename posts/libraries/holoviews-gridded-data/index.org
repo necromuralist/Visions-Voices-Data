@@ -17,33 +17,33 @@
 ** Set Up
 *** Imports
 **** Python
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 from functools import partial
 from pathlib import Path
 import os
 #+end_src
 **** PyPi
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 from dotenv import load_dotenv
 import holoviews
 from holoviews import opts
 import numpy
 #+end_src
 **** This Project
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 #+end_src
 *** The Dotenv
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 load_dotenv(".env")
 #+end_src
 *** Bokeh
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 #+begin_src python :session holoviews :results none
 holoviews.extension("bokeh")
 #+end_src
 *** The Embedder
-#+BEGIN_SRC ipython :session holoviews :results none
+#+BEGIN_SRC python :session holoviews :results none
 files_path = Path("../../files/posts/libraries/holoviews-gridded-data/")
 Embed = partial(
     EmbedBokeh,
@@ -51,12 +51,12 @@ Embed = partial(
 #+END_SRC
 *** The Output Path
     This is where to store files and images that get created and need to get grabbed by nikola.
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 OUTPUT_PATH = Path("../../files/posts/libraries/holoviews-gridded-data")
 assert OUTPUT_PATH.is_dir()
 #+end_src
 *** The Data
-#+begin_src ipython :session holoviews :results output :exports both
+#+begin_src python :session holoviews :results output :exports both
 data_path = Path(os.environ.get("PHOTONS")).expanduser()
 assert data_path.is_file()
 data = numpy.load(str(data_path))
@@ -71,7 +71,7 @@ The [[https://www.numpy.org/devdocs/reference/generated/numpy.load.html][numpy.l
 
 I'm going to load the data into a HoloViews Dataset, but is going to need time, x, and y coordinates to render the images. To make it simpler I'll just pass in integer arrays with zero-indexed indices for the images. Since this isn't really a dataset that I care about I don't know what the orientation of the image is, but the example set it up as a wide image.
 
-#+begin_src ipython :session holoviews :results output :exports both
+#+begin_src python :session holoviews :results output :exports both
 data_set = holoviews.Dataset((numpy.arange(50), numpy.arange(111), numpy.arange(62), calcium),
                              ["Time", "x", "y"], "Fluoresence")
 print(data_set)
@@ -84,7 +84,7 @@ Note that holoviews treats labels in lists differently than tuples - if it's a t
 
 The example says that really we should have used [[http://xarray.pydata.org/en/stable/][xarray]] to load the data, so this is how to convert it to and =xarray=.
 
-#+begin_src ipython :session holoviews :results output :exports both
+#+begin_src python :session holoviews :results output :exports both
 print(data_set.clone(datatype=["xarray"]).data)
 #+end_src
 
@@ -103,7 +103,7 @@ But we want to use a Dataset, not an x-array so this was just for illustration..
 *** Set Up the Plot
     Before doing the plot I'll set the defaults for it.
 
-#+begin_src ipython :session holoviews :results none
+#+begin_src python :session holoviews :results none
 opts.defaults(
     opts.GridSpace(shared_xaxis=True, shared_yaxis=True),
     opts.Image(cmap="viridis", width=400, height=400),
@@ -116,7 +116,7 @@ opts.defaults(
 
 Note that if you don't setup the backend with =holoviews.extension= then the opts won't have any of the attributes like =GridSpace=, =Image=, etc.
 
-#+begin_src ipython :session holoviews :results output raw :exports both
+#+begin_src python :session holoviews :results output raw :exports both
 plot = data_set.to(holoviews.Image, ["x", "y"]).hist()
 file_name = "grid_image.html"
 output = OUTPUT_PATH.joinpath(file_name)
@@ -129,7 +129,7 @@ print("[[file:{}][Link to the plot.]]".format(file_name))
 
 *** Zoom In
     HoloViews provides a way to select out Regions of Interest (ROI). The pickle we loaded earlier has coordinates for rectangular bounding boxes in it (under the =ROIs= key).
-#+begin_src ipython :session holoviews :results output :exports both
+#+begin_src python :session holoviews :results output :exports both
 regions_of_interest = data["ROIs"]
 bounds = holoviews.Path([holoviews.Bounds(tuple(region)) for region in regions_of_interest])
 print(regions_of_interest.shape)
@@ -138,7 +138,7 @@ print(regions_of_interest.shape)
 #+RESULTS:
 : (147, 4)
 
-#+begin_src ipython :session holoviews :results output raw :exports both
+#+begin_src python :session holoviews :results output raw :exports both
 labels = holoviews.Labels([(roi[0], roi[1], i) for i, roi in enumerate(regions_of_interest)])
 plot = (data_set[21].to(holoviews.Image, ['x', 'y']) * bounds * labels).relabel('Time: 21')
 file_name = "bounds.html"
@@ -152,7 +152,7 @@ Embed(plot, file_name)()
 #+end_export
 
 *** Select the Facet
-#+begin_src ipython :session holoviews :results output raw :exports both
+#+begin_src python :session holoviews :results output raw :exports both
 x0, y0, x1, y1 = regions_of_interest[60]
 roi = data_set.select(x=(x0, x1), y=(y0, y1), time=(250, 280)).relabel('ROI #60')
 plot = roi.to(holoviews.Image, ['x', 'y'])
@@ -166,7 +166,7 @@ print("[[file:{}][link]]".format(file_name))
 [[file:selection.html][link]]
 
 *** Mean and Standard Deviation
-#+begin_src ipython :session holoviews :results output raw :exports both
+#+begin_src python :session holoviews :results output raw :exports both
 agg = roi.aggregate('Time', numpy.mean, spreadfn=numpy.std)
 plot = holoviews.Spread(agg) * holoviews.Curve(agg)
 file_name = "spread.html"

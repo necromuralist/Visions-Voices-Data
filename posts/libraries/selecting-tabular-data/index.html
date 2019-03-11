@@ -64,103 +64,103 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgb9568f6">Set Up</a>
+<li><a href="#orgf47ec95">Set Up</a>
 <ul>
-<li><a href="#org4494ae9">Imports</a></li>
-<li><a href="#orgddbd038">Holoviews Bokeh</a></li>
-<li><a href="#org47aa4f3">The Embedder</a></li>
-<li><a href="#org3797b09">Dotenv</a></li>
+<li><a href="#org96b77a3">Imports</a></li>
+<li><a href="#orgce571a7">Holoviews Bokeh</a></li>
+<li><a href="#org54d566c">The Embedder</a></li>
+<li><a href="#org1db1398">Dotenv</a></li>
 </ul>
 </li>
-<li><a href="#orgb46c74d">Load the Data</a></li>
-<li><a href="#org6af98c6">Convert the DataFrame to a Dataset</a></li>
-<li><a href="#org95e36cb">Aggregate The Data</a></li>
-<li><a href="#org819211b">Plot a Subset</a></li>
-<li><a href="#org4777d0b">Facets</a></li>
-<li><a href="#org910d574">Overlays</a></li>
+<li><a href="#org1edcfef">Load the Data</a></li>
+<li><a href="#orgf51fb17">Convert the DataFrame to a Dataset</a></li>
+<li><a href="#orgf5ba30e">Aggregate The Data</a></li>
+<li><a href="#orgbb41cbd">Plot a Subset</a></li>
+<li><a href="#orgfbb53b7">Facets</a></li>
+<li><a href="#orgef9add6">Overlays</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgb9568f6">
-<h2 id="orgb9568f6">Set Up</h2>
-<div class="outline-text-2" id="text-orgb9568f6"></div>
-<div class="outline-3" id="outline-container-org4494ae9">
-<h3 id="org4494ae9">Imports</h3>
-<div class="outline-text-3" id="text-org4494ae9"></div>
-<div class="outline-4" id="outline-container-org8b3aae1">
-<h4 id="org8b3aae1">Python</h4>
-<div class="outline-text-4" id="text-org8b3aae1">
+<div class="outline-2" id="outline-container-orgf47ec95">
+<h2 id="orgf47ec95">Set Up</h2>
+<div class="outline-text-2" id="text-orgf47ec95"></div>
+<div class="outline-3" id="outline-container-org96b77a3">
+<h3 id="org96b77a3">Imports</h3>
+<div class="outline-text-3" id="text-org96b77a3"></div>
+<div class="outline-4" id="outline-container-orgb0a4ebb">
+<h4 id="orgb0a4ebb">Python</h4>
+<div class="outline-text-4" id="text-orgb0a4ebb">
 <div class="highlight">
-<pre><span></span>from functools import partial
-from pathlib import Path
-import os
+<pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">os</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org4b145d5">
-<h4 id="org4b145d5">PyPi</h4>
-<div class="outline-text-4" id="text-org4b145d5">
+<div class="outline-4" id="outline-container-orgf4e0b45">
+<h4 id="orgf4e0b45">PyPi</h4>
+<div class="outline-text-4" id="text-orgf4e0b45">
 <div class="highlight">
-<pre><span></span>from dotenv import load_dotenv
-from holoviews import opts
-from tabulate import tabulate
-import holoviews
-import numpy
-import pandas
+<pre><span></span><span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">from</span> <span class="nn">holoviews</span> <span class="kn">import</span> <span class="n">opts</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+<span class="kn">import</span> <span class="nn">holoviews</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org6d620dc">
-<h4 id="org6d620dc">My Projects</h4>
-<div class="outline-text-4" id="text-org6d620dc">
+<div class="outline-4" id="outline-container-orgd25891e">
+<h4 id="orgd25891e">My Projects</h4>
+<div class="outline-text-4" id="text-orgd25891e">
 <div class="highlight">
-<pre><span></span>from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+<pre><span></span><span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgddbd038">
-<h3 id="orgddbd038">Holoviews Bokeh</h3>
-<div class="outline-text-3" id="text-orgddbd038">
+<div class="outline-3" id="outline-container-orgce571a7">
+<h3 id="orgce571a7">Holoviews Bokeh</h3>
+<div class="outline-text-3" id="text-orgce571a7">
 <p>I don't know why but you have to specify that you're using <code>bokeh</code>, even though it looks like it's working when you don't.</p>
 <div class="highlight">
-<pre><span></span>holoviews.extension("bokeh")
+<pre><span></span><span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org47aa4f3">
-<h3 id="org47aa4f3">The Embedder</h3>
-<div class="outline-text-3" id="text-org47aa4f3">
+<div class="outline-3" id="outline-container-org54d566c">
+<h3 id="org54d566c">The Embedder</h3>
+<div class="outline-text-3" id="text-org54d566c">
 <div class="highlight">
-<pre><span></span>files_path = Path("../../files/posts/libraries/selecting-tabular-data/")
-Embed = partial(
-    EmbedBokeh,
-    folder_path=files_path)
+<pre><span></span><span class="n">files_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/selecting-tabular-data/"</span><span class="p">)</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+    <span class="n">EmbedBokeh</span><span class="p">,</span>
+    <span class="n">folder_path</span><span class="o">=</span><span class="n">files_path</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org3797b09">
-<h3 id="org3797b09">Dotenv</h3>
-<div class="outline-text-3" id="text-org3797b09">
+<div class="outline-3" id="outline-container-org1db1398">
+<h3 id="org1db1398">Dotenv</h3>
+<div class="outline-text-3" id="text-org1db1398">
 <p>I have the path to the data-set in a <code>.env</code> file so I'll load it into the environment dictionary.</p>
 <div class="highlight">
-<pre><span></span>load_dotenv(".env")
+<pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">".env"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgb46c74d">
-<h2 id="orgb46c74d">Load the Data</h2>
-<div class="outline-text-2" id="text-orgb46c74d">
+<div class="outline-2" id="outline-container-org1edcfef">
+<h2 id="org1edcfef">Load the Data</h2>
+<div class="outline-text-2" id="text-org1edcfef">
 <p>This is the same measles/pertusis data that I used before.</p>
 <div class="highlight">
-<pre><span></span>path = Path(os.environ.get("DISEASES")).expanduser()
-assert path.is_file()
-with path.open() as reader:
-    diseases = pandas.read_csv(path)
+<pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"DISEASES"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+    <span class="n">diseases</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 </pre></div>
 <div class="highlight">
-<pre><span></span>print(orgtable(diseases.head()))
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">orgtable</span><span class="p">(</span><span class="n">diseases</span><span class="o">.</span><span class="n">head</span><span class="p">()))</span>
 </pre></div>
 <table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
 <colgroup>
@@ -218,25 +218,25 @@ with path.open() as reader:
 </table>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org6af98c6">
-<h2 id="org6af98c6">Convert the DataFrame to a Dataset</h2>
-<div class="outline-text-2" id="text-org6af98c6">
+<div class="outline-2" id="outline-container-orgf51fb17">
+<h2 id="orgf51fb17">Convert the DataFrame to a Dataset</h2>
+<div class="outline-text-2" id="text-orgf51fb17">
 <div class="highlight">
-<pre><span></span>key_dimensions = "Year State".split()
-value_dimensions = [("measles", "Measles Incidence"), ("pertussis", "Pertusis Incidence")]
-dataset = holoviews.Dataset(diseases, key_dimensions, value_dimensions)
+<pre><span></span><span class="n">key_dimensions</span> <span class="o">=</span> <span class="s2">"Year State"</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+<span class="n">value_dimensions</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"measles"</span><span class="p">,</span> <span class="s2">"Measles Incidence"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"pertussis"</span><span class="p">,</span> <span class="s2">"Pertusis Incidence"</span><span class="p">)]</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">diseases</span><span class="p">,</span> <span class="n">key_dimensions</span><span class="p">,</span> <span class="n">value_dimensions</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org95e36cb">
-<h2 id="org95e36cb">Aggregate The Data</h2>
-<div class="outline-text-2" id="text-org95e36cb">
+<div class="outline-2" id="outline-container-orgf5ba30e">
+<h2 id="orgf5ba30e">Aggregate The Data</h2>
+<div class="outline-text-2" id="text-orgf5ba30e">
 <div class="highlight">
-<pre><span></span>dataset = dataset.aggregate(function=numpy.mean)
+<pre><span></span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
 </pre></div>
 <div class="highlight">
-<pre><span></span>print(dataset)
-print(dataset.shape)
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 :Dataset   [Year,State]   (measles,pertussis)
@@ -244,19 +244,19 @@ print(dataset.shape)
 
 </pre></div>
 </div>
-<div class="outline-2" id="outline-container-org819211b">
-<h2 id="org819211b">Plot a Subset</h2>
-<div class="outline-text-2" id="text-org819211b">
+<div class="outline-2" id="outline-container-orgbb41cbd">
+<h2 id="orgbb41cbd">Plot a Subset</h2>
+<div class="outline-text-2" id="text-orgbb41cbd">
 <div class="highlight">
-<pre><span></span>northwest = ["Oregon", "Washington", "Idaho"]
-bars = dataset.select(State=northwest, Year=(1928, 1938)).to(
-    holoviews.Bars, ["Year", "State"], "measles").sort()
-plot = bars.opts(
-    opts.Bars(width=800, height=400, tools=["hover"], xrotation=90, show_legend=False)
-)
+<pre><span></span><span class="n">northwest</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Oregon"</span><span class="p">,</span> <span class="s2">"Washington"</span><span class="p">,</span> <span class="s2">"Idaho"</span><span class="p">]</span>
+<span class="n">bars</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">State</span><span class="o">=</span><span class="n">northwest</span><span class="p">,</span> <span class="n">Year</span><span class="o">=</span><span class="p">(</span><span class="mi">1928</span><span class="p">,</span> <span class="mi">1938</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
+    <span class="n">holoviews</span><span class="o">.</span><span class="n">Bars</span><span class="p">,</span> <span class="p">[</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"State"</span><span class="p">],</span> <span class="s2">"measles"</span><span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">bars</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Bars</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s2">"hover"</span><span class="p">],</span> <span class="n">xrotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="p">)</span>
 </pre></div>
 <div class="highlight">
-<pre><span></span>Embed(plot, "northwest_measles")()
+<pre><span></span><span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"northwest_measles"</span><span class="p">)()</span>
 </pre></div>
 <script id="9711b5b4-83ef-4e9e-b406-5fe3859f6bf3" src="northwest_measles.js">
 </script>
@@ -264,35 +264,35 @@ plot = bars.opts(
 <p>Interesting how Oregon spiked up in 1935 and 1936 then dropped down in 1937. According to <a href="https://www.cdc.gov/measles/about/history.html">the CDC</a>, the measles vaccine didn't come out until 1963, so I guess those ebb-and-flows are just the normal way diseases cycle through populations. Oregon and Washington probably had more immigrants than Idaho, as well as higher population densities in their main cities, which might account for their higher rates. Hard to say without corellating data.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org4777d0b">
-<h2 id="org4777d0b">Facets</h2>
-<div class="outline-text-2" id="text-org4777d0b">
+<div class="outline-2" id="outline-container-orgfbb53b7">
+<h2 id="orgfbb53b7">Facets</h2>
+<div class="outline-text-2" id="text-orgfbb53b7">
 <p>The bar-plot is okay for comparing the cities within any given year but they are hard to get trends from. Here's how to use selecting to plot lines for each city.</p>
 <div class="highlight">
-<pre><span></span>grouped = dataset.select(State=northwest, Year=(1928, 2011)).to(holoviews.Curve, "Year", "measles")
-gridspace = grouped.grid("State")
-plot = gridspace.opts(
-    opts.Curve(width=200, color="crimson", tools=["hover"])
-)
+<pre><span></span><span class="n">grouped</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">State</span><span class="o">=</span><span class="n">northwest</span><span class="p">,</span> <span class="n">Year</span><span class="o">=</span><span class="p">(</span><span class="mi">1928</span><span class="p">,</span> <span class="mi">2011</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">holoviews</span><span class="o">.</span><span class="n">Curve</span><span class="p">,</span> <span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"measles"</span><span class="p">)</span>
+<span class="n">gridspace</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="s2">"State"</span><span class="p">)</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">gridspace</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"crimson"</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s2">"hover"</span><span class="p">])</span>
+<span class="p">)</span>
 </pre></div>
 <div class="highlight">
-<pre><span></span>Embed(plot, "northwest_measles_grid")()
+<pre><span></span><span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"northwest_measles_grid"</span><span class="p">)()</span>
 </pre></div>
 <script id="e0183ad8-47df-4d67-befe-c2c4ba24e369" src="northwest_measles_grid.js">
 </script></div>
 </div>
-<div class="outline-2" id="outline-container-org910d574">
-<h2 id="org910d574">Overlays</h2>
-<div class="outline-text-2" id="text-org910d574">
+<div class="outline-2" id="outline-container-orgef9add6">
+<h2 id="orgef9add6">Overlays</h2>
+<div class="outline-text-2" id="text-orgef9add6">
 <p>While the side-by-side plots are clearer than the bar-plots, it's harder to compare the cities year-by-year, so it might be better to plot them over each other.</p>
 <div class="highlight">
-<pre><span></span>overlay = grouped.overlay("State")
-plot = overlay.opts(
-    opts.Curve(height=500, width=1000, color=holoviews.Cycle(values=["crimson", "slateblue", "cadetblue"]))
-)
+<pre><span></span><span class="n">overlay</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">overlay</span><span class="p">(</span><span class="s2">"State"</span><span class="p">)</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">overlay</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">holoviews</span><span class="o">.</span><span class="n">Cycle</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="s2">"crimson"</span><span class="p">,</span> <span class="s2">"slateblue"</span><span class="p">,</span> <span class="s2">"cadetblue"</span><span class="p">]))</span>
+<span class="p">)</span>
 </pre></div>
 <div class="highlight">
-<pre><span></span>Embed(plot, "northwest_measles_overlay")()
+<pre><span></span><span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"northwest_measles_overlay"</span><span class="p">)()</span>
 </pre></div>
 <script id="a78fd3e5-9234-410a-b6f3-267875eab6aa" src="northwest_measles_overlay.js">
 </script></div>

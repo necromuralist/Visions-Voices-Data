@@ -11,7 +11,7 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 3
-#+BEGIN_SRC ipython :session kaggle :results none :exports none
+#+BEGIN_SRC python :session kaggle :results none :exports none
 %load_ext autoreload
 %autoreload 2
 #+END_SRC
@@ -20,14 +20,14 @@
 * Set Up
 ** Imports
 *** From Python
-#+BEGIN_SRC ipython :session kaggle :results none
+#+BEGIN_SRC python :session kaggle :results none
 from datetime import datetime
 from functools import partial
 from pathlib import Path
 import os
 #+END_SRC
 *** From PyPi
-#+BEGIN_SRC ipython :session kaggle :results none
+#+BEGIN_SRC python :session kaggle :results none
 from dotenv import load_dotenv
 from bokeh.io.doc import curdoc
 from bokeh.models import CrosshairTool, HoverTool
@@ -45,12 +45,12 @@ import pandas
 import seaborn
 #+END_SRC
 *** My Projects
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 from graeae.tables import CountPercentage
 #+end_src
 ** Plotting
-#+BEGIN_SRC ipython :session kaggle :results none
+#+BEGIN_SRC python :session kaggle :results none
 get_ipython().run_line_magic('matplotlib', 'inline')
 get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
 seaborn.set(style="whitegrid",
@@ -61,11 +61,11 @@ seaborn.set(style="whitegrid",
             font_scale=1)
 #+END_SRC
 *** Holoviews Backend
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 holoviews.extension("bokeh")
 #+end_src
 *** Bokeh
-#+BEGIN_SRC ipython :session kaggle :results none
+#+BEGIN_SRC python :session kaggle :results none
 class Plots:
     width = 1100
     height = 600
@@ -99,7 +99,7 @@ curdoc().theme = theme
 #+END_SRC
 
 ** Setup Libraries
-#+BEGIN_SRC ipython :session kaggle :results none
+#+BEGIN_SRC python :session kaggle :results none
 load_dotenv()
 table = partial(tabulate, headers="keys", tablefmt="orgtbl")
 kaggle_path = Path(os.environ.get("KAGGLE")).expanduser()
@@ -107,20 +107,20 @@ assert kaggle_path.is_dir()
 #+END_SRC
 
 ** The Embedder
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 Embed = partial(
     EmbedBokeh, 
     folder_path="../../files/posts/tutorials/kaggle-on-time-series-visualization/")
 #+end_src
 * The Data
 ** New York Stock Exchange Prices
-#+BEGIN_SRC ipython :session kaggle :results none
+#+BEGIN_SRC python :session kaggle :results none
 nyse_path = kaggle_path.joinpath("nyse/prices.csv")
 assert nyse_path.is_file()
 nyse = pandas.read_csv(nyse_path, parse_dates=["date"])
 #+END_SRC
 
-#+BEGIN_SRC ipython :session kaggle :results output :exports both
+#+BEGIN_SRC python :session kaggle :results output :exports both
 nyse.info()
 #+END_SRC
 
@@ -140,7 +140,7 @@ dtypes: datetime64[ns](1), float64(5), object(1)
 memory usage: 45.5+ MB
 #+end_example
 
-#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+#+BEGIN_SRC python :session kaggle :results output raw :exports both
 nyse = nyse.set_index("date")
 print(table(nyse.head()))
 #+END_SRC
@@ -159,7 +159,7 @@ The notebook describes this as an example of a "strong" date case because the da
 *** UPS
    Some of the correlational plots don't show anything meaningful when you use the market as a whole (I guess because different stocks are moving in different directions) so I'm going to pull out the UPS stock information to use later.
 
-#+BEGIN_SRC ipython :session kaggle :results output :exports both
+#+BEGIN_SRC python :session kaggle :results output :exports both
 ups = nyse[nyse.symbol=="UPS"]
 print(ups.shape)
 #+END_SRC
@@ -168,14 +168,14 @@ print(ups.shape)
 : (1762, 6)
 
 ** Shelter Outcomes
-#+BEGIN_SRC ipython :session kaggle :results none
+#+BEGIN_SRC python :session kaggle :results none
 shelter_path = kaggle_path.joinpath(
     "austin-animal-center-shelter-outcomes/aac_shelter_outcomes.csv")
 assert shelter_path.is_file()
 shelter = pandas.read_csv(shelter_path, parse_dates=["datetime", "date_of_birth"])
 #+END_SRC
 
-#+BEGIN_SRC ipython :session kaggle :results output :exports both
+#+BEGIN_SRC python :session kaggle :results output :exports both
 shelter.info()
 #+END_SRC
 
@@ -202,7 +202,7 @@ memory usage: 7.2+ MB
 
 Some of the columns are only identifiers (like a name) so we'll drop them to make it easier to inspect the data (although we aren't really going to do anything with it here anyway).
 
-#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+#+BEGIN_SRC python :session kaggle :results output raw :exports both
 shelter = shelter[["outcome_type", "age_upon_outcome", "datetime",
                    "animal_type", "breed", "color", "sex_upon_outcome",
                    "date_of_birth"]]
@@ -220,14 +220,14 @@ print(table(shelter.head(), showindex=False))
 
 The notebook describes this as an example of a "weak" date case because the dates are only there for record-keeping and, while they might be significant for modeling, aren't acting as an index for the records.
 ** Cryptocurrency
-#+BEGIN_SRC ipython :session kaggle :results none
+#+BEGIN_SRC python :session kaggle :results none
 currency_path = kaggle_path.joinpath("all-crypto-currencies/crypto-markets.csv")
 assert currency_path.is_file()
 currency = pandas.read_csv(currency_path, parse_dates=["date"])
 currency = currency.set_index("date")
 #+END_SRC
 
-#+begin_src ipython :session kaggle :results output raw :exports both
+#+begin_src python :session kaggle :results output raw :exports both
 print(table(currency.head(), showindex=True))
 #+end_src
 
@@ -245,14 +245,14 @@ print(table(currency.head(), showindex=True))
 *** Per Date
    Here's a plot of the birth dates of the animals in the shelter.
 
-#+BEGIN_SRC ipython :session kaggle :results none
+#+BEGIN_SRC python :session kaggle :results none
 births = shelter.date_of_birth.value_counts()
 births_peak = births.idxmax()
 births = births.reset_index().sort_values(by="index")
 births.columns = ["birth_date", "Births"]
 #+END_SRC
 
-#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+#+BEGIN_SRC python :session kaggle :results output raw :exports both
 hover = HoverTool(
 tooltips=[
     ("Date", "@birth_date{%Y-%m-%d}"),
@@ -306,7 +306,7 @@ There's a couple of different ways to do the grouping of the days, but the simpl
 *** By Year
 First I'll get the counts for each day using =value_counts= and print off the first values to see what it looks like. Calling =reset_index= changes the Series to a DataFrame with the dates as a column.
 
-#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+#+BEGIN_SRC python :session kaggle :results output raw :exports both
 counts = shelter.date_of_birth.value_counts()
 print(table(counts.head().reset_index(), showindex=False))
 #+END_SRC
@@ -322,7 +322,7 @@ print(table(counts.head().reset_index(), showindex=False))
 
 Now we can aggregate the birth-counts by year using [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.resample.html][resample]].
 
-#+BEGIN_SRC ipython :session kaggle :results output :exports both
+#+BEGIN_SRC python :session kaggle :results output :exports both
 year_counts = counts.resample("Y")
 print(year_counts)
 #+END_SRC
@@ -335,13 +335,13 @@ Note that this is a grouper, we don't get what we want until we call a method (l
 #+end_quote
 
 Now I'm going to aggregate the yearly counts using the =sum= method.
-#+BEGIN_SRC ipython :session kaggle :results none
+#+BEGIN_SRC python :session kaggle :results none
 sums = year_counts.sum()
 #+END_SRC
 
 Calling =sum= gives us a Series with the dates in the index and the sums as the values.
 
-#+BEGIN_SRC ipython :session kaggle :results output :exports both
+#+BEGIN_SRC python :session kaggle :results output :exports both
 print(sums.head())
 #+END_SRC
 
@@ -354,13 +354,13 @@ print(sums.head())
 : Freq: A-DEC, Name: date_of_birth, dtype: int64
 
 The [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.idxmax.html][=idxmax=]] method gives us the index of the greatest value and since the dates are in the index, using it will give us the date of the year with the most births, which I'll call =sum_peak=.
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 sum_peak = sums.idxmax()
 #+END_SRC
 
 As you may have noticed, all the dates are set for December 31, but for plotting it's better to have them set to January 1 so I'll set it here and do a some other cleanup.
 
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 sums = sums.reset_index()
 sums.columns = ["birth_date", "Births"]
 sum_peak = datetime(sum_peak.year, 1, 1)
@@ -372,7 +372,7 @@ And now for the plot.
 **** The Tools
 First set up the tools
 
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 hover = HoverTool(
 tooltips=[
     ("Year", "@birth_date{%Y}"),
@@ -388,13 +388,13 @@ tooltips=[
 Now I'll create our plotting objects.
 
 The vertical line will mark the peak year.
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 line = holoviews.VLine(sum_peak, label=sum_peak.strftime("%Y"))
 #+end_src
 
 And I'm going to add an annotation to it.
 
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 x = datetime(sum_peak.year, 3, 1)
 text = holoviews.Text(x, sums.max()[1]/4,
                       "Max Year: {}".format(sum_peak.year), 
@@ -403,7 +403,7 @@ text = holoviews.Text(x, sums.max()[1]/4,
 
 Now our data-curve.
 
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 curve = holoviews.Curve(
     sums, ("birth_date", "Date of Birth"), "Births",
 )
@@ -412,7 +412,7 @@ curve = holoviews.Curve(
 Next I'll make two copies of the curve - =main= will be the larger curve and =range_finder= will 
 create a plot below it to let us select a range of dates which get linked using the =RangeToolLink=.
 
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 main = curve.relabel("Births Per Year (1991- 2017)").opts(
     labelled=["y"], 
     tools=[hover], 
@@ -428,13 +428,13 @@ link = RangeToolLink(range_finder, main)
 
 Now combine the parts to make our visible plot.
 
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 combination = (line * main * text + line * range_finder)
 #+end_src
 
 This next bit is to set some styling on the plot.
 **** The Options
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 layout = combination.opts(
     opts.Layout(shared_axes=False, merge_tools=False, fontsize=Plots.font_size),
     opts.Curve(width=Plots.width, 
@@ -448,7 +448,7 @@ layout = combination.opts(
 **** Embed
 Finally, create the javascript and embed it in this notebook.
 
-#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+#+BEGIN_SRC python :session kaggle :results output raw :exports both
 Embed(layout, "shelter_births_per_year")()
 #+END_SRC
 
@@ -460,7 +460,7 @@ Embed(layout, "shelter_births_per_year")()
 *** Lollipop Plot
 An alternative way to look at this would be a lollipop plot.
 
-#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+#+BEGIN_SRC python :session kaggle :results output raw :exports both
 # The Tools
 hover = HoverTool(
 tooltips=[
@@ -528,7 +528,7 @@ Note that putting the title in the Layout changes the font. I was trying to set 
 ** Animal Shelter Outcomes
    While knowing the birthdates of the animals in the shelter is interesting, what about the dates when their cases were resolved? I originally called this /Animal Shelter Adoptions/ but "outcome" doesn't always mean "adopted", unfortunately.
 
-#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+#+BEGIN_SRC python :session kaggle :results output raw :exports both
 CountPercentage(shelter.outcome_type)()
 #+END_SRC
 
@@ -547,7 +547,7 @@ CountPercentage(shelter.outcome_type)()
 
 I don't know what /Disposal/ means, but it doesn't sound good. Neither does /Missing/, really, especially if there are any restaurants nearby. Anyway, on to the plotting. I'll aggregate the outcome-counts by year.
 
-#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+#+BEGIN_SRC python :session kaggle :results output raw :exports both
 outcome_counts = shelter.datetime.value_counts()
 outcomes = outcome_counts.resample("Y").sum()
 print(table(outcome_counts.head().reset_index(), showindex=False))
@@ -567,13 +567,13 @@ outcomes["date"] = outcomes.date.apply(lambda date: datetime(date.year, 1, 1))
 
 This next part isn't really necessary but I think keeping the names consistent is helpful, especially since I was struggling so much with HoloViews and didn't need the extra confusion about column-names being wrong.
 
-#+BEGIN_SRC ipython :session kaggle :results none
+#+BEGIN_SRC python :session kaggle :results none
 sums = sums.rename(columns=dict(birth_date="date", Births="count"))
 #+END_SRC
 
 This is going to be like the previous plot but I'm going to add a crosshair tool to make it easier to see how things line up with the axis.
 
-#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+#+BEGIN_SRC python :session kaggle :results output raw :exports both
 # The Tools
 hover = HoverTool(
 tooltips=[
@@ -631,7 +631,7 @@ You can see that there are only six years of adoption outcomes although there ar
    
 The previous plot was a count-plot. You can also use other summary-statistics like a mean to see how things changed over time. I'll plot the mean volume per year for the New York Stock Exchange.
 
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 volume = nyse.volume.resample("Y")
 means = volume.mean().reset_index()
 means["date"] = means.date.apply(lambda date: datetime(date.year, 1, 1))
@@ -639,14 +639,14 @@ means["date"] = means.date.apply(lambda date: datetime(date.year, 1, 1))
 
 Along with the standard deviations.
 
-#+begin_src ipython :session kaggle :results none
+#+begin_src python :session kaggle :results none
 deviations = volume.std().reset_index()
 means["two_sigma"] = means.volume + 2 * deviations.volume
 #+end_src
 
 And now our plot.
 
-#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+#+BEGIN_SRC python :session kaggle :results output raw :exports both
 # The Tools
 hover = HoverTool(
 tooltips=[
@@ -703,7 +703,7 @@ Embed(layout, "stock_mean_volume")()
 
 While the standard deviation is important, in this case it's so large that it smashes the mean down flat (although maybe the fact that it's so large tells us that the mean isn't so accurate).
 
-#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
+#+BEGIN_SRC python :session kaggle :results output raw :exports both
 hover = HoverTool(
 tooltips=[
     ("Year", "@date{%Y}"),
@@ -753,11 +753,11 @@ I took the cross-hairs out of the plot with the standard deviations but it was (
   The [[https://pandas.pydata.org/pandas-docs/stable/visualization.html#lag-plot][Lag Plot]] helps you check if there is a significance to the ordering of the data. You are plotting the value in the inputs vs the next value (e.g. one day against the following day). If there is no significance to the ordering then the plot will look random.
 ** NYSE
    The =lag_plot= function isn't one of the DataFrame methods so I don't think it will work with HoloViews, although I haven't tried yet.
-#+BEGIN_SRC ipython :session kaggle :results none
+#+BEGIN_SRC python :session kaggle :results none
 volume = nyse.volume.resample("D")
 #+END_SRC
 
-#+BEGIN_SRC ipython :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/lag_plot.png
+#+BEGIN_SRC python :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/lag_plot.png
 figure, axe = pyplot.subplots()
 figure.suptitle("NYSE Volume Lag Plot", weight="bold")
 subplot = lag_plot(volume.sum().tail(365), ax=axe)
@@ -773,7 +773,7 @@ subplot = lag_plot(volume.sum().tail(365), ax=axe)
 
 So, the center points do seem to show a relationship, as the next-days volume goes up along with the previous day's volume, but I don't know what those bands around 0 are. One thing I noticed is that there are holidays in the data.
 
-#+BEGIN_SRC ipython :session kaggle :results output :exports both
+#+BEGIN_SRC python :session kaggle :results output :exports both
 print(volume.sum().index[-6])
 #+END_SRC
 
@@ -782,7 +782,7 @@ print(volume.sum().index[-6])
 
 And there are also weekends in there.
 
-#+BEGIN_SRC ipython :session kaggle :results output :exports both
+#+BEGIN_SRC python :session kaggle :results output :exports both
 print(volume.sum().index[-13].strftime("%a"))
 #+END_SRC
 
@@ -791,7 +791,7 @@ print(volume.sum().index[-13].strftime("%a"))
 
 So it's likely that there are days in there where there was no trading and so they won't correlate with the days that preceded the start of a break or the ones that followed the end of a break. I think. I don't really know if there's trading all year round.
 
-#+BEGIN_SRC ipython :session kaggle :results output :exports both
+#+BEGIN_SRC python :session kaggle :results output :exports both
 volume_sums = volume.sum()
 for day in volume_sums[volume_sums==0][-9:].index:
     print("{} {}".format(day.strftime("%a"), day))
@@ -812,7 +812,7 @@ So it does look like the zeros are weekends and holidays.
 
 ** UPS
    Here's what just the UPS trading volumes look like.
-#+BEGIN_SRC ipython :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/ups_lag_plot.png
+#+BEGIN_SRC python :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/ups_lag_plot.png
 figure, axe = pyplot.subplots()
 figure.suptitle("UPS Trading Volume Lag Plot", weight="bold")
 subplot = lag_plot(ups.volume, ax=axe)
@@ -829,7 +829,7 @@ subplot = lag_plot(ups.volume, ax=axe)
 I don't know why but that makes it look better. I guess the market as a whole doesn't move quite so well together day by day as a single stock does.
 * Autcorrelation Plot
 ** UPS
-#+BEGIN_SRC ipython :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/autocorrelation.png
+#+BEGIN_SRC python :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/autocorrelation.png
 figure, axe = pyplot.subplots()
 figure.suptitle("UPS Trading Volume Daily Autocorrelation", weight="bold")
 subplot = autocorrelation_plot(ups.volume, ax=axe)
@@ -847,7 +847,7 @@ subplot = autocorrelation_plot(ups.volume, ax=axe)
 * Cryptocurrency
 ** Lag Plot
 
-#+BEGIN_SRC ipython :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/crypto_lag.png
+#+BEGIN_SRC python :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/crypto_lag.png
 crypto_daily = currency.volume.resample("D")
 figure, axe = pyplot.subplots()
 figure.suptitle("Cryptocurrency Volume Lag Plot", weight="bold")
@@ -865,7 +865,7 @@ subplot = lag_plot(crypto_daily.sum(), ax=axe)
 Unlike the stock-exchange, the cryptocurrencies seem to move together and don't take days off.
 
 ** Autocorrelation Plot
-#+BEGIN_SRC ipython :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/currency_autocorrelation.png
+#+BEGIN_SRC python :session kaggle :results raw drawer :ipyfile ../../files/posts/tutorials/kaggle-on-time-series-visualization/currency_autocorrelation.png
 figure, axe = pyplot.subplots()
 figure.suptitle("Dogecoin Auto Correlation", weight="bold")
 dogecoin = currency[currency.name=="Dogecoin"]
