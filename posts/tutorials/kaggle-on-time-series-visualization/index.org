@@ -35,6 +35,7 @@ from bokeh.themes import Theme
 from bokeh.palettes import Category20
 from holoviews import opts
 from holoviews.plotting.links import RangeToolLink
+from hvplot import hvPlot
 from pandas.plotting import autocorrelation_plot, lag_plot
 from tabulate import tabulate
 import holoviews
@@ -291,7 +292,7 @@ Embed(layout, "shelter_births")()
 
 #+RESULTS:
 #+begin_export html
-<script src="shelter_births.js" id="8252b014-fc6f-4d96-896c-b5c0c0dc31cd"></script>
+<script src="shelter_births.js" id="d1793db5-32ff-47c4-ba11-83d1393fd041"></script>
 #+end_export
 
 It lools like there was an upward trend until about 2016 when it started to taper off, but since we're counting by days there's a lot of variance so we're going to group the data using pandas' [[https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.resample.html][resample]] method.
@@ -391,6 +392,15 @@ The vertical line will mark the peak year.
 line = holoviews.VLine(sum_peak, label=sum_peak.strftime("%Y"))
 #+end_src
 
+And I'm going to add an annotation to it.
+
+#+begin_src ipython :session kaggle :results none
+x = datetime(sum_peak.year, 3, 1)
+text = holoviews.Text(x, sums.max()[1]/4,
+                      "Max Year: {}".format(sum_peak.year), 
+                      halign="left")
+#+end_src
+
 Now our data-curve.
 
 #+begin_src ipython :session kaggle :results none
@@ -419,7 +429,7 @@ link = RangeToolLink(range_finder, main)
 Now combine the parts to make our visible plot.
 
 #+begin_src ipython :session kaggle :results none
-combination = (line * main + line * range_finder).cols(1)
+combination = (line * main * text + line * range_finder)
 #+end_src
 
 This next bit is to set some styling on the plot.
@@ -428,11 +438,12 @@ This next bit is to set some styling on the plot.
 layout = combination.opts(
     opts.Layout(shared_axes=False, merge_tools=False, fontsize=Plots.font_size),
     opts.Curve(width=Plots.width, 
-               color=Plots.blue, 
+               color=Plots.blue,
+               padding=0.01,
                fontsize=Plots.font_size, 
                line_width=Plots.line_width),
     opts.VLine(color=Plots.red, line_dash="dotted")
-)
+).cols(1)
 #+end_src
 **** Embed
 Finally, create the javascript and embed it in this notebook.
@@ -443,12 +454,13 @@ Embed(layout, "shelter_births_per_year")()
 
 #+RESULTS:
 #+begin_export html
-<script src="shelter_births_per_year.js" id="1240d42b-9227-4537-83d7-f0c4934c820b"></script>
+<script src="shelter_births_per_year.js" id="108235f3-e4fc-4afa-b724-a53c18323b6f"></script>
 #+end_export
+
 *** Lollipop Plot
 An alternative way to look at this would be a lollipop plot.
 
-#+BEGIN_SRC ipython :session kaggle :results output raw :exports bothh
+#+BEGIN_SRC ipython :session kaggle :results output raw :exports both
 # The Tools
 hover = HoverTool(
 tooltips=[
@@ -648,7 +660,7 @@ tooltips=[
 )
 
 # The Parts
-top_spread = holoviews.Spread((means.date, means.volume, means.two_sigma),
+top_spread = holoviews.ErrorBars((means.date, means.volume, means.two_sigma),
                               group="volume")
 
 volume_curve = holoviews.Curve(means, 
@@ -686,7 +698,7 @@ Embed(layout, "stock_mean_volume")()
 
 #+RESULTS:
 #+begin_export html
-<script src="stock_mean_volume.js" id="2d83123f-ed75-4579-83e0-474bcb95fde5"></script>
+<script src="stock_mean_volume.js" id="7e7ad56b-bc40-47f2-81df-211c792cc2aa"></script>
 #+end_export
 
 While the standard deviation is important, in this case it's so large that it smashes the mean down flat (although maybe the fact that it's so large tells us that the mean isn't so accurate).
@@ -706,7 +718,7 @@ volume_circles = holoviews.Scatter(means, "date", "volume")
 volume_spikes = holoviews.Spikes(means, ("date", "Date"), 
                                  ("volume", "Volume"))
 combination = volume_spikes * volume_circles
-crosshairs = CrosshairTool(line_color=Plots.light_blue)
+crosshairs = CrosshairTool(line_color=Plots.light_blue, dimensions="height")
 
 layout = combination.opts(
     opts.Layout(shared_axes=False,
@@ -731,7 +743,7 @@ Embed(layout, "stock_lollipops")()
 
 #+RESULTS:
 #+begin_export html
-<script src="stock_lollipops.js" id="dadfcccd-a5b1-4ccb-8a2e-92f3ff0c7e4e"></script>
+<script src="stock_lollipops.js" id="188e1b48-71ce-4867-925f-a3c183fbcd8a"></script>
 #+end_export
 
 #+begin_quote
@@ -740,6 +752,7 @@ I took the cross-hairs out of the plot with the standard deviations but it was (
 * Lag Plots
   The [[https://pandas.pydata.org/pandas-docs/stable/visualization.html#lag-plot][Lag Plot]] helps you check if there is a significance to the ordering of the data. You are plotting the value in the inputs vs the next value (e.g. one day against the following day). If there is no significance to the ordering then the plot will look random.
 ** NYSE
+   The =lag_plot= function isn't one of the DataFrame methods so I don't think it will work with HoloViews, although I haven't tried yet.
 #+BEGIN_SRC ipython :session kaggle :results none
 volume = nyse.volume.resample("D")
 #+END_SRC
