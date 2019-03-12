@@ -41,6 +41,7 @@ import seaborn
 *** This Project
 #+begin_src ipython :session giss :results none
 from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+from graeae.tables import CountPercentage
 #+end_src
 ** Load Dotenv
 #+begin_src ipython :session giss :results none
@@ -143,6 +144,7 @@ EQU-24N      -0.21
 90S-64S       0.67
 Name: 0, dtype: float64
 #+end_example
+
 * Tidying the Data
 I'm going to use the locations for names so I'll make them something more meaningful for me. I don't know if these are, strictly speaking, the right names, but it's close enough.
 
@@ -177,15 +179,37 @@ print(giss.columns)
 
 #+begin_src ipython :session giss :results output :exports both
 giss_tidy = giss.melt(id_vars=["Year"], var_name="location", 
-                      value_name="distance_from_normal")
+                      value_name="Difference From Normal")
 print(giss_tidy.iloc[0])
 #+end_src
 
 #+RESULTS:
-: Year                      1880
-: location                Global
-: distance_from_normal     -0.18
+: Year                        1880
+: location                  Global
+: Difference From Normal     -0.18
 : Name: 0, dtype: object
+
+#+begin_src ipython :session giss :results output raw :exports both
+CountPercentage(giss_tidy.location)()
+#+end_src
+
+#+RESULTS:
+| Value                 | Count | Percentage |
+|-----------------------+-------+------------|
+| Southern Hemisphere   |   139 |       7.14 |
+| South Temperate       |   139 |       7.14 |
+| North Frigid          |   139 |       7.14 |
+| Northern Hemisphere   |   139 |       7.14 |
+| Tropics               |   139 |       7.14 |
+| Northern Extratropics |   139 |       7.14 |
+| Tropic of Cancer      |   139 |       7.14 |
+| Global                |   139 |       7.14 |
+| Tropic of Capricorn   |   139 |       7.14 |
+| Southern Extratropics |   139 |       7.14 |
+| North Sub-Tropic      |   139 |       7.14 |
+| North Temperate       |   139 |       7.14 |
+| South Frigid          |   139 |       7.14 |
+| South Sub-Tropic      |   139 |       7.14 |
 
 * Frigid North
 #+begin_src ipython :session giss :results output raw :exports both
@@ -210,7 +234,7 @@ Embed(layout, "north_frigid_zone")()
 
 #+RESULTS:
 #+begin_export html
-<script src="north_frigid_zone.js" id="ada11f1a-cb04-4b79-86ef-250c60d7964d"></script>
+<script src="north_frigid_zone.js" id="18b6baf0-fb8a-4fc6-9586-2606a125df8c"></script>
 #+end_export
 
 * All Zones Dropdown
@@ -221,7 +245,7 @@ tooltips = [
     ("Year", "@Year"),
     ("Difference from Normal", "@difference_from_normal"),
 ],
-    formatters={"difference_from_normal": "numeral"},
+    formatters={"Difference From Normal": "numeral"},
     mode="vline",
 )
 
@@ -239,9 +263,8 @@ print("[[file:{}][Link To Plot]]".format(file_name))
 [[file:zones.html][Link To Plot]]
 
 * All Zones Overlay
-
 #+begin_src ipython :session giss :results output raw :exports both
-plot = giss_tidy.hvplot("Year", "distance_from_normal", 
+plot = giss_tidy.hvplot("Year", "Difference From Normal", 
                         by="location", 
                         title="Difference by Zone", width=Plots.width, height=Plots.height)
 line = holoviews.HLine(0)
@@ -251,5 +274,58 @@ Embed(layout, "all_zones")()
 
 #+RESULTS:
 #+begin_export html
-<script src="all_zones.js" id="4447c1a4-a946-4c53-91c0-bbfcf18b68ca"></script>
+<script src="all_zones.js" id="e88941ad-68d5-4e10-bfa3-1e1a6549121f"></script>
+#+end_export
+
+* Hemispheres
+#+begin_src ipython :session giss :results output raw :exports both
+hemispheres = ["Global", "Northern Hemisphere", "Southern Hemisphere"]
+hemispheres = giss_tidy[giss_tidy.location.isin(hemispheres)]
+plot = hemispheres.hvplot("Year", "Difference From Normal", by="location", 
+                          title="Difference by Hemisphere", 
+                          width=Plots.width, height=Plots.height)
+line = holoviews.HLine(0)
+layout = plot * line
+Embed(layout, "hemispheres")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="hemispheres.js" id="8aece51a-e3b0-45de-bac3-75dfb19bf4fc"></script>
+#+end_export
+
+* Extratropics
+#+begin_src ipython :session giss :results output raw :exports both
+zones = ["Global", "Northern Extratropics", "Southern Extratropics", "Tropics"]
+zones = giss_tidy[giss_tidy.location.isin(zones)]
+plot = zones.hvplot("Year", "Difference From Normal", by="location", 
+                    title="Tropics and Extratropics", 
+                    width=Plots.width, height=Plots.height)
+line = holoviews.HLine(0)
+layout = plot * line
+Embed(layout, "tropics")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="tropics.js" id="6540b168-d7f2-48f9-9007-4ab5849b26c5"></script>
+#+end_export
+
+* The Zones
+#+begin_src ipython :session giss :results output raw :exports both
+zones = ["North Frigid", "North Temperate", "North Sub-Tropic", 
+         "Tropic of Cancer", "Tropic of Capricorn",
+         "South Frigid", "South Temperate", "South Sub-Tropic"]
+zones =  giss_tidy[giss_tidy.location.isin(zones)]
+plot = zones.hvplot("Year", "Difference From Normal", by="location", 
+                    title="Difference By Zone", 
+                    width=Plots.width, height=Plots.height)
+line = holoviews.HLine(0)
+layout = plot * line
+Embed(layout, "zones")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="zones.js" id="c352d410-47b4-4420-be79-3cbd0f63bae8"></script>
 #+end_export
