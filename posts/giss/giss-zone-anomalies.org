@@ -11,6 +11,10 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 2
+#+BEGIN_SRC ipython :session giss :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
 * Introduction
   This is a look at the [[https://data.giss.nasa.gov/gistemp/][Godard Institute for Space Studies' surface temperature data]]. I'll look at the mean difference between the yearly mean and the historical "normal" mean.
 * Set Up
@@ -27,7 +31,12 @@ from dotenv import load_dotenv
 from holoviews import opts
 import holoviews
 from holoviews.plotting.links import RangeToolLink
+from bokeh.models import HoverTool
+from bokeh.palettes import Category20
+
+import hvplot.pandas
 import pandas
+import seaborn
 #+end_src
 *** This Project
 #+begin_src ipython :session giss :results none
@@ -39,12 +48,29 @@ load_dotenv(".env")
 #+end_src
 ** HoloViews Backend
 #+begin_src ipython :session giss :results none
-holoviews.extension("bokeh")
+holoviews.extension("bokeh", width=800)
 #+end_src
 ** The Embedder
 #+begin_src ipython :session giss :results none
+OUTPUT_PATH = Path("../../files/posts/giss/giss-zone-anomalies/")
 Embed = partial(EmbedBokeh, 
-                folder_path="../../files/posts/giss/giss-zone-anomalies/")
+                folder_path=OUTPUT_PATH)
+#+end_src
+** Some Settings
+#+begin_src ipython :session giss :results none
+class Plots:
+    width = 1100
+    height = 600
+    font = "Open Sans"
+    font_size = "24pt"
+    line_width = 3
+    tools =  ["hover"]
+    blue = seaborn.color_palette()[0]
+    light_blue = Category20[3][1]
+    red = seaborn.color_palette()[3]
+    yellow = seaborn.color_palette()[1]
+    green = seaborn.color_palette()[2]
+    gray = seaborn.color_palette()[7]
 #+end_src
 * The Data
   The data is the /Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'/ [[https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv][Zonal Annual Means]] which shows the different annual mean for each zone in a given year.
@@ -117,28 +143,113 @@ EQU-24N      -0.21
 90S-64S       0.67
 Name: 0, dtype: float64
 #+end_example
+* Tidying the Data
+I'm going to use the locations for names so I'll make them something more meaningful for me. I don't know if these are, strictly speaking, the right names, but it's close enough.
+
+#+begin_src ipython :session giss :results output :exports both
+name_remap = {
+    "Glob": "Global",
+    "NHem": "Northern Hemisphere",
+    "SHem": "Southern Hemisphere",
+    "24N-90N": "Northern Extratropics",
+    "24S-24N": "Tropics",
+    "90S-24S": "Southern Extratropics",
+    "64N-90N": "North Frigid",
+    "44N-64N": "North Temperate",
+    "24N-44N": "North Sub-Tropic",
+    "EQU-24N": "Tropic of Cancer",
+    "24S-EQU": "Tropic of Capricorn",
+    "44S-24S": "South Sub-Tropic",
+    "64S-44S": "South Temperate",
+    "90S-64S": "South Frigid",
+}
+giss = giss.rename(columns=name_remap)
+print(giss.columns)
+#+end_src
+
+#+RESULTS:
+: Index(['Year', 'Global', 'Northern Hemisphere', 'Southern Hemisphere',
+:        'Northern Extratropics', 'Tropics', 'Southern Extratropics',
+:        'North Frigid', 'North Temperate', 'North Sub-Tropic',
+:        'Tropic of Cancer', 'Tropic of Capricorn', 'South Sub-Tropic',
+:        'South Temperate', 'South Frigid'],
+:       dtype='object')
+
+#+begin_src ipython :session giss :results output :exports both
+giss_tidy = giss.melt(id_vars=["Year"], var_name="location", 
+                      value_name="distance_from_normal")
+print(giss_tidy.iloc[0])
+#+end_src
+
+#+RESULTS:
+: Year                      1880
+: location                Global
+: distance_from_normal     -0.18
+: Name: 0, dtype: object
 
 * Frigid North
 #+begin_src ipython :session giss :results output raw :exports both
+# The Parts
 curve = holoviews.Curve(
     giss, "Year",
-    ("24N-90N", "Temperature Anomaly (C)")
+    ("North Frigid", "Temperature Anomaly (C)")
 )
 
 main = curve.relabel("North Frigid Zone").opts(width=800, labelled=["y"], 
-                                                 tools=["pan", "zoom_in", "hover", "reset"]) # * holoviews.HiLne(0)
+                                                 tools=["pan", "zoom_in", "hover", "reset"])
 range_finder = curve.opts(width=800, height=100, yaxis=None, default_tools=[])
-
+line = holoviews.HLine(0)
 RangeToolLink(range_finder, main)
 
-layout = (main + range_finder).cols(1)
+layout = (main * line + range_finder).cols(1)
 layout = layout.opts(
-    opts.Layout(shared_axes=False, merge_tools=False)) #,
-#    opts.HLine(color="black", alpha=0.2, line_width=2))
+    opts.Layout(shared_axes=False, merge_tools=False),
+    opts.HLine(color="black", alpha=0.2, line_width=2))
 Embed(layout, "north_frigid_zone")()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<script src="north_frigid_zone.js" id="dc917e1b-f53e-4369-89cf-ec82319e0227"></script>
+<script src="north_frigid_zone.js" id="ada11f1a-cb04-4b79-86ef-250c60d7964d"></script>
+#+end_export
+
+* All Zones Dropdown
+#+begin_src ipython :session giss :results output raw :exports both
+# the Tools
+hover = HoverTool(
+tooltips = [
+    ("Year", "@Year"),
+    ("Difference from Normal", "@difference_from_normal"),
+],
+    formatters={"difference_from_normal": "numeral"},
+    mode="vline",
+)
+
+plot = giss_tidy.hvplot("Year", groupby="location", width=Plots.width, dynamic=False, tools=[hover])
+line = holoviews.HLine(0)
+layout = plot * line
+file_name = "zones.html"
+
+plot_file = OUTPUT_PATH.joinpath(file_name)
+holoviews.save(layout, plot_file)
+print("[[file:{}][Link To Plot]]".format(file_name))
+#+end_src
+
+#+RESULTS:
+[[file:zones.html][Link To Plot]]
+
+* All Zones Overlay
+
+#+begin_src ipython :session giss :results output raw :exports both
+plot = giss_tidy.hvplot("Year", "distance_from_normal", 
+                        by="location", 
+                        title="Difference by Zone", width=Plots.width, height=Plots.height)
+line = holoviews.HLine(0)
+layout = plot * line
+Embed(layout, "all_zones")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="all_zones.js" id="4447c1a4-a946-4c53-91c0-bbfcf18b68ca"></script>
 #+end_export

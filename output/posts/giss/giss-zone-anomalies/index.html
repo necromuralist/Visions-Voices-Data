@@ -64,35 +64,39 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org798b9b1">Introduction</a></li>
-<li><a href="#org5638fd0">Set Up</a>
+<li><a href="#orgee721ec">Introduction</a></li>
+<li><a href="#orge2a0e0f">Set Up</a>
 <ul>
-<li><a href="#org108f174">Imports</a></li>
-<li><a href="#org43373a8">Load Dotenv</a></li>
-<li><a href="#org1b2ed67">HoloViews Backend</a></li>
-<li><a href="#org39dafd1">The Embedder</a></li>
+<li><a href="#org6080a9b">Imports</a></li>
+<li><a href="#org558ddb5">Load Dotenv</a></li>
+<li><a href="#orgbd3e255">HoloViews Backend</a></li>
+<li><a href="#org1105339">The Embedder</a></li>
+<li><a href="#orgd22623c">Some Settings</a></li>
 </ul>
 </li>
-<li><a href="#org32f7ead">The Data</a></li>
-<li><a href="#org4327605">Frigid North</a></li>
+<li><a href="#org5347804">The Data</a></li>
+<li><a href="#org193667e">Tidying the Data</a></li>
+<li><a href="#org1dfb505">Frigid North</a></li>
+<li><a href="#org7c33c12">All Zones Dropdown</a></li>
+<li><a href="#orgb07e260">All Zones Overlay</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org798b9b1">
-<h2 id="org798b9b1">Introduction</h2>
-<div class="outline-text-2" id="text-org798b9b1">
+<div class="outline-2" id="outline-container-orgee721ec">
+<h2 id="orgee721ec">Introduction</h2>
+<div class="outline-text-2" id="text-orgee721ec">
 <p>This is a look at the <a href="https://data.giss.nasa.gov/gistemp/">Godard Institute for Space Studies' surface temperature data</a>. I'll look at the mean difference between the yearly mean and the historical "normal" mean.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org5638fd0">
-<h2 id="org5638fd0">Set Up</h2>
-<div class="outline-text-2" id="text-org5638fd0"></div>
-<div class="outline-3" id="outline-container-org108f174">
-<h3 id="org108f174">Imports</h3>
-<div class="outline-text-3" id="text-org108f174"></div>
-<div class="outline-4" id="outline-container-orgaf70637">
-<h4 id="orgaf70637">Python</h4>
-<div class="outline-text-4" id="text-orgaf70637">
+<div class="outline-2" id="outline-container-orge2a0e0f">
+<h2 id="orge2a0e0f">Set Up</h2>
+<div class="outline-text-2" id="text-orge2a0e0f"></div>
+<div class="outline-3" id="outline-container-org6080a9b">
+<h3 id="org6080a9b">Imports</h3>
+<div class="outline-text-3" id="text-org6080a9b"></div>
+<div class="outline-4" id="outline-container-org71a722e">
+<h4 id="org71a722e">Python</h4>
+<div class="outline-text-4" id="text-org71a722e">
 <div class="highlight">
 <pre><span></span>from functools import partial
 from pathlib import Path
@@ -100,56 +104,82 @@ import os
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org36cafba">
-<h4 id="org36cafba">PyPi</h4>
-<div class="outline-text-4" id="text-org36cafba">
+<div class="outline-4" id="outline-container-org00714be">
+<h4 id="org00714be">PyPi</h4>
+<div class="outline-text-4" id="text-org00714be">
 <div class="highlight">
 <pre><span></span>from dotenv import load_dotenv
 from holoviews import opts
 import holoviews
 from holoviews.plotting.links import RangeToolLink
+from bokeh.models import HoverTool
+from bokeh.palettes import Category20
+
+import hvplot.pandas
 import pandas
+import seaborn
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org6520f85">
-<h4 id="org6520f85">This Project</h4>
-<div class="outline-text-4" id="text-org6520f85">
+<div class="outline-4" id="outline-container-orgddfa321">
+<h4 id="orgddfa321">This Project</h4>
+<div class="outline-text-4" id="text-orgddfa321">
 <div class="highlight">
 <pre><span></span>from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org43373a8">
-<h3 id="org43373a8">Load Dotenv</h3>
-<div class="outline-text-3" id="text-org43373a8">
+<div class="outline-3" id="outline-container-org558ddb5">
+<h3 id="org558ddb5">Load Dotenv</h3>
+<div class="outline-text-3" id="text-org558ddb5">
 <div class="highlight">
 <pre><span></span>load_dotenv(".env")
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org1b2ed67">
-<h3 id="org1b2ed67">HoloViews Backend</h3>
-<div class="outline-text-3" id="text-org1b2ed67">
+<div class="outline-3" id="outline-container-orgbd3e255">
+<h3 id="orgbd3e255">HoloViews Backend</h3>
+<div class="outline-text-3" id="text-orgbd3e255">
 <div class="highlight">
-<pre><span></span>holoviews.extension("bokeh")
+<pre><span></span>holoviews.extension("bokeh", width=800)
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org39dafd1">
-<h3 id="org39dafd1">The Embedder</h3>
-<div class="outline-text-3" id="text-org39dafd1">
+<div class="outline-3" id="outline-container-org1105339">
+<h3 id="org1105339">The Embedder</h3>
+<div class="outline-text-3" id="text-org1105339">
 <div class="highlight">
-<pre><span></span>Embed = partial(EmbedBokeh, 
-                folder_path="../../files/posts/giss/giss-zone-anomalies/")
+<pre><span></span>OUTPUT_PATH = Path("../../files/posts/giss/giss-zone-anomalies/")
+Embed = partial(EmbedBokeh, 
+                folder_path=OUTPUT_PATH)
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgd22623c">
+<h3 id="orgd22623c">Some Settings</h3>
+<div class="outline-text-3" id="text-orgd22623c">
+<div class="highlight">
+<pre><span></span>class Plots:
+    width = 1100
+    height = 600
+    font = "Open Sans"
+    font_size = "24pt"
+    line_width = 3
+    tools =  ["hover"]
+    blue = seaborn.color_palette()[0]
+    light_blue = Category20[3][1]
+    red = seaborn.color_palette()[3]
+    yellow = seaborn.color_palette()[1]
+    green = seaborn.color_palette()[2]
+    gray = seaborn.color_palette()[7]
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org32f7ead">
-<h2 id="org32f7ead">The Data</h2>
-<div class="outline-text-2" id="text-org32f7ead">
+<div class="outline-2" id="outline-container-org5347804">
+<h2 id="org5347804">The Data</h2>
+<div class="outline-text-2" id="text-org5347804">
 <p>The data is the <i>Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'</i> <a href="https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv">Zonal Annual Means</a> which shows the different annual mean for each zone in a given year.</p>
 <div class="highlight">
 <pre><span></span>zone_path = Path(os.environ.get("ZONES")).expanduser()
@@ -214,28 +244,115 @@ EQU-24N      -0.21
 Name: 0, dtype: float64
 </pre></div>
 </div>
-<div class="outline-2" id="outline-container-org4327605">
-<h2 id="org4327605">Frigid North</h2>
-<div class="outline-text-2" id="text-org4327605">
+<div class="outline-2" id="outline-container-org193667e">
+<h2 id="org193667e">Tidying the Data</h2>
+<div class="outline-text-2" id="text-org193667e">
+<p>I'm going to use the locations for names so I'll make them something more meaningful for me. I don't know if these are, strictly speaking, the right names, but it's close enough.</p>
 <div class="highlight">
-<pre><span></span>curve = holoviews.Curve(
+<pre><span></span>name_remap = {
+    "Glob": "Global",
+    "NHem": "Northern Hemisphere",
+    "SHem": "Southern Hemisphere",
+    "24N-90N": "Northern Extratropics",
+    "24S-24N": "Tropics",
+    "90S-24S": "Southern Extratropics",
+    "64N-90N": "North Frigid",
+    "44N-64N": "North Temperate",
+    "24N-44N": "North Sub-Tropic",
+    "EQU-24N": "Tropic of Cancer",
+    "24S-EQU": "Tropic of Capricorn",
+    "44S-24S": "South Sub-Tropic",
+    "64S-44S": "South Temperate",
+    "90S-64S": "South Frigid",
+}
+giss = giss.rename(columns=name_remap)
+print(giss.columns)
+</pre></div>
+<pre class="example">
+Index(['Year', 'Global', 'Northern Hemisphere', 'Southern Hemisphere',
+       'Northern Extratropics', 'Tropics', 'Southern Extratropics',
+       'North Frigid', 'North Temperate', 'North Sub-Tropic',
+       'Tropic of Cancer', 'Tropic of Capricorn', 'South Sub-Tropic',
+       'South Temperate', 'South Frigid'],
+      dtype='object')
+
+</pre>
+<div class="highlight">
+<pre><span></span>giss_tidy = giss.melt(id_vars=["Year"], var_name="location", 
+                      value_name="distance_from_normal")
+print(giss_tidy.iloc[0])
+</pre></div>
+<pre class="example">
+Year                      1880
+location                Global
+distance_from_normal     -0.18
+Name: 0, dtype: object
+
+</pre></div>
+</div>
+<div class="outline-2" id="outline-container-org1dfb505">
+<h2 id="org1dfb505">Frigid North</h2>
+<div class="outline-text-2" id="text-org1dfb505">
+<div class="highlight">
+<pre><span></span># The Parts
+curve = holoviews.Curve(
     giss, "Year",
-    ("24N-90N", "Temperature Anomaly (C)")
+    ("North Frigid", "Temperature Anomaly (C)")
 )
 
 main = curve.relabel("North Frigid Zone").opts(width=800, labelled=["y"], 
-                                                 tools=["pan", "zoom_in", "hover", "reset"]) # * holoviews.HiLne(0)
+                                                 tools=["pan", "zoom_in", "hover", "reset"])
 range_finder = curve.opts(width=800, height=100, yaxis=None, default_tools=[])
-
+line = holoviews.HLine(0)
 RangeToolLink(range_finder, main)
 
-layout = (main + range_finder).cols(1)
+layout = (main * line + range_finder).cols(1)
 layout = layout.opts(
-    opts.Layout(shared_axes=False, merge_tools=False)) #,
-#    opts.HLine(color="black", alpha=0.2, line_width=2))
+    opts.Layout(shared_axes=False, merge_tools=False),
+    opts.HLine(color="black", alpha=0.2, line_width=2))
 Embed(layout, "north_frigid_zone")()
 </pre></div>
-<script id="dc917e1b-f53e-4369-89cf-ec82319e0227" src="north_frigid_zone.js">
+<script id="ada11f1a-cb04-4b79-86ef-250c60d7964d" src="north_frigid_zone.js">
+</script></div>
+</div>
+<div class="outline-2" id="outline-container-org7c33c12">
+<h2 id="org7c33c12">All Zones Dropdown</h2>
+<div class="outline-text-2" id="text-org7c33c12">
+<div class="highlight">
+<pre><span></span># the Tools
+hover = HoverTool(
+tooltips = [
+    ("Year", "@Year"),
+    ("Difference from Normal", "@difference_from_normal"),
+],
+    formatters={"difference_from_normal": "numeral"},
+    mode="vline",
+)
+
+plot = giss_tidy.hvplot("Year", groupby="location", width=Plots.width, dynamic=False, tools=[hover])
+line = holoviews.HLine(0)
+layout = plot * line
+file_name = "zones.html"
+
+plot_file = OUTPUT_PATH.joinpath(file_name)
+holoviews.save(layout, plot_file)
+print("[[file:{}][Link To Plot]]".format(file_name))
+</pre></div>
+<p><a href="zones.html">Link To Plot</a></p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgb07e260">
+<h2 id="orgb07e260">All Zones Overlay</h2>
+<div class="outline-text-2" id="text-orgb07e260">
+<div class="highlight">
+<pre><span></span>plot = giss_tidy.hvplot("Year", "distance_from_normal", 
+                        by="location", 
+                        title="Difference by Zone", width=Plots.width, height=Plots.height)
+line = holoviews.HLine(0)
+layout = plot * line
+Embed(layout, "all_zones")()
+</pre></div>
+<script id="4447c1a4-a946-4c53-91c0-bbfcf18b68ca" src="all_zones.js">
 </script></div>
 </div>
 </div>
@@ -257,7 +374,11 @@ Embed(layout, "north_frigid_zone")()
 </div>
 </div>
 <script src="../../../assets/js/all-nocdn.js">
-</script>
+</script><!-- fancy dates -->
+<script>
+    moment.locale("en");
+    fancydates(0, "YYYY-MM-DD HH:mm");
+</script><!-- end fancy dates -->
 <script>
     baguetteBox.run('div#content', {
         ignoreClass: 'islink',
