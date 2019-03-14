@@ -190,26 +190,29 @@ print(giss_tidy.iloc[0])
 : Name: 0, dtype: object
 
 #+begin_src ipython :session giss :results output raw :exports both
-CountPercentage(giss_tidy.location)()
+location = CountPercentage(giss_tidy.location)
+# plot = location.table.hvplot.table()
+# Embed(plot, "location_table")()
+location()
 #+end_src
 
 #+RESULTS:
 | Value                 | Count | Percentage |
 |-----------------------+-------+------------|
-| Southern Hemisphere   |   139 |       7.14 |
-| Tropic of Capricorn   |   139 |       7.14 |
 | South Temperate       |   139 |       7.14 |
-| Tropic of Cancer      |   139 |       7.14 |
-| Northern Extratropics |   139 |       7.14 |
+| South Sub-Tropic      |   139 |       7.14 |
+| Southern Hemisphere   |   139 |       7.14 |
+| Tropics               |   139 |       7.14 |
+| North Temperate       |   139 |       7.14 |
 | Northern Hemisphere   |   139 |       7.14 |
 | South Frigid          |   139 |       7.14 |
-| South Sub-Tropic      |   139 |       7.14 |
-| North Frigid          |   139 |       7.14 |
-| North Temperate       |   139 |       7.14 |
 | North Sub-Tropic      |   139 |       7.14 |
-| Global                |   139 |       7.14 |
-| Tropics               |   139 |       7.14 |
+| Tropic of Cancer      |   139 |       7.14 |
+| North Frigid          |   139 |       7.14 |
 | Southern Extratropics |   139 |       7.14 |
+| Northern Extratropics |   139 |       7.14 |
+| Tropic of Capricorn   |   139 |       7.14 |
+| Global                |   139 |       7.14 |
 
 * Frigid North
 #+begin_src ipython :session giss :results output raw :exports both
@@ -234,7 +237,7 @@ Embed(layout, "north_frigid_zone")()
 
 #+RESULTS:
 #+begin_export html
-<script src="north_frigid_zone.js" id="d99d152e-7b3d-4455-aa37-f31baf64f810"></script>
+<script src="north_frigid_zone.js" id="2526d4db-874a-452a-8f09-759ff2c35724"></script>
 #+end_export
 
 * All Zones Dropdown
@@ -274,7 +277,7 @@ Embed(layout, "all_zones")()
 
 #+RESULTS:
 #+begin_export html
-<script src="all_zones.js" id="dc4bc3a4-6ca7-4d3a-ac2c-e673260e22dd"></script>
+<script src="all_zones.js" id="20069467-9d42-4808-bc8f-834c819d2e88"></script>
 #+end_export
 
 * Hemispheres
@@ -291,7 +294,7 @@ Embed(layout, "hemispheres")()
 
 #+RESULTS:
 #+begin_export html
-<script src="hemispheres.js" id="84b63987-1f4d-423e-836d-fa07fdd3d919"></script>
+<script src="hemispheres.js" id="2cf942bc-0e00-4be5-a72b-fb76e34559c9"></script>
 #+end_export
 
 * Extratropics
@@ -308,7 +311,7 @@ Embed(layout, "tropics")()
 
 #+RESULTS:
 #+begin_export html
-<script src="tropics.js" id="f885191a-c4c9-4fc5-918d-29eab7ed6e98"></script>
+<script src="tropics.js" id="0e434fbb-549f-4f60-a187-d6be4e8a97b7"></script>
 #+end_export
 
 * The Zones
@@ -327,10 +330,57 @@ Embed(layout, "zones")()
 
 #+RESULTS:
 #+begin_export html
-<script src="zones.js" id="bb63acb9-dc4c-4865-bf45-0e9446acff71"></script>
+<script src="zones.js" id="1de210ff-8758-4475-856b-f8a21f75fef4"></script>
 #+end_export
 
-* All Zones Dropdown
-#+begin_src ipython :session giss :results output raw :exports both
-
+* Separate Zones
+#+begin_src ipython :session giss :results none
+location_map = {
+    "Global": "Hemispheres",
+    "Northern Hemisphere": "Hemispheres",
+    "Southern Hemisphere": "Hemispheres",
+    "Northern Extratropics": "Tropical", 
+    'Tropics': "Tropical", 
+    'Southern Extratropics': "Tropical",
+    'North Frigid': "Zones", 
+    'North Temperate': "Zones", 
+    'North Sub-Tropic': "Zones",
+    'Tropic of Cancer': "Zones", 
+    'Tropic of Capricorn': "Zones", 
+    'South Sub-Tropic': "Zones",
+    'South Temperate': "Zones", 
+    'South Frigid': "Zones",
+}
+giss_tidy["category"] = giss_tidy.location.map(location_map)
 #+end_src
+
+#+begin_src ipython :session giss :results output raw :exports both
+giss_tidy = giss_tidy.rename(columns={"Difference From Normal": "difference_from_normal"})
+hover = HoverTool(
+tooltips = [
+    ("Year", "@Year"),
+    ("Difference from Normal", "@difference_from_normal"),
+    ("Location", "@location")
+],
+    formatters={"difference_from_normal": "numeral"},
+    mode="vline",
+)
+
+plot = giss_tidy.hvplot("Year", "difference_from_normal",
+                        by="location",
+                        groupby="category",
+                        width=Plots.width, 
+                        dynamic=False, 
+                        tools=[hover])
+line = holoviews.HLine(0)
+layout = plot * line
+
+file_name = "category_zones.html"
+
+plot_file = OUTPUT_PATH.joinpath(file_name)
+holoviews.save(layout, plot_file)
+print("[[file:{}][Link To Plot]]".format(file_name))
+#+end_src
+
+#+RESULTS:
+[[file:category_zones.html][Link To Plot]]
