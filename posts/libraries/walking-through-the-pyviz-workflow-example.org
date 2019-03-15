@@ -1,0 +1,110 @@
+#+BEGIN_COMMENT
+.. title: Walking Through the Pyviz Workflow Example
+.. slug: walking-through-the-pyviz-workflow-example
+.. date: 2019-03-14 12:48:04 UTC-07:00
+.. tags: tutorial,pyviz
+.. category: 
+.. link: 
+.. description: Copying the PyViz Workflow example.
+.. type: text
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+#+BEGIN_SRC ipython :session pyviz :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Beginning
+  This is a replication of (most of) the [[http://pyviz.org/tutorial/01_Workflow_Introduction.html][pyviz workflow introduction]] to see if I can replicate it. Nothing new here.
+** Set Up
+*** Imports
+   From Python.
+#+BEGIN_SRC ipython :session pyviz :results none
+from functools import partial
+from pathlib import Path
+import os
+#+END_SRC
+From PyPi.
+#+BEGIN_SRC ipython :session pyviz :results none
+from dotenv import load_dotenv
+from tabulate import tabulate
+
+import holoviews
+import hvplot.pandas
+import numpy
+import pandas
+#+END_SRC
+ My Stuff.
+#+BEGIN_SRC ipython :session pyviz :results none
+from graeae.visualization import EmbedBokeh
+#+END_SRC
+*** Presets
+    Load the dotenv.
+#+BEGIN_SRC ipython :session pyviz :results none
+load_dotenv(".env")
+#+END_SRC
+
+Set up the bokeh.
+#+BEGIN_SRC ipython :session pyviz :results none
+OUTPUT_FOLDER = Path("../../files/posts/libraries/walking-through-the-pyviz-workflow-example/")
+Embed = partial(EmbedBokeh, folder_path=OUTPUT_FOLDER)
+holoviews.extension("bokeh", width=800)
+#+END_SRC
+
+Set up the table printer.
+#+BEGIN_SRC ipython :session pyviz :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys", showindex=False)
+#+END_SRC
+
+*** Load Some Data
+    Measles and pertusis by state.
+#+BEGIN_SRC ipython :session pyviz :results none
+diseases = pandas.read_csv(Path(os.environ.get("DISEASES")))
+#+END_SRC
+
+#+BEGIN_SRC ipython :session pyviz :results output raw :exports both
+print(TABLE(diseases.head()))
+#+END_SRC
+
+#+RESULTS:
+| Year | Week | State   | measles | pertussis |
+|------+------+---------+---------+-----------|
+| 1928 |    1 | Alabama |    3.67 |       nan |
+| 1928 |    2 | Alabama |    6.25 |       nan |
+| 1928 |    3 | Alabama |    7.95 |       nan |
+| 1928 |    4 | Alabama |   12.58 |       nan |
+| 1928 |    5 | Alabama |    8.03 |       nan |
+
+* Middle
+** Looking at Measles
+*** By Year
+#+BEGIN_SRC ipython :session pyviz :results output raw :exports both
+measles_by_year = diseases[["Year", "measles"]].groupby("Year").agg(numpy.sum)
+plot = measles_by_year.hvplot(title="Measles In the U.S. by Year", xlabel="Year", ylabel="Cases")
+Embed(plot, "measles_by_year")()
+#+END_SRC
+
+#+RESULTS:
+#+begin_export html
+<script src="measles_by_year.js" id="5ac4e2c4-4e3a-44cd-bfad-7c975b501463"></script>
+#+end_export
+
+You can see from the plot that cases of measles have dropped dramatically over the years, with a particularly sharp drop in the 1960's.
+*** Vaccines Enter The Picture
+According to the [[https://www.cdc.gov/measles/about/history.html][CDC]], the Edmonston-D vaccine was released in the United States in 1963 and the Edmonston-Enders vaccine (which is still currently in use) was released in 1968.
+
+#+BEGIN_SRC ipython :session pyviz :results output raw :exports both
+first = holoviews.VLine(1963)
+current = holoviews.VLine(1968)
+highest = holoviews.VLine(int(measles_by_year.idxmax())).opts(color="red")
+plot_2 = plot * first * current * highest
+Embed(plot_2, "measles_with_landmarks")()
+#+END_SRC
+
+#+RESULTS:
+#+begin_export html
+<script src="measles_with_landmarks.js" id="102b2a55-6138-4dd5-85d2-17454c59beb1"></script>
+#+end_export
+
+* End
