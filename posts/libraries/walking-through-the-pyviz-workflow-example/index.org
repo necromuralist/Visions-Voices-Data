@@ -27,6 +27,7 @@ import os
 #+END_SRC
 From PyPi.
 #+BEGIN_SRC ipython :session pyviz :results none
+from bokeh.models import HoverTool
 from dotenv import load_dotenv
 from tabulate import tabulate
 
@@ -80,14 +81,27 @@ print(TABLE(diseases.head()))
 ** Looking at Measles
 *** By Year
 #+BEGIN_SRC ipython :session pyviz :results output raw :exports both
+hover = HoverTool(
+    tooltips=[
+        ("Measles", "@measles{0,0}"),
+        ("Year", "@Year"),
+    ],
+    formatters={"measles": "numeral"},
+    mode="vline",
+)
+
 measles_by_year = diseases[["Year", "measles"]].groupby("Year").agg(numpy.sum)
-plot = measles_by_year.hvplot(title="Measles In the U.S. by Year", xlabel="Year", ylabel="Cases")
+plot = measles_by_year.hvplot(title="Measles In the U.S. by Year", 
+                              xlabel="Year", 
+                              ylabel="Cases", 
+                              width=1000,
+                              tools=[hover])
 Embed(plot, "measles_by_year")()
 #+END_SRC
 
 #+RESULTS:
 #+begin_export html
-<script src="measles_by_year.js" id="5ac4e2c4-4e3a-44cd-bfad-7c975b501463"></script>
+<script src="measles_by_year.js" id="311d19cf-f5bb-4e5f-848f-167ca27f4f56"></script>
 #+end_export
 
 You can see from the plot that cases of measles have dropped dramatically over the years, with a particularly sharp drop in the 1960's.
@@ -95,16 +109,30 @@ You can see from the plot that cases of measles have dropped dramatically over t
 According to the [[https://www.cdc.gov/measles/about/history.html][CDC]], the Edmonston-D vaccine was released in the United States in 1963 and the Edmonston-Enders vaccine (which is still currently in use) was released in 1968.
 
 #+BEGIN_SRC ipython :session pyviz :results output raw :exports both
-first = holoviews.VLine(1963)
-current = holoviews.VLine(1968)
+first = holoviews.VLine(1963).opts(color="black", alpha=0.5)
+first_label = holoviews.Text(1963, 27000, "Vaccine Introduced", halign="right")
+current = holoviews.VLine(1968).opts(color="black", alpha=0.5)
+current_label = holoviews.Text(1968, 27000, "Newer Vaccine", halign="left")
 highest = holoviews.VLine(int(measles_by_year.idxmax())).opts(color="red")
-plot_2 = plot * first * current * highest
+highest_label = holoviews.Text(int(measles_by_year.idxmax()), 27000, "Most Cases", halign="left")
+lowest = holoviews.VLine(int(measles_by_year.idxmin())).opts(color="blue", alpha=0.5)
+lowest_label = holoviews.Text(int(measles_by_year.idxmin()), 27000, "Zero Cases", halign="right")
+
+plot_2 = (plot 
+          * first * first_label 
+          * current * current_label 
+          * highest * highest_label 
+          * lowest * lowest_label)
 Embed(plot_2, "measles_with_landmarks")()
 #+END_SRC
 
 #+RESULTS:
 #+begin_export html
-<script src="measles_with_landmarks.js" id="102b2a55-6138-4dd5-85d2-17454c59beb1"></script>
+<script src="measles_with_landmarks.js" id="e6b133cd-a982-49d4-97dd-fff6c3642793"></script>
 #+end_export
+** Measles By State
+#+begin_src ipython :session pyviz :results output raw :exports both 
+
+#+end_src
 
 * End
