@@ -27,7 +27,7 @@ import os
 #+END_SRC
 From PyPi.
 #+BEGIN_SRC ipython :session pyviz :results none
-from bokeh.models import HoverTool
+from bokeh.models import CrosshairTool, HoverTool
 from dotenv import load_dotenv
 from tabulate import tabulate
 
@@ -77,6 +77,12 @@ print(TABLE(diseases.head()))
 | 1928 |    4 | Alabama |   12.58 |       nan |
 | 1928 |    5 | Alabama |    8.03 |       nan |
 
+*** Constants
+#+BEGIN_SRC ipython :session pyviz :results none
+class Plots:
+    width = 800
+    height = 600
+#+end_src
 * Middle
 ** Looking at Measles
 *** By Year
@@ -101,7 +107,7 @@ Embed(plot, "measles_by_year")()
 
 #+RESULTS:
 #+begin_export html
-<script src="measles_by_year.js" id="79bcf57c-a4eb-40a9-810f-a73c44db3db0"></script>
+<script src="measles_by_year.js" id="0c1bd4a3-5b3c-4fcb-ac1d-a58707c55220"></script>
 #+end_export
 
 You can see from the plot that cases of measles have dropped dramatically over the years, with a particularly sharp drop in the 1960's.
@@ -128,7 +134,7 @@ Embed(plot_2, "measles_with_landmarks")()
 
 #+RESULTS:
 #+begin_export html
-<script src="measles_with_landmarks.js" id="ba9438e1-8263-49e7-99fb-0de3eb2a3b8c"></script>
+<script src="measles_with_landmarks.js" id="332e76e1-349f-46d7-980d-2436faa41ad9"></script>
 #+end_export
 *** Measles By State
     This creates a dropdown menu so we can see the states' measles cases separately. It doesn't work in this template so I'm saving it as a separate page.
@@ -155,7 +161,7 @@ Embed(plot, "oregon_vs_hawaii")()
 
 #+RESULTS:
 #+begin_export html
-<script src="oregon_vs_hawaii.js" id="0ac36923-c364-4963-ad01-7cd91ddc6bf7"></script>
+<script src="oregon_vs_hawaii.js" id="a5948eff-5cd0-4d97-89b6-53601ea84509"></script>
 #+end_export
 
 I don't know why but the labels don't work. Surprisingly (to me), Hawaii had more cases and with huge swings. Perhaps since it's an island the sailors and other travelers introduced epidemics. Or maybe they weren't as good at keeping records back then.
@@ -168,10 +174,21 @@ According to the [[https://en.wikipedia.org/wiki/List_of_U.S._states_and_territo
     - Hawaii
     - North Dakota
 #+begin_src ipython :session pyviz :results output raw :exports both 
+hover = HoverTool(
+    tooltips=[
+        ("Measles", "@measles{0,0}"),
+        ("Year", "@Year"),
+        ("State", "@State"),
+    ],
+    formatters={"measles": "numeral"},
+)
+
 states = ["Montana", "Idaho", "Hawaii", "North Dakota"]
-plot = (measles_by_state.loc[1930:2005, states].hvplot(
+start_year, end_year = 1930, 2005
+plot = (measles_by_state.loc[start_year:end_year, states].hvplot(
     by="State",
     title="Measles 1930 - 2005",
+    tools=[hover],
     width=800) 
         ,* first * first_label 
         ,* current * current_label)
@@ -180,7 +197,59 @@ Embed(plot, "four_states_measles")()
 
 #+RESULTS:
 #+begin_export html
-<script src="four_states_measles.js" id="6342cf49-b434-4915-a802-7350ffc031f6"></script>
+<script src="four_states_measles.js" id="0b88e38d-e38c-40b0-81ca-02eca28f6273"></script>
 #+end_export
 
-* End
+Surprisingly Hawaii had the highest values in 1951 and 1955.
+*** Faceting
+    Another way to compare the states is to plot them side-by side.
+#+begin_src ipython :session pyviz :results output raw :exports both 
+hover = HoverTool(
+    tooltips=[
+        ("Measles", "@measles{0,0}"),
+        ("Year", "@Year"),
+    ],
+    formatters={"measles": "numeral"},
+)
+
+crosshairs = CrosshairTool()
+plot = (measles_by_state.loc[start_year:end_year, states].hvplot(
+    title="Measles By Year",
+    x="Year", col="State", width=300, height=200, rot=90, tools=[crosshairs])
+        ,* first * first_label * current * current_label)
+Embed(plot, "faceted_measles_states")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="faceted_measles_states.js" id="cfb60145-6b0a-4e8b-b461-ea75dcdb8397"></script>
+#+end_export
+** Bar Chart
+#+begin_src ipython :session pyviz :results output raw :exports both 
+plot = measles_by_state.loc[1960:1970, states].hvplot.bar(
+    "Year",
+    height=500,
+    by="State", 
+    rot=90)
+Embed(plot, "measles_bar_chart")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="measles_bar_chart.js" id="7f9bdc94-8a69-4a66-b39c-50cecdf70d15"></script>
+#+end_export
+*** Nationwide Mean With Error Bars
+#+begin_src ipython :session pyviz :results output raw :exports both 
+error = diseases.groupby("Year").agg({"measles": [numpy.mean, numpy.std]}).xs(
+    "measles", axis=1)
+plot = (error.hvplot(y="mean", title="Mean National Measles Cases By Year") 
+        ,* holoviews.ErrorBars(error, "Year").redim.range(mean=(0, None)) 
+        ,* first * first_label * current * current_label)
+Embed(plot, "error_bars")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="error_bars.js" id="8078fe82-39bb-44e9-9f24-79d8ddb8ee1b"></script>
+#+end_export
+
