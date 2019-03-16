@@ -101,7 +101,7 @@ Embed(plot, "measles_by_year")()
 
 #+RESULTS:
 #+begin_export html
-<script src="measles_by_year.js" id="311d19cf-f5bb-4e5f-848f-167ca27f4f56"></script>
+<script src="measles_by_year.js" id="79bcf57c-a4eb-40a9-810f-a73c44db3db0"></script>
 #+end_export
 
 You can see from the plot that cases of measles have dropped dramatically over the years, with a particularly sharp drop in the 1960's.
@@ -110,13 +110,13 @@ According to the [[https://www.cdc.gov/measles/about/history.html][CDC]], the Ed
 
 #+BEGIN_SRC ipython :session pyviz :results output raw :exports both
 first = holoviews.VLine(1963).opts(color="black", alpha=0.5)
-first_label = holoviews.Text(1963, 27000, "Vaccine Introduced", halign="right")
+first_label = holoviews.Text(1963 - 1, 27000, "Vaccine Introduced", halign="right")
 current = holoviews.VLine(1968).opts(color="black", alpha=0.5)
-current_label = holoviews.Text(1968, 27000, "Newer Vaccine", halign="left")
+current_label = holoviews.Text(1968 + 1, 27000, "Newer Vaccine", halign="left")
 highest = holoviews.VLine(int(measles_by_year.idxmax())).opts(color="red")
-highest_label = holoviews.Text(int(measles_by_year.idxmax()), 27000, "Most Cases", halign="left")
+highest_label = holoviews.Text(int(measles_by_year.idxmax()) + 1, 27000, "Year of the Most Cases", halign="left")
 lowest = holoviews.VLine(int(measles_by_year.idxmin())).opts(color="blue", alpha=0.5)
-lowest_label = holoviews.Text(int(measles_by_year.idxmin()), 27000, "Zero Cases", halign="right")
+lowest_label = holoviews.Text(int(measles_by_year.idxmin()) - 1, 27000, "Zero Cases", halign="right")
 
 plot_2 = (plot 
           * first * first_label 
@@ -128,11 +128,59 @@ Embed(plot_2, "measles_with_landmarks")()
 
 #+RESULTS:
 #+begin_export html
-<script src="measles_with_landmarks.js" id="e6b133cd-a982-49d4-97dd-fff6c3642793"></script>
+<script src="measles_with_landmarks.js" id="ba9438e1-8263-49e7-99fb-0de3eb2a3b8c"></script>
 #+end_export
-** Measles By State
-#+begin_src ipython :session pyviz :results output raw :exports both 
+*** Measles By State
+    This creates a dropdown menu so we can see the states' measles cases separately. It doesn't work in this template so I'm saving it as a separate page.
 
+#+begin_src ipython :session pyviz :results output raw :exports both 
+measles_by_state = diseases.groupby(["Year", "State"])["measles"].sum()
+states_plot = measles_by_state.hvplot(x="Year", groupby="State", width=800, dynamic=False)
+file_name = "measles_by_state.html"
+holoviews.save(states_plot, OUTPUT_FOLDER.joinpath(file_name))
+print("[[file:{}][Link to plot]]".format(file_name))
 #+end_src
+
+#+RESULTS:
+[[file:measles_by_state.html][Link to plot]]
+*** Oregon Vs Hawaii
+    The addition sign is used to make plots next to each other.
+#+begin_src ipython :session pyviz :results output raw :exports both 
+oregon_plot = states_plot["Oregon"].relabel("Oregon")
+hawaii_plot = states_plot["Hawaii"].relabel("Hawaii")
+plot = (oregon_plot * first * first_label * current * current_label
+        + hawaii_plot * first * first_label * current * current_label)
+Embed(plot, "oregon_vs_hawaii")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="oregon_vs_hawaii.js" id="0ac36923-c364-4963-ad01-7cd91ddc6bf7"></script>
+#+end_export
+
+I don't know why but the labels don't work. Surprisingly (to me), Hawaii had more cases and with huge swings. Perhaps since it's an island the sailors and other travelers introduced epidemics. Or maybe they weren't as good at keeping records back then.
+
+According to the [[https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_historical_population][Census Count]] Oregon was quite a bit more populous than Hawaii.
+*** Four States
+    The four states nearest to Hawaii in population are (in descending order):
+    - Montana
+    - Idaho
+    - Hawaii
+    - North Dakota
+#+begin_src ipython :session pyviz :results output raw :exports both 
+states = ["Montana", "Idaho", "Hawaii", "North Dakota"]
+plot = (measles_by_state.loc[1930:2005, states].hvplot(
+    by="State",
+    title="Measles 1930 - 2005",
+    width=800) 
+        ,* first * first_label 
+        ,* current * current_label)
+Embed(plot, "four_states_measles")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="four_states_measles.js" id="6342cf49-b434-4915-a802-7350ffc031f6"></script>
+#+end_export
 
 * End
