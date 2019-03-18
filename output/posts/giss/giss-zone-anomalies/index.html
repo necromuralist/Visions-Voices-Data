@@ -65,43 +65,46 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org6a3cd1c">Introduction</a></li>
-<li><a href="#orgf7f1d78">Set Up</a>
+<li><a href="#org831ef3b">Introduction</a></li>
+<li><a href="#orgcd3d3e7">Set Up</a>
 <ul>
-<li><a href="#orgc7225fa">Imports</a></li>
-<li><a href="#org479af31">Load Dotenv</a></li>
-<li><a href="#orgf96596e">HoloViews Backend</a></li>
-<li><a href="#org21d6eb3">The Embedder</a></li>
-<li><a href="#orge57f21c">Some Settings</a></li>
+<li><a href="#orgaa7411e">Imports</a></li>
+<li><a href="#org2a2b65d">Load Dotenv</a></li>
+<li><a href="#org3366268">HoloViews Backend</a></li>
+<li><a href="#org7ea8655">The Embedder</a></li>
+<li><a href="#org8953f6a">Some Settings</a></li>
 </ul>
 </li>
-<li><a href="#orgabbc5af">The Data</a></li>
-<li><a href="#orgf52a377">Tidying the Data</a></li>
-<li><a href="#orgd833553">Frigid North</a></li>
-<li><a href="#orgbaa5915">All Zones Dropdown</a></li>
-<li><a href="#org038f710">All Zones Overlay</a></li>
-<li><a href="#org1d0afa9">Hemispheres</a></li>
-<li><a href="#orgbd1db51">Extratropics</a></li>
-<li><a href="#orgb9d6b39">The Zones</a></li>
-<li><a href="#orge9ef2c9">Separate Zones</a></li>
+<li><a href="#orge31e9a1">The Data</a></li>
+<li><a href="#org0cbefb0">Tidying the Data</a></li>
+<li><a href="#org6e1401e">The Frigid North</a></li>
+<li><a href="#org3d99497">All Zones Dropdown</a></li>
+<li><a href="#orgda01518">All Zones Overlay</a>
+<ul>
+<li><a href="#orge086c9e">Hemisphere Spikes</a></li>
+</ul>
+</li>
+<li><a href="#org5d26db6">Hemispheres</a></li>
+<li><a href="#org75ddec8">Extratropics</a></li>
+<li><a href="#org232b513">The Zones</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org6a3cd1c">
-<h2 id="org6a3cd1c">Introduction</h2>
-<div class="outline-text-2" id="text-org6a3cd1c">
+<div class="outline-2" id="outline-container-org831ef3b">
+<h2 id="org831ef3b">Introduction</h2>
+<div class="outline-text-2" id="text-org831ef3b">
 <p>This is a look at the <a href="https://data.giss.nasa.gov/gistemp/">Godard Institute for Space Studies' surface temperature data</a>. I'll look at the mean difference between the yearly mean and the historical "normal" mean.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgf7f1d78">
-<h2 id="orgf7f1d78">Set Up</h2>
-<div class="outline-text-2" id="text-orgf7f1d78"></div>
-<div class="outline-3" id="outline-container-orgc7225fa">
-<h3 id="orgc7225fa">Imports</h3>
-<div class="outline-text-3" id="text-orgc7225fa"></div>
-<div class="outline-4" id="outline-container-org01440cc">
-<h4 id="org01440cc">Python</h4>
-<div class="outline-text-4" id="text-org01440cc">
+<div class="outline-2" id="outline-container-orgcd3d3e7">
+<h2 id="orgcd3d3e7">Set Up</h2>
+<div class="outline-text-2" id="text-orgcd3d3e7"></div>
+<div class="outline-3" id="outline-container-orgaa7411e">
+<h3 id="orgaa7411e">Imports</h3>
+<div class="outline-text-3" id="text-orgaa7411e"></div>
+<div class="outline-4" id="outline-container-orgd6afd45">
+<h4 id="orgd6afd45">Python</h4>
+<div class="outline-text-4" id="text-orgd6afd45">
 <div class="highlight">
 <pre><span></span>from functools import partial
 from pathlib import Path
@@ -109,9 +112,9 @@ import os
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org0c2a3ae">
-<h4 id="org0c2a3ae">PyPi</h4>
-<div class="outline-text-4" id="text-org0c2a3ae">
+<div class="outline-4" id="outline-container-org9be387a">
+<h4 id="org9be387a">PyPi</h4>
+<div class="outline-text-4" id="text-org9be387a">
 <div class="highlight">
 <pre><span></span>from dotenv import load_dotenv
 from holoviews import opts
@@ -126,9 +129,9 @@ import seaborn
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org4e83a39">
-<h4 id="org4e83a39">This Project</h4>
-<div class="outline-text-4" id="text-org4e83a39">
+<div class="outline-4" id="outline-container-org2386b67">
+<h4 id="org2386b67">This Project</h4>
+<div class="outline-text-4" id="text-org2386b67">
 <div class="highlight">
 <pre><span></span>from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 from graeae.tables import CountPercentage
@@ -136,25 +139,25 @@ from graeae.tables import CountPercentage
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org479af31">
-<h3 id="org479af31">Load Dotenv</h3>
-<div class="outline-text-3" id="text-org479af31">
+<div class="outline-3" id="outline-container-org2a2b65d">
+<h3 id="org2a2b65d">Load Dotenv</h3>
+<div class="outline-text-3" id="text-org2a2b65d">
 <div class="highlight">
 <pre><span></span>load_dotenv(".env")
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgf96596e">
-<h3 id="orgf96596e">HoloViews Backend</h3>
-<div class="outline-text-3" id="text-orgf96596e">
+<div class="outline-3" id="outline-container-org3366268">
+<h3 id="org3366268">HoloViews Backend</h3>
+<div class="outline-text-3" id="text-org3366268">
 <div class="highlight">
 <pre><span></span>holoviews.extension("bokeh", width=800)
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org21d6eb3">
-<h3 id="org21d6eb3">The Embedder</h3>
-<div class="outline-text-3" id="text-org21d6eb3">
+<div class="outline-3" id="outline-container-org7ea8655">
+<h3 id="org7ea8655">The Embedder</h3>
+<div class="outline-text-3" id="text-org7ea8655">
 <div class="highlight">
 <pre><span></span>OUTPUT_PATH = Path("../../files/posts/giss/giss-zone-anomalies/")
 Embed = partial(EmbedBokeh, 
@@ -162,12 +165,12 @@ Embed = partial(EmbedBokeh,
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orge57f21c">
-<h3 id="orge57f21c">Some Settings</h3>
-<div class="outline-text-3" id="text-orge57f21c">
+<div class="outline-3" id="outline-container-org8953f6a">
+<h3 id="org8953f6a">Some Settings</h3>
+<div class="outline-text-3" id="text-org8953f6a">
 <div class="highlight">
 <pre><span></span>class Plots:
-    width = 1100
+    width = 1200
     height = 600
     font = "Open Sans"
     font_size = "24pt"
@@ -183,9 +186,9 @@ Embed = partial(EmbedBokeh,
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgabbc5af">
-<h2 id="orgabbc5af">The Data</h2>
-<div class="outline-text-2" id="text-orgabbc5af">
+<div class="outline-2" id="outline-container-orge31e9a1">
+<h2 id="orge31e9a1">The Data</h2>
+<div class="outline-text-2" id="text-orge31e9a1">
 <p>The data is the <i>Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'</i> <a href="https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv">Zonal Annual Means</a> which shows the different annual mean for each zone in a given year.</p>
 <div class="highlight">
 <pre><span></span>zone_path = Path(os.environ.get("ZONES")).expanduser()
@@ -250,9 +253,9 @@ EQU-24N      -0.21
 Name: 0, dtype: float64
 </pre></div>
 </div>
-<div class="outline-2" id="outline-container-orgf52a377">
-<h2 id="orgf52a377">Tidying the Data</h2>
-<div class="outline-text-2" id="text-orgf52a377">
+<div class="outline-2" id="outline-container-org0cbefb0">
+<h2 id="org0cbefb0">Tidying the Data</h2>
+<div class="outline-text-2" id="text-org0cbefb0">
 <p>I'm going to use the locations for names so I'll make them something more meaningful for me. I don't know if these are, strictly speaking, the right names, but it's close enough.</p>
 <div class="highlight">
 <pre><span></span>name_remap = {
@@ -315,42 +318,7 @@ location()
 </thead>
 <tbody>
 <tr>
-<td class="org-left">South Temperate</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">South Sub-Tropic</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
 <td class="org-left">Southern Hemisphere</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">Tropics</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">North Temperate</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">Northern Hemisphere</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">South Frigid</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">North Sub-Tropic</td>
 <td class="org-right">139</td>
 <td class="org-right">7.14</td>
 </tr>
@@ -360,17 +328,12 @@ location()
 <td class="org-right">7.14</td>
 </tr>
 <tr>
-<td class="org-left">North Frigid</td>
+<td class="org-left">Global</td>
 <td class="org-right">139</td>
 <td class="org-right">7.14</td>
 </tr>
 <tr>
-<td class="org-left">Southern Extratropics</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">Northern Extratropics</td>
+<td class="org-left">South Sub-Tropic</td>
 <td class="org-right">139</td>
 <td class="org-right">7.14</td>
 </tr>
@@ -380,7 +343,47 @@ location()
 <td class="org-right">7.14</td>
 </tr>
 <tr>
-<td class="org-left">Global</td>
+<td class="org-left">North Temperate</td>
+<td class="org-right">139</td>
+<td class="org-right">7.14</td>
+</tr>
+<tr>
+<td class="org-left">South Temperate</td>
+<td class="org-right">139</td>
+<td class="org-right">7.14</td>
+</tr>
+<tr>
+<td class="org-left">Northern Extratropics</td>
+<td class="org-right">139</td>
+<td class="org-right">7.14</td>
+</tr>
+<tr>
+<td class="org-left">Southern Extratropics</td>
+<td class="org-right">139</td>
+<td class="org-right">7.14</td>
+</tr>
+<tr>
+<td class="org-left">North Sub-Tropic</td>
+<td class="org-right">139</td>
+<td class="org-right">7.14</td>
+</tr>
+<tr>
+<td class="org-left">North Frigid</td>
+<td class="org-right">139</td>
+<td class="org-right">7.14</td>
+</tr>
+<tr>
+<td class="org-left">South Frigid</td>
+<td class="org-right">139</td>
+<td class="org-right">7.14</td>
+</tr>
+<tr>
+<td class="org-left">Northern Hemisphere</td>
+<td class="org-right">139</td>
+<td class="org-right">7.14</td>
+</tr>
+<tr>
+<td class="org-left">Tropics</td>
 <td class="org-right">139</td>
 <td class="org-right">7.14</td>
 </tr>
@@ -388,19 +391,35 @@ location()
 </table>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgd833553">
-<h2 id="orgd833553">Frigid North</h2>
-<div class="outline-text-2" id="text-orgd833553">
+<div class="outline-2" id="outline-container-org6e1401e">
+<h2 id="org6e1401e">The Frigid North</h2>
+<div class="outline-text-2" id="text-org6e1401e">
+<p>This is a plot of the temperature anomalies for the Frigid North using a Range Finder. You can select a range of years using the mini-plot below the main one.</p>
 <div class="highlight">
-<pre><span></span># The Parts
-curve = holoviews.Curve(
-    giss, "Year",
-    ("North Frigid", "Temperature Anomaly (C)")
+<pre><span></span># The Tools
+hover = HoverTool(
+    tooltips = [
+        ("Year", "@Year"),
+        ("Temperature Anomaly (C)", "@{North Frigid}{0.00}"),
+],
+    formatters={"North Frigid": "numeral"},
+    mode="vline",
 )
 
-main = curve.relabel("North Frigid Zone").opts(width=800, labelled=["y"], 
-                                                 tools=["pan", "zoom_in", "hover", "reset"])
-range_finder = curve.opts(width=800, height=100, yaxis=None, default_tools=[])
+# The Parts
+curve = holoviews.Curve(
+    giss, "Year",
+    ("North Frigid", "Temperature Anomaly (C)"),
+)
+
+main = curve.relabel("North Frigid Zone").opts(width=Plots.width, 
+                                               height=Plots.height, 
+                                               labelled=["y"],
+                                               fontsize=Plots.font_size,
+                                               color=Plots.blue,
+                                               tools=["pan", "zoom_in", 
+                                                      hover, "reset"])
+range_finder = curve.opts(width=Plots.width, height=100, yaxis=None, default_tools=[])
 line = holoviews.HLine(0)
 RangeToolLink(range_finder, main)
 
@@ -410,12 +429,16 @@ layout = layout.opts(
     opts.HLine(color="black", alpha=0.2, line_width=2))
 Embed(layout, "north_frigid_zone")()
 </pre></div>
-<script id="2526d4db-874a-452a-8f09-759ff2c35724" src="north_frigid_zone.js">
-</script></div>
+<script id="a78faf37-bd2d-40cd-9c58-671b601a7ae2" src="north_frigid_zone.js">
+</script>
+<p>This plot is kind of unusual in that the column name has a space in it ("North Frigid") so in the hover tool you have to <a href="https://github.com/bokeh/bokeh/issues/4796e">put braces around it</a>.</p>
+<p>If we were only looking at one zone I would think this is the most useful type, but when I tried to add multiple zones I couldn't get it to work. HoloViews… I also tried to change the font and couldn't figure out how to do it. I really don't get what bokeh and HoloViews are doing with their documentation.</p>
 </div>
-<div class="outline-2" id="outline-container-orgbaa5915">
-<h2 id="orgbaa5915">All Zones Dropdown</h2>
-<div class="outline-text-2" id="text-orgbaa5915">
+</div>
+<div class="outline-2" id="outline-container-org3d99497">
+<h2 id="org3d99497">All Zones Dropdown</h2>
+<div class="outline-text-2" id="text-org3d99497">
+<p>This creates a plot with all the zones but only showing one at a time (you select which one using a dropdown). To get it you specify the dropdown column using <code>groupby</code>.</p>
 <div class="highlight">
 <pre><span></span># the Tools
 hover = HoverTool(
@@ -439,121 +462,166 @@ print("[[file:{}][Link To Plot]]".format(file_name))
 <p><a href="zones.html">Link To Plot</a></p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org038f710">
-<h2 id="org038f710">All Zones Overlay</h2>
-<div class="outline-text-2" id="text-org038f710">
+<div class="outline-2" id="outline-container-orgda01518">
+<h2 id="orgda01518">All Zones Overlay</h2>
+<div class="outline-text-2" id="text-orgda01518">
+<p>The dropdown is a convenient way to look at different zones individually but make it hard to compare different zones. I'm going to put all of them on one plot first to get an overall picture.</p>
 <div class="highlight">
-<pre><span></span>plot = giss_tidy.hvplot("Year", "Difference From Normal", 
+<pre><span></span>plot = giss_tidy.hvplot("Year", "difference_from_normal", 
                         by="location", 
-                        title="Difference by Zone", width=Plots.width, height=Plots.height)
+                        title="Difference by Zone", 
+                        ylabel="Difference From Normal",
+                        width=Plots.width, 
+                        height=Plots.height).opts(
+                            fontsize=Plots.font_size,
+                        )
 line = holoviews.HLine(0)
 layout = plot * line
 Embed(layout, "all_zones")()
 </pre></div>
-<script id="20069467-9d42-4808-bc8f-834c819d2e88" src="all_zones.js">
-</script></div>
+<script id="f233ee44-014f-4eeb-8631-f42b972897f6" src="all_zones.js">
+</script>
+<p>This is kind of a messy plot, but it does show that the North Frigid and South Frigid zones seem to have the largest anomalies.</p>
 </div>
-<div class="outline-2" id="outline-container-org1d0afa9">
-<h2 id="org1d0afa9">Hemispheres</h2>
-<div class="outline-text-2" id="text-org1d0afa9">
+<div class="outline-3" id="outline-container-orge086c9e">
+<h3 id="orge086c9e">Hemisphere Spikes</h3>
+<div class="outline-text-3" id="text-orge086c9e">
+<div class="highlight">
+<pre><span></span>hemisphere_map = {
+    'Global': "Global", 
+    'Northern Hemisphere': "Northern", 
+    'Southern Hemisphere': "Southern",
+    'Northern Extratropics': "Northern", 
+    'Tropics': "Tropics", 
+    'Southern Extratropics': "Southern",
+    'North Frigid': "Northern", 
+    'North Temperate': "Northern", 
+    'North Sub-Tropic': "Northern",
+    'Tropic of Cancer': "Northern", 
+    'Tropic of Capricorn': "Southern", 
+    'South Sub-Tropic': "Southern",
+    'South Temperate': "Southern", 
+    'South Frigid': "Southern",
+}
+
+giss_tidy["hemisphere"] = giss_tidy.location.map(hemisphere_map)
+</pre></div>
+<p>Separate out the hemispheres for plotting.</p>
+<div class="highlight">
+<pre><span></span>northern = giss_tidy[giss_tidy.hemisphere=="Northern"]
+southern = giss_tidy[giss_tidy.hemisphere=="Southern"]
+global_anomalies = giss_tidy[giss_tidy.location=="Global"]
+</pre></div>
+<p>Plot.</p>
+<div class="highlight">
+<pre><span></span># The Tools
+hover = HoverTool(
+tooltips = [
+    ("Year", "@Year"),
+    ("Difference from Normal", "@difference_from_normal"),
+],
+    formatters={"Difference From Normal": "numeral"},
+)
+
+northern_spikes = holoviews.Spikes(northern, "Year", ("difference_from_normal", 
+                                                      "Difference From Normal"),
+                                   group="Hemisphere",
+                                   label="Northern")
+southern_spikes = holoviews.Spikes(southern, "Year", ("difference_from_normal",
+                                                      "Difference From Normal"), 
+                                   group="Hemisphere",
+                                   label="Southern")
+overlay = (northern_spikes
+           * holoviews.Scatter(northern_spikes)
+           * southern_spikes
+           * holoviews.Scatter(southern_spikes)
+           )
+overlay.opts(
+    opts.Spikes("Hemisphere.Northern", color=Plots.blue),
+    opts.Spikes("Hemisphere.Southern", 
+                fontsize=Plots.font_size,
+                color=Plots.red, 
+                width=Plots.width,
+                height=Plots.height),
+    opts.Scatter(size=10),
+)
+line = holoviews.HLine(0)
+layout = overlay * line
+bokeh_layout = holoviews.render(layout)
+bokeh_layout.add_tools(hover)
+bokeh_layout.legend.location = "top_left"
+embed = Embed(bokeh_layout, "all_hemispheres")
+embed._figure = bokeh_layout
+embed()
+</pre></div>
+<script id="980fb88b-9837-4919-9f6c-247a0153c5c0" src="all_hemispheres.js">
+</script>
+<p>This one is a little hard to understand at first. All of the zones are still being plotted, but they are grouped by their hemisphere, so they look different from just the Hemisphere temperatures that come later. Mostly what you're seeing is a highlightt of the most anomalous zone for each year.</p>
+<p>Also, figuring out how to get the HoverTool in there was way harder than it should have been. I also couldn't figure out how to get the zone information into the hovertool. With <code>hvPlot</code> you can pass in extra columns, but the <code>Spikes</code> didn't like it when I tried… such a frustrating library.</p>
+<p>Anyway, it looks like the Northern Hemisphere started out below average while the Southern started out above average, then during the baseline period it sort of flipped, and now they're both above average, but the Northern is even more so.</p>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org5d26db6">
+<h2 id="org5d26db6">Hemispheres</h2>
+<div class="outline-text-2" id="text-org5d26db6">
+<p>This plot shows what happens when you average the zones by hemisphere.</p>
 <div class="highlight">
 <pre><span></span>hemispheres = ["Global", "Northern Hemisphere", "Southern Hemisphere"]
 hemispheres = giss_tidy[giss_tidy.location.isin(hemispheres)]
-plot = hemispheres.hvplot("Year", "Difference From Normal", by="location", 
-                          title="Difference by Hemisphere", 
+plot = hemispheres.hvplot("Year", "difference_from_normal", 
+                          ylabel="Difference From Normal (C)",
+                          by="location", 
+                          title="Difference by Hemisphere",
+                          fontsize=Plots.font_size,
                           width=Plots.width, height=Plots.height)
 line = holoviews.HLine(0)
 layout = plot * line
 Embed(layout, "hemispheres")()
 </pre></div>
-<script id="2cf942bc-0e00-4be5-a72b-fb76e34559c9" src="hemispheres.js">
-</script></div>
+<script id="a6c8abdb-4e7d-46ac-b11f-396b9f5d3d36" src="hemispheres.js">
+</script>
+<p>This shows a different view than the Zones grouped by Hemisphere, as all the values start out below normal and move in sort of a linear fashion upwards. This probably is the result of the fact that the Frigid Zones are more extreme in their differences than the other zones, so averaging all of the zones supresses them. At least that's my initial thought. Looking at the previous plot, though, it looks quite different - the lowest value in the Hemispheres plot comes in 1917, while the zones grouped by hemisphere puts it at 1930 and 1917 actually doesn't look so special. Maybe they're calculated differently.</p>
 </div>
-<div class="outline-2" id="outline-container-orgbd1db51">
-<h2 id="orgbd1db51">Extratropics</h2>
-<div class="outline-text-2" id="text-orgbd1db51">
+</div>
+<div class="outline-2" id="outline-container-org75ddec8">
+<h2 id="org75ddec8">Extratropics</h2>
+<div class="outline-text-2" id="text-org75ddec8">
 <div class="highlight">
 <pre><span></span>zones = ["Global", "Northern Extratropics", "Southern Extratropics", "Tropics"]
 zones = giss_tidy[giss_tidy.location.isin(zones)]
-plot = zones.hvplot("Year", "Difference From Normal", by="location", 
+plot = zones.hvplot("Year", "difference_from_normal", by="location",
+                    ylabel="Difference From Normal (C)",
+                    fontsize=Plots.font_size,
                     title="Tropics and Extratropics", 
                     width=Plots.width, height=Plots.height)
 line = holoviews.HLine(0)
 layout = plot * line
 Embed(layout, "tropics")()
 </pre></div>
-<script id="0e434fbb-549f-4f60-a187-d6be4e8a97b7" src="tropics.js">
+<script id="12730ab2-74ef-4f9d-a3e2-b1c17a4d8f04" src="tropics.js">
 </script></div>
 </div>
-<div class="outline-2" id="outline-container-orgb9d6b39">
-<h2 id="orgb9d6b39">The Zones</h2>
-<div class="outline-text-2" id="text-orgb9d6b39">
+<div class="outline-2" id="outline-container-org232b513">
+<h2 id="org232b513">The Zones</h2>
+<div class="outline-text-2" id="text-org232b513">
+<p>I did a previous plot "by zone" but in that case I was including all the zones given in the data. In this case we're only looking at the non-overlapping zones - so this chops up the planet by the smallest latitudinal zones that don't overlapy.</p>
 <div class="highlight">
 <pre><span></span>zones = ["North Frigid", "North Temperate", "North Sub-Tropic", 
          "Tropic of Cancer", "Tropic of Capricorn",
          "South Frigid", "South Temperate", "South Sub-Tropic"]
 zones =  giss_tidy[giss_tidy.location.isin(zones)]
-plot = zones.hvplot("Year", "Difference From Normal", by="location", 
-                    title="Difference By Zone", 
+plot = zones.hvplot("Year", "difference_from_normal", by="location",
+                    ylabel="Difference From Normal (C)",
+                    title="Difference By (Non-Overlapping) Zones", 
+                    fontsize=Plots.font_size,
                     width=Plots.width, height=Plots.height)
 line = holoviews.HLine(0)
 layout = plot * line
 Embed(layout, "zones")()
 </pre></div>
-<script id="1de210ff-8758-4475-856b-f8a21f75fef4" src="zones.js">
+<script id="a9c90f88-2799-4bf8-b440-e156f7c2289b" src="zones.js">
 </script></div>
-</div>
-<div class="outline-2" id="outline-container-orge9ef2c9">
-<h2 id="orge9ef2c9">Separate Zones</h2>
-<div class="outline-text-2" id="text-orge9ef2c9">
-<div class="highlight">
-<pre><span></span>location_map = {
-    "Global": "Hemispheres",
-    "Northern Hemisphere": "Hemispheres",
-    "Southern Hemisphere": "Hemispheres",
-    "Northern Extratropics": "Tropical", 
-    'Tropics': "Tropical", 
-    'Southern Extratropics': "Tropical",
-    'North Frigid': "Zones", 
-    'North Temperate': "Zones", 
-    'North Sub-Tropic': "Zones",
-    'Tropic of Cancer': "Zones", 
-    'Tropic of Capricorn': "Zones", 
-    'South Sub-Tropic': "Zones",
-    'South Temperate': "Zones", 
-    'South Frigid': "Zones",
-}
-giss_tidy["category"] = giss_tidy.location.map(location_map)
-</pre></div>
-<div class="highlight">
-<pre><span></span>giss_tidy = giss_tidy.rename(columns={"Difference From Normal": "difference_from_normal"})
-hover = HoverTool(
-tooltips = [
-    ("Year", "@Year"),
-    ("Difference from Normal", "@difference_from_normal"),
-    ("Location", "@location")
-],
-    formatters={"difference_from_normal": "numeral"},
-    mode="vline",
-)
-
-plot = giss_tidy.hvplot("Year", "difference_from_normal",
-                        by="location",
-                        groupby="category",
-                        width=Plots.width, 
-                        dynamic=False, 
-                        tools=[hover])
-line = holoviews.HLine(0)
-layout = plot * line
-
-file_name = "category_zones.html"
-
-plot_file = OUTPUT_PATH.joinpath(file_name)
-holoviews.save(layout, plot_file)
-print("[[file:{}][Link To Plot]]".format(file_name))
-</pre></div>
-<p><a href="category_zones.html">Link To Plot</a></p>
-</div>
 </div>
 </div>
 <aside class="postpromonav">
