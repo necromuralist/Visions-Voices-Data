@@ -90,13 +90,13 @@ print(TABLE(diseases.sample(5)))
 #+END_SRC
 
 #+RESULTS:
-| Year | Week | State          | measles | pertussis |
-|------+------+----------------+---------+-----------|
-| 1954 |    6 | Nevada         |    0.94 |       nan |
-| 1949 |   23 | New Jersey     |   43.89 |      1.53 |
-| 1966 |   41 | Alaska         |    1.85 |       nan |
-| 1991 |   34 | South Carolina |       0 |         0 |
-| 1933 |   52 | Connecticut    |    0.18 |       nan |
+| Year | Week | State        | measles | pertussis |
+|------+------+--------------+---------+-----------|
+| 1945 |   18 | Tennessee    |    2.26 |      0.66 |
+| 1988 |    7 | Mississippi  |     nan |       nan |
+| 1973 |   14 | North Dakota |       0 |       nan |
+| 1963 |   29 | Montana      |    5.55 |       nan |
+| 1932 |   13 | Utah         |    0.39 |       nan |
 
 It looks like this data set has weekly measles... counts? I don't know why the values are fractions. It also looks like pertusis ([[https://www.cdc.gov/pertussis/index.html][whooping cough]]) is missing values.
 *** Looking at the Missing Data
@@ -141,10 +141,10 @@ Embed(histogram, "missing_measles_histogram")()
 
 #+RESULTS:
 #+begin_export html
-<script src="missing_measles_histogram.js" id="5e9460f9-a79e-48c7-b7a1-8c96e8749009"></script>
+<script src="missing_measles_histogram.js" id="3b264531-d9b5-45ae-83f6-16bf70fa0da8"></script>
 #+end_export
 
-Since we have roughly eight decades of dtaa I trimmed the years to exactly 8 and then made a histogram with eight bins to get the counts per decade. Since this is a post about doing the plotting and not really about measles or pertussis I should probably mention that the way I got the =Year_count= variable name for the =HoverTool= was by printing the =histogram= object after I'd printed it once.
+Since we have roughly eight decades of data I trimmed the years to exactly eight and then made a histogram with eight bins to get the counts per decade. Since this is a post about doing the plotting and not really about measles or pertussis I should probably mention that the way I got the =Year_count= variable name for the =HoverTool= was by printing the =histogram= object after I'd plotted it once.
 
 #+begin_src ipython :session pyviz :results output :exports both 
 print(histogram)
@@ -179,7 +179,7 @@ Embed(plot, "aggregated_missing_measles")()
 
 #+RESULTS:
 #+begin_export html
-<script src="aggregated_missing_measles.js" id="7547e433-353d-4933-97c1-656be26b6fbf"></script>
+<script src="aggregated_missing_measles.js" id="84285ed8-6ae8-4029-b7fa-98b877b35529"></script>
 #+end_export
 
 It looks like there are more missing values from 1981 onward. That kind of surprised me, but I guess that prior to this [[https://www.doh.wa.gov/YouandYourFamily/IllnessandDisease/Measles/MeaslesOutbreak][latest outbreak]] the reporting might have become less necessary since measles was less common (it was declared eliminated from the Americas in [[https://en.wikipedia.org/wiki/Measles#Americas][2016]]).
@@ -214,7 +214,7 @@ Embed(histogram, "missing_pertussis_distribution")()
 
 #+RESULTS:
 #+begin_export html
-<script src="missing_pertussis_distribution.js" id="7ed35456-8556-4bd6-9bad-dad6068156d3"></script>
+<script src="missing_pertussis_distribution.js" id="f7664a4d-5cad-4b77-bc63-21c98a270f15"></script>
 #+end_export
 
 Strangely the missing reports seem to peak in the 1960s. This seems problematic if you're going to look at the incident rates, but I'm only going to look at measles anyway.
@@ -242,12 +242,12 @@ Embed(plot, "measles_by_year")()
 
 #+RESULTS:
 #+begin_export html
-<script src="measles_by_year.js" id="20156b0e-1212-4008-9f7b-d26e0e0cf89b"></script>
+<script src="measles_by_year.js" id="4ecde4b8-c917-413a-bb74-ffbf9a4d86db"></script>
 #+end_export
 
 You can see from the plot that cases of measles have dropped dramatically over the years, with a particularly sharp drop in the 1960's.
 *** Vaccines Enter The Picture
-According to the [[https://www.cdc.gov/measles/about/history.html][CDC]], the Edmonston-D vaccine was released in the United States in 1963 and the Edmonston-Enders vaccine (which is still currently in use) was released in 1968.
+According to the [[https://www.cdc.gov/measles/about/history.html][CDC]], the Edmonston-D vaccine was released in the United States in 1963 and the Edmonston-Enders vaccine (which is still currently in use) was released in 1968. Let's draw some lines to mark when certain events happened.
 
 #+BEGIN_SRC ipython :session pyviz :results output raw :exports both
 first = holoviews.VLine(1963).opts(color="black", alpha=0.5)
@@ -273,12 +273,12 @@ Embed(plot_2, "measles_with_landmarks")()
 
 #+RESULTS:
 #+begin_export html
-<script src="measles_with_landmarks.js" id="c863ce11-37a0-4482-a370-f2720c2e193b"></script>
+<script src="measles_with_landmarks.js" id="7a5f6d06-eede-4cf0-8881-6ddd5d408ca9"></script>
 #+end_export
 
 It does look like the introduction of the vaccine(s) had a dramatic effect on the incidence of measles in the United States.
 
-It looks like there were zero cases in 2002, but the actual value is 0.31, but my formatter cuts off the decimal place. 2003 is the first true zero, but as we saw above, this is also the first N/A value. Maybe N/A means zero, not missing. It's hard to say without some documentation about the data.
+It appears that there were zero cases in 2002, but the actual value is 0.31, but my formatter cuts off the decimal place. 2003 is the first true zero, but as we saw above, this is also the first N/A value. Maybe N/A means zero, not missing. It's hard to say without some documentation about the data.
 *** Measles By State
     This creates a dropdown menu so we can see the states' measles cases separately. It doesn't work in this template so I'm saving it as a separate page.
 
@@ -293,7 +293,7 @@ print("[[file:{}][Link to plot]]".format(file_name))
 #+RESULTS:
 [[file:measles_by_state.html][Link to plot]]
 *** Oregon Vs Hawaii
-    The addition sign is used to make plots next to each other.
+    Instead of looking at all the states one at a time, we can choose two states and lay them out side by side to make them easier to compare. The addition sign is used to make plots next to each other.
 #+begin_src ipython :session pyviz :results output raw :exports both 
 hover = HoverTool(
     tooltips=[
@@ -319,20 +319,23 @@ Embed(plot, "oregon_vs_hawaii")()
 
 #+RESULTS:
 #+begin_export html
-<script src="oregon_vs_hawaii.js" id="2afd056c-6190-4252-86e5-9b4f272e2e0f"></script>
+<script src="oregon_vs_hawaii.js" id="d4b7b792-b833-46c8-baaa-dd67da1e0ed9"></script>
 #+end_export
 
-I don't know why but the labels don't work. This is one of the problems with HoloViews, I think - they make some things really easy but the minute you step outside of what they have documented there's no way to figure out what's going on and how to fix it (or do it in the first place). It's an impressive programming feat but not documented enough to be as useful as it might be. More of a thing for quick sketching after which you have to switch back over to bokeh if you want anything other than the canned views. Kind of like Excel... except with less documentation.
+I don't know why but the labels don't work. This is one of the problems with HoloViews, I think - they make some things really easy but the minute you step outside of what they have documented there's no way to figure out what's going on and how to fix it (or do it in the first place). It's an impressive programming feat but not documented enough to be as useful as it might be. More of a thing for quick sketching after which you have to switch back over to bokeh if you want anything other than the canned views (kind of like Excel... except with less documentation).
 
  Surprisingly (to me), Hawaii had more cases in their peak years and huge swings. Perhaps since it's an island the sailors and other travelers introduced epidemics. Or maybe they weren't as good at keeping records back then.
 
 According to the [[https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_historical_population][1960 Census Count]] Oregon was quite a bit more populous than Hawaii.
 *** Four States
-    The four states nearest to Hawaii in population are (in descending order):
+    Since Oregon had a much larger population that Hawaii I thought I'd plot the states closer to it in size. The four states nearest to Hawaii in population (from the same 1960 popurlation report) are (in descending order):
     - Montana (674,767)
     - Idaho (667,191)
     - Hawaii (632,772)
     - North Dakota (632,446)
+
+While the side-by side plot lets you see groupings and heights you can't easily compare values for each year so this time I'll put them all on the same plot. HoloViews automatically creates a legend which lets you dim a line by clicking on it in the legend.
+
 #+begin_src ipython :session pyviz :results output raw :exports both 
 hover = HoverTool(
     tooltips=[
@@ -358,10 +361,10 @@ Embed(plot, "four_states_measles")()
 
 #+RESULTS:
 #+begin_export html
-<script src="four_states_measles.js" id="f45d870f-796e-4c70-8b75-a2096302f00d"></script>
+<script src="four_states_measles.js" id="9d388cfc-ccc6-47a2-bfb1-fc9b3ac234bc"></script>
 #+end_export
 
-Surprisingly Hawaii had the highest values in 1951 and 1955 and it looks like they had a really bad outbreak from 1955 through 1958. Once again, the introduction of a vaccine seems to have a dramatic effect, although there continued to be mini outbreaks in the 1970s.
+Surprisingly Hawaii had the highest values in 1951 and 1955 and it looks like they had a really bad outbreak from 1955 through 1958, although Montana had higher values overall. Once again, the introduction of a vaccine seems to have a dramatic effect, although there continued to be mini outbreaks in the 1970s.
 *** Faceting
     Another way to compare the states is to plot them side-by side.
 #+begin_src ipython :session pyviz :results output raw :exports both 
@@ -382,14 +385,25 @@ Embed(plot, "faceted_measles_states")()
 
 #+RESULTS:
 #+begin_export html
-<script src="faceted_measles_states.js" id="621d334e-e2e5-4f6d-a706-a5b73e2632be"></script>
+<script src="faceted_measles_states.js" id="f29ad2b5-8752-430a-b1fa-ce4ee13260c8"></script>
 #+end_export
 
 This makes it harder to compare year by year, but it looks kind of elegant and it's clearer that Hawaii only had this one intense period recorded (starting in 1950) before the vaccine came out, while Idaho and North Dakota had this steady low-level amount of cases and something was much worse in Montana (although, really, their pattern looks closer to that of the United States as a whole) and all of them benefitted from the vaccines.
 
 As far as the plot goes, it might not be obvious but the main difference with what I did to get this plot is that the =State= column was assigned to the =col= argument instead of the =by= argument. I also had to set the title using the =opts= for the total plot, setting it for the =hvplot= didn't do anything.
 *** Bar Chart
-#+begin_src ipython :session pyviz :results output raw :exports both 
+    This time I'll plot the counts for the states using a bar-chart instead of a line-plot.
+#+begin_src ipython :session pyviz :results output raw :exports both
+hover = HoverTool(
+    tooltips=[
+        ("Measles", "@measles{0,0}"),
+        ("Year", "@Year"),
+        ("State", "@State"),
+    ],
+    formatters={"measles": "numeral"},
+    mode="vline",
+)
+
 plot = measles_by_state.loc[1960:1970, states].hvplot.bar(
     "Year",
     height=Plots.height,
@@ -397,18 +411,19 @@ plot = measles_by_state.loc[1960:1970, states].hvplot.bar(
     fontsize=Plots.font_size,
     title="Measles Count by Year",
     by="State", 
+    tools=[hover],
     rot=90)
 Embed(plot, "measles_bar_chart")()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<script src="measles_bar_chart.js" id="6e79e5a0-cb96-43bc-bdd0-b5f74eada062"></script>
+<script src="measles_bar_chart.js" id="db2fbc58-2d62-4f36-be4d-b2b9e8f15191"></script>
 #+end_export
 
-This gives pretty much the same information as the earlier line-plot, except it makes it easier to see a states' case-count for a given year. On the other hand it's harder to really see the year-to-year patterns and you can't turn off states to highlight other states. This looks like something business people would use more than what scientists would use. I think there is a certain aesthetic advantage to it which is traded off by the extra trend information given by a line plot.
+This gives pretty much the same information as the earlier line-plot, except it makes it easier to see a states' case-count for a given year. On the other hand it's harder to really see the year-to-year patterns and you can't turn off states to highlight other states. This looks like something business people would use more than what scientists would use. I think there is a certain aesthetic advantage to it which is traded off by the extra trend information given by a line plot. It does have a major advantage in the way it simplifies the output, though. It also allows you to use the "vline" option so the user only has to be on the same x-axis as a bar to trigger the pop-up. When I did this with the line plots the ones for the different states ended up covering each other up (since they all shared the same x-value).
 
-I tried to add the previous vertical lines to indicate when vaccines were introduced but a bar-plot uses different inputs so it raised an error.
+I tried to add the previous vertical lines to indicate when vaccines were introduced but a bar-plot uses different inputs so it raised an error. It's probably less important for a bar-chart anyway, since you aren't emphasizing the time line quite so much as with a line plot.
 
 #+begin_src ipython :session pyviz :results output :exports both 
 print(first)
@@ -436,10 +451,9 @@ Embed(plot, "error_bars")()
 
 #+RESULTS:
 #+begin_export html
-<script src="error_bars.js" id="6dd24aaa-d419-4455-9f1f-ea0ca99b0b7f"></script>
+<script src="error_bars.js" id="629a475e-89e1-4466-a8e6-eab5a4969341"></script>
 #+end_export
 
 So looking at this we can see that the national mean actually paints a slightly different picture from the raw counts for measles. My guess would be that the different populations for each state offset each other enough that the mean is flattened out.
 
-Actuall, in thinking about it, the mean is actually a weekly mean for the year so I'm not sure how to interpret it, exactly.
-
+Actually, in thinking about it, the mean is really a weekly mean for the year so this isn't really talking about the same things..
