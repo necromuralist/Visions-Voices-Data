@@ -20,13 +20,13 @@
 ** Set Up
 *** Imports
    From Python.
-#+BEGIN_SRC ipython :session pyviz :results none
+#+BEGIN_SRC python :session pyviz :results none
 from functools import partial
 from pathlib import Path
 import os
 #+END_SRC
 From PyPi.
-#+BEGIN_SRC ipython :session pyviz :results none
+#+BEGIN_SRC python :session pyviz :results none
 from bokeh.models import CrosshairTool, HoverTool
 from dotenv import load_dotenv
 from tabulate import tabulate
@@ -37,28 +37,28 @@ import numpy
 import pandas
 #+END_SRC
  My Stuff.
-#+BEGIN_SRC ipython :session pyviz :results none
+#+BEGIN_SRC python :session pyviz :results none
 from graeae.visualization import EmbedBokeh
 #+END_SRC
 *** Presets
     Load the dotenv.
-#+BEGIN_SRC ipython :session pyviz :results none
+#+BEGIN_SRC python :session pyviz :results none
 load_dotenv(".env")
 #+END_SRC
 
 Set up the bokeh.
-#+BEGIN_SRC ipython :session pyviz :results none
+#+BEGIN_SRC python :session pyviz :results none
 OUTPUT_FOLDER = Path("../../files/posts/libraries/walking-through-the-pyviz-workflow-example/")
 Embed = partial(EmbedBokeh, folder_path=OUTPUT_FOLDER)
 holoviews.extension("bokeh", width=800)
 #+END_SRC
 
 Set up the table printer.
-#+BEGIN_SRC ipython :session pyviz :results none
+#+BEGIN_SRC python :session pyviz :results none
 TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys", showindex=False)
 #+END_SRC
 *** Constants
-#+BEGIN_SRC ipython :session pyviz :results none
+#+BEGIN_SRC python :session pyviz :results none
 class Plots:
     width = 1000
     height = 600
@@ -67,12 +67,12 @@ class Plots:
 
 *** Load Some Data
     Measles and pertusis by state.
-#+BEGIN_SRC ipython :session pyviz :results none
+#+BEGIN_SRC python :session pyviz :results none
 diseases = pandas.read_csv(Path(os.environ.get("DISEASES")))
 #+END_SRC
 
 What does the data look like?
-#+BEGIN_SRC ipython :session pyviz :results output raw :exports both
+#+BEGIN_SRC python :session pyviz :results output raw :exports both
 print(TABLE(diseases.head(5)))
 #+END_SRC
 
@@ -85,7 +85,7 @@ print(TABLE(diseases.head(5)))
 | 1928 |    4 | Alabama |   12.58 |       nan |
 | 1928 |    5 | Alabama |    8.03 |       nan |
 
-#+BEGIN_SRC ipython :session pyviz :results output raw :exports both
+#+BEGIN_SRC python :session pyviz :results output raw :exports both
 print(TABLE(diseases.sample(5)))
 #+END_SRC
 
@@ -100,7 +100,7 @@ print(TABLE(diseases.sample(5)))
 
 It looks like this data set has weekly measles... counts? I don't know why the values are fractions. It also looks like pertusis ([[https://www.cdc.gov/pertussis/index.html][whooping cough]]) is missing values.
 *** Looking at the Missing Data
-#+begin_src ipython :session pyviz :results output :exports both
+#+begin_src python :session pyviz :results output :exports both
 missing_measles = diseases[diseases.measles.isna()]
 print("Missing Measles: {:.2f} %".format(
     100 * len(missing_measles)/len(diseases)))
@@ -116,7 +116,7 @@ print("Missing Pertussis: {:.2f} %".format(
 
 It looks like they both have missing values, but there are more missing pertussis values. I'll look at how the missing values are distributed.
 **** Measles
-#+begin_src ipython :session pyviz :results output raw :exports both 
+#+begin_src python :session pyviz :results output raw :exports both 
 decade_hover = HoverTool(
     tooltips=[
         ("Missing", "@Year_count{0,0}"),
@@ -146,14 +146,14 @@ Embed(histogram, "missing_measles_histogram")()
 
 Since we have roughly eight decades of data I trimmed the years to exactly eight and then made a histogram with eight bins to get the counts per decade. Since this is a post about doing the plotting and not really about measles or pertussis I should probably mention that the way I got the =Year_count= variable name for the =HoverTool= was by printing the =histogram= object after I'd plotted it once.
 
-#+begin_src ipython :session pyviz :results output :exports both 
+#+begin_src python :session pyviz :results output :exports both 
 print(histogram)
 #+end_src
 
 #+RESULTS:
 : :Histogram   [Year]   (Year_count)
 
-#+begin_src ipython :session pyviz :results output raw :exports both 
+#+begin_src python :session pyviz :results output raw :exports both 
 year_hover = HoverTool(
     tooltips=[
         ("Missing", "@count{0,0}"),
@@ -184,14 +184,14 @@ Embed(plot, "aggregated_missing_measles")()
 
 It looks like there are more missing values from 1981 onward. That kind of surprised me, but I guess that prior to this [[https://www.doh.wa.gov/YouandYourFamily/IllnessandDisease/Measles/MeaslesOutbreak][latest outbreak]] the reporting might have become less necessary since measles was less common (it was declared eliminated from the Americas in [[https://en.wikipedia.org/wiki/Measles#Americas][2016]]).
 
-#+begin_src ipython :session pyviz :results output :exports both 
+#+begin_src python :session pyviz :results output :exports both 
 print(histogram)
 #+end_src
 
 #+RESULTS:
 : :Histogram   [Year]   (Year_count)
 
-#+begin_src ipython :session pyviz :results output :exports both 
+#+begin_src python :session pyviz :results output :exports both 
 print(len(diseases.State.unique()) * len(diseases.Week.unique()))
 #+end_src
 
@@ -201,7 +201,7 @@ print(len(diseases.State.unique()) * len(diseases.Week.unique()))
 By 2003 there are 2,652 missing values, which is our maxmimum value so it looks like there was no reporting in this data set from this year forward.
 
 **** Pertussis
-#+begin_src ipython :session pyviz :results output raw :exports both 
+#+begin_src python :session pyviz :results output raw :exports both 
 histogram = (missing_pertussis[(missing_pertussis.Year > 1929) 
                               & (missing_pertussis.Year < 2011)]
              .hvplot.hist("Year", bins=8, 
@@ -221,7 +221,7 @@ Strangely the missing reports seem to peak in the 1960s. This seems problematic 
 * Middle
 ** Looking at Measles
 *** By Year
-#+BEGIN_SRC ipython :session pyviz :results output raw :exports both
+#+BEGIN_SRC python :session pyviz :results output raw :exports both
 hover = HoverTool(
     tooltips=[
         ("Measles", "@measles{0,0}"),
@@ -249,7 +249,7 @@ You can see from the plot that cases of measles have dropped dramatically over t
 *** Vaccines Enter The Picture
 According to the [[https://www.cdc.gov/measles/about/history.html][CDC]], the Edmonston-D vaccine was released in the United States in 1963 and the Edmonston-Enders vaccine (which is still currently in use) was released in 1968. Let's draw some lines to mark when certain events happened.
 
-#+BEGIN_SRC ipython :session pyviz :results output raw :exports both
+#+BEGIN_SRC python :session pyviz :results output raw :exports both
 first = holoviews.VLine(1963).opts(color="black", alpha=0.5)
 first_label = holoviews.Text(1963 - 1, 27000, "Vaccine Introduced", 
                              halign="right")
@@ -282,7 +282,7 @@ It appears that there were zero cases in 2002, but the actual value is 0.31, but
 *** Measles By State
     This creates a dropdown menu so we can see the states' measles cases separately. It doesn't work in this template so I'm saving it as a separate page.
 
-#+begin_src ipython :session pyviz :results output raw :exports both 
+#+begin_src python :session pyviz :results output raw :exports both 
 measles_by_state = diseases.groupby(["Year", "State"])["measles"].sum()
 states_plot = measles_by_state.hvplot(x="Year", groupby="State", width=800, dynamic=False)
 file_name = "measles_by_state.html"
@@ -294,7 +294,7 @@ print("[[file:{}][Link to plot]]".format(file_name))
 [[file:measles_by_state.html][Link to plot]]
 *** Oregon Vs Hawaii
     Instead of looking at all the states one at a time, we can choose two states and lay them out side by side to make them easier to compare. The addition sign is used to make plots next to each other.
-#+begin_src ipython :session pyviz :results output raw :exports both 
+#+begin_src python :session pyviz :results output raw :exports both 
 hover = HoverTool(
     tooltips=[
         ("Measles Cases", "@measles{0,0}"),
@@ -336,7 +336,7 @@ According to the [[https://en.wikipedia.org/wiki/List_of_U.S._states_and_territo
 
 While the side-by side plot lets you see groupings and heights you can't easily compare values for each year so this time I'll put them all on the same plot. HoloViews automatically creates a legend which lets you dim a line by clicking on it in the legend.
 
-#+begin_src ipython :session pyviz :results output raw :exports both 
+#+begin_src python :session pyviz :results output raw :exports both 
 hover = HoverTool(
     tooltips=[
         ("Measles", "@measles{0,0}"),
@@ -367,7 +367,7 @@ Embed(plot, "four_states_measles")()
 Surprisingly Hawaii had the highest values in 1951 and 1955 and it looks like they had a really bad outbreak from 1955 through 1958, although Montana had higher values overall. Once again, the introduction of a vaccine seems to have a dramatic effect, although there continued to be mini outbreaks in the 1970s.
 *** Faceting
     Another way to compare the states is to plot them side-by side.
-#+begin_src ipython :session pyviz :results output raw :exports both 
+#+begin_src python :session pyviz :results output raw :exports both 
 hover = HoverTool(
     tooltips=[
         ("Measles", "@measles{0,0}"),
@@ -393,7 +393,7 @@ This makes it harder to compare year by year, but it looks kind of elegant and i
 As far as the plot goes, it might not be obvious but the main difference with what I did to get this plot is that the =State= column was assigned to the =col= argument instead of the =by= argument. I also had to set the title using the =opts= for the total plot, setting it for the =hvplot= didn't do anything.
 *** Bar Chart
     This time I'll plot the counts for the states using a bar-chart instead of a line-plot.
-#+begin_src ipython :session pyviz :results output raw :exports both
+#+begin_src python :session pyviz :results output raw :exports both
 hover = HoverTool(
     tooltips=[
         ("Measles", "@measles{0,0}"),
@@ -425,7 +425,7 @@ This gives pretty much the same information as the earlier line-plot, except it 
 
 I tried to add the previous vertical lines to indicate when vaccines were introduced but a bar-plot uses different inputs so it raised an error. It's probably less important for a bar-chart anyway, since you aren't emphasizing the time line quite so much as with a line plot.
 
-#+begin_src ipython :session pyviz :results output :exports both 
+#+begin_src python :session pyviz :results output :exports both 
 print(first)
 print(plot)
 #+end_src
@@ -436,7 +436,7 @@ print(plot)
 
 I think (guess) that it needs both the year and state, while the line plot only needed the year.
 *** Nationwide Mean With Error Bars
-#+begin_src ipython :session pyviz :results output raw :exports both 
+#+begin_src python :session pyviz :results output raw :exports both 
 error = diseases.groupby("Year").agg({"measles": [numpy.mean, numpy.std]}).xs(
     "measles", axis=1)
 plot = (error.hvplot(y="mean", 
