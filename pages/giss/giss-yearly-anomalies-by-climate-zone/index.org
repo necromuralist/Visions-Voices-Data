@@ -1,0 +1,144 @@
+#+BEGIN_COMMENT
+.. title: GISS Yearly Anomalies By Climate Zone
+.. slug: giss-yearly-anomalies-by-climate-zone
+.. date: 2019-03-19 20:38:39 UTC-07:00
+.. tags: giss
+.. category: GISS
+.. link: 
+.. description: GISS yearly anomalies by climate zone.
+.. type: text
+
+#+END_COMMENT
+* Introduction
+  This is a look at the [[https://data.giss.nasa.gov/gistemp/][Godard Institute for Space Studies' surface temperature data]]. The data values are differences between the mean temperature in a given year for a given region from /normal/ (/normal/ being the mean of the temperatures measured from 1951 through 1980).
+
+#+begin_src ipython :session final :results output raw :exports results
+from functools import partial
+from pathlib import Path
+import os
+
+from dotenv import load_dotenv
+from holoviews import opts
+import holoviews
+from holoviews.plotting.links import RangeToolLink
+from bokeh.models import CrosshairTool, HoverTool
+from bokeh.palettes import Category20
+
+import hvplot.pandas
+import pandas
+
+from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
+
+load_dotenv(".env")
+
+class Plots:
+    width = 1200
+    height = 600
+    font_size = "24pt"
+    line_width = 3
+OUTPUT_PATH = Path("../../files/pages/giss/giss-yearly-anomalies-by-climate-zone/")
+
+Embed = partial(EmbedBokeh, 
+                folder_path=OUTPUT_PATH)
+
+zone_path = Path(os.environ.get("ZONES")).expanduser()
+assert zone_path.is_file()
+with zone_path.open() as reader:
+    giss = pandas.read_csv(reader)
+name_remap = {
+    "Glob": "Global",
+    "NHem": "Northern Hemisphere",
+    "SHem": "Southern Hemisphere",
+    "24N-90N": "Northern Extratropics",
+    "24S-24N": "Tropics",
+    "90S-24S": "Southern Extratropics",
+    "64N-90N": "North Frigid",
+    "44N-64N": "North Temperate",
+    "24N-44N": "North Sub-Tropic",
+    "EQU-24N": "Tropic of Cancer",
+    "24S-EQU": "Tropic of Capricorn",
+    "44S-24S": "South Sub-Tropic",
+    "64S-44S": "South Temperate",
+    "90S-64S": "South Frigid",
+}
+giss = giss.rename(columns=name_remap)
+
+
+giss_tidy = giss.melt(id_vars=["Year"], var_name="location", 
+                      value_name="Difference From Normal")
+
+class PlotGroups:
+    hemisphere = "Hemishpere"
+    tropics = "Tropics"
+    climate_zones = "Zones"
+
+group_map = {
+    "Global": PlotGroups.hemisphere,
+    "Northern Hemisphere": PlotGroups.hemisphere,
+    "Southern Hemisphere": PlotGroups.hemisphere,
+    "Northern Extratropics": PlotGroups.tropics,
+    "Southern Extratropics": PlotGroups.tropics,
+    "Tropics": PlotGroups.tropics,
+    "North Frigid": PlotGroups.climate_zones,
+    "North Sub-Tropic": PlotGroups.climate_zones,
+    "North Temperate": PlotGroups.climate_zones,
+    "Tropic of Cancer": PlotGroups.climate_zones,
+    "Tropic of Capricorn": PlotGroups.climate_zones,
+    "South Temperate": PlotGroups.climate_zones,
+    "South Sub-Tropic": PlotGroups.climate_zones,
+    "South Frigid": PlotGroups.climate_zones,
+}
+giss_tidy["plot_group"] = giss_tidy.location.map(group_map)
+
+giss_tidy = giss_tidy.rename(columns={"location": "Location"})
+
+hemispheric = giss_tidy[giss_tidy.plot_group==PlotGroups.hemisphere]
+tropical = giss_tidy[giss_tidy.plot_group==PlotGroups.tropics]
+zones = giss_tidy[giss_tidy.plot_group==PlotGroups.climate_zones]
+
+assert (len(hemispheric.Location.unique()) 
+        + len(tropical.Location.unique()) 
+        + len(zones.Location.unique())) == len(giss_tidy.Location.unique())
+assert len(hemispheric.Location.unique()) == 3
+assert len(tropical.Location.unique()) == 3
+assert len(zones.Location.unique()) == 8, zones.Location.unique()
+
+cross_hair = CrosshairTool()
+plot = (hemispheric.hvplot(x="Year", y="Difference From Normal", 
+                           ylabel="Difference From Historical Mean",
+                           by="Location",
+                           width=Plots.width, 
+                           height=Plots.height,
+                           tools=[cross_hair]
+).relabel("Hemispheres")
+        ,* tropical.hvplot(x="Year", y="Difference From Normal",
+                          ylabel="Difference From Historical Mean",                          
+                          by="Location",
+                          width=Plots.width, 
+                          height=Plots.height,
+                          tools=[cross_hair]).relabel(
+                              "Tropics vs Extra-Tropics")
+        ,* zones.hvplot(x="Year", y="Difference From Normal",
+                       ylabel="Difference From Historical Mean",                       
+                       by="Location",
+                       width=Plots.width, 
+                       height=Plots.height,
+                       tools=[cross_hair],
+                       ).relabel("Climate Zones")
+).opts(tabs=True, fontsize=Plots.font_size)
+
+Embed(plot, "tabbed_plots")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="tabbed_plots.js" id="6f696d63-dc0d-4a80-b240-28396fcf63d6"></script>
+#+end_export
+
+There are three plots accessible by the tabs:
+
+ - /Hemispheres/ : Northern and Southern Hemispheres and Global mean. Shows the overall upward trend.
+ - /Tropics vs Extra-Tropics/: Tropical mean and non-tropical means. Similar to /Hemispheres/ but compares equatorial vs non-equatorial regions.
+ - /Climate Zones/: Temperatures grouped by eight climate zones. Makes clearer the exagerated effect on northern- and southern-most regions.
+
+Clicking on items in the legend will de-emphasize them.
