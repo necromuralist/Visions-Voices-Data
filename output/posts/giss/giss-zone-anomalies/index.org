@@ -31,7 +31,7 @@ from dotenv import load_dotenv
 from holoviews import opts
 import holoviews
 from holoviews.plotting.links import RangeToolLink
-from bokeh.models import HoverTool
+from bokeh.models import CrosshairTool, HoverTool
 from bokeh.palettes import Category20
 
 import hvplot.pandas
@@ -199,20 +199,20 @@ location()
 #+RESULTS:
 | Value                 | Count | Percentage |
 |-----------------------+-------+------------|
-| Southern Hemisphere   |   139 |       7.14 |
-| Tropic of Cancer      |   139 |       7.14 |
-| Global                |   139 |       7.14 |
-| South Sub-Tropic      |   139 |       7.14 |
-| Tropic of Capricorn   |   139 |       7.14 |
-| North Temperate       |   139 |       7.14 |
-| South Temperate       |   139 |       7.14 |
-| Northern Extratropics |   139 |       7.14 |
 | Southern Extratropics |   139 |       7.14 |
-| North Sub-Tropic      |   139 |       7.14 |
-| North Frigid          |   139 |       7.14 |
-| South Frigid          |   139 |       7.14 |
-| Northern Hemisphere   |   139 |       7.14 |
 | Tropics               |   139 |       7.14 |
+| North Temperate       |   139 |       7.14 |
+| North Frigid          |   139 |       7.14 |
+| Northern Extratropics |   139 |       7.14 |
+| North Sub-Tropic      |   139 |       7.14 |
+| South Sub-Tropic      |   139 |       7.14 |
+| Southern Hemisphere   |   139 |       7.14 |
+| Global                |   139 |       7.14 |
+| South Frigid          |   139 |       7.14 |
+| South Temperate       |   139 |       7.14 |
+| Tropic of Cancer      |   139 |       7.14 |
+| Northern Hemisphere   |   139 |       7.14 |
+| Tropic of Capricorn   |   139 |       7.14 |
 
 * The Frigid North
   This is a plot of the temperature anomalies for the Frigid North using a Range Finder. You can select a range of years using the mini-plot below the main one.
@@ -254,7 +254,7 @@ Embed(layout, "north_frigid_zone")()
 
 #+RESULTS:
 #+begin_export html
-<script src="north_frigid_zone.js" id="a78faf37-bd2d-40cd-9c58-671b601a7ae2"></script>
+<script src="north_frigid_zone.js" id="1a5b91e2-6256-4db1-9913-a4d66e967e41"></script>
 #+end_export
 
 This plot is kind of unusual in that the column name has a space in it ("North Frigid") so in the hover tool you have to [[https://github.com/bokeh/bokeh/issues/4796e][put braces around it]].
@@ -268,7 +268,7 @@ If we were only looking at one zone I would think this is the most useful type, 
 hover = HoverTool(
 tooltips = [
     ("Year", "@Year"),
-    ("Difference from Normal", "@difference_from_normal"),
+    ("Difference from Normal", "@Difference From Normal"),
 ],
     formatters={"Difference From Normal": "numeral"},
     mode="vline",
@@ -290,7 +290,7 @@ print("[[file:{}][Link To Plot]]".format(file_name))
 * All Zones Overlay
   The dropdown is a convenient way to look at different zones individually but make it hard to compare different zones. I'm going to put all of them on one plot first to get an overall picture.
 #+begin_src ipython :session giss :results output raw :exports both
-plot = giss_tidy.hvplot("Year", "difference_from_normal", 
+plot = giss_tidy.hvplot("Year", "Difference From Normal", 
                         by="location", 
                         title="Difference by Zone", 
                         ylabel="Difference From Normal",
@@ -305,7 +305,7 @@ Embed(layout, "all_zones")()
 
 #+RESULTS:
 #+begin_export html
-<script src="all_zones.js" id="f233ee44-014f-4eeb-8631-f42b972897f6"></script>
+<script src="all_zones.js" id="3bf7c386-9e71-4449-a232-a8f788d7077d"></script>
 #+end_export
 
 This is kind of a messy plot, but it does show that the North Frigid and South Frigid zones seem to have the largest anomalies.
@@ -346,16 +346,17 @@ Plot.
 hover = HoverTool(
 tooltips = [
     ("Year", "@Year"),
-    ("Difference from Normal", "@difference_from_normal"),
+    ("Difference from Normal", "@{Difference From Normal}"),
+    ("Hemisphere", "@Hemisphere"),
 ],
     formatters={"Difference From Normal": "numeral"},
 )
 
-northern_spikes = holoviews.Spikes(northern, "Year", ("difference_from_normal", 
+northern_spikes = holoviews.Spikes(northern, "Year", ("Difference From Normal", 
                                                       "Difference From Normal"),
                                    group="Hemisphere",
                                    label="Northern")
-southern_spikes = holoviews.Spikes(southern, "Year", ("difference_from_normal",
+southern_spikes = holoviews.Spikes(southern, "Year", ("Difference From Normal",
                                                       "Difference From Normal"), 
                                    group="Hemisphere",
                                    label="Southern")
@@ -371,12 +372,12 @@ overlay.opts(
                 color=Plots.red, 
                 width=Plots.width,
                 height=Plots.height),
-    opts.Scatter(size=10),
+    opts.Scatter(size=10, tools=[hover]),
 )
 line = holoviews.HLine(0)
 layout = overlay * line
 bokeh_layout = holoviews.render(layout)
-bokeh_layout.add_tools(hover)
+bokeh_layout.title.text_font = "open sans"
 bokeh_layout.legend.location = "top_left"
 embed = Embed(bokeh_layout, "all_hemispheres")
 embed._figure = bokeh_layout
@@ -385,13 +386,13 @@ embed()
 
 #+RESULTS:
 #+begin_export html
-<script src="all_hemispheres.js" id="980fb88b-9837-4919-9f6c-247a0153c5c0"></script>
+<script src="all_hemispheres.js" id="9cc6d1ae-5342-408e-bb8c-2e21d827df92"></script>
 #+end_export
 
 
 This one is a little hard to understand at first. All of the zones are still being plotted, but they are grouped by their hemisphere, so they look different from just the Hemisphere temperatures that come later. Mostly what you're seeing is a highlightt of the most anomalous zone for each year.
 
-Also, figuring out how to get the HoverTool in there was way harder than it should have been. I also couldn't figure out how to get the zone information into the hovertool. With =hvPlot= you can pass in extra columns, but the =Spikes= didn't like it when I tried... such a frustrating library.
+I also couldn't figure out how to get the zone information into the hovertool. With =hvPlot= you can pass in extra columns, but the =Spikes= didn't like it when I tried... such a frustrating library.
 
 Anyway, it looks like the Northern Hemisphere started out below average while the Southern started out above average, then during the baseline period it sort of flipped, and now they're both above average, but the Northern is even more so.
 * Hemispheres
@@ -399,7 +400,7 @@ Anyway, it looks like the Northern Hemisphere started out below average while th
 #+begin_src ipython :session giss :results output raw :exports both
 hemispheres = ["Global", "Northern Hemisphere", "Southern Hemisphere"]
 hemispheres = giss_tidy[giss_tidy.location.isin(hemispheres)]
-plot = hemispheres.hvplot("Year", "difference_from_normal", 
+plot = hemispheres.hvplot("Year", "Difference From Normal", 
                           ylabel="Difference From Normal (C)",
                           by="location", 
                           title="Difference by Hemisphere",
@@ -412,7 +413,7 @@ Embed(layout, "hemispheres")()
 
 #+RESULTS:
 #+begin_export html
-<script src="hemispheres.js" id="a6c8abdb-4e7d-46ac-b11f-396b9f5d3d36"></script>
+<script src="hemispheres.js" id="2a28deb8-1fa0-4561-90ea-9061fbc88794"></script>
 #+end_export
 
 This shows a different view than the Zones grouped by Hemisphere, as all the values start out below normal and move in sort of a linear fashion upwards. This probably is the result of the fact that the Frigid Zones are more extreme in their differences than the other zones, so averaging all of the zones supresses them. At least that's my initial thought. Looking at the previous plot, though, it looks quite different - the lowest value in the Hemispheres plot comes in 1917, while the zones grouped by hemisphere puts it at 1930 and 1917 actually doesn't look so special. Maybe they're calculated differently.
@@ -420,7 +421,7 @@ This shows a different view than the Zones grouped by Hemisphere, as all the val
 #+begin_src ipython :session giss :results output raw :exports both
 zones = ["Global", "Northern Extratropics", "Southern Extratropics", "Tropics"]
 zones = giss_tidy[giss_tidy.location.isin(zones)]
-plot = zones.hvplot("Year", "difference_from_normal", by="location",
+plot = zones.hvplot("Year", "Difference From Normal", by="location",
                     ylabel="Difference From Normal (C)",
                     fontsize=Plots.font_size,
                     title="Tropics and Extratropics", 
@@ -432,7 +433,7 @@ Embed(layout, "tropics")()
 
 #+RESULTS:
 #+begin_export html
-<script src="tropics.js" id="12730ab2-74ef-4f9d-a3e2-b1c17a4d8f04"></script>
+<script src="tropics.js" id="4021695f-d222-43bb-80ff-16a1aab7d12c"></script>
 #+end_export
 
 * The Zones
@@ -442,7 +443,7 @@ zones = ["North Frigid", "North Temperate", "North Sub-Tropic",
          "Tropic of Cancer", "Tropic of Capricorn",
          "South Frigid", "South Temperate", "South Sub-Tropic"]
 zones =  giss_tidy[giss_tidy.location.isin(zones)]
-plot = zones.hvplot("Year", "difference_from_normal", by="location",
+plot = zones.hvplot("Year", "Difference From Normal", by="location",
                     ylabel="Difference From Normal (C)",
                     title="Difference By (Non-Overlapping) Zones", 
                     fontsize=Plots.font_size,
@@ -454,5 +455,78 @@ Embed(layout, "zones")()
 
 #+RESULTS:
 #+begin_export html
-<script src="zones.js" id="a9c90f88-2799-4bf8-b440-e156f7c2289b"></script>
+<script src="zones.js" id="1fb8863b-4a0a-4d24-9ab7-746fa3af649f"></script>
+#+end_export
+* Tabbed Plots
+#+begin_src ipython :session giss :results none
+giss_tidy = giss_tidy.rename(columns={"location": "Location"})
+#+end_src
+
+#+begin_src ipython :session giss :results none
+class PlotGroups:
+    hemisphere = "Hemishpere"
+    tropics = "Tropics"
+    climate_zones = "Zones"
+
+group_map = {
+    "Global": PlotGroups.hemisphere,
+    "Northern Hemisphere": PlotGroups.hemisphere,
+    "Southern Hemisphere": PlotGroups.hemisphere,
+    "Northern Extratropics": PlotGroups.tropics,
+    "Southern Extratropics": PlotGroups.tropics,
+    "Tropics": PlotGroups.tropics,
+    "North Frigid": PlotGroups.climate_zones,
+    "North Sub-Tropic": PlotGroups.climate_zones,
+    "North Temperate": PlotGroups.climate_zones,
+    "Tropic of Cancer": PlotGroups.climate_zones,
+    "Tropic of Capricorn": PlotGroups.climate_zones,
+    "South Temperate": PlotGroups.climate_zones,
+    "South Sub-Tropic": PlotGroups.climate_zones,
+    "South Frigid": PlotGroups.climate_zones,
+}
+giss_tidy["plot_group"] = giss_tidy.Location.map(group_map)
+#+end_src
+
+#+begin_src ipython :session giss :results output raw :exports both
+hemispheric = giss_tidy[giss_tidy.plot_group==PlotGroups.hemisphere]
+tropical = giss_tidy[giss_tidy.plot_group==PlotGroups.tropics]
+zones = giss_tidy[giss_tidy.plot_group==PlotGroups.climate_zones]
+
+assert (len(hemispheric.Location.unique()) 
+        + len(tropical.Location.unique()) 
+        + len(zones.Location.unique())) == len(giss_tidy.Location.unique())
+assert len(hemispheric.Location.unique()) == 3
+assert len(tropical.Location.unique()) == 3
+assert len(zones.Location.unique()) == 8, zones.Location.unique()
+
+cross_hair = CrosshairTool()
+plot = (hemispheric.hvplot(x="Year", y="Difference From Normal", 
+                           ylabel="Difference From Historical Mean",
+                           by="Location",
+                           width=Plots.width, 
+                           height=Plots.height,
+                           tools=[cross_hair]
+).relabel("Hemispheres")
+        ,* tropical.hvplot(x="Year", y="Difference From Normal",
+                          ylabel="Difference From Historical Mean",                          
+                          by="Location",
+                          width=Plots.width, 
+                          height=Plots.height,
+                          tools=[cross_hair]).relabel(
+                              "Tropics vs Extra-Tropics")
+        ,* zones.hvplot(x="Year", y="Difference From Normal",
+                       ylabel="Difference From Historical Mean",                       
+                       by="Location",
+                       width=Plots.width, 
+                       height=Plots.height,
+                       tools=[cross_hair],
+                       ).relabel("Climate Zones")
+).opts(tabs=True, fontsize=Plots.font_size)
+
+Embed(plot, "tabbed_plots")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="tabbed_plots.js" id="605e4d9d-af93-4e83-a217-be0667c173ec"></script>
 #+end_export

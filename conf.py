@@ -139,7 +139,13 @@ NAVIGATION_LINKS = {
         ("/archive.html", "Archive"),
         ("/categories/", "Tags"),
         ("/rss.xml", "RSS feed"),
-        ("https://necromuralist.github.io/", "Cloistered Monkey"),
+        (
+          (
+              ("https://necromuralist.github.io/", "Cloistered Monkey"),
+              ("/pages/giss/giss-yearly-anomalies-by-climate-zone", "GISS Anomalies"),
+          ),
+            "Pages"
+        ),
     ),
 }
 
