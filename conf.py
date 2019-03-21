@@ -1272,7 +1272,10 @@ SEARCH_FORM = """
 # }
 
 # Additional metadata that is added to a post when creating a new_post
-# ADDITIONAL_METADATA = {}
+ADDITIONAL_METADATA = {
+    "status": "draft",
+    "updated": "",
+}
 
 # Nikola supports Twitter Card summaries, but they are disabled by default.
 # They make it possible for you to attach media to Tweets that link
