@@ -67,140 +67,140 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgb7378c3">Introduction</a></li>
-<li><a href="#org28e7b12">Set Up</a>
+<li><a href="#org6e96e30">Introduction</a></li>
+<li><a href="#orge8afcf1">Set Up</a>
 <ul>
-<li><a href="#orgcebea95">Imports</a></li>
-<li><a href="#orgfb45708">Load Dotenv</a></li>
-<li><a href="#org5004dcb">HoloViews Backend</a></li>
-<li><a href="#org4c5ab9f">The Embedder</a></li>
-<li><a href="#orgd536145">Some Settings</a></li>
+<li><a href="#org1d1d004">Imports</a></li>
+<li><a href="#orgba9f159">Load Dotenv</a></li>
+<li><a href="#org93885e2">HoloViews Backend</a></li>
+<li><a href="#orgc786ca8">The Embedder</a></li>
+<li><a href="#org0d9a100">Some Settings</a></li>
 </ul>
 </li>
-<li><a href="#org749bc1e">The Data</a></li>
-<li><a href="#org943ad7e">Tidying the Data</a></li>
-<li><a href="#org07d591d">The Frigid North</a></li>
-<li><a href="#orge916765">All Zones Dropdown</a></li>
-<li><a href="#orgc390271">All Zones Overlay</a>
+<li><a href="#org8084d49">The Data</a></li>
+<li><a href="#orgcef1a35">Tidying the Data</a></li>
+<li><a href="#orgb55b1fb">The Frigid North</a></li>
+<li><a href="#org186cbb2">All Zones Dropdown</a></li>
+<li><a href="#org8b7d5d6">All Zones Overlay</a>
 <ul>
-<li><a href="#orgd246e4d">Hemisphere Spikes</a></li>
+<li><a href="#orgd6c3b12">Hemisphere Spikes</a></li>
 </ul>
 </li>
-<li><a href="#org5852819">Hemispheres</a></li>
-<li><a href="#org69a5f3a">Extratropics</a></li>
-<li><a href="#orgd8890c7">The Zones</a></li>
-<li><a href="#orgb74ea59">Tabbed Plots</a></li>
+<li><a href="#org701b6f6">Hemispheres</a></li>
+<li><a href="#org55cb27d">Extratropics</a></li>
+<li><a href="#org03a3478">The Zones</a></li>
+<li><a href="#orgbcf472c">Tabbed Plots</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgb7378c3">
-<h2 id="orgb7378c3">Introduction</h2>
-<div class="outline-text-2" id="text-orgb7378c3">
+<div class="outline-2" id="outline-container-org6e96e30">
+<h2 id="org6e96e30">Introduction</h2>
+<div class="outline-text-2" id="text-org6e96e30">
 <p>This is a look at the <a href="https://data.giss.nasa.gov/gistemp/">Godard Institute for Space Studies' surface temperature data</a>. I'll look at the mean difference between the yearly mean and the historical "normal" mean.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org28e7b12">
-<h2 id="org28e7b12">Set Up</h2>
-<div class="outline-text-2" id="text-org28e7b12"></div>
-<div class="outline-3" id="outline-container-orgcebea95">
-<h3 id="orgcebea95">Imports</h3>
-<div class="outline-text-3" id="text-orgcebea95"></div>
-<div class="outline-4" id="outline-container-org51357ea">
-<h4 id="org51357ea">Python</h4>
-<div class="outline-text-4" id="text-org51357ea">
+<div class="outline-2" id="outline-container-orge8afcf1">
+<h2 id="orge8afcf1">Set Up</h2>
+<div class="outline-text-2" id="text-orge8afcf1"></div>
+<div class="outline-3" id="outline-container-org1d1d004">
+<h3 id="org1d1d004">Imports</h3>
+<div class="outline-text-3" id="text-org1d1d004"></div>
+<div class="outline-4" id="outline-container-org90b9638">
+<h4 id="org90b9638">Python</h4>
+<div class="outline-text-4" id="text-org90b9638">
 <div class="highlight">
-<pre><span></span>from functools import partial
-from pathlib import Path
-import os
+<pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">os</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgd8d5fda">
-<h4 id="orgd8d5fda">PyPi</h4>
-<div class="outline-text-4" id="text-orgd8d5fda">
+<div class="outline-4" id="outline-container-org5ec1c75">
+<h4 id="org5ec1c75">PyPi</h4>
+<div class="outline-text-4" id="text-org5ec1c75">
 <div class="highlight">
-<pre><span></span>from dotenv import load_dotenv
-from holoviews import opts
-import holoviews
-from holoviews.plotting.links import RangeToolLink
-from bokeh.models import CrosshairTool, HoverTool
-from bokeh.palettes import Category20
+<pre><span></span><span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">from</span> <span class="nn">holoviews</span> <span class="kn">import</span> <span class="n">opts</span>
+<span class="kn">import</span> <span class="nn">holoviews</span>
+<span class="kn">from</span> <span class="nn">holoviews.plotting.links</span> <span class="kn">import</span> <span class="n">RangeToolLink</span>
+<span class="kn">from</span> <span class="nn">bokeh.models</span> <span class="kn">import</span> <span class="n">CrosshairTool</span><span class="p">,</span> <span class="n">HoverTool</span>
+<span class="kn">from</span> <span class="nn">bokeh.palettes</span> <span class="kn">import</span> <span class="n">Category20</span>
 
-import hvplot.pandas
-import pandas
-import seaborn
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+<span class="kn">import</span> <span class="nn">seaborn</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org5d6d6a2">
-<h4 id="org5d6d6a2">This Project</h4>
-<div class="outline-text-4" id="text-org5d6d6a2">
+<div class="outline-4" id="outline-container-orga44af09">
+<h4 id="orga44af09">This Project</h4>
+<div class="outline-text-4" id="text-orga44af09">
 <div class="highlight">
-<pre><span></span>from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
-from graeae.tables import CountPercentage
+<pre><span></span><span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
+<span class="kn">from</span> <span class="nn">graeae.tables</span> <span class="kn">import</span> <span class="n">CountPercentage</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgfb45708">
-<h3 id="orgfb45708">Load Dotenv</h3>
-<div class="outline-text-3" id="text-orgfb45708">
+<div class="outline-3" id="outline-container-orgba9f159">
+<h3 id="orgba9f159">Load Dotenv</h3>
+<div class="outline-text-3" id="text-orgba9f159">
 <div class="highlight">
-<pre><span></span>load_dotenv(".env")
+<pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">".env"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org5004dcb">
-<h3 id="org5004dcb">HoloViews Backend</h3>
-<div class="outline-text-3" id="text-org5004dcb">
+<div class="outline-3" id="outline-container-org93885e2">
+<h3 id="org93885e2">HoloViews Backend</h3>
+<div class="outline-text-3" id="text-org93885e2">
 <div class="highlight">
-<pre><span></span>holoviews.extension("bokeh", width=800)
+<pre><span></span><span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org4c5ab9f">
-<h3 id="org4c5ab9f">The Embedder</h3>
-<div class="outline-text-3" id="text-org4c5ab9f">
+<div class="outline-3" id="outline-container-orgc786ca8">
+<h3 id="orgc786ca8">The Embedder</h3>
+<div class="outline-text-3" id="text-orgc786ca8">
 <div class="highlight">
-<pre><span></span>OUTPUT_PATH = Path("../../files/posts/giss/giss-zone-anomalies/")
-Embed = partial(EmbedBokeh, 
-                folder_path=OUTPUT_PATH)
+<pre><span></span><span class="n">OUTPUT_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/giss/giss-zone-anomalies/"</span><span class="p">)</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedBokeh</span><span class="p">,</span> 
+                <span class="n">folder_path</span><span class="o">=</span><span class="n">OUTPUT_PATH</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgd536145">
-<h3 id="orgd536145">Some Settings</h3>
-<div class="outline-text-3" id="text-orgd536145">
+<div class="outline-3" id="outline-container-org0d9a100">
+<h3 id="org0d9a100">Some Settings</h3>
+<div class="outline-text-3" id="text-org0d9a100">
 <div class="highlight">
-<pre><span></span>class Plots:
-    width = 1200
-    height = 600
-    font = "Open Sans"
-    font_size = "24pt"
-    line_width = 3
-    tools =  ["hover"]
-    blue = seaborn.color_palette()[0]
-    light_blue = Category20[3][1]
-    red = seaborn.color_palette()[3]
-    yellow = seaborn.color_palette()[1]
-    green = seaborn.color_palette()[2]
-    gray = seaborn.color_palette()[7]
+<pre><span></span><span class="k">class</span> <span class="nc">Plots</span><span class="p">:</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="mi">1200</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="mi">600</span>
+    <span class="n">font</span> <span class="o">=</span> <span class="s2">"Open Sans"</span>
+    <span class="n">font_size</span> <span class="o">=</span> <span class="s2">"24pt"</span>
+    <span class="n">line_width</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">tools</span> <span class="o">=</span>  <span class="p">[</span><span class="s2">"hover"</span><span class="p">]</span>
+    <span class="n">blue</span> <span class="o">=</span> <span class="n">seaborn</span><span class="o">.</span><span class="n">color_palette</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">light_blue</span> <span class="o">=</span> <span class="n">Category20</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">red</span> <span class="o">=</span> <span class="n">seaborn</span><span class="o">.</span><span class="n">color_palette</span><span class="p">()[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">yellow</span> <span class="o">=</span> <span class="n">seaborn</span><span class="o">.</span><span class="n">color_palette</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">green</span> <span class="o">=</span> <span class="n">seaborn</span><span class="o">.</span><span class="n">color_palette</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">gray</span> <span class="o">=</span> <span class="n">seaborn</span><span class="o">.</span><span class="n">color_palette</span><span class="p">()[</span><span class="mi">7</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org749bc1e">
-<h2 id="org749bc1e">The Data</h2>
-<div class="outline-text-2" id="text-org749bc1e">
+<div class="outline-2" id="outline-container-org8084d49">
+<h2 id="org8084d49">The Data</h2>
+<div class="outline-text-2" id="text-org8084d49">
 <p>The data is the <i>Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'</i> <a href="https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv">Zonal Annual Means</a> which shows the different annual mean for each zone in a given year.</p>
 <div class="highlight">
-<pre><span></span>zone_path = Path(os.environ.get("ZONES")).expanduser()
-assert zone_path.is_file()
-with zone_path.open() as reader:
-    giss = pandas.read_csv(reader)
+<pre><span></span><span class="n">zone_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ZONES"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">zone_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">zone_path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+    <span class="n">giss</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
 </pre></div>
 <div class="highlight">
-<pre><span></span>print(giss.describe())
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">giss</span><span class="o">.</span><span class="n">describe</span><span class="p">())</span>
 </pre></div>
 <pre class="example">
               Year        Glob        NHem        SHem     24N-90N  \
@@ -235,7 +235,7 @@ max      1.020000    0.780000    0.450000    1.270000
 </pre>
 <p>So we have years from 1880 through 2018.</p>
 <div class="highlight">
-<pre><span></span>print(giss.iloc[0])
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">giss</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </pre></div>
 <pre class="example">
 Year       1880.00
@@ -256,29 +256,29 @@ EQU-24N      -0.21
 Name: 0, dtype: float64
 </pre></div>
 </div>
-<div class="outline-2" id="outline-container-org943ad7e">
-<h2 id="org943ad7e">Tidying the Data</h2>
-<div class="outline-text-2" id="text-org943ad7e">
+<div class="outline-2" id="outline-container-orgcef1a35">
+<h2 id="orgcef1a35">Tidying the Data</h2>
+<div class="outline-text-2" id="text-orgcef1a35">
 <p>I'm going to use the locations for names so I'll make them something more meaningful for me. I don't know if these are, strictly speaking, the right names, but it's close enough.</p>
 <div class="highlight">
-<pre><span></span>name_remap = {
-    "Glob": "Global",
-    "NHem": "Northern Hemisphere",
-    "SHem": "Southern Hemisphere",
-    "24N-90N": "Northern Extratropics",
-    "24S-24N": "Tropics",
-    "90S-24S": "Southern Extratropics",
-    "64N-90N": "North Frigid",
-    "44N-64N": "North Temperate",
-    "24N-44N": "North Sub-Tropic",
-    "EQU-24N": "Tropic of Cancer",
-    "24S-EQU": "Tropic of Capricorn",
-    "44S-24S": "South Sub-Tropic",
-    "64S-44S": "South Temperate",
-    "90S-64S": "South Frigid",
-}
-giss = giss.rename(columns=name_remap)
-print(giss.columns)
+<pre><span></span><span class="n">name_remap</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"Glob"</span><span class="p">:</span> <span class="s2">"Global"</span><span class="p">,</span>
+    <span class="s2">"NHem"</span><span class="p">:</span> <span class="s2">"Northern Hemisphere"</span><span class="p">,</span>
+    <span class="s2">"SHem"</span><span class="p">:</span> <span class="s2">"Southern Hemisphere"</span><span class="p">,</span>
+    <span class="s2">"24N-90N"</span><span class="p">:</span> <span class="s2">"Northern Extratropics"</span><span class="p">,</span>
+    <span class="s2">"24S-24N"</span><span class="p">:</span> <span class="s2">"Tropics"</span><span class="p">,</span>
+    <span class="s2">"90S-24S"</span><span class="p">:</span> <span class="s2">"Southern Extratropics"</span><span class="p">,</span>
+    <span class="s2">"64N-90N"</span><span class="p">:</span> <span class="s2">"North Frigid"</span><span class="p">,</span>
+    <span class="s2">"44N-64N"</span><span class="p">:</span> <span class="s2">"North Temperate"</span><span class="p">,</span>
+    <span class="s2">"24N-44N"</span><span class="p">:</span> <span class="s2">"North Sub-Tropic"</span><span class="p">,</span>
+    <span class="s2">"EQU-24N"</span><span class="p">:</span> <span class="s2">"Tropic of Cancer"</span><span class="p">,</span>
+    <span class="s2">"24S-EQU"</span><span class="p">:</span> <span class="s2">"Tropic of Capricorn"</span><span class="p">,</span>
+    <span class="s2">"44S-24S"</span><span class="p">:</span> <span class="s2">"South Sub-Tropic"</span><span class="p">,</span>
+    <span class="s2">"64S-44S"</span><span class="p">:</span> <span class="s2">"South Temperate"</span><span class="p">,</span>
+    <span class="s2">"90S-64S"</span><span class="p">:</span> <span class="s2">"South Frigid"</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">giss</span> <span class="o">=</span> <span class="n">giss</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">name_remap</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">giss</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 Index(['Year', 'Global', 'Northern Hemisphere', 'Southern Hemisphere',
@@ -290,9 +290,9 @@ Index(['Year', 'Global', 'Northern Hemisphere', 'Southern Hemisphere',
 
 </pre>
 <div class="highlight">
-<pre><span></span>giss_tidy = giss.melt(id_vars=["Year"], var_name="location", 
-                      value_name="Difference From Normal")
-print(giss_tidy.iloc[0])
+<pre><span></span><span class="n">giss_tidy</span> <span class="o">=</span> <span class="n">giss</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">"Year"</span><span class="p">],</span> <span class="n">var_name</span><span class="o">=</span><span class="s2">"location"</span><span class="p">,</span> 
+                      <span class="n">value_name</span><span class="o">=</span><span class="s2">"Difference From Normal"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </pre></div>
 <pre class="example">
 Year                        1880
@@ -302,10 +302,10 @@ Name: 0, dtype: object
 
 </pre>
 <div class="highlight">
-<pre><span></span>location = CountPercentage(giss_tidy.location)
-# plot = location.table.hvplot.table()
-# Embed(plot, "location_table")()
-location()
+<pre><span></span><span class="n">location</span> <span class="o">=</span> <span class="n">CountPercentage</span><span class="p">(</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
+<span class="c1"># plot = location.table.hvplot.table()</span>
+<span class="c1"># Embed(plot, "location_table")()</span>
+<span class="n">location</span><span class="p">()</span>
 </pre></div>
 <table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
 <colgroup>
@@ -394,43 +394,43 @@ location()
 </table>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org07d591d">
-<h2 id="org07d591d">The Frigid North</h2>
-<div class="outline-text-2" id="text-org07d591d">
+<div class="outline-2" id="outline-container-orgb55b1fb">
+<h2 id="orgb55b1fb">The Frigid North</h2>
+<div class="outline-text-2" id="text-orgb55b1fb">
 <p>This is a plot of the temperature anomalies for the Frigid North using a Range Finder. You can select a range of years using the mini-plot below the main one.</p>
 <div class="highlight">
-<pre><span></span># The Tools
-hover = HoverTool(
-    tooltips = [
-        ("Year", "@Year"),
-        ("Temperature Anomaly (C)", "@{North Frigid}{0.00}"),
-],
-    formatters={"North Frigid": "numeral"},
-    mode="vline",
-)
+<pre><span></span><span class="c1"># The Tools</span>
+<span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
+    <span class="n">tooltips</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"@Year"</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"Temperature Anomaly (C)"</span><span class="p">,</span> <span class="s2">"@{North Frigid}{0.00}"</span><span class="p">),</span>
+<span class="p">],</span>
+    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span><span class="s2">"North Frigid"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">},</span>
+    <span class="n">mode</span><span class="o">=</span><span class="s2">"vline"</span><span class="p">,</span>
+<span class="p">)</span>
 
-# The Parts
-curve = holoviews.Curve(
-    giss, "Year",
-    ("North Frigid", "Temperature Anomaly (C)"),
-)
+<span class="c1"># The Parts</span>
+<span class="n">curve</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span>
+    <span class="n">giss</span><span class="p">,</span> <span class="s2">"Year"</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"North Frigid"</span><span class="p">,</span> <span class="s2">"Temperature Anomaly (C)"</span><span class="p">),</span>
+<span class="p">)</span>
 
-main = curve.relabel("North Frigid Zone").opts(width=Plots.width, 
-                                               height=Plots.height, 
-                                               labelled=["y"],
-                                               fontsize=Plots.font_size,
-                                               color=Plots.blue,
-                                               tools=["pan", "zoom_in", 
-                                                      hover, "reset"])
-range_finder = curve.opts(width=Plots.width, height=100, yaxis=None, default_tools=[])
-line = holoviews.HLine(0)
-RangeToolLink(range_finder, main)
+<span class="n">main</span> <span class="o">=</span> <span class="n">curve</span><span class="o">.</span><span class="n">relabel</span><span class="p">(</span><span class="s2">"North Frigid Zone"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> 
+                                               <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> 
+                                               <span class="n">labelled</span><span class="o">=</span><span class="p">[</span><span class="s2">"y"</span><span class="p">],</span>
+                                               <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
+                                               <span class="n">color</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">blue</span><span class="p">,</span>
+                                               <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s2">"pan"</span><span class="p">,</span> <span class="s2">"zoom_in"</span><span class="p">,</span> 
+                                                      <span class="n">hover</span><span class="p">,</span> <span class="s2">"reset"</span><span class="p">])</span>
+<span class="n">range_finder</span> <span class="o">=</span> <span class="n">curve</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">yaxis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default_tools</span><span class="o">=</span><span class="p">[])</span>
+<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">RangeToolLink</span><span class="p">(</span><span class="n">range_finder</span><span class="p">,</span> <span class="n">main</span><span class="p">)</span>
 
-layout = (main * line + range_finder).cols(1)
-layout = layout.opts(
-    opts.Layout(shared_axes=False, merge_tools=False),
-    opts.HLine(color="black", alpha=0.2, line_width=2))
-Embed(layout, "north_frigid_zone")()
+<span class="n">layout</span> <span class="o">=</span> <span class="p">(</span><span class="n">main</span> <span class="o">*</span> <span class="n">line</span> <span class="o">+</span> <span class="n">range_finder</span><span class="p">)</span><span class="o">.</span><span class="n">cols</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">layout</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span><span class="n">shared_axes</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">merge_tools</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="s2">"north_frigid_zone"</span><span class="p">)()</span>
 </pre></div>
 <script id="1a5b91e2-6256-4db1-9913-a4d66e967e41" src="north_frigid_zone.js">
 </script>
@@ -438,125 +438,125 @@ Embed(layout, "north_frigid_zone")()
 <p>If we were only looking at one zone I would think this is the most useful type, but when I tried to add multiple zones I couldn't get it to work. HoloViews… I also tried to change the font and couldn't figure out how to do it. I really don't get what bokeh and HoloViews are doing with their documentation.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge916765">
-<h2 id="orge916765">All Zones Dropdown</h2>
-<div class="outline-text-2" id="text-orge916765">
+<div class="outline-2" id="outline-container-org186cbb2">
+<h2 id="org186cbb2">All Zones Dropdown</h2>
+<div class="outline-text-2" id="text-org186cbb2">
 <p>This creates a plot with all the zones but only showing one at a time (you select which one using a dropdown). To get it you specify the dropdown column using <code>groupby</code>.</p>
 <div class="highlight">
-<pre><span></span># the Tools
-hover = HoverTool(
-tooltips = [
-    ("Year", "@Year"),
-    ("Difference from Normal", "@Difference From Normal"),
-],
-    formatters={"Difference From Normal": "numeral"},
-    mode="vline",
-)
+<pre><span></span><span class="c1"># the Tools</span>
+<span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
+<span class="n">tooltips</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"@Year"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Difference from Normal"</span><span class="p">,</span> <span class="s2">"@Difference From Normal"</span><span class="p">),</span>
+<span class="p">],</span>
+    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span><span class="s2">"Difference From Normal"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">},</span>
+    <span class="n">mode</span><span class="o">=</span><span class="s2">"vline"</span><span class="p">,</span>
+<span class="p">)</span>
 
-plot = giss_tidy.hvplot("Year", groupby="location", width=Plots.width, dynamic=False, tools=[hover])
-line = holoviews.HLine(0)
-layout = plot * line
-file_name = "zones.html"
+<span class="n">plot</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s2">"location"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">dynamic</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">hover</span><span class="p">])</span>
+<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">layout</span> <span class="o">=</span> <span class="n">plot</span> <span class="o">*</span> <span class="n">line</span>
+<span class="n">file_name</span> <span class="o">=</span> <span class="s2">"zones.html"</span>
 
-plot_file = OUTPUT_PATH.joinpath(file_name)
-holoviews.save(layout, plot_file)
-print("[[file:{}][Link To Plot]]".format(file_name))
+<span class="n">plot_file</span> <span class="o">=</span> <span class="n">OUTPUT_PATH</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+<span class="n">holoviews</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">plot_file</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">"[[file:{}][Link To Plot]]"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_name</span><span class="p">))</span>
 </pre></div>
 <p><a href="zones.html">Link To Plot</a></p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc390271">
-<h2 id="orgc390271">All Zones Overlay</h2>
-<div class="outline-text-2" id="text-orgc390271">
+<div class="outline-2" id="outline-container-org8b7d5d6">
+<h2 id="org8b7d5d6">All Zones Overlay</h2>
+<div class="outline-text-2" id="text-org8b7d5d6">
 <p>The dropdown is a convenient way to look at different zones individually but make it hard to compare different zones. I'm going to put all of them on one plot first to get an overall picture.</p>
 <div class="highlight">
-<pre><span></span>plot = giss_tidy.hvplot("Year", "Difference From Normal", 
-                        by="location", 
-                        title="Difference by Zone", 
-                        ylabel="Difference From Normal",
-                        width=Plots.width, 
-                        height=Plots.height).opts(
-                            fontsize=Plots.font_size,
-                        )
-line = holoviews.HLine(0)
-layout = plot * line
-Embed(layout, "all_zones")()
+<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"Difference From Normal"</span><span class="p">,</span> 
+                        <span class="n">by</span><span class="o">=</span><span class="s2">"location"</span><span class="p">,</span> 
+                        <span class="n">title</span><span class="o">=</span><span class="s2">"Difference by Zone"</span><span class="p">,</span> 
+                        <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Normal"</span><span class="p">,</span>
+                        <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> 
+                        <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+                            <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
+                        <span class="p">)</span>
+<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">layout</span> <span class="o">=</span> <span class="n">plot</span> <span class="o">*</span> <span class="n">line</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="s2">"all_zones"</span><span class="p">)()</span>
 </pre></div>
 <script id="3bf7c386-9e71-4449-a232-a8f788d7077d" src="all_zones.js">
 </script>
 <p>This is kind of a messy plot, but it does show that the North Frigid and South Frigid zones seem to have the largest anomalies.</p>
 </div>
-<div class="outline-3" id="outline-container-orgd246e4d">
-<h3 id="orgd246e4d">Hemisphere Spikes</h3>
-<div class="outline-text-3" id="text-orgd246e4d">
+<div class="outline-3" id="outline-container-orgd6c3b12">
+<h3 id="orgd6c3b12">Hemisphere Spikes</h3>
+<div class="outline-text-3" id="text-orgd6c3b12">
 <div class="highlight">
-<pre><span></span>hemisphere_map = {
-    'Global': "Global", 
-    'Northern Hemisphere': "Northern", 
-    'Southern Hemisphere': "Southern",
-    'Northern Extratropics': "Northern", 
-    'Tropics': "Tropics", 
-    'Southern Extratropics': "Southern",
-    'North Frigid': "Northern", 
-    'North Temperate': "Northern", 
-    'North Sub-Tropic': "Northern",
-    'Tropic of Cancer': "Northern", 
-    'Tropic of Capricorn': "Southern", 
-    'South Sub-Tropic': "Southern",
-    'South Temperate': "Southern", 
-    'South Frigid': "Southern",
-}
+<pre><span></span><span class="n">hemisphere_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'Global'</span><span class="p">:</span> <span class="s2">"Global"</span><span class="p">,</span> 
+    <span class="s1">'Northern Hemisphere'</span><span class="p">:</span> <span class="s2">"Northern"</span><span class="p">,</span> 
+    <span class="s1">'Southern Hemisphere'</span><span class="p">:</span> <span class="s2">"Southern"</span><span class="p">,</span>
+    <span class="s1">'Northern Extratropics'</span><span class="p">:</span> <span class="s2">"Northern"</span><span class="p">,</span> 
+    <span class="s1">'Tropics'</span><span class="p">:</span> <span class="s2">"Tropics"</span><span class="p">,</span> 
+    <span class="s1">'Southern Extratropics'</span><span class="p">:</span> <span class="s2">"Southern"</span><span class="p">,</span>
+    <span class="s1">'North Frigid'</span><span class="p">:</span> <span class="s2">"Northern"</span><span class="p">,</span> 
+    <span class="s1">'North Temperate'</span><span class="p">:</span> <span class="s2">"Northern"</span><span class="p">,</span> 
+    <span class="s1">'North Sub-Tropic'</span><span class="p">:</span> <span class="s2">"Northern"</span><span class="p">,</span>
+    <span class="s1">'Tropic of Cancer'</span><span class="p">:</span> <span class="s2">"Northern"</span><span class="p">,</span> 
+    <span class="s1">'Tropic of Capricorn'</span><span class="p">:</span> <span class="s2">"Southern"</span><span class="p">,</span> 
+    <span class="s1">'South Sub-Tropic'</span><span class="p">:</span> <span class="s2">"Southern"</span><span class="p">,</span>
+    <span class="s1">'South Temperate'</span><span class="p">:</span> <span class="s2">"Southern"</span><span class="p">,</span> 
+    <span class="s1">'South Frigid'</span><span class="p">:</span> <span class="s2">"Southern"</span><span class="p">,</span>
+<span class="p">}</span>
 
-giss_tidy["hemisphere"] = giss_tidy.location.map(hemisphere_map)
+<span class="n">giss_tidy</span><span class="p">[</span><span class="s2">"hemisphere"</span><span class="p">]</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">hemisphere_map</span><span class="p">)</span>
 </pre></div>
 <p>Separate out the hemispheres for plotting.</p>
 <div class="highlight">
-<pre><span></span>northern = giss_tidy[giss_tidy.hemisphere=="Northern"]
-southern = giss_tidy[giss_tidy.hemisphere=="Southern"]
-global_anomalies = giss_tidy[giss_tidy.location=="Global"]
+<pre><span></span><span class="n">northern</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">hemisphere</span><span class="o">==</span><span class="s2">"Northern"</span><span class="p">]</span>
+<span class="n">southern</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">hemisphere</span><span class="o">==</span><span class="s2">"Southern"</span><span class="p">]</span>
+<span class="n">global_anomalies</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">location</span><span class="o">==</span><span class="s2">"Global"</span><span class="p">]</span>
 </pre></div>
 <p>Plot.</p>
 <div class="highlight">
-<pre><span></span># The Tools
-hover = HoverTool(
-tooltips = [
-    ("Year", "@Year"),
-    ("Difference from Normal", "@{Difference From Normal}"),
-    ("Hemisphere", "@Hemisphere"),
-],
-    formatters={"Difference From Normal": "numeral"},
-)
+<pre><span></span><span class="c1"># The Tools</span>
+<span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
+<span class="n">tooltips</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"@Year"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Difference from Normal"</span><span class="p">,</span> <span class="s2">"@{Difference From Normal}"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Hemisphere"</span><span class="p">,</span> <span class="s2">"@Hemisphere"</span><span class="p">),</span>
+<span class="p">],</span>
+    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span><span class="s2">"Difference From Normal"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">},</span>
+<span class="p">)</span>
 
-northern_spikes = holoviews.Spikes(northern, "Year", ("Difference From Normal", 
-                                                      "Difference From Normal"),
-                                   group="Hemisphere",
-                                   label="Northern")
-southern_spikes = holoviews.Spikes(southern, "Year", ("Difference From Normal",
-                                                      "Difference From Normal"), 
-                                   group="Hemisphere",
-                                   label="Southern")
-overlay = (northern_spikes
-           * holoviews.Scatter(northern_spikes)
-           * southern_spikes
-           * holoviews.Scatter(southern_spikes)
-           )
-overlay.opts(
-    opts.Spikes("Hemisphere.Northern", color=Plots.blue),
-    opts.Spikes("Hemisphere.Southern", 
-                fontsize=Plots.font_size,
-                color=Plots.red, 
-                width=Plots.width,
-                height=Plots.height),
-    opts.Scatter(size=10, tools=[hover]),
-)
-line = holoviews.HLine(0)
-layout = overlay * line
-bokeh_layout = holoviews.render(layout)
-bokeh_layout.title.text_font = "open sans"
-bokeh_layout.legend.location = "top_left"
-embed = Embed(bokeh_layout, "all_hemispheres")
-embed._figure = bokeh_layout
-embed()
+<span class="n">northern_spikes</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Spikes</span><span class="p">(</span><span class="n">northern</span><span class="p">,</span> <span class="s2">"Year"</span><span class="p">,</span> <span class="p">(</span><span class="s2">"Difference From Normal"</span><span class="p">,</span> 
+                                                      <span class="s2">"Difference From Normal"</span><span class="p">),</span>
+                                   <span class="n">group</span><span class="o">=</span><span class="s2">"Hemisphere"</span><span class="p">,</span>
+                                   <span class="n">label</span><span class="o">=</span><span class="s2">"Northern"</span><span class="p">)</span>
+<span class="n">southern_spikes</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Spikes</span><span class="p">(</span><span class="n">southern</span><span class="p">,</span> <span class="s2">"Year"</span><span class="p">,</span> <span class="p">(</span><span class="s2">"Difference From Normal"</span><span class="p">,</span>
+                                                      <span class="s2">"Difference From Normal"</span><span class="p">),</span> 
+                                   <span class="n">group</span><span class="o">=</span><span class="s2">"Hemisphere"</span><span class="p">,</span>
+                                   <span class="n">label</span><span class="o">=</span><span class="s2">"Southern"</span><span class="p">)</span>
+<span class="n">overlay</span> <span class="o">=</span> <span class="p">(</span><span class="n">northern_spikes</span>
+           <span class="o">*</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">northern_spikes</span><span class="p">)</span>
+           <span class="o">*</span> <span class="n">southern_spikes</span>
+           <span class="o">*</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">southern_spikes</span><span class="p">)</span>
+           <span class="p">)</span>
+<span class="n">overlay</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Spikes</span><span class="p">(</span><span class="s2">"Hemisphere.Northern"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">blue</span><span class="p">),</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Spikes</span><span class="p">(</span><span class="s2">"Hemisphere.Southern"</span><span class="p">,</span> 
+                <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">red</span><span class="p">,</span> 
+                <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+                <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">),</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">hover</span><span class="p">]),</span>
+<span class="p">)</span>
+<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">layout</span> <span class="o">=</span> <span class="n">overlay</span> <span class="o">*</span> <span class="n">line</span>
+<span class="n">bokeh_layout</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+<span class="n">bokeh_layout</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">text_font</span> <span class="o">=</span> <span class="s2">"open sans"</span>
+<span class="n">bokeh_layout</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s2">"top_left"</span>
+<span class="n">embed</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">bokeh_layout</span><span class="p">,</span> <span class="s2">"all_hemispheres"</span><span class="p">)</span>
+<span class="n">embed</span><span class="o">.</span><span class="n">_figure</span> <span class="o">=</span> <span class="n">bokeh_layout</span>
+<span class="n">embed</span><span class="p">()</span>
 </pre></div>
 <script id="9cc6d1ae-5342-408e-bb8c-2e21d827df92" src="all_hemispheres.js">
 </script>
@@ -566,134 +566,134 @@ embed()
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org5852819">
-<h2 id="org5852819">Hemispheres</h2>
-<div class="outline-text-2" id="text-org5852819">
+<div class="outline-2" id="outline-container-org701b6f6">
+<h2 id="org701b6f6">Hemispheres</h2>
+<div class="outline-text-2" id="text-org701b6f6">
 <p>This plot shows what happens when you average the zones by hemisphere.</p>
 <div class="highlight">
-<pre><span></span>hemispheres = ["Global", "Northern Hemisphere", "Southern Hemisphere"]
-hemispheres = giss_tidy[giss_tidy.location.isin(hemispheres)]
-plot = hemispheres.hvplot("Year", "Difference From Normal", 
-                          ylabel="Difference From Normal (C)",
-                          by="location", 
-                          title="Difference by Hemisphere",
-                          fontsize=Plots.font_size,
-                          width=Plots.width, height=Plots.height)
-line = holoviews.HLine(0)
-layout = plot * line
-Embed(layout, "hemispheres")()
+<pre><span></span><span class="n">hemispheres</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Global"</span><span class="p">,</span> <span class="s2">"Northern Hemisphere"</span><span class="p">,</span> <span class="s2">"Southern Hemisphere"</span><span class="p">]</span>
+<span class="n">hemispheres</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">hemispheres</span><span class="p">)]</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">hemispheres</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"Difference From Normal"</span><span class="p">,</span> 
+                          <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Normal (C)"</span><span class="p">,</span>
+                          <span class="n">by</span><span class="o">=</span><span class="s2">"location"</span><span class="p">,</span> 
+                          <span class="n">title</span><span class="o">=</span><span class="s2">"Difference by Hemisphere"</span><span class="p">,</span>
+                          <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
+                          <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">layout</span> <span class="o">=</span> <span class="n">plot</span> <span class="o">*</span> <span class="n">line</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="s2">"hemispheres"</span><span class="p">)()</span>
 </pre></div>
 <script id="2a28deb8-1fa0-4561-90ea-9061fbc88794" src="hemispheres.js">
 </script>
 <p>This shows a different view than the Zones grouped by Hemisphere, as all the values start out below normal and move in sort of a linear fashion upwards. This probably is the result of the fact that the Frigid Zones are more extreme in their differences than the other zones, so averaging all of the zones supresses them. At least that's my initial thought. Looking at the previous plot, though, it looks quite different - the lowest value in the Hemispheres plot comes in 1917, while the zones grouped by hemisphere puts it at 1930 and 1917 actually doesn't look so special. Maybe they're calculated differently.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org69a5f3a">
-<h2 id="org69a5f3a">Extratropics</h2>
-<div class="outline-text-2" id="text-org69a5f3a">
+<div class="outline-2" id="outline-container-org55cb27d">
+<h2 id="org55cb27d">Extratropics</h2>
+<div class="outline-text-2" id="text-org55cb27d">
 <div class="highlight">
-<pre><span></span>zones = ["Global", "Northern Extratropics", "Southern Extratropics", "Tropics"]
-zones = giss_tidy[giss_tidy.location.isin(zones)]
-plot = zones.hvplot("Year", "Difference From Normal", by="location",
-                    ylabel="Difference From Normal (C)",
-                    fontsize=Plots.font_size,
-                    title="Tropics and Extratropics", 
-                    width=Plots.width, height=Plots.height)
-line = holoviews.HLine(0)
-layout = plot * line
-Embed(layout, "tropics")()
+<pre><span></span><span class="n">zones</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Global"</span><span class="p">,</span> <span class="s2">"Northern Extratropics"</span><span class="p">,</span> <span class="s2">"Southern Extratropics"</span><span class="p">,</span> <span class="s2">"Tropics"</span><span class="p">]</span>
+<span class="n">zones</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">zones</span><span class="p">)]</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">zones</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"Difference From Normal"</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">"location"</span><span class="p">,</span>
+                    <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Normal (C)"</span><span class="p">,</span>
+                    <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s2">"Tropics and Extratropics"</span><span class="p">,</span> 
+                    <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">layout</span> <span class="o">=</span> <span class="n">plot</span> <span class="o">*</span> <span class="n">line</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="s2">"tropics"</span><span class="p">)()</span>
 </pre></div>
 <script id="4021695f-d222-43bb-80ff-16a1aab7d12c" src="tropics.js">
 </script></div>
 </div>
-<div class="outline-2" id="outline-container-orgd8890c7">
-<h2 id="orgd8890c7">The Zones</h2>
-<div class="outline-text-2" id="text-orgd8890c7">
+<div class="outline-2" id="outline-container-org03a3478">
+<h2 id="org03a3478">The Zones</h2>
+<div class="outline-text-2" id="text-org03a3478">
 <p>I did a previous plot "by zone" but in that case I was including all the zones given in the data. In this case we're only looking at the non-overlapping zones - so this chops up the planet by the smallest latitudinal zones that don't overlapy.</p>
 <div class="highlight">
-<pre><span></span>zones = ["North Frigid", "North Temperate", "North Sub-Tropic", 
-         "Tropic of Cancer", "Tropic of Capricorn",
-         "South Frigid", "South Temperate", "South Sub-Tropic"]
-zones =  giss_tidy[giss_tidy.location.isin(zones)]
-plot = zones.hvplot("Year", "Difference From Normal", by="location",
-                    ylabel="Difference From Normal (C)",
-                    title="Difference By (Non-Overlapping) Zones", 
-                    fontsize=Plots.font_size,
-                    width=Plots.width, height=Plots.height)
-line = holoviews.HLine(0)
-layout = plot * line
-Embed(layout, "zones")()
+<pre><span></span><span class="n">zones</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"North Frigid"</span><span class="p">,</span> <span class="s2">"North Temperate"</span><span class="p">,</span> <span class="s2">"North Sub-Tropic"</span><span class="p">,</span> 
+         <span class="s2">"Tropic of Cancer"</span><span class="p">,</span> <span class="s2">"Tropic of Capricorn"</span><span class="p">,</span>
+         <span class="s2">"South Frigid"</span><span class="p">,</span> <span class="s2">"South Temperate"</span><span class="p">,</span> <span class="s2">"South Sub-Tropic"</span><span class="p">]</span>
+<span class="n">zones</span> <span class="o">=</span>  <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">zones</span><span class="p">)]</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">zones</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"Difference From Normal"</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">"location"</span><span class="p">,</span>
+                    <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Normal (C)"</span><span class="p">,</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s2">"Difference By (Non-Overlapping) Zones"</span><span class="p">,</span> 
+                    <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
+                    <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">layout</span> <span class="o">=</span> <span class="n">plot</span> <span class="o">*</span> <span class="n">line</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="s2">"zones"</span><span class="p">)()</span>
 </pre></div>
 <script id="1fb8863b-4a0a-4d24-9ab7-746fa3af649f" src="zones.js">
 </script></div>
 </div>
-<div class="outline-2" id="outline-container-orgb74ea59">
-<h2 id="orgb74ea59">Tabbed Plots</h2>
-<div class="outline-text-2" id="text-orgb74ea59">
+<div class="outline-2" id="outline-container-orgbcf472c">
+<h2 id="orgbcf472c">Tabbed Plots</h2>
+<div class="outline-text-2" id="text-orgbcf472c">
 <div class="highlight">
-<pre><span></span>giss_tidy = giss_tidy.rename(columns={"location": "Location"})
+<pre><span></span><span class="n">giss_tidy</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"location"</span><span class="p">:</span> <span class="s2">"Location"</span><span class="p">})</span>
 </pre></div>
 <div class="highlight">
-<pre><span></span>class PlotGroups:
-    hemisphere = "Hemishpere"
-    tropics = "Tropics"
-    climate_zones = "Zones"
+<pre><span></span><span class="k">class</span> <span class="nc">PlotGroups</span><span class="p">:</span>
+    <span class="n">hemisphere</span> <span class="o">=</span> <span class="s2">"Hemishpere"</span>
+    <span class="n">tropics</span> <span class="o">=</span> <span class="s2">"Tropics"</span>
+    <span class="n">climate_zones</span> <span class="o">=</span> <span class="s2">"Zones"</span>
 
-group_map = {
-    "Global": PlotGroups.hemisphere,
-    "Northern Hemisphere": PlotGroups.hemisphere,
-    "Southern Hemisphere": PlotGroups.hemisphere,
-    "Northern Extratropics": PlotGroups.tropics,
-    "Southern Extratropics": PlotGroups.tropics,
-    "Tropics": PlotGroups.tropics,
-    "North Frigid": PlotGroups.climate_zones,
-    "North Sub-Tropic": PlotGroups.climate_zones,
-    "North Temperate": PlotGroups.climate_zones,
-    "Tropic of Cancer": PlotGroups.climate_zones,
-    "Tropic of Capricorn": PlotGroups.climate_zones,
-    "South Temperate": PlotGroups.climate_zones,
-    "South Sub-Tropic": PlotGroups.climate_zones,
-    "South Frigid": PlotGroups.climate_zones,
-}
-giss_tidy["plot_group"] = giss_tidy.Location.map(group_map)
+<span class="n">group_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"Global"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">hemisphere</span><span class="p">,</span>
+    <span class="s2">"Northern Hemisphere"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">hemisphere</span><span class="p">,</span>
+    <span class="s2">"Southern Hemisphere"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">hemisphere</span><span class="p">,</span>
+    <span class="s2">"Northern Extratropics"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">tropics</span><span class="p">,</span>
+    <span class="s2">"Southern Extratropics"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">tropics</span><span class="p">,</span>
+    <span class="s2">"Tropics"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">tropics</span><span class="p">,</span>
+    <span class="s2">"North Frigid"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
+    <span class="s2">"North Sub-Tropic"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
+    <span class="s2">"North Temperate"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
+    <span class="s2">"Tropic of Cancer"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
+    <span class="s2">"Tropic of Capricorn"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
+    <span class="s2">"South Temperate"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
+    <span class="s2">"South Sub-Tropic"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
+    <span class="s2">"South Frigid"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">giss_tidy</span><span class="p">[</span><span class="s2">"plot_group"</span><span class="p">]</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">group_map</span><span class="p">)</span>
 </pre></div>
 <div class="highlight">
-<pre><span></span>hemispheric = giss_tidy[giss_tidy.plot_group==PlotGroups.hemisphere]
-tropical = giss_tidy[giss_tidy.plot_group==PlotGroups.tropics]
-zones = giss_tidy[giss_tidy.plot_group==PlotGroups.climate_zones]
+<pre><span></span><span class="n">hemispheric</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">plot_group</span><span class="o">==</span><span class="n">PlotGroups</span><span class="o">.</span><span class="n">hemisphere</span><span class="p">]</span>
+<span class="n">tropical</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">plot_group</span><span class="o">==</span><span class="n">PlotGroups</span><span class="o">.</span><span class="n">tropics</span><span class="p">]</span>
+<span class="n">zones</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">plot_group</span><span class="o">==</span><span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">]</span>
 
-assert (len(hemispheric.Location.unique()) 
-        + len(tropical.Location.unique()) 
-        + len(zones.Location.unique())) == len(giss_tidy.Location.unique())
-assert len(hemispheric.Location.unique()) == 3
-assert len(tropical.Location.unique()) == 3
-assert len(zones.Location.unique()) == 8, zones.Location.unique()
+<span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hemispheric</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> 
+        <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">tropical</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> 
+        <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">zones</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">()))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">hemispheric</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> <span class="o">==</span> <span class="mi">3</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tropical</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> <span class="o">==</span> <span class="mi">3</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">zones</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> <span class="o">==</span> <span class="mi">8</span><span class="p">,</span> <span class="n">zones</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
 
-cross_hair = CrosshairTool()
-plot = (hemispheric.hvplot(x="Year", y="Difference From Normal", 
-                           ylabel="Difference From Historical Mean",
-                           by="Location",
-                           width=Plots.width, 
-                           height=Plots.height,
-                           tools=[cross_hair]
-).relabel("Hemispheres")
-        * tropical.hvplot(x="Year", y="Difference From Normal",
-                          ylabel="Difference From Historical Mean",                          
-                          by="Location",
-                          width=Plots.width, 
-                          height=Plots.height,
-                          tools=[cross_hair]).relabel(
-                              "Tropics vs Extra-Tropics")
-        * zones.hvplot(x="Year", y="Difference From Normal",
-                       ylabel="Difference From Historical Mean",                       
-                       by="Location",
-                       width=Plots.width, 
-                       height=Plots.height,
-                       tools=[cross_hair],
-                       ).relabel("Climate Zones")
-).opts(tabs=True, fontsize=Plots.font_size)
+<span class="n">cross_hair</span> <span class="o">=</span> <span class="n">CrosshairTool</span><span class="p">()</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">hemispheric</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Difference From Normal"</span><span class="p">,</span> 
+                           <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Historical Mean"</span><span class="p">,</span>
+                           <span class="n">by</span><span class="o">=</span><span class="s2">"Location"</span><span class="p">,</span>
+                           <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> 
+                           <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+                           <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">cross_hair</span><span class="p">]</span>
+<span class="p">)</span><span class="o">.</span><span class="n">relabel</span><span class="p">(</span><span class="s2">"Hemispheres"</span><span class="p">)</span>
+        <span class="o">*</span> <span class="n">tropical</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Difference From Normal"</span><span class="p">,</span>
+                          <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Historical Mean"</span><span class="p">,</span>                          
+                          <span class="n">by</span><span class="o">=</span><span class="s2">"Location"</span><span class="p">,</span>
+                          <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> 
+                          <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+                          <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">cross_hair</span><span class="p">])</span><span class="o">.</span><span class="n">relabel</span><span class="p">(</span>
+                              <span class="s2">"Tropics vs Extra-Tropics"</span><span class="p">)</span>
+        <span class="o">*</span> <span class="n">zones</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Difference From Normal"</span><span class="p">,</span>
+                       <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Historical Mean"</span><span class="p">,</span>                       
+                       <span class="n">by</span><span class="o">=</span><span class="s2">"Location"</span><span class="p">,</span>
+                       <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> 
+                       <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+                       <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">cross_hair</span><span class="p">],</span>
+                       <span class="p">)</span><span class="o">.</span><span class="n">relabel</span><span class="p">(</span><span class="s2">"Climate Zones"</span><span class="p">)</span>
+<span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">tabs</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">)</span>
 
-Embed(plot, "tabbed_plots")()
+<span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"tabbed_plots"</span><span class="p">)()</span>
 </pre></div>
 <script id="605e4d9d-af93-4e83-a217-be0667c173ec" src="tabbed_plots.js">
 </script></div>

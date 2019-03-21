@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="Walking through the pyviz network graphs examples." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Walking Through the PyViz Network Graphs Examples | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/walking-through-the-pyviz-network-graphs-examples/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
+</script>
+<meta content="Cloistered Monkey" name="author">
+<meta content="noindex" name="robots">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Walking Through the PyViz Network Graphs Examples" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/walking-through-the-pyviz-network-graphs-examples/" property="og:url">
+<meta content="Walking through the pyviz network graphs examples." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2019-03-20T14:55:24-07:00" property="article:published_time">
+<meta content="pyviz" property="article:tag">
+<meta content="tutorial" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="../../../archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="../../../pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"><input name="k8" type="hidden" value="#444444"><input name="k9" type="hidden" value="#D51920"><input name="kt" type="hidden" value="h"><input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"><input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href=".">Walking Through the PyViz Network Graphs Examples</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2019-03-20T14:55:24-07:00" itemprop="datePublished" title="2019-03-20 14:55">2019-03-20 14:55</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org91c6289">Beginning</a>
+<ul>
+<li><a href="#orgc5aa619">Imports</a></li>
+<li><a href="#org8e35f0d">Setup</a></li>
+</ul>
+</li>
+<li><a href="#orgca34737">Middle</a>
+<ul>
+<li><a href="#org1f6903c">A Simple Graph</a></li>
+<li><a href="#org7ba24e0">Re-Using the Nodes and Edges</a></li>
+<li><a href="#orgf0b1884">Explicit Paths</a></li>
+<li><a href="#org68bea70">Hover</a></li>
+<li><a href="#org1ee6abf">More Information</a></li>
+<li><a href="#org08f9363">Edge Weights and Colors</a></li>
+<li><a href="#org0c1c398">Using A Dataset</a></li>
+<li><a href="#org86d83b6">Using NetworkX</a></li>
+<li><a href="#org4e0449d">Facebook</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org91c6289">
+<h2 id="org91c6289">Beginning</h2>
+<div class="outline-text-2" id="text-org91c6289">
+<p>This is a walk-through of the <a href="http://pyviz.org/tutorial/06_Network_Graphs.html">pyviz networks graphs examples</a> so I can check that I can replicate them.</p>
+</div>
+<div class="outline-3" id="outline-container-orgc5aa619">
+<h3 id="orgc5aa619">Imports</h3>
+<div class="outline-text-3" id="text-orgc5aa619"></div>
+<div class="outline-4" id="outline-container-orgae62387">
+<h4 id="orgae62387">Python</h4>
+<div class="outline-text-4" id="text-orgae62387">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">os</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgc0e6f09">
+<h4 id="orgc0e6f09">PyPi</h4>
+<div class="outline-text-4" id="text-orgc0e6f09">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">bokeh.models</span> <span class="kn">import</span> <span class="n">HoverTool</span>
+<span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">from</span> <span class="nn">holoviews</span> <span class="kn">import</span> <span class="n">opts</span><span class="p">,</span> <span class="n">dim</span>
+<span class="kn">from</span> <span class="nn">holoviews.operation.datashader</span> <span class="kn">import</span> <span class="n">bundle_graph</span>
+
+<span class="kn">import</span> <span class="nn">holoviews</span>
+<span class="kn">import</span> <span class="nn">networkx</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org7d23bb8">
+<h4 id="org7d23bb8">My Stuff</h4>
+<div class="outline-text-4" id="text-org7d23bb8">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">graeae.visualization</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
+<span class="kn">from</span> <span class="nn">graeae.tables</span> <span class="kn">import</span> <span class="n">CountPercentage</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org8e35f0d">
+<h3 id="org8e35f0d">Setup</h3>
+<div class="outline-text-3" id="text-org8e35f0d"></div>
+<div class="outline-4" id="outline-container-org104d6b7">
+<h4 id="org104d6b7">The Plotting</h4>
+<div class="outline-text-4" id="text-org104d6b7">
+<div class="highlight">
+<pre><span></span><span class="k">class</span> <span class="nc">Plot</span><span class="p">:</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="mi">800</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="mi">800</span>
+    <span class="n">padding</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">24</span>
+<span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">)</span>
+<span class="n">defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span> <span class="n">xaxis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">yaxis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">fontsize</span><span class="p">)</span>
+<span class="n">holoviews</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">defaults</span><span class="p">(</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">EdgePaths</span><span class="p">(</span><span class="o">**</span><span class="n">defaults</span><span class="p">),</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="o">**</span><span class="n">defaults</span><span class="p">),</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Nodes</span><span class="p">(</span><span class="o">**</span><span class="n">defaults</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orge9ab383">
+<h4 id="orge9ab383">The Bokeh Embedder</h4>
+<div class="outline-text-4" id="text-orge9ab383">
+<div class="highlight">
+<pre><span></span><span class="n">OUTPUT_FOLDER</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/"</span>
+                     <span class="s2">"walking-through-the-pyviz-network-graphs-examples/"</span><span class="p">)</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedBokeh</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="n">OUTPUT_FOLDER</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgca34737">
+<h2 id="orgca34737">Middle</h2>
+<div class="outline-text-2" id="text-orgca34737"></div>
+<div class="outline-3" id="outline-container-org1f6903c">
+<h3 id="org1f6903c">A Simple Graph</h3>
+<div class="outline-text-3" id="text-org1f6903c">
+<p>You can define a graph by giving two arrays which together represent pairs of nodes connected by an edge (they call the first array the nodes and the second the edges). As an example we can create a graph where all the nodes (other than the first node) have an edge to the first node (Node 0 in this case).</p>
+<div class="highlight">
+<pre><span></span><span class="n">NODE_COUNT</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">NODES</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">NODE_COUNT</span><span class="p">)</span>
+<span class="n">EDGES</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">NODE_COUNT</span><span class="p">)</span> <span class="o">*</span> <span class="mi">5</span>
+
+<span class="n">graph</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Graph</span><span class="p">(((</span><span class="n">EDGES</span><span class="p">,</span> <span class="n">NODES</span><span class="p">),))</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"We're All Connected to Five"</span><span class="p">)</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s2">"first_graph"</span><span class="p">)()</span>
+</pre></div>
+<script id="461fcaac-8186-4d77-8ac8-921dd5aa1706" src="first_graph.js">
+</script>
+<p>The arguments to the <code>Graph</code> looks odd, and it's not obvious from the docstring why you need to pass in a tuple of tuples, but you do.</p>
+<p>If you hover over the nodes you'll see that they all connect to the one with <code>index</code> 5, the value we gave to the edges array.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org7ba24e0">
+<h3 id="org7ba24e0">Re-Using the Nodes and Edges</h3>
+<div class="outline-text-3" id="text-org7ba24e0">
+<p>The <code>Graph</code> keeps the <code>Nodes</code> and <code>EdgePaths</code> as separate objects that are themselves plotable.</p>
+<div class="highlight">
+<pre><span></span><span class="n">dimensions</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span> <span class="o">+</span> <span class="n">graph</span><span class="o">.</span><span class="n">edgepaths</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"Nodes and Edges"</span><span class="p">,</span> 
+                                            <span class="n">fontsize</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">fontsize</span><span class="p">,</span> 
+                                            <span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"nodes_and_edges"</span><span class="p">)()</span>
+</pre></div>
+<script id="9a8c36e8-e182-4f51-87d0-d8c25174159f" src="nodes_and_edges.js">
+</script>
+<p>Note that changing the title worked (although it lost the font-size unless I explicitly passed it in) but changing the plot size didn't, even when I tried the <code>redim</code> method instead. This might be another one of those problematic HoloViews things that I need to figure out.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgf0b1884">
+<h3 id="orgf0b1884">Explicit Paths</h3>
+<div class="outline-text-3" id="text-orgf0b1884">
+<p>The next example is supposedly about suppyling explicit paths instead of letting HoloViews create them but there's so much unexplained that I'm not going to bother trying to understand it for now.</p>
+<div class="highlight">
+<pre><span></span><span class="k">def</span> <span class="nf">bezier</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">control</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)):</span>
+    <span class="k">return</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">steps</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">start</span> 
+            <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">steps</span><span class="p">)</span> <span class="o">*</span> <span class="n">steps</span> <span class="o">*</span> <span class="n">control</span> 
+            <span class="o">+</span> <span class="n">steps</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">end</span><span class="p">)</span>
+
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+
+<span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">node_index</span> <span class="ow">in</span> <span class="n">NODES</span><span class="p">:</span>
+    <span class="n">ex</span><span class="p">,</span> <span class="n">ey</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">node_index</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">node_index</span><span class="p">]</span>
+    <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">bezier</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ex</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">bezier</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ey</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]))</span>
+
+<span class="n">padding</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">),</span> <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">))</span>
+<span class="n">bezier_graph</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Graph</span><span class="p">(((</span><span class="n">EDGES</span><span class="p">,</span> <span class="n">NODES</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">NODES</span><span class="p">),</span> <span class="n">paths</span><span class="p">))</span><span class="o">.</span><span class="n">redim</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="o">**</span><span class="n">padding</span><span class="p">)</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">bezier_graph</span><span class="p">,</span> <span class="s2">"bezier_graph"</span><span class="p">)()</span>
+</pre></div>
+<script id="09d652c2-4e41-45c4-b804-33fbc7c8a198" src="bezier_graph.js">
+</script></div>
+</div>
+<div class="outline-3" id="outline-container-org68bea70">
+<h3 id="org68bea70">Hover</h3>
+<div class="outline-text-3" id="text-org68bea70">
+<p>By default the hover tool will give you information about the Node you mouse-over, but you can set it to give you the nodes connected to an edge instead.</p>
+<div class="highlight">
+<pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">inspection_policy</span><span class="o">=</span><span class="s2">"edges"</span><span class="p">,</span> 
+                      <span class="n">width</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> 
+                      <span class="n">height</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> 
+                      <span class="n">title</span><span class="o">=</span><span class="s2">"Edge Hover"</span><span class="p">)</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s2">"edge_hove_tool"</span><span class="p">)()</span>
+</pre></div>
+<script id="e5cb808d-4cd4-4294-860e-2687d37a4e41" src="edge_hove_tool.js">
+</script>
+<p>There were several things to note here:</p>
+<ul class="org-ul">
+<li>Although I wasn't able to change the size when I plotted the nodes and edges side by side, this plot came out at the small size I had tried to use until I set it myself</li>
+<li>The hover is now triggered by hovering over the edges</li>
+<li>Although this is an undirected graph, they define the nodes as 'start' and 'end'</li>
+</ul>
+<p>You can change the colors for hover activation as well.</p>
+<div class="highlight">
+<pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">node_hover_fill_color</span><span class="o">=</span><span class="s2">"red"</span><span class="p">,</span>
+                      <span class="n">edge_hover_line_color</span><span class="o">=</span><span class="s2">"pink"</span><span class="p">)</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s2">"colored_hover"</span><span class="p">)()</span>
+</pre></div>
+<script id="9c0721d1-633c-4066-b149-4efddfb0305c" src="colored_hover.js">
+</script></div>
+</div>
+<div class="outline-3" id="outline-container-org1ee6abf">
+<h3 id="org1ee6abf">More Information</h3>
+<div class="outline-text-3" id="text-org1ee6abf">
+<p>If we create the <code>Nodes</code> ourselves we can add labels to them.</p>
+<p>First get the values that the <code>Graph</code> created for the <i>x</i> and <i>y</i> coordinates of the nodes.</p>
+<div class="highlight">
+<pre><span></span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+</pre></div>
+<p>There's no explanation for the method that I could find, other than the docstring, so I'll just take that on faith. I don't know how you would get the values yourself without first creating a <code>Graph</code> then taking the values and creating a new one, which doesn't seem right.</p>
+<p>Now create the labels in the same order as the nodes that they are labeling.</p>
+<div class="highlight">
+<pre><span></span><span class="n">node_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Barbara"</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"Gloria"</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"Barbara"</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span>
+</pre></div>
+<p>Now create the nodes and the new graph. Note that the first argument is a tuple and the nodes gets passed in as that mystery argument that I was wondering about earlier.</p>
+<div class="highlight">
+<pre><span></span><span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
+    <span class="n">tooltips</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s2">"Name"</span><span class="p">,</span> <span class="s2">"@Name"</span><span class="p">)</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Nodes</span><span class="p">((</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">NODES</span><span class="p">,</span> <span class="n">node_labels</span><span class="p">),</span> <span class="n">vdims</span><span class="o">=</span><span class="s2">"Name"</span><span class="p">)</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Graph</span><span class="p">(((</span><span class="n">EDGES</span><span class="p">,</span> <span class="n">NODES</span><span class="p">),</span> <span class="n">nodes</span><span class="p">))</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span> 
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Labeled Nodes"</span><span class="p">,</span> 
+    <span class="n">node_color</span><span class="o">=</span><span class="s2">"Name"</span><span class="p">,</span>
+    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">hover</span><span class="p">],</span>
+    <span class="n">cmap</span><span class="o">=</span><span class="s2">"Set1"</span><span class="p">)</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s2">"named_nodes"</span><span class="p">)()</span>
+</pre></div>
+<script id="3361358b-ea20-4e69-9baf-ff4f67c47703" src="named_nodes.js">
+</script></div>
+</div>
+<div class="outline-3" id="outline-container-org08f9363">
+<h3 id="org08f9363">Edge Weights and Colors</h3>
+<div class="outline-text-3" id="text-org08f9363">
+<p>We can also change the thickness and color of the edges based on their weights. First we need to create the edge-weights.</p>
+<div class="highlight">
+<pre><span></span><span class="n">edge_weights</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">EDGES</span><span class="p">))</span>
+</pre></div>
+<p><code>numpy.random.rand</code> creates an array of numbers ranging from 0 to 1 (but not 1).</p>
+<p>Once again we have to create a new graph, this time passing in the edge-weights (and I'll add the nodes too).</p>
+<div class="highlight">
+<pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Graph</span><span class="p">(((</span><span class="n">EDGES</span><span class="p">,</span> <span class="n">NODES</span><span class="p">,</span> <span class="n">edge_weights</span><span class="p">),</span> <span class="n">nodes</span><span class="p">),</span> <span class="n">vdims</span><span class="o">=</span><span class="s2">"Weight"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Edge Weights"</span><span class="p">,</span>
+    <span class="n">inspection_policy</span><span class="o">=</span><span class="s2">"edges"</span><span class="p">,</span>
+    <span class="n">node_color</span><span class="o">=</span><span class="s2">"Name"</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="o">=</span><span class="s2">"Set1"</span><span class="p">,</span>
+    <span class="n">edge_color</span><span class="o">=</span><span class="s2">"Weight"</span><span class="p">,</span> 
+    <span class="n">edge_cmap</span><span class="o">=</span><span class="s2">"viridis"</span><span class="p">,</span> 
+    <span class="n">edge_line_width</span><span class="o">=</span><span class="n">holoviews</span><span class="o">.</span><span class="n">dim</span><span class="p">(</span><span class="s2">"Weight"</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10</span>
+        <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s2">"edge_weights"</span><span class="p">)()</span>
+</pre></div>
+<script id="4fb5ca16-c1f6-442d-a6f7-ae25b994f10a" src="edge_weights.js">
+</script>
+<p>Note that the edge-hover doesn't use our node-labels, which is sort of disappointing. I wonder if there's a way to fix that.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org0c1c398">
+<h3 id="org0c1c398">Using A Dataset</h3>
+<div class="outline-text-3" id="text-org0c1c398">
+<p>I previously created the Nodes using the values from a Graph that had the Nodes, which seemed kind of circular, it turns out that the way to do it is to pass in a <code>Dataset</code> with the labels.</p>
+<div class="highlight">
+<pre><span></span><span class="n">node_labels</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"Anne Barbara Carol Donna Eleanor "</span>
+               <span class="s2">"Francis Gloria Helen Iris Janet"</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+<span class="n">node_stuff</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">node_labels</span><span class="p">,</span> <span class="n">vdims</span><span class="o">=</span><span class="s2">"Name"</span><span class="p">)</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span>
+    <span class="p">(</span>
+        <span class="p">(</span><span class="n">EDGES</span><span class="p">,</span> <span class="n">NODES</span><span class="p">,</span> <span class="n">edge_weights</span><span class="p">),</span> 
+        <span class="n">node_stuff</span><span class="p">),</span> 
+    <span class="n">vdims</span><span class="o">=</span><span class="s2">"Weight"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Nodes From a Dataset"</span><span class="p">,</span>
+        <span class="n">node_color</span><span class="o">=</span><span class="s2">"Name"</span><span class="p">,</span>
+        <span class="n">cmap</span><span class="o">=</span><span class="s2">"Set1"</span><span class="p">,</span>
+        <span class="n">edge_color</span><span class="o">=</span><span class="s2">"Weight"</span><span class="p">,</span> 
+        <span class="n">edge_cmap</span><span class="o">=</span><span class="s2">"plasma"</span><span class="p">,</span>
+        <span class="n">edge_line_width</span><span class="o">=</span><span class="n">holoviews</span><span class="o">.</span><span class="n">dim</span><span class="p">(</span><span class="s2">"Weight"</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">hover</span><span class="p">],</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">Embed</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s2">"dataset_node_labels"</span><span class="p">)()</span>
+</pre></div>
+<script id="932eaf79-bf57-4bab-86b6-0393965859dd" src="dataset_node_labels.js">
+</script></div>
+</div>
+<div class="outline-3" id="outline-container-org86d83b6">
+<h3 id="org86d83b6">Using NetworkX</h3>
+<div class="outline-text-3" id="text-org86d83b6"></div>
+<div class="outline-4" id="outline-container-orgb959f62">
+<h4 id="orgb959f62">Karate Club</h4>
+<div class="outline-text-4" id="text-orgb959f62">
+<p>First we'll load in the included karate club graph that comes with networkx. This was a graph created from the members of a karate club that eventually splintered in two. The nodes are members and an edge between two nodes meant that they socialized outside of the club.</p>
+<div class="highlight">
+<pre><span></span><span class="n">karate_graph</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">karate_club_graph</span><span class="p">()</span>
+</pre></div>
+<p>This isn't explained in the example, but each node in the graph is a dict that has a some information set on it that you can reference.</p>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">karate_graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+<pre class="example">
+{'club': 'Mr. Hi'}
+
+</pre>
+<p>We're going to re-use these options again so I'll store them in a variable.</p>
+<div class="highlight">
+<pre><span></span><span class="n">karate_options</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"NetworkX Karate Club"</span><span class="p">,</span>
+                            <span class="n">node_color</span><span class="o">=</span><span class="n">holoviews</span><span class="o">.</span><span class="n">dim</span><span class="p">(</span><span class="s2">"club"</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">"Set1"</span><span class="p">,</span> 
+                            <span class="n">xlabel</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span>
+</pre></div>
+<p>Now we can create the HoloViews graph from the karate club graph.</p>
+<div class="highlight">
+<pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Graph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">karate_graph</span><span class="p">,</span> <span class="n">networkx</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">karate_options</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">Embed</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s2">"karate_club"</span><span class="p">)()</span>
+</pre></div>
+<script id="3f4971a5-bc53-495d-8b0a-62ee5f804ffd" src="karate_club.js">
+</script></div>
+</div>
+<div class="outline-4" id="outline-container-org2b22ea4">
+<h4 id="org2b22ea4">Animating the Layout</h4>
+<div class="outline-text-4" id="text-org2b22ea4">
+<div class="highlight">
+<pre><span></span><span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_graph</span><span class="p">(</span><span class="n">iteration</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Graph</span><span class="p">:</span>
+    <span class="sd">"""Creates a graph laid out using Fruchterman-Reingold force-direction</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">     iteration: maximum number of iterations to run the algorithm</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Graph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">karate_graph</span><span class="p">,</span>
+                                         <span class="n">networkx</span><span class="o">.</span><span class="n">spring_layout</span><span class="p">,</span> 
+                                         <span class="n">iterations</span><span class="o">=</span><span class="n">iteration</span><span class="p">)</span>
+
+<span class="n">holo_map</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HoloMap</span><span class="p">({</span><span class="n">iteration</span><span class="p">:</span> <span class="n">get_graph</span><span class="p">(</span><span class="n">iteration</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">karate_options</span><span class="p">)</span>
+                              <span class="k">for</span> <span class="n">iteration</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">5</span><span class="p">)},</span>
+                             <span class="n">kdims</span><span class="o">=</span><span class="s2">"Iterations"</span><span class="p">)</span>
+
+<span class="c1">#Embed(holo_map, "animated_spring")()</span>
+<span class="n">filename</span> <span class="o">=</span> <span class="s2">"animated_spring.html"</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">OUTPUT_FOLDER</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+<span class="n">holoviews</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">holo_map</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">"[[file:{}][Link To Plot]]"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+</pre></div>
+<p><a href="animated_spring.html">Link To Plot</a></p>
+<p>This is a plot with a widget, which doesn't work in nikola so I had to create a link to an external page (I'll have to figure that one out). In looking at the external page it looks like HoloViews is adding extra class names and CSS so it might be that the conversion to bokeh is what breaks it. Anyway.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org4e0449d">
+<h3 id="org4e0449d">Facebook</h3>
+<div class="outline-text-3" id="text-org4e0449d">
+<p>In this section we'll work with a graph of Facebook users who have been associated with a 'circle' (of friends).</p>
+<p>Turn off the x and y axes.</p>
+<div class="highlight">
+<pre><span></span><span class="n">options</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">xaxis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">yaxis</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="n">opts</span><span class="o">.</span><span class="n">defaults</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">Nodes</span><span class="p">(</span><span class="o">**</span><span class="n">options</span><span class="p">),</span> <span class="n">opts</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="o">**</span><span class="n">options</span><span class="p">))</span>
+</pre></div>
+<p>Read in the dataframes for the edges and nodes.</p>
+<div class="highlight">
+<pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">".env"</span><span class="p">)</span>
+<span class="n">edge_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"FACEBOOK_EDGES"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">node_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"FACEBOOK_NODES"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+
+<span class="k">assert</span> <span class="n">edge_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">node_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+
+<span class="n">edge_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">edge_path</span><span class="p">)</span>
+<span class="n">node_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">node_path</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">edge_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">node_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">node_data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+<p>So you can see that the <code>circle</code> is part of the node data.</p>
+<div class="highlight">
+<pre><span></span><span class="n">circle_counts</span> <span class="o">=</span> <span class="n">CountPercentage</span><span class="p">(</span><span class="n">node_data</span><span class="o">.</span><span class="n">circle</span><span class="p">)</span>
+<span class="n">circle_counts</span><span class="p">()</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Value</th>
+<th class="org-right" scope="col">Count</th>
+<th class="org-right" scope="col">Percentage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">circle15</td>
+<td class="org-right">119</td>
+<td class="org-right">35.74</td>
+</tr>
+<tr>
+<td class="org-left">None</td>
+<td class="org-right">56</td>
+<td class="org-right">16.82</td>
+</tr>
+<tr>
+<td class="org-left">circle16</td>
+<td class="org-right">31</td>
+<td class="org-right">9.31</td>
+</tr>
+<tr>
+<td class="org-left">circle11</td>
+<td class="org-right">29</td>
+<td class="org-right">8.71</td>
+</tr>
+<tr>
+<td class="org-left">circle0</td>
+<td class="org-right">15</td>
+<td class="org-right">4.50</td>
+</tr>
+<tr>
+<td class="org-left">circle19</td>
+<td class="org-right">13</td>
+<td class="org-right">3.90</td>
+</tr>
+<tr>
+<td class="org-left">circle4</td>
+<td class="org-right">10</td>
+<td class="org-right">3.00</td>
+</tr>
+<tr>
+<td class="org-left">circle2</td>
+<td class="org-right">9</td>
+<td class="org-right">2.70</td>
+</tr>
+<tr>
+<td class="org-left">circle6</td>
+<td class="org-right">8</td>
+<td class="org-right">2.40</td>
+</tr>
+<tr>
+<td class="org-left">circle17</td>
+<td class="org-right">8</td>
+<td class="org-right">2.40</td>
+</tr>
+<tr>
+<td class="org-left">circle9</td>
+<td class="org-right">7</td>
+<td class="org-right">2.10</td>
+</tr>
+<tr>
+<td class="org-left">circle20</td>
+<td class="org-right">6</td>
+<td class="org-right">1.80</td>
+</tr>
+<tr>
+<td class="org-left">circle13</td>
+<td class="org-right">5</td>
+<td class="org-right">1.50</td>
+</tr>
+<tr>
+<td class="org-left">circle10</td>
+<td class="org-right">4</td>
+<td class="org-right">1.20</td>
+</tr>
+<tr>
+<td class="org-left">circle23</td>
+<td class="org-right">3</td>
+<td class="org-right">0.90</td>
+</tr>
+<tr>
+<td class="org-left">circle3</td>
+<td class="org-right">3</td>
+<td class="org-right">0.90</td>
+</tr>
+<tr>
+<td class="org-left">circle7</td>
+<td class="org-right">2</td>
+<td class="org-right">0.60</td>
+</tr>
+<tr>
+<td class="org-left">circle14</td>
+<td class="org-right">2</td>
+<td class="org-right">0.60</td>
+</tr>
+<tr>
+<td class="org-left">circle12</td>
+<td class="org-right">1</td>
+<td class="org-right">0.30</td>
+</tr>
+<tr>
+<td class="org-left">circle22</td>
+<td class="org-right">1</td>
+<td class="org-right">0.30</td>
+</tr>
+<tr>
+<td class="org-left">circle18</td>
+<td class="org-right">1</td>
+<td class="org-right">0.30</td>
+</tr>
+</tbody>
+</table>
+<p>For some reason the second most circle value is <code>None</code>.</p>
+<p>Set up the colors.</p>
+<div class="highlight">
+<pre><span></span><span class="n">black</span> <span class="o">=</span> <span class="s2">"#000000"</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">black</span><span class="p">]</span> <span class="o">+</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Cycle</span><span class="p">(</span><span class="s2">"Category20"</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+</pre></div>
+<p>Setup the nodes and the graph.</p>
+<div class="highlight">
+<pre><span></span><span class="n">nodes</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Nodes</span><span class="p">(</span><span class="n">node_data</span><span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Graph</span><span class="p">((</span><span class="n">edge_data</span><span class="p">,</span> <span class="n">nodes</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Facebook Circles"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">cmap</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
+    <span class="n">node_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">edge_line_width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">node_line_color</span><span class="o">=</span><span class="s2">"gray"</span><span class="p">,</span>
+    <span class="n">node_color</span><span class="o">=</span><span class="s2">"circle"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">Embed</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s2">"facebook_circles"</span><span class="p">)()</span>
+</pre></div>
+<script id="72fe85e4-bf7b-4b21-a5e9-29f4a5ca64c0" src="facebook_circles.js">
+</script>
+<p>It's interesting that the most populus circle <code>circle15</code> is the first circle after we sort, is the sort working by value counts? I tried setting the second color to red, but this got assigned to <code>circle0</code> which isn't the second most common, so apparently not, but then why did it work for <code>circle15</code>?</p>
+</div>
+<div class="outline-4" id="outline-container-org51c1eba">
+<h4 id="org51c1eba">Bundling</h4>
+<div class="outline-text-4" id="text-org51c1eba">
+<div class="highlight">
+<pre><span></span><span class="n">bundled</span> <span class="o">=</span> <span class="n">bundle_graph</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"Bundled Facebook Circles"</span><span class="p">)</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">bundled</span><span class="p">,</span> <span class="s2">"bundled_graph"</span><span class="p">)()</span>
+</pre></div>
+<script id="d12683ea-e6f2-4baf-8a0b-5bb0b4ea352f" src="bundled_graph.js">
+</script>
+<p>This view helps to eliminate some of the noise from the edges, but I wonder if it does that at the expense of disproportionately diminishing the presence of <code>circle15</code> (the black circles).</p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org37a0fb8">
+<h4 id="org37a0fb8">Circles</h4>
+<div class="outline-text-4" id="text-org37a0fb8">
+<p>We can select circles from the graph instead of showing all of them.</p>
+<div class="highlight">
+<pre><span></span><span class="n">circles</span> <span class="o">=</span> <span class="n">circle_counts</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">Value</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+<span class="n">circle_plots</span> <span class="o">=</span> <span class="p">[</span><span class="n">bundled</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">circle</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">selection_mode</span><span class="o">=</span><span class="s2">"nodes"</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">circles</span><span class="p">]</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">circle_plots</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">next_plot</span> <span class="ow">in</span> <span class="n">circle_plots</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+    <span class="n">plot</span> <span class="o">*=</span> <span class="n">next_plot</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"Top Five Bundled Circles"</span><span class="p">)</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"bundled_graph_circles"</span><span class="p">)()</span>
+</pre></div>
+<script id="e7a82d6f-5166-41ac-9f94-f6b2eefd8c5c" src="bundled_graph_circles.js">
+</script>
+<p>This view helps to eliminate some of the noise from the edges, but I wonder if it does that at the expense of disproportionately diminishing the presence of <code>circle15</code> (the black circles).</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="../../../categories/pyviz/" rel="tag">pyviz</a></li>
+<li><a class="tag p-category" href="../../../categories/tutorial/" rel="tag">tutorial</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="../../../assets/js/all-nocdn.js">
+</script>
+<script>
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script>
+</body>
+</html>
