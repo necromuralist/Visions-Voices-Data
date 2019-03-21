@@ -1,0 +1,466 @@
+#+BEGIN_COMMENT
+.. title: Walking Through the PyViz Network Graphs Examples
+.. slug: walking-through-the-pyviz-network-graphs-examples
+.. date: 2019-03-20 14:55:24 UTC-07:00
+.. tags: tutorial,pyviz
+.. category: Tutorial
+.. link: 
+.. description: Walking through the pyviz network graphs examples.
+.. type: text
+.. status: draft
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+#+BEGIN_SRC python :session giss :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Beginning
+  This is a walk-through of the [[http://pyviz.org/tutorial/06_Network_Graphs.html][pyviz networks graphs examples]] so I can check that I can replicate them.
+** Imports
+*** Python
+#+begin_src python :session pyviz :results none
+from pathlib import Path
+from functools import partial
+import os
+#+end_src
+*** PyPi
+#+begin_src python :session pyviz :results none
+from bokeh.models import HoverTool
+from dotenv import load_dotenv
+from holoviews import opts, dim
+from holoviews.operation.datashader import bundle_graph
+
+import holoviews
+import networkx
+import numpy
+import pandas
+#+end_src
+*** My Stuff
+#+begin_src python :session pyviz :results none
+from graeae.visualization import EmbedBokeh
+from graeae.tables import CountPercentage
+#+end_src
+** Setup
+*** The Plotting
+#+begin_src python :session pyviz :results none
+class Plot:
+    width = 800
+    height = 800
+    padding = 0.1
+    fontsize = 24
+holoviews.extension("bokeh")
+defaults = dict(width=Plot.width, height=Plot.height, padding=Plot.padding, xaxis=None, yaxis=None,
+                fontsize=Plot.fontsize)
+holoviews.opts.defaults(
+    opts.EdgePaths(**defaults),
+    opts.Graph(**defaults),
+    opts.Nodes(**defaults),
+)
+#+end_src
+*** The Bokeh Embedder
+#+begin_src python :session pyviz :results none
+OUTPUT_FOLDER = Path("../../files/posts/libraries/"
+                     "walking-through-the-pyviz-network-graphs-examples/")
+Embed = partial(EmbedBokeh, folder_path=OUTPUT_FOLDER)
+#+end_src
+* Middle
+** A Simple Graph
+   You can define a graph by giving two arrays which together represent pairs of nodes connected by an edge (they call the first array the nodes and the second the edges). As an example we can create a graph where all the nodes (other than the first node) have an edge to the first node (Node 0 in this case).
+
+#+begin_src python :session pyviz :results output raw :exports both
+NODE_COUNT = 10
+NODES = numpy.arange(NODE_COUNT)
+EDGES = numpy.ones(NODE_COUNT) * 5
+
+graph = holoviews.Graph(((EDGES, NODES),)).opts(title="We're All Connected to Five")
+Embed(graph, "first_graph")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="first_graph.js" id="461fcaac-8186-4d77-8ac8-921dd5aa1706"></script>
+#+end_export
+
+The arguments to the =Graph= looks odd, and it's not obvious from the docstring why you need to pass in a tuple of tuples, but you do.
+
+If you hover over the nodes you'll see that they all connect to the one with =index= 5, the value we gave to the edges array.
+** Re-Using the Nodes and Edges
+   The =Graph= keeps the =Nodes= and =EdgePaths= as separate objects that are themselves plotable.
+
+#+begin_src python :session pyviz :results output raw :exports both
+dimensions = dict(width=400, height=400)
+plot = (graph.nodes + graph.edgepaths).opts(title="Nodes and Edges", 
+                                            fontsize=Plot.fontsize, 
+                                            width=400, height=400)
+Embed(plot, "nodes_and_edges")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="nodes_and_edges.js" id="9a8c36e8-e182-4f51-87d0-d8c25174159f"></script>
+#+end_export
+
+Note that changing the title worked (although it lost the font-size unless I explicitly passed it in) but changing the plot size didn't, even when I tried the =redim= method instead. This might be another one of those problematic HoloViews things that I need to figure out.
+** Explicit Paths
+   The next example is supposedly about suppyling explicit paths instead of letting HoloViews create them but there's so much unexplained that I'm not going to bother trying to understand it for now.
+
+#+begin_src python :session pyviz :results output raw :exports both
+def bezier(start, end, control, steps=numpy.linspace(0, 1, 100)):
+    return ((1 - steps)**2 * start 
+            + 2 * (1 - steps) * steps * control 
+            + steps**2 * end)
+
+x, y = graph.nodes.array([0, 1]).T
+
+paths = []
+for node_index in NODES:
+    ex, ey = x[node_index], y[node_index]
+    paths.append(numpy.column_stack([bezier(x[0], ex, 0), bezier(y[0], ey, 0)]))
+    
+padding = dict(x=(-1.2, 1.2), y=(-1.2, 1.2))
+bezier_graph = holoviews.Graph(((EDGES, NODES), (x, y, NODES), paths)).redim.range(**padding)
+Embed(bezier_graph, "bezier_graph")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="bezier_graph.js" id="09d652c2-4e41-45c4-b804-33fbc7c8a198"></script>
+#+end_export
+
+** Hover
+   By default the hover tool will give you information about the Node you mouse-over, but you can set it to give you the nodes connected to an edge instead.
+
+#+begin_src python :session pyviz :results output raw :exports both
+graph = graph.options(inspection_policy="edges", 
+                      width=Plot.width, 
+                      height=Plot.height, 
+                      title="Edge Hover")
+Embed(graph, "edge_hove_tool")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="edge_hove_tool.js" id="e5cb808d-4cd4-4294-860e-2687d37a4e41"></script>
+#+end_export
+
+There were several things to note here:
+ - Although I wasn't able to change the size when I plotted the nodes and edges side by side, this plot came out at the small size I had tried to use until I set it myself
+ - The hover is now triggered by hovering over the edges
+ - Although this is an undirected graph, they define the nodes as 'start' and 'end'
+
+
+You can change the colors for hover activation as well.
+
+#+begin_src python :session pyviz :results output raw :exports both
+graph = graph.options(node_hover_fill_color="red",
+                      edge_hover_line_color="pink")
+Embed(graph, "colored_hover")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="colored_hover.js" id="9c0721d1-633c-4066-b149-4efddfb0305c"></script>
+#+end_export
+
+** More Information
+   If we create the =Nodes= ourselves we can add labels to them.
+
+First get the values that the =Graph= created for the /x/ and /y/ coordinates of the nodes.
+
+#+begin_src python :session pyviz :results none
+X, Y = graph.nodes.array([0, 1]).T
+#+end_src
+
+There's no explanation for the method that I could find, other than the docstring, so I'll just take that on faith. I don't know how you would get the values yourself without first creating a =Graph= then taking the values and creating a new one, which doesn't seem right.
+
+Now create the labels in the same order as the nodes that they are labeling.
+#+begin_src python :session pyviz :results none
+node_labels = ["Barbara"] * 5 + ["Gloria"] + ["Barbara"] * 4
+#+end_src
+
+Now create the nodes and the new graph. Note that the first argument is a tuple and the nodes gets passed in as that mystery argument that I was wondering about earlier.
+
+#+begin_src python :session pyviz :results output raw :exports both
+hover = HoverTool(
+    tooltips=[
+        ("Name", "@Name")
+    ]
+)
+nodes = holoviews.Nodes((X, Y, NODES, node_labels), vdims="Name")
+graph = holoviews.Graph(((EDGES, NODES), nodes)).opts( 
+    title="Labeled Nodes", 
+    node_color="Name",
+    tools=[hover],
+    cmap="Set1")
+Embed(graph, "named_nodes")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="named_nodes.js" id="3361358b-ea20-4e69-9baf-ff4f67c47703"></script>
+#+end_export
+
+** Edge Weights and Colors
+   We can also change the thickness and color of the edges based on their weights. First we need to create the edge-weights.
+
+#+begin_src python :session pyviz :results none
+edge_weights = numpy.random.rand(len(EDGES))
+#+end_src
+
+=numpy.random.rand= creates an array of numbers ranging from 0 to 1 (but not 1).
+
+Once again we have to create a new graph, this time passing in the edge-weights (and I'll add the nodes too).
+
+#+begin_src python :session pyviz :results output raw :exports both
+graph = holoviews.Graph(((EDGES, NODES, edge_weights), nodes), vdims="Weight").opts(
+    opts.Graph(
+    title="Edge Weights",
+    inspection_policy="edges",
+    node_color="Name",
+    cmap="Set1",
+    edge_color="Weight", 
+    edge_cmap="viridis", 
+    edge_line_width=holoviews.dim("Weight") * 10
+        )
+)
+Embed(graph, "edge_weights")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="edge_weights.js" id="4fb5ca16-c1f6-442d-a6f7-ae25b994f10a"></script>
+#+end_export
+
+Note that the edge-hover doesn't use our node-labels, which is sort of disappointing. I wonder if there's a way to fix that.
+
+** Using A Dataset
+   I previously created the Nodes using the values from a Graph that had the Nodes, which seemed kind of circular, it turns out that the way to do it is to pass in a =Dataset= with the labels.
+
+#+begin_src python :session pyviz :results output raw :exports both
+node_labels = ("Anne Barbara Carol Donna Eleanor "
+               "Francis Gloria Helen Iris Janet").split()
+node_stuff = holoviews.Dataset(node_labels, vdims="Name")
+graph = holoviews.Graph(
+    (
+        (EDGES, NODES, edge_weights), 
+        node_stuff), 
+    vdims="Weight").opts(
+    opts.Graph(
+        title="Nodes From a Dataset",
+        node_color="Name",
+        cmap="Set1",
+        edge_color="Weight", 
+        edge_cmap="plasma",
+        edge_line_width=holoviews.dim("Weight") * 10,
+        tools=[hover],
+    )
+)
+
+Embed(graph, "dataset_node_labels")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="dataset_node_labels.js" id="932eaf79-bf57-4bab-86b6-0393965859dd"></script>
+#+end_export
+
+** Using NetworkX
+*** Karate Club
+   First we'll load in the included karate club graph that comes with networkx. This was a graph created from the members of a karate club that eventually splintered in two. The nodes are members and an edge between two nodes meant that they socialized outside of the club.
+#+begin_src python :session pyviz :results none
+karate_graph = networkx.karate_club_graph()
+#+end_src
+
+This isn't explained in the example, but each node in the graph is a dict that has a some information set on it that you can reference.
+
+#+begin_src python :session pyviz :results output :exports both
+print(karate_graph.node[0])
+#+end_src
+
+#+RESULTS:
+: {'club': 'Mr. Hi'}
+
+We're going to re-use these options again so I'll store them in a variable.
+
+#+begin_src python :session pyviz :results none
+karate_options = opts.Graph(title="NetworkX Karate Club",
+                            node_color=holoviews.dim("club"), cmap="Set1", 
+                            xlabel="", ylabel="")
+#+end_src
+Now we can create the HoloViews graph from the karate club graph.
+#+begin_src python :session pyviz :results output raw :exports both
+graph = holoviews.Graph.from_networkx(karate_graph, networkx.layout.circular_layout).opts(
+    karate_options,
+)
+
+Embed(graph, "karate_club")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="karate_club.js" id="3f4971a5-bc53-495d-8b0a-62ee5f804ffd"></script>
+#+end_export
+
+*** Animating the Layout
+#+begin_src python :session pyviz :results output raw :exports both
+numpy.random.seed(0)
+
+def get_graph(iteration: int) -> holoviews.Graph:
+    """Creates a graph laid out using Fruchterman-Reingold force-direction
+
+    Args:
+     iteration: maximum number of iterations to run the algorithm
+    """
+    return holoviews.Graph.from_networkx(karate_graph,
+                                         networkx.spring_layout, 
+                                         iterations=iteration)
+
+holo_map = holoviews.HoloMap({iteration: get_graph(iteration).opts(karate_options)
+                              for iteration in range(0, 55, 5)},
+                             kdims="Iterations")
+
+#Embed(holo_map, "animated_spring")()
+filename = "animated_spring.html"
+path = OUTPUT_FOLDER.joinpath(filename)
+holoviews.save(holo_map, path)
+print("[[file:{}][Link To Plot]]".format(filename))
+#+end_src
+
+#+RESULTS:
+[[file:animated_spring.html][Link To Plot]]
+
+This is a plot with a widget, which doesn't work in nikola so I had to create a link to an external page (I'll have to figure that one out). In looking at the external page it looks like HoloViews is adding extra class names and CSS so it might be that the conversion to bokeh is what breaks it. Anyway.
+
+** Facebook
+   In this section we'll work with a graph of Facebook users who have been associated with a 'circle' (of friends).
+
+Turn off the x and y axes.
+
+#+begin_src python :session pyviz :results none
+options = dict(width=800, height=800, xaxis=None, yaxis=None)
+opts.defaults(opts.Nodes(**options), opts.Graph(**options))
+#+end_src
+
+Read in the dataframes for the edges and nodes.
+
+#+begin_src python :session pyviz :results output
+load_dotenv(".env")
+edge_path = Path(os.environ.get("FACEBOOK_EDGES")).expanduser()
+node_path = Path(os.environ.get("FACEBOOK_NODES")).expanduser()
+
+assert edge_path.is_file()
+assert node_path.is_file()
+
+edge_data = pandas.read_csv(edge_path)
+node_data = pandas.read_csv(node_path)
+
+print(edge_data.shape)
+print(node_data.shape)
+print(node_data.iloc[0])
+#+end_src
+
+#+RESULTS:
+: (2519, 2)
+: (333, 4)
+: x         0.346231
+: y         0.294644
+: index            1
+: circle    circle15
+: Name: 0, dtype: object
+
+So you can see that the =circle= is part of the node data.
+
+#+begin_src python :session pyviz :results output raw :exports both
+circle_counts = CountPercentage(node_data.circle)
+circle_counts()
+#+end_src
+
+#+RESULTS:
+| Value    | Count | Percentage |
+|----------+-------+------------|
+| circle15 |   119 |      35.74 |
+| None     |    56 |      16.82 |
+| circle16 |    31 |       9.31 |
+| circle11 |    29 |       8.71 |
+| circle0  |    15 |       4.50 |
+| circle19 |    13 |       3.90 |
+| circle4  |    10 |       3.00 |
+| circle2  |     9 |       2.70 |
+| circle6  |     8 |       2.40 |
+| circle17 |     8 |       2.40 |
+| circle9  |     7 |       2.10 |
+| circle20 |     6 |       1.80 |
+| circle13 |     5 |       1.50 |
+| circle10 |     4 |       1.20 |
+| circle23 |     3 |       0.90 |
+| circle3  |     3 |       0.90 |
+| circle7  |     2 |       0.60 |
+| circle14 |     2 |       0.60 |
+| circle12 |     1 |       0.30 |
+| circle22 |     1 |       0.30 |
+| circle18 |     1 |       0.30 |
+
+For some reason the second most circle value is =None=.
+
+Set up the colors.
+
+#+begin_src python :session pyviz :results none
+black = "#000000"
+colors = [black] + holoviews.Cycle("Category20").values
+#+end_src
+
+Setup the nodes and the graph.
+
+#+begin_src python :session pyviz :results output raw :exports both
+nodes = holoviews.Nodes(node_data).sort()
+graph = holoviews.Graph((edge_data, nodes), label="Facebook Circles").opts(
+    cmap=colors,
+    node_size=10,
+    edge_line_width=1,
+    node_line_color="gray",
+    node_color="circle",
+)
+
+Embed(graph, "facebook_circles")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="facebook_circles.js" id="72fe85e4-bf7b-4b21-a5e9-29f4a5ca64c0"></script>
+#+end_export
+
+It's interesting that the most populus circle =circle15= is the first circle after we sort, is the sort working by value counts? I tried setting the second color to red, but this got assigned to =circle0= which isn't the second most common, so apparently not, but then why did it work for =circle15=?
+*** Bundling
+#+begin_src python :session pyviz :results output raw :exports both
+bundled = bundle_graph(graph).opts(title="Bundled Facebook Circles")
+Embed(bundled, "bundled_graph")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="bundled_graph.js" id="d12683ea-e6f2-4baf-8a0b-5bb0b4ea352f"></script>
+#+end_export
+
+This view helps to eliminate some of the noise from the edges, but I wonder if it does that at the expense of disproportionately diminishing the presence of =circle15= (the black circles).
+
+*** Circles
+    We can select circles from the graph instead of showing all of them.
+#+begin_src python :session pyviz :results output raw :exports both
+circles = circle_counts.table.Value.iloc[:5]
+circle_plots = [bundled.select(circle=name, selection_mode="nodes") for name in circles]
+plot = circle_plots[0]
+for next_plot in circle_plots[1:]:
+    plot *= next_plot
+plot = plot.opts(title="Top Five Bundled Circles")
+Embed(plot, "bundled_graph_circles")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<script src="bundled_graph_circles.js" id="e7a82d6f-5166-41ac-9f94-f6b2eefd8c5c"></script>
+#+end_export
+
+This view helps to eliminate some of the noise from the edges, but I wonder if it does that at the expense of disproportionately diminishing the presence of =circle15= (the black circles).

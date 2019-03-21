@@ -11,7 +11,7 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 2
-#+BEGIN_SRC ipython :session giss :results none :exports none
+#+BEGIN_SRC python :session giss :results none :exports none
 %load_ext autoreload
 %autoreload 2
 #+END_SRC
@@ -20,13 +20,13 @@
 * Set Up
 ** Imports
 *** Python
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 from functools import partial
 from pathlib import Path
 import os
 #+end_src
 *** PyPi
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 from dotenv import load_dotenv
 from holoviews import opts
 import holoviews
@@ -39,26 +39,26 @@ import pandas
 import seaborn
 #+end_src
 *** This Project
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 from bartleby_the_penguin.tangles.embed_bokeh import EmbedBokeh
 from graeae.tables import CountPercentage
 #+end_src
 ** Load Dotenv
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 load_dotenv(".env")
 #+end_src
 ** HoloViews Backend
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 holoviews.extension("bokeh", width=800)
 #+end_src
 ** The Embedder
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 OUTPUT_PATH = Path("../../files/posts/giss/giss-zone-anomalies/")
 Embed = partial(EmbedBokeh, 
                 folder_path=OUTPUT_PATH)
 #+end_src
 ** Some Settings
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 class Plots:
     width = 1200
     height = 600
@@ -75,14 +75,14 @@ class Plots:
 #+end_src
 * The Data
   The data is the /Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'/ [[https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv][Zonal Annual Means]] which shows the different annual mean for each zone in a given year.
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 zone_path = Path(os.environ.get("ZONES")).expanduser()
 assert zone_path.is_file()
 with zone_path.open() as reader:
     giss = pandas.read_csv(reader)
 #+end_src
 
-#+begin_src ipython :session giss :results output :exports both
+#+begin_src python :session giss :results output :exports both
 print(giss.describe())
 #+end_src
 
@@ -121,7 +121,7 @@ max      1.020000    0.780000    0.450000    1.270000
 
 So we have years from 1880 through 2018.
 
-#+begin_src ipython :session giss :results output :exports both
+#+begin_src python :session giss :results output :exports both
 print(giss.iloc[0])
 #+end_src
 
@@ -148,7 +148,7 @@ Name: 0, dtype: float64
 * Tidying the Data
 I'm going to use the locations for names so I'll make them something more meaningful for me. I don't know if these are, strictly speaking, the right names, but it's close enough.
 
-#+begin_src ipython :session giss :results output :exports both
+#+begin_src python :session giss :results output :exports both
 name_remap = {
     "Glob": "Global",
     "NHem": "Northern Hemisphere",
@@ -177,7 +177,7 @@ print(giss.columns)
 :        'South Temperate', 'South Frigid'],
 :       dtype='object')
 
-#+begin_src ipython :session giss :results output :exports both
+#+begin_src python :session giss :results output :exports both
 giss_tidy = giss.melt(id_vars=["Year"], var_name="location", 
                       value_name="Difference From Normal")
 print(giss_tidy.iloc[0])
@@ -189,7 +189,7 @@ print(giss_tidy.iloc[0])
 : Difference From Normal     -0.18
 : Name: 0, dtype: object
 
-#+begin_src ipython :session giss :results output raw :exports both
+#+begin_src python :session giss :results output raw :exports both
 location = CountPercentage(giss_tidy.location)
 # plot = location.table.hvplot.table()
 # Embed(plot, "location_table")()
@@ -217,7 +217,7 @@ location()
 * The Frigid North
   This is a plot of the temperature anomalies for the Frigid North using a Range Finder. You can select a range of years using the mini-plot below the main one.
 
-#+begin_src ipython :session giss :results output raw :exports both
+#+begin_src python :session giss :results output raw :exports both
 # The Tools
 hover = HoverTool(
     tooltips = [
@@ -263,7 +263,7 @@ If we were only looking at one zone I would think this is the most useful type, 
 * All Zones Dropdown
   This creates a plot with all the zones but only showing one at a time (you select which one using a dropdown). To get it you specify the dropdown column using =groupby=.
 
-#+begin_src ipython :session giss :results output raw :exports both
+#+begin_src python :session giss :results output raw :exports both
 # the Tools
 hover = HoverTool(
 tooltips = [
@@ -289,7 +289,7 @@ print("[[file:{}][Link To Plot]]".format(file_name))
 
 * All Zones Overlay
   The dropdown is a convenient way to look at different zones individually but make it hard to compare different zones. I'm going to put all of them on one plot first to get an overall picture.
-#+begin_src ipython :session giss :results output raw :exports both
+#+begin_src python :session giss :results output raw :exports both
 plot = giss_tidy.hvplot("Year", "Difference From Normal", 
                         by="location", 
                         title="Difference by Zone", 
@@ -311,7 +311,7 @@ Embed(layout, "all_zones")()
 This is kind of a messy plot, but it does show that the North Frigid and South Frigid zones seem to have the largest anomalies.
 
 ** Hemisphere Spikes
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 hemisphere_map = {
     'Global': "Global", 
     'Northern Hemisphere': "Northern", 
@@ -334,14 +334,14 @@ giss_tidy["hemisphere"] = giss_tidy.location.map(hemisphere_map)
 
 Separate out the hemispheres for plotting.
 
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 northern = giss_tidy[giss_tidy.hemisphere=="Northern"]
 southern = giss_tidy[giss_tidy.hemisphere=="Southern"]
 global_anomalies = giss_tidy[giss_tidy.location=="Global"]
 #+end_src
 
 Plot.
-#+begin_src ipython :session giss :results output raw :exports both
+#+begin_src python :session giss :results output raw :exports both
 # The Tools
 hover = HoverTool(
 tooltips = [
@@ -397,7 +397,7 @@ I also couldn't figure out how to get the zone information into the hovertool. W
 Anyway, it looks like the Northern Hemisphere started out below average while the Southern started out above average, then during the baseline period it sort of flipped, and now they're both above average, but the Northern is even more so.
 * Hemispheres
   This plot shows what happens when you average the zones by hemisphere.
-#+begin_src ipython :session giss :results output raw :exports both
+#+begin_src python :session giss :results output raw :exports both
 hemispheres = ["Global", "Northern Hemisphere", "Southern Hemisphere"]
 hemispheres = giss_tidy[giss_tidy.location.isin(hemispheres)]
 plot = hemispheres.hvplot("Year", "Difference From Normal", 
@@ -418,7 +418,7 @@ Embed(layout, "hemispheres")()
 
 This shows a different view than the Zones grouped by Hemisphere, as all the values start out below normal and move in sort of a linear fashion upwards. This probably is the result of the fact that the Frigid Zones are more extreme in their differences than the other zones, so averaging all of the zones supresses them. At least that's my initial thought. Looking at the previous plot, though, it looks quite different - the lowest value in the Hemispheres plot comes in 1917, while the zones grouped by hemisphere puts it at 1930 and 1917 actually doesn't look so special. Maybe they're calculated differently.
 * Extratropics
-#+begin_src ipython :session giss :results output raw :exports both
+#+begin_src python :session giss :results output raw :exports both
 zones = ["Global", "Northern Extratropics", "Southern Extratropics", "Tropics"]
 zones = giss_tidy[giss_tidy.location.isin(zones)]
 plot = zones.hvplot("Year", "Difference From Normal", by="location",
@@ -438,7 +438,7 @@ Embed(layout, "tropics")()
 
 * The Zones
   I did a previous plot "by zone" but in that case I was including all the zones given in the data. In this case we're only looking at the non-overlapping zones - so this chops up the planet by the smallest latitudinal zones that don't overlapy.
-#+begin_src ipython :session giss :results output raw :exports both
+#+begin_src python :session giss :results output raw :exports both
 zones = ["North Frigid", "North Temperate", "North Sub-Tropic", 
          "Tropic of Cancer", "Tropic of Capricorn",
          "South Frigid", "South Temperate", "South Sub-Tropic"]
@@ -458,11 +458,11 @@ Embed(layout, "zones")()
 <script src="zones.js" id="1fb8863b-4a0a-4d24-9ab7-746fa3af649f"></script>
 #+end_export
 * Tabbed Plots
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 giss_tidy = giss_tidy.rename(columns={"location": "Location"})
 #+end_src
 
-#+begin_src ipython :session giss :results none
+#+begin_src python :session giss :results none
 class PlotGroups:
     hemisphere = "Hemishpere"
     tropics = "Tropics"
@@ -487,7 +487,7 @@ group_map = {
 giss_tidy["plot_group"] = giss_tidy.Location.map(group_map)
 #+end_src
 
-#+begin_src ipython :session giss :results output raw :exports both
+#+begin_src python :session giss :results output raw :exports both
 hemispheric = giss_tidy[giss_tidy.plot_group==PlotGroups.hemisphere]
 tropical = giss_tidy[giss_tidy.plot_group==PlotGroups.tropics]
 zones = giss_tidy[giss_tidy.plot_group==PlotGroups.climate_zones]
