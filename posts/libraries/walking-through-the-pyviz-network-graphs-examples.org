@@ -7,7 +7,7 @@
 .. link: 
 .. description: Walking through the pyviz network graphs examples.
 .. type: text
-.. status: draft
+.. status:
 .. updated: 
 
 #+END_COMMENT
@@ -81,7 +81,7 @@ Embed(graph, "first_graph")()
 
 #+RESULTS:
 #+begin_export html
-<script src="first_graph.js" id="461fcaac-8186-4d77-8ac8-921dd5aa1706"></script>
+<script src="first_graph.js" id="2b9cdb9c-fb7d-4852-afb8-ff2d79cddff1"></script>
 #+end_export
 
 The arguments to the =Graph= looks odd, and it's not obvious from the docstring why you need to pass in a tuple of tuples, but you do.
@@ -100,7 +100,7 @@ Embed(plot, "nodes_and_edges")()
 
 #+RESULTS:
 #+begin_export html
-<script src="nodes_and_edges.js" id="9a8c36e8-e182-4f51-87d0-d8c25174159f"></script>
+<script src="nodes_and_edges.js" id="08fa283a-f8ba-4f2f-83be-5ca28defc8a6"></script>
 #+end_export
 
 Note that changing the title worked (although it lost the font-size unless I explicitly passed it in) but changing the plot size didn't, even when I tried the =redim= method instead. This might be another one of those problematic HoloViews things that I need to figure out.
@@ -127,7 +127,7 @@ Embed(bezier_graph, "bezier_graph")()
 
 #+RESULTS:
 #+begin_export html
-<script src="bezier_graph.js" id="09d652c2-4e41-45c4-b804-33fbc7c8a198"></script>
+<script src="bezier_graph.js" id="39076e44-df29-4c9c-b694-a6f0e35ba0f3"></script>
 #+end_export
 
 ** Hover
@@ -143,7 +143,7 @@ Embed(graph, "edge_hove_tool")()
 
 #+RESULTS:
 #+begin_export html
-<script src="edge_hove_tool.js" id="e5cb808d-4cd4-4294-860e-2687d37a4e41"></script>
+<script src="edge_hove_tool.js" id="a991c8b1-f3bc-44bc-9c44-6978668c0c12"></script>
 #+end_export
 
 There were several things to note here:
@@ -162,7 +162,7 @@ Embed(graph, "colored_hover")()
 
 #+RESULTS:
 #+begin_export html
-<script src="colored_hover.js" id="9c0721d1-633c-4066-b149-4efddfb0305c"></script>
+<script src="colored_hover.js" id="1898ed6f-c4f6-4e5d-ba9f-6c9bf31cb3e9"></script>
 #+end_export
 
 ** More Information
@@ -200,7 +200,7 @@ Embed(graph, "named_nodes")()
 
 #+RESULTS:
 #+begin_export html
-<script src="named_nodes.js" id="3361358b-ea20-4e69-9baf-ff4f67c47703"></script>
+<script src="named_nodes.js" id="b08b52fb-88c9-453e-950f-c71b2f1f6cd4"></script>
 #+end_export
 
 ** Edge Weights and Colors
@@ -231,7 +231,7 @@ Embed(graph, "edge_weights")()
 
 #+RESULTS:
 #+begin_export html
-<script src="edge_weights.js" id="4fb5ca16-c1f6-442d-a6f7-ae25b994f10a"></script>
+<script src="edge_weights.js" id="977d191b-89fc-4eef-90db-4aee89b36b89"></script>
 #+end_export
 
 Note that the edge-hover doesn't use our node-labels, which is sort of disappointing. I wonder if there's a way to fix that.
@@ -264,7 +264,7 @@ Embed(graph, "dataset_node_labels")()
 
 #+RESULTS:
 #+begin_export html
-<script src="dataset_node_labels.js" id="932eaf79-bf57-4bab-86b6-0393965859dd"></script>
+<script src="dataset_node_labels.js" id="5aba0f29-e1a4-4420-938a-770a2c068059"></script>
 #+end_export
 
 ** Using NetworkX
@@ -292,20 +292,21 @@ karate_options = opts.Graph(title="NetworkX Karate Club",
 #+end_src
 Now we can create the HoloViews graph from the karate club graph.
 #+begin_src python :session pyviz :results output raw :exports both
-graph = holoviews.Graph.from_networkx(karate_graph, networkx.layout.circular_layout).opts(
-    karate_options,
-)
+graph = holoviews.Graph.from_networkx(karate_graph, 
+                                      networkx.layout.circular_layout).opts(
+                                          karate_options,
+                                      )
 
 Embed(graph, "karate_club")()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<script src="karate_club.js" id="3f4971a5-bc53-495d-8b0a-62ee5f804ffd"></script>
+<script src="karate_club.js" id="e5a4d0ac-cd15-41f4-b284-b3af3a0f467c"></script>
 #+end_export
 
 *** Animating the Layout
-#+begin_src python :session pyviz :results output raw :exports both
+#+begin_src ipython :session pyviz :results output raw :exports both
 numpy.random.seed(0)
 
 def get_graph(iteration: int) -> holoviews.Graph:
@@ -322,17 +323,27 @@ holo_map = holoviews.HoloMap({iteration: get_graph(iteration).opts(karate_option
                               for iteration in range(0, 55, 5)},
                              kdims="Iterations")
 
-#Embed(holo_map, "animated_spring")()
+
 filename = "animated_spring.html"
 path = OUTPUT_FOLDER.joinpath(filename)
 holoviews.save(holo_map, path)
-print("[[file:{}][Link To Plot]]".format(filename))
+
+print('''#+begin_export html
+<object type="text/html" data="{}" style="width:100%" height={}>
+  <p>Failed to load</p>
+</object>
+#+end_export'''.format(filename, Plot.height
+))
 #+end_src
 
 #+RESULTS:
-[[file:animated_spring.html][Link To Plot]]
+#+begin_export html
+<object type="text/html" data="animated_spring.html" style="width:100%" height=800>
+  <p>Failed to load</p>
+</object>
+#+end_export
 
-This is a plot with a widget, which doesn't work in nikola so I had to create a link to an external page (I'll have to figure that one out). In looking at the external page it looks like HoloViews is adding extra class names and CSS so it might be that the conversion to bokeh is what breaks it. Anyway.
+This is the first time I managed to get the holoviews widgets to work inside a post - I'm going to need to update how I do this.
 
 ** Facebook
    In this section we'll work with a graph of Facebook users who have been associated with a 'circle' (of friends).
@@ -397,11 +408,11 @@ circle_counts()
 | circle10 |     4 |       1.20 |
 | circle23 |     3 |       0.90 |
 | circle3  |     3 |       0.90 |
-| circle7  |     2 |       0.60 |
 | circle14 |     2 |       0.60 |
+| circle7  |     2 |       0.60 |
 | circle12 |     1 |       0.30 |
-| circle22 |     1 |       0.30 |
 | circle18 |     1 |       0.30 |
+| circle22 |     1 |       0.30 |
 
 For some reason the second most circle value is =None=.
 
@@ -429,7 +440,7 @@ Embed(graph, "facebook_circles")()
 
 #+RESULTS:
 #+begin_export html
-<script src="facebook_circles.js" id="72fe85e4-bf7b-4b21-a5e9-29f4a5ca64c0"></script>
+<script src="facebook_circles.js" id="64f0f3fe-e901-4b28-909d-7724e34abb56"></script>
 #+end_export
 
 It's interesting that the most populus circle =circle15= is the first circle after we sort, is the sort working by value counts? I tried setting the second color to red, but this got assigned to =circle0= which isn't the second most common, so apparently not, but then why did it work for =circle15=?
@@ -441,7 +452,7 @@ Embed(bundled, "bundled_graph")()
 
 #+RESULTS:
 #+begin_export html
-<script src="bundled_graph.js" id="d12683ea-e6f2-4baf-8a0b-5bb0b4ea352f"></script>
+<script src="bundled_graph.js" id="44aab32c-2fc0-405c-8cda-b37c4b4f2476"></script>
 #+end_export
 
 This view helps to eliminate some of the noise from the edges, but I wonder if it does that at the expense of disproportionately diminishing the presence of =circle15= (the black circles).
@@ -460,7 +471,7 @@ Embed(plot, "bundled_graph_circles")()
 
 #+RESULTS:
 #+begin_export html
-<script src="bundled_graph_circles.js" id="e7a82d6f-5166-41ac-9f94-f6b2eefd8c5c"></script>
+<script src="bundled_graph_circles.js" id="cfea487b-0daf-4d4e-b8d1-6d49c0838bd4"></script>
 #+end_export
 
 This view helps to eliminate some of the noise from the edges, but I wonder if it does that at the expense of disproportionately diminishing the presence of =circle15= (the black circles).
