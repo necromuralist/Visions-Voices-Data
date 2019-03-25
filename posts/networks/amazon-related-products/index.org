@@ -1,0 +1,437 @@
+#+BEGIN_COMMENT
+.. title: Amazon Related Products
+.. slug: amazon-related-products
+.. date: 2019-03-22 22:29:20 UTC-07:00
+.. tags: amazon,networks
+.. category: Networks
+.. link: 
+.. description: Visualizing related Amazon products.
+.. type: text
+.. status:
+.. updated: 2019-03-23 22:29:20 UTC-07:00
+#+END_COMMENT
+#+OPTIONS: H:5
+#+TOC: headlines 2
+#+BEGIN_SRC python :session amazon :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Beginning
+** Description
+   This is an examination of data from the [[http://snap.stanford.edu/data/][Stanford Large Network Dataset Collection]]. There are two parts to the dataset:
+   - [[http://snap.stanford.edu/data/amazon0601.html][Amazon Product Co-Purchasing Network, June 1, 2003]]
+   - [[http://snap.stanford.edu/data/amazon-meta.html][Amazon Co-Purchasing Network Metadata]]
+
+From the site's description:
+
+#+begin_quote
+Network was collected by crawling Amazon website. It is based on Customers Who Bought This Item Also Bought feature of the Amazon website. If a product i is frequently co-purchased with product j, the graph contains a directed edge from i to j.
+
+The data was collected in June 01 2003.
+#+end_quote
+
+** Setting Up
+*** Imports
+**** From Python
+#+begin_src python :session amazon :results none
+from collections import Counter
+from functools import partial
+from pathlib import Path
+import os
+#+end_src
+**** From PyPi
+#+begin_src python :session amazon :results none
+from bokeh.models import HoverTool
+from dotenv import load_dotenv
+from holoviews import opts
+from holoviews.operation.datashader import datashade, bundle_graph
+import holoviews
+import modin.pandas as pandas
+import networkx
+import pandas as pandas_og
+#+end_src
+**** My Stuff
+#+begin_src python :session amazon :results none
+from graeae.timers import Timer
+from graeae.visualization import EmbedHoloview
+#+end_src
+*** Load the Dotenv
+#+begin_src python :session amazon :results none
+load_dotenv(".env")
+#+end_src
+*** Build the Timer
+#+begin_src python :session amazon :results none
+TIMER = Timer()
+#+end_src
+** Setup The Bokeh
+#+begin_src python :session amazon :results none
+holoviews.extension("bokeh")
+#+end_src
+
+#+begin_src python :session amazon :results none
+output = Path("../../files/posts/networks/amazon-related-products/")
+Embed = partial(EmbedHoloview, folder_path=output)
+#+end_src
+** Load The Data
+   Normally I'd load this stuff in pandas, but let's take a look at the data first.
+
+#+begin_src python :session amazon :results output :exports both
+data_path = Path(os.environ.get("AMAZON_DATA")).expanduser()
+assert data_path.is_file()
+with data_path.open() as reader:
+    for line in range(6):
+        print(reader.readline(), end="")
+#+end_src
+
+#+RESULTS:
+: # Directed graph (each unordered pair of nodes is saved once): Amazon0601.txt 
+: # Amazon product co-purchaisng network from June 01 2003
+: # Nodes: 403394 Edges: 3387388
+: # FromNodeId	ToNodeId
+: 0	1
+: 0	2
+
+So it isn't a CSV, it's just a lot of pairs of nodes (edge definitions) separated by tabs (a Tab-Separated-Values file). So I guess we can load it with pandas. What about the meta-data?
+
+#+begin_src python :session amazon :results output :exports both
+metadata_path = Path(os.environ.get("AMAZON_METADATA")).expanduser()
+assert metadata_path.is_file()
+with metadata_path.open() as reader:
+    for line in range(10):
+        print(reader.readline(), end="")
+#+end_src
+
+#+RESULTS:
+#+begin_example
+# Full information about Amazon Share the Love products
+Total items: 548552
+
+Id:   0
+ASIN: 0771044445
+  discontinued product
+
+Id:   1
+ASIN: 0827229534
+  title: Patterns of Preaching: A Sermon Sampler
+#+end_example
+
+So, it looks like there might be some information here to make it more human-readable, which would be useful, but there are a lot of points, so I don't know how useful it would be, but it turns out NetworkX will [[https://networkx.github.io/documentation/stable/reference/generated/networkx.convert_matrix.from_pandas_edgelist.html][create a graph from a pandas dataframe edge-list]] so we might as well make use of everything at first and throw it away later if it's not useful.
+
+*** Load the TSV
+**** Take One (with modin)
+#+begin_src python :session amazon :results output :exports both
+with TIMER:
+    edges = pandas.read_csv(data_path, delimiter="\t", 
+                            names=["Source", "Target"], 
+                            skiprows=4)
+print(edges.shape)
+
+#+end_src
+
+#+RESULTS:
+: Started: 2019-03-23 15:18:59.565073
+: Ended: 2019-03-23 15:18:59.751270
+: Elapsed: 0:00:00.186197
+: (3387392, 2)
+
+If we look at the header we can see that there should be 3,387,388 edges, not 3,387,392... it looks like we picked up four extras.
+
+#+begin_src python :session amazon :results output :exports both
+print(edges.head())
+#+end_src
+
+#+RESULTS:
+:                                               Source    Target
+: 0  # Directed graph (each unordered pair of nodes...       NaN
+: 1  # Amazon product co-purchaisng network from Ju...       NaN
+: 2                     # Nodes: 403394 Edges: 3387388       NaN
+: 3                                       # FromNodeId  ToNodeId
+: 4                                                  0         1
+
+It looks lke the =skiprows= argument doesn't worlk like I thought it does. According to the documentation:
+
+#+begin_quote
+**skiprows** : /list-like, int or callable, optional/
+ Line numbers to skip (0-indexed) or number of lines to skip (int) at the start of the file.
+#+end_quote
+
+So I don't know why that didn't work, but it didn't... oh, well.
+
+#+begin_src python :session amazon :results none
+edges = edges.iloc[4:]
+assert len(edges) == 3387388
+#+end_src
+
+We have the edges (and it was fairly painless), now how do we add the labels? Since we have edge-pairs it doesn't really make sense, now that I think about it. Maybe later it will make sense to re-map the ID numbers to titles.
+
+#+begin_src python :session amazon :results output :exports both
+with TIMER:
+    id_graph = networkx.convert_matrix.from_pandas_edgelist(
+        edges, "Source", "Target", 
+        create_using=networkx.DiGraph)
+#+end_src
+
+#+RESULTS:
+: Started: 2019-03-23 15:30:07.750906
+: Ended: 2019-03-23 15:31:08.065932
+: Elapsed: 0:01:00.315026
+
+#+begin_src python :session amazon :results output :exports both
+print(id_graph.order())
+#+end_src
+
+#+RESULTS:
+: 464045
+
+So, we have a problem here since, according to the header, there should be 403,394 nodes, not 464,045.
+
+#+begin_src python :session amazon :results output :exports both
+nodes = set(edges.Source.unique()) | set(edges.Target.unique())
+print(len(nodes))
+#+end_src
+
+#+RESULTS:
+: 464045
+
+#+begin_src python :session amazon :results output :exports both
+print(edges.head())
+print(edges.tail())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  Source Target
+4      0      1
+5      0      2
+6      0      3
+7      0      4
+8      0      5
+         Source  Target
+3387387  403392  121379
+3387388  403392  190663
+3387389  403393  318438
+3387390  403393  326962
+3387391  403393  403383
+#+end_example
+
+#+begin_src python :session amazon :results output :exports both
+print(edges.Source.dtype)
+#+end_src
+
+#+RESULTS:
+: object
+
+I think that that initial problem with skipping rows might have messed things up a little.
+
+#+begin_src python :session amazon :results output :exports both
+with TIMER:
+    edges.loc[:, "Source"] = edges.Source.astype(int)
+    edges.loc[:, "Target"] = edges.Target.astype(int)
+    print(len(set(edges.Source.unique()) | set(edges.Target.unique())))
+#+end_src
+
+That produced an error:
+
+#+begin_example
+Exception: Internal Error. Please email bug_reports@modin.org with the traceback and command that caused this error.
+#+end_example
+
+Maybe =modin= is still not ready for prime time.
+
+**** Take Two (with pandas)
+#+begin_src python :session amazon :results output :exports both
+with TIMER:
+    edges = pandas_og.read_csv(data_path, delimiter="\t", 
+                               names=["source", "target"], 
+                               skiprows=4)
+assert len(edges) == 3387388
+#+end_src
+
+#+RESULTS:
+: Started: 2019-03-24 13:59:14.697145
+: Ended: 2019-03-24 13:59:15.142454
+: Elapsed: 0:00:00.445309
+
+So that fixes the =skiprows= problem, first off.
+
+#+begin_src python :session amazon :results output :exports both
+with TIMER:
+    id_graph = networkx.convert_matrix.from_pandas_edgelist(
+        edges, "source", "target", 
+        create_using=networkx.DiGraph)
+#+end_src
+
+#+RESULTS:
+: Started: 2019-03-24 13:59:19.883328
+: Ended: 2019-03-24 13:59:26.128711
+: Elapsed: 0:00:06.245383
+
+#+begin_src python :session amazon :results output :exports both
+print(id_graph.order())
+assert id_graph.order() == 403394
+#+end_src
+
+#+RESULTS:
+: 403394
+
+So, using pandas fixes both our problems...
+* Middle
+** Reducing Our Data Set
+It turns out that this graph is just too big - it takes too long to create and the browser won't load it even if you do build it. We'll need to reduce it somehow.
+*** Load the Metadata
+I didn't show enough lines to really see what a metadata entry looks like. Here's the full entry for the node with ID 1.
+#+begin_src python :session amazon :results output :exports both
+with metadata_path.open() as reader:
+    for line in range(7):
+        reader.readline()
+    
+    for line in range(12):
+        print(reader.readline(), end="")
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Id:   1
+ASIN: 0827229534
+  title: Patterns of Preaching: A Sermon Sampler
+  group: Book
+  salesrank: 396585
+  similar: 5  0804215715  156101074X  0687023955  0687074231  082721619X
+  categories: 2
+   |Books[283155]|Subjects[1000]|Religion & Spirituality[22]|Christianity[12290]|Clergy[12360]|Preaching[12368]
+   |Books[283155]|Subjects[1000]|Religion & Spirituality[22]|Christianity[12290]|Clergy[12360]|Sermons[12370]
+  reviews: total: 2  downloaded: 2  avg rating: 5
+    2000-7-28  cutomer: A2JW67OY8U6HHK  rating: 5  votes:  10  helpful:   9
+    2003-12-14  cutomer: A2VE83MZF98ITY  rating: 5  votes:   6  helpful:   5
+#+end_example
+
+
+So we may be able to cut it down using groups, categories, or maybe even the "cutomer" ratings.
+
+#+begin_src python :session amazon :results output :exports both
+with metadata_path.open() as lines:
+    groups = Counter([line.split()[-1] for line in lines if "group:" in line])
+print(set(groups))
+#+end_src
+
+#+RESULTS:
+: {'CE', 'Toy', 'Book', 'DVD', 'Games', 'Product', 'Sports', 'Remediation', 'Software', 'Video', 'Music'}
+
+#+begin_src python :session amazon :results output :exports both
+for group, count in groups.items():
+    print("{}: {:,}".format(group, count))
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Book: 393,561
+Music: 103,144
+DVD: 19,828
+Video: 26,131
+Toy: 8
+Games: 1
+Software: 5
+Product: 1
+CE: 4
+Sports: 1
+Remediation: 1
+#+end_example
+
+#+begin_src python :session amazon :results output raw :exports both
+hover = HoverTool(tooltips=[
+    ("Group", "@Group"),
+    ("Count", "@Count{0,0}"),
+],
+                  formatters={"Count": "numeral"},
+                  mode="vline",
+)
+plot = holoviews.Bars(groups.items(),
+                     holoviews.Dimension("Group"), "Count").opts(
+                         width=1000,
+                         height=800,
+                         tools=[hover],
+                         title="Product Groups")
+Embed(plot=plot, file_name="product_groups")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="product_groups.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+It looks like just using the books alone would be too large, and maybe the music as well. I think I'll have to do a little more exploration.
+
+#+begin_src python :session amazon :results output :exports both
+with metadata_path.open() as lines:
+    categories = Counter([line.strip() for line in lines if "|Book" in line])
+for category, count in categories.most_common(10):
+    print("{}: {:,}".format(category, count))
+#+end_src
+
+#+RESULTS:
+#+begin_example
+|Books[283155]|Subjects[1000]|Business & Investing[3]|General[2612]: 18,437
+|Books[283155]|Subjects[1000]|Reference[21]|General[408268]: 13,703
+|Books[283155]|Subjects[1000]|Biographies & Memoirs[2]|General[2375]: 12,243
+|Books[283155]|Subjects[1000]|Nonfiction[53]|Social Sciences[11232]|Sociology[11288]|General[11289]: 11,779
+|Books[283155]|Subjects[1000]|Literature & Fiction[17]|General[10125]|Contemporary[10129]: 11,448
+|Books[283155]|Subjects[1000]|Children's Books[4]|Ages 4-8[2785]|General[170062]: 11,439
+|Books[283155]|Subjects[1000]|Nonfiction[53]|Education[10605]|General[10635]: 8,762
+|Books[283155]|Subjects[1000]|Computers & Internet[5]|General[657762]: 8,661
+|Books[283155]|Subjects[1000]|Health, Mind & Body[10]|Psychology & Counseling[11119]|General[11175]: 8,064
+|Books[283155]|Subjects[1000]|Children's Books[4]|Ages 9-12[2786]|General[170063]: 8,008
+#+end_example
+
+It turns out there's 11,463 categories. Maybe too much to look at. What if we only look at the third token?
+#+begin_src python :session amazon :results output :exports both
+with metadata_path.open() as lines:
+    categories = Counter([line.split("|")[3] for line in lines if "|Book" in line])
+for category, count in categories.most_common(10):
+    print("{}: {:,}".format(category, count))
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Children's Books[4]: 134,299
+Nonfiction[53]: 106,977
+Religion & Spirituality[22]: 93,690
+Literature & Fiction[17]: 84,721
+Business & Investing[3]: 74,125
+Professional & Technical[173507]: 67,693
+Computers & Internet[5]: 66,742
+Health, Mind & Body[10]: 66,380
+Reference[21]: 50,115
+History[9]: 48,131
+#+end_example
+
+#+begin_src python :session amazon :results output raw :exports both
+hover = HoverTool(tooltips=[
+    ("Subject", "@Subject"),
+    ("Count", "@Count{0,0}"),
+],
+                  formatters={"Count": "numeral"},
+                  mode="vline",
+)
+plot = holoviews.Bars(categories.items(),
+                     holoviews.Dimension("Subject"), "Count").opts(
+                         width=1000,
+                         height=800,
+                         tools=[hover],
+                         xrotation=90,
+                         title="Book Subjects")
+Embed(plot=plot, file_name="book_subjects")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="book_subjects.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+One problem I just realized is that if I try to use a single group or category and it turns out that the edges cross-over to another group or category then I'll be missing nodes that I need... This is turning out to be more than I want to deal with at this point - since I'm just trying to figure out how to make a visualization...
+* End
+** Citation
+   - J. Leskovec, L. Adamic and B. Adamic. The Dynamics of Viral Marketing. ACM Transactions on the Web (ACM TWEB), 1(1), 2007.
