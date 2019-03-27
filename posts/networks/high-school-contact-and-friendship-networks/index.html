@@ -15,7 +15,7 @@
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
 </script>
 <meta content="Cloistered Monkey" name="author">
-<meta content="noindex" name="robots">
+<link href="../network-datasets/" rel="prev" title="Network Datasets" type="text/html">
 <meta content="Visions, Voices, Data" property="og:site_name">
 <meta content="High School Contact and Friendship Networks" property="og:title">
 <meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-and-friendship-networks/" property="og:url">
@@ -65,36 +65,37 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orge1a7750">Beginning</a>
+<li><a href="#org3ae5052">The Departure</a>
 <ul>
-<li><a href="#orgda2f86d">Setup The Bokeh</a></li>
-<li><a href="#org679201c">Load The Data</a></li>
+<li><a href="#org8bac4f3">Setup The Plotting</a></li>
+<li><a href="#orgc756e80">Load The Data</a></li>
 </ul>
 </li>
-<li><a href="#org27332f3">Middle</a>
+<li><a href="#org24812a4">The Descent</a></li>
+<li><a href="#org190d804">Middle</a>
 <ul>
-<li><a href="#org36d8841">Looking at the Friendship Network</a></li>
+<li><a href="#org3d45c2c">Looking at the Friendship Network</a></li>
 </ul>
 </li>
-<li><a href="#org6ccc3ae">End</a>
+<li><a href="#orgbdf3596">End</a>
 <ul>
-<li><a href="#org57db7e8">Citations</a></li>
+<li><a href="#orga89bcf6">Citations</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge1a7750">
-<h2 id="orge1a7750">Beginning</h2>
-<div class="outline-text-2" id="text-orge1a7750">
+<div class="outline-2" id="outline-container-org3ae5052">
+<h2 id="org3ae5052">The Departure</h2>
+<div class="outline-text-2" id="text-org3ae5052">
 <p>This looks at data provided by <a href="http://www.sociopatterns.org">SocioPatterns</a> that looks a the interactions between students at a High School in Marseilles, France, in December of 2013.</p>
 </div>
-<div class="outline-4" id="outline-container-org5f5ad52">
-<h4 id="org5f5ad52">Imports</h4>
-<div class="outline-text-4" id="text-org5f5ad52"></div>
-<div class="outline-5" id="outline-container-orgbbad78f">
-<h5 id="orgbbad78f">From Python</h5>
-<div class="outline-text-5" id="text-orgbbad78f">
+<div class="outline-4" id="outline-container-orgc8a7346">
+<h4 id="orgc8a7346">Imports</h4>
+<div class="outline-text-4" id="text-orgc8a7346"></div>
+<div class="outline-5" id="outline-container-org1929c6a">
+<h5 id="org1929c6a">From Python</h5>
+<div class="outline-text-5" id="text-org1929c6a">
 <div class="highlight">
 <pre><span></span>from collections import Counter
 from functools import partial
@@ -103,13 +104,13 @@ import os
 </pre></div>
 </div>
 </div>
-<div class="outline-5" id="outline-container-org85ff0da">
-<h5 id="org85ff0da">From PyPi</h5>
-<div class="outline-text-5" id="text-org85ff0da">
+<div class="outline-5" id="outline-container-orgc3ba702">
+<h5 id="orgc3ba702">From PyPi</h5>
+<div class="outline-text-5" id="text-orgc3ba702">
 <div class="highlight">
 <pre><span></span>from bokeh.models import HoverTool
 from dotenv import load_dotenv
-from holoviews import opts
+from holoviews import dim, opts
 from holoviews.operation.datashader import datashade, bundle_graph
 import holoviews
 import hvplot.pandas
@@ -118,9 +119,9 @@ import pandas as pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-5" id="outline-container-org8b6baa6">
-<h5 id="org8b6baa6">My Stuff</h5>
-<div class="outline-text-5" id="text-org8b6baa6">
+<div class="outline-5" id="outline-container-orge2d1746">
+<h5 id="orge2d1746">My Stuff</h5>
+<div class="outline-text-5" id="text-orge2d1746">
 <div class="highlight">
 <pre><span></span>from graeae.timers import Timer
 from graeae.visualization import EmbedBokeh, EmbedHoloview
@@ -128,25 +129,25 @@ from graeae.visualization import EmbedBokeh, EmbedHoloview
 </div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org61a4250">
-<h4 id="org61a4250">Load the Dotenv</h4>
-<div class="outline-text-4" id="text-org61a4250">
+<div class="outline-4" id="outline-container-org0313d71">
+<h4 id="org0313d71">Load the Dotenv</h4>
+<div class="outline-text-4" id="text-org0313d71">
 <div class="highlight">
 <pre><span></span>load_dotenv(".env")
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org7178344">
-<h4 id="org7178344">Build the Timer</h4>
-<div class="outline-text-4" id="text-org7178344">
+<div class="outline-4" id="outline-container-org37df957">
+<h4 id="org37df957">Build the Timer</h4>
+<div class="outline-text-4" id="text-org37df957">
 <div class="highlight">
 <pre><span></span>TIMER = Timer()
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgda2f86d">
-<h3 id="orgda2f86d">Setup The Bokeh</h3>
-<div class="outline-text-3" id="text-orgda2f86d">
+<div class="outline-3" id="outline-container-org8bac4f3">
+<h3 id="org8bac4f3">Setup The Plotting</h3>
+<div class="outline-text-3" id="text-org8bac4f3">
 <div class="highlight">
 <pre><span></span>holoviews.extension("bokeh")
 SLUG = "high-school-contact-and-friendship-networks/"
@@ -154,11 +155,18 @@ output = Path("../../files/posts/networks/" + SLUG)
 Embed = partial(EmbedHoloview, folder_path=output)
 EmbedB = partial(EmbedBokeh, folder_path=output)
 </pre></div>
+<div class="highlight">
+<pre><span></span>class Plot:
+    """Constants for plotting"""
+    width = 1000
+    height = 800
+    fontsize = 18
+</pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org679201c">
-<h3 id="org679201c">Load The Data</h3>
-<div class="outline-text-3" id="text-org679201c">
+<div class="outline-3" id="outline-container-orgc756e80">
+<h3 id="orgc756e80">Load The Data</h3>
+<div class="outline-text-3" id="text-orgc756e80">
 <p>Let's take a look at the data before loading it into pandas.</p>
 <div class="highlight">
 <pre><span></span>HIGH_SCHOOL = Path(os.environ.get("HIGH_SCHOOL")).expanduser()
@@ -173,9 +181,9 @@ class Files:
     high_school = "High-School_data_2013.csv"
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org6fb239c">
-<h4 id="org6fb239c">MetaData</h4>
-<div class="outline-text-4" id="text-org6fb239c">
+<div class="outline-4" id="outline-container-orga1ffb07">
+<h4 id="orga1ffb07">MetaData</h4>
+<div class="outline-text-4" id="text-orga1ffb07">
 <div class="highlight">
 <pre><span></span>metadata_path = HIGH_SCHOOL.joinpath(Files.metadata)
 assert metadata_path.is_file()
@@ -199,9 +207,10 @@ meta_data.loc[:, "class"] = meta_data["class"].astype("category")
 meta_data.loc[:, "gender"] = meta_data.gender.astype("category")
 </pre></div>
 </div>
-<div class="outline-5" id="outline-container-orgcd8d529">
-<h5 id="orgcd8d529">Classes</h5>
-<div class="outline-text-5" id="text-orgcd8d529">
+<div class="outline-5" id="outline-container-org96cd3ae">
+<h5 id="org96cd3ae">Classes</h5>
+<div class="outline-text-5" id="text-org96cd3ae">
+<p>First a bar-plot to look at how the classes are distributed.</p>
 <div class="highlight">
 <pre><span></span>grouped = meta_data.groupby(["class", "gender"]).agg(
     {"class": "count", "gender": "count"})
@@ -212,53 +221,81 @@ grouped = grouped.reset_index()
 <pre><span></span>plot = grouped.hvplot.bar(title="Class Counts by Gender", 
                           x="class", y="class_count", 
                           stacked=True,
-                          by="gender", height=400).opts(xrotation=90)
-Embed(plot=plot, file_name="gender_counts_stacked", height_in_pixels=400)()
+                          by="gender", height=Plot.height, 
+                          width=Plot.width,
+                          ylabel="Count",
+                          xlabel="Class",
+                          tools=["hover"],
+                          fontsize=Plot.fontsize).opts(xrotation=90)
+Embed(plot=plot, file_name="gender_counts_stacked", height_in_pixels=Plot.height)()
 </pre></div>
-<object data="gender_counts_stacked.html" height="400" style="width:100%" type="text/html">
+<object data="gender_counts_stacked.html" height="800" style="width:100%" type="text/html">
 <p>Figure Missing</p>
 </object>
+<p>This is a look at the same thing except not stacked.</p>
 <div class="highlight">
-<pre><span></span>plot = grouped.hvplot.bar(title="Class Counts by Gender", x="class", y="class_count", 
-                          by="gender", height=400).opts(xrotation=90)
-Embed(plot=plot, file_name="gender_counts", height_in_pixels=400)()
+<pre><span></span>plot = grouped.hvplot.bar(title="Class Counts by Gender", x="class", 
+                          y="class_count",
+                          xlabel="Class",
+                          ylabel="Count",
+                          by="gender", height=Plot.height, width=Plot.width, 
+                          tools=["hover"],
+                          fontsize=Plot.fontsize).opts(xrotation=90)
+Embed(plot=plot, file_name="gender_counts", height_in_pixels=Plot.height)()
 </pre></div>
-<object data="gender_counts.html" height="400" style="width:100%" type="text/html">
+<object data="gender_counts.html" height="800" style="width:100%" type="text/html">
 <p>Figure Missing</p>
 </object>
 <p>Strangely, the classes that start with <code>2BIO</code> are more female while the others are more male.</p>
 </div>
 </div>
-<div class="outline-5" id="outline-container-org2ece92e">
-<h5 id="org2ece92e">Gender</h5>
-<div class="outline-text-5" id="text-org2ece92e">
+<div class="outline-5" id="outline-container-org86ef14e">
+<h5 id="org86ef14e">Gender</h5>
+<div class="outline-text-5" id="text-org86ef14e">
+<p>A stacked bar plot to get a sense of not just the distribution among genders but among classes.</p>
 <div class="highlight">
 <pre><span></span>plot = grouped.hvplot.bar(title="Gender Counts", x="gender", y="gender_count",
                           stacked=True,
-                          by="class", height=400).opts(
+                          by="class", 
+                          xlabel="Count",
+                          ylabel="Gender",
+                          fontsize=Plot.fontsize,
+                          width=Plot.width,
+                          height=Plot.height).opts(
                               xrotation=90, 
                               xlabel="Gender and Class")
-Embed(plot=plot, file_name="class_counts_stacked", height_in_pixels=400)()
+Embed(plot=plot, file_name="class_counts_stacked", height_in_pixels=Plot.height)()
 </pre></div>
-<object data="class_counts_stacked.html" height="400" style="width:100%" type="text/html">
+<object data="class_counts_stacked.html" height="800" style="width:100%" type="text/html">
 <p>Figure Missing</p>
 </object>
+<p>A non-stacked bar plot to get a better sense of how the genders fill the different classes.</p>
 <div class="highlight">
 <pre><span></span>plot = grouped.hvplot.bar(title="Gender Counts", x="gender", y="gender_count",
-                          by="class", height=400).opts(
+                          xlabel="Gender",
+                          ylabel="Count",
+                          by="class", 
+                          height=Plot.height,
+                          width=Plot.width,
+                          fontsize=Plot.fontsize).opts(
                               xrotation=90, xlabel="Gender and Class")
-Embed(plot=plot, file_name="class_counts", height_in_pixels=400)()
+Embed(plot=plot, file_name="class_counts", height_in_pixels=Plot.height)()
 </pre></div>
-<object data="class_counts.html" height="400" style="width:100%" type="text/html">
+<object data="class_counts.html" height="800" style="width:100%" type="text/html">
 <p>Figure Missing</p>
 </object>
 <p>It looks like there were a little more males than females, but not a whole lot more.</p>
 </div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org7bd15db">
-<h4 id="org7bd15db">The Friendship Network</h4>
-<div class="outline-text-4" id="text-org7bd15db">
+</div>
+</div>
+<div class="outline-2" id="outline-container-org24812a4">
+<h2 id="org24812a4">The Descent</h2>
+<div class="outline-text-2" id="text-org24812a4"></div>
+<div class="outline-4" id="outline-container-org33c39d0">
+<h4 id="org33c39d0">The Friendship Network</h4>
+<div class="outline-text-4" id="text-org33c39d0">
 <p>This is a dataset that shows whether a student identified another student as their friend.</p>
 <div class="highlight">
 <pre><span></span>friendship_path = HIGH_SCHOOL.joinpath(Files.friendship)
@@ -278,19 +315,18 @@ with friendship_path.open() as reader:
 <p>The columns are the person who was making the report and the person that was identified as a friend.</p>
 <div class="highlight">
 <pre><span></span>friendship_data = pandas.read_csv(friendship_path, delimiter=" ", 
-                                  names=["start", "end"])
+                                  names=["reporter", "friend"])
 friendship_data = friendship_data.dropna()
 </pre></div>
 </div>
 </div>
 </div>
-</div>
-<div class="outline-2" id="outline-container-org27332f3">
-<h2 id="org27332f3">Middle</h2>
-<div class="outline-text-2" id="text-org27332f3"></div>
-<div class="outline-3" id="outline-container-org36d8841">
-<h3 id="org36d8841">Looking at the Friendship Network</h3>
-<div class="outline-text-3" id="text-org36d8841">
+<div class="outline-2" id="outline-container-org190d804">
+<h2 id="org190d804">Middle</h2>
+<div class="outline-text-2" id="text-org190d804"></div>
+<div class="outline-3" id="outline-container-org3d45c2c">
+<h3 id="org3d45c2c">Looking at the Friendship Network</h3>
+<div class="outline-text-3" id="text-org3d45c2c">
 <div class="highlight">
 <pre><span></span>with TIMER:
     friendship_graph = networkx.convert_matrix.from_pandas_edgelist(
@@ -298,38 +334,43 @@ friendship_data = friendship_data.dropna()
         create_using=networkx.DiGraph)
 </pre></div>
 <pre class="example">
-Started: 2019-03-24 19:28:50.615676
-Ended: 2019-03-24 19:28:50.616614
-Elapsed: 0:00:00.000938
+Started: 2019-03-26 14:23:22.610989
+Ended: 2019-03-26 14:23:22.612747
+Elapsed: 0:00:00.001758
 
 </pre>
 <div class="highlight">
 <pre><span></span>genders = dict(zip(meta_data.id, meta_data.gender))
-gender_labels = holoviews.Dataset([genders[index] for index in friendship_data.start.unique()],
-                                  vdims="Gender")
+classes = dict(zip(meta_data.id, meta_data["class"]))
+</pre></div>
+<div class="highlight">
+<pre><span></span>for node in friendship_graph.nodes:
+    friendship_graph.nodes[node]["gender"] = genders[node]
+    friendship_graph.nodes[node]["class"] = classes[node]
 </pre></div>
 <div class="highlight">
 <pre><span></span>hover = HoverTool(
     tooltips = [
-        ("Start", "@start"),
-         ("End", "@end"),
+        ("Reporter", "@reporter"),
+         ("Friend", "@friend"),
          ("Gender", "@gender"),
+         ("Class", "@class"),
     ],
 )
-# friendship_data["gender"] = friendship_data.start.map(genders)
-plot = holoviews.Graph(friendship_data, kdims=["start", "end"], vdims=["gender"]).opts(
-    node_color="gender",
-    cmap="Set1",
-    tools=[hover],
-    width=800,
-    height=800,
-    title="Friendship Network",
-    xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="friendship_network_circular", height_in_pixels=810)()
+
+plot = holoviews.Graph.from_networkx(friendship_graph,
+                                     networkx.circular_layout).opts(
+                                         node_color=dim("gender"), cmap="Set1",
+                                         tools=[hover],
+                                         fontsize=Plot.fontsize,
+                                         width=800,
+                                         height=800,                                        
+                                         title="Friendship Network by Gender",
+                                         xaxis=None, yaxis=None, directed=True)
+EmbedB(plot=plot, file_name="friendship_network_circular")()
 </pre></div>
-<object data="friendship_network_circular.html" height="810" style="width:100%" type="text/html">
-<p>Figure Missing</p>
-</object>
+<script id="54718117-f402-439d-b49e-5450265024a1" src="friendship_network_circular">
+</script>
 <p>It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others.</p>
 <div class="highlight">
 <pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout).opts(
@@ -345,12 +386,12 @@ Embed(plot=plot, file_name="friendship_network", height_in_pixels=810)()
 </object></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org6ccc3ae">
-<h2 id="org6ccc3ae">End</h2>
-<div class="outline-text-2" id="text-org6ccc3ae"></div>
-<div class="outline-3" id="outline-container-org57db7e8">
-<h3 id="org57db7e8">Citations</h3>
-<div class="outline-text-3" id="text-org57db7e8">
+<div class="outline-2" id="outline-container-orgbdf3596">
+<h2 id="orgbdf3596">End</h2>
+<div class="outline-text-2" id="text-orgbdf3596"></div>
+<div class="outline-3" id="outline-container-orga89bcf6">
+<h3 id="orga89bcf6">Citations</h3>
+<div class="outline-text-3" id="text-orga89bcf6">
 <ul class="org-ul">
 <li>R. Mastrandrea, J. Fournet, A. Barrat,</li>
 </ul>
@@ -364,6 +405,9 @@ Embed(plot=plot, file_name="friendship_network", height_in_pixels=810)()
 <ul class="tags" itemprop="keywords">
 <li><a class="tag p-category" href="../../../categories/exploration/" rel="tag">exploration</a></li>
 <li><a class="tag p-category" href="../../../categories/networks/" rel="tag">networks</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="../network-datasets/" rel="prev" title="Network Datasets">Previous post</a></li>
 </ul>
 </nav>
 </aside>

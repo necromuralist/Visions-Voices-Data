@@ -7,7 +7,7 @@
 .. link: 
 .. description: A look at the High School Contact and Friendship Networks.
 .. type: text
-.. status: draft
+.. status:
 .. updated: 
 
 #+END_COMMENT
@@ -17,7 +17,7 @@
 %load_ext autoreload
 %autoreload 2
 #+END_SRC
-* Beginning
+* The Departure
   This looks at data provided by [[http://www.sociopatterns.org][SocioPatterns]] that looks a the interactions between students at a High School in Marseilles, France, in December of 2013.
 *** Imports
 **** From Python
@@ -31,7 +31,7 @@ import os
 #+begin_src ipython :session highschool :results none
 from bokeh.models import HoverTool
 from dotenv import load_dotenv
-from holoviews import opts
+from holoviews import dim, opts
 from holoviews.operation.datashader import datashade, bundle_graph
 import holoviews
 import hvplot.pandas
@@ -51,13 +51,21 @@ load_dotenv(".env")
 #+begin_src ipython :session highschool :results none
 TIMER = Timer()
 #+end_src
-** Setup The Bokeh
+** Setup The Plotting
 #+begin_src ipython :session highschool :results none
 holoviews.extension("bokeh")
 SLUG = "high-school-contact-and-friendship-networks/"
 output = Path("../../files/posts/networks/" + SLUG)
 Embed = partial(EmbedHoloview, folder_path=output)
 EmbedB = partial(EmbedBokeh, folder_path=output)
+#+end_src
+
+#+begin_src ipython :session highschool :results none
+class Plot:
+    """Constants for plotting"""
+    width = 1000
+    height = 800
+    fontsize = 18
 #+end_src
 ** Load The Data
    Let's take a look at the data before loading it into pandas.
@@ -101,6 +109,7 @@ meta_data.loc[:, "gender"] = meta_data.gender.astype("category")
 #+end_src
 
 **** Classes
+     First a bar-plot to look at how the classes are distributed.
 
 #+begin_src ipython :session highschool :results none
 grouped = meta_data.groupby(["class", "gender"]).agg(
@@ -108,67 +117,94 @@ grouped = meta_data.groupby(["class", "gender"]).agg(
 grouped.columns = ["class_count", "gender_count"]
 grouped = grouped.reset_index()
 #+end_src
+
 #+begin_src ipython :session highschool :results output raw :exports both
 plot = grouped.hvplot.bar(title="Class Counts by Gender", 
                           x="class", y="class_count", 
                           stacked=True,
-                          by="gender", height=400).opts(xrotation=90)
-Embed(plot=plot, file_name="gender_counts_stacked", height_in_pixels=400)()
+                          by="gender", height=Plot.height, 
+                          width=Plot.width,
+                          ylabel="Count",
+                          xlabel="Class",
+                          tools=["hover"],
+                          fontsize=Plot.fontsize).opts(xrotation=90)
+Embed(plot=plot, file_name="gender_counts_stacked", height_in_pixels=Plot.height)()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="gender_counts_stacked.html" style="width:100%" height=400>
+<object type="text/html" data="gender_counts_stacked.html" style="width:100%" height=800>
   <p>Figure Missing</p>
 </object>
 #+end_export
 
+This is a look at the same thing except not stacked.
 #+begin_src ipython :session highschool :results output raw :exports both
-plot = grouped.hvplot.bar(title="Class Counts by Gender", x="class", y="class_count", 
-                          by="gender", height=400).opts(xrotation=90)
-Embed(plot=plot, file_name="gender_counts", height_in_pixels=400)()
+plot = grouped.hvplot.bar(title="Class Counts by Gender", x="class", 
+                          y="class_count",
+                          xlabel="Class",
+                          ylabel="Count",
+                          by="gender", height=Plot.height, width=Plot.width, 
+                          tools=["hover"],
+                          fontsize=Plot.fontsize).opts(xrotation=90)
+Embed(plot=plot, file_name="gender_counts", height_in_pixels=Plot.height)()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="gender_counts.html" style="width:100%" height=400>
+<object type="text/html" data="gender_counts.html" style="width:100%" height=800>
   <p>Figure Missing</p>
 </object>
 #+end_export
 
 Strangely, the classes that start with =2BIO= are more female while the others are more male.
 **** Gender
+     A stacked bar plot to get a sense of not just the distribution among genders but among classes.
 #+begin_src ipython :session highschool :results output raw :exports both
 plot = grouped.hvplot.bar(title="Gender Counts", x="gender", y="gender_count",
                           stacked=True,
-                          by="class", height=400).opts(
+                          by="class", 
+                          xlabel="Count",
+                          ylabel="Gender",
+                          fontsize=Plot.fontsize,
+                          width=Plot.width,
+                          height=Plot.height).opts(
                               xrotation=90, 
                               xlabel="Gender and Class")
-Embed(plot=plot, file_name="class_counts_stacked", height_in_pixels=400)()
+Embed(plot=plot, file_name="class_counts_stacked", height_in_pixels=Plot.height)()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="class_counts_stacked.html" style="width:100%" height=400>
+<object type="text/html" data="class_counts_stacked.html" style="width:100%" height=800>
   <p>Figure Missing</p>
 </object>
 #+end_export
 
+A non-stacked bar plot to get a better sense of how the genders fill the different classes.
+
 #+begin_src ipython :session highschool :results output raw :exports both
 plot = grouped.hvplot.bar(title="Gender Counts", x="gender", y="gender_count",
-                          by="class", height=400).opts(
+                          xlabel="Gender",
+                          ylabel="Count",
+                          by="class", 
+                          height=Plot.height,
+                          width=Plot.width,
+                          fontsize=Plot.fontsize).opts(
                               xrotation=90, xlabel="Gender and Class")
-Embed(plot=plot, file_name="class_counts", height_in_pixels=400)()
+Embed(plot=plot, file_name="class_counts", height_in_pixels=Plot.height)()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="class_counts.html" style="width:100%" height=400>
+<object type="text/html" data="class_counts.html" style="width:100%" height=800>
   <p>Figure Missing</p>
 </object>
 #+end_export
 
 It looks like there were a little more males than females, but not a whole lot more.
+
+* The Descent
 *** The Friendship Network
     This is a dataset that shows whether a student identified another student as their friend.
 
@@ -191,7 +227,7 @@ The columns are the person who was making the report and the person that was ide
 
 #+begin_src ipython :session highschool :results none
 friendship_data = pandas.read_csv(friendship_path, delimiter=" ", 
-                                  names=["start", "end"])
+                                  names=["reporter", "friend"])
 friendship_data = friendship_data.dropna()
 #+end_src
 * Middle
@@ -205,40 +241,45 @@ with TIMER:
 #+end_src
 
 #+RESULTS:
-: Started: 2019-03-24 19:28:50.615676
-: Ended: 2019-03-24 19:28:50.616614
-: Elapsed: 0:00:00.000938
+: Started: 2019-03-26 14:23:22.610989
+: Ended: 2019-03-26 14:23:22.612747
+: Elapsed: 0:00:00.001758
 #+begin_src ipython :session highschool :results none
 genders = dict(zip(meta_data.id, meta_data.gender))
-gender_labels = holoviews.Dataset([genders[index] for index in friendship_data.start.unique()],
-                                  vdims="Gender")
+classes = dict(zip(meta_data.id, meta_data["class"]))
+#+end_src
+
+#+begin_src ipython :session highschool :results none
+for node in friendship_graph.nodes:
+    friendship_graph.nodes[node]["gender"] = genders[node]
+    friendship_graph.nodes[node]["class"] = classes[node]
 #+end_src
 
 #+begin_src ipython :session highschool :results output raw :exports both
 hover = HoverTool(
     tooltips = [
-        ("Start", "@start"),
-         ("End", "@end"),
+        ("Reporter", "@reporter"),
+         ("Friend", "@friend"),
          ("Gender", "@gender"),
+         ("Class", "@class"),
     ],
 )
-# friendship_data["gender"] = friendship_data.start.map(genders)
-plot = holoviews.Graph(friendship_data, kdims=["start", "end"], vdims=["gender"]).opts(
-    node_color="gender",
-    cmap="Set1",
-    tools=[hover],
-    width=800,
-    height=800,
-    title="Friendship Network",
-    xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="friendship_network_circular", height_in_pixels=810)()
+
+plot = holoviews.Graph.from_networkx(friendship_graph,
+                                     networkx.circular_layout).opts(
+                                         node_color=dim("gender"), cmap="Set1",
+                                         tools=[hover],
+                                         fontsize=Plot.fontsize,
+                                         width=800,
+                                         height=800,                                        
+                                         title="Friendship Network by Gender",
+                                         xaxis=None, yaxis=None, directed=True)
+EmbedB(plot=plot, file_name="friendship_network_circular")()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="friendship_network_circular.html" style="width:100%" height=810>
-  <p>Figure Missing</p>
-</object>
+<script src="friendship_network_circular" id="54718117-f402-439d-b49e-5450265024a1"></script>
 #+end_export
 
 It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others.
