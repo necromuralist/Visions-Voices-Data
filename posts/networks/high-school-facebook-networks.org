@@ -1,11 +1,11 @@
 #+BEGIN_COMMENT
-.. title: High School Contact and Friendship Networks
-.. slug: high-school-contact-and-friendship-networks
-.. date: 2019-03-24 17:38:17 UTC-07:00
+.. title: High School Facebook Networks
+.. slug: high-school-facebook-networks
+.. date: 2019-03-27 17:38:17 UTC-07:00
 .. tags: networks,exploration
 .. category: Networks
 .. link: 
-.. description: A look at the High School Contact and Friendship Networks.
+.. description: A look at the High School Facebook Networks.
 .. type: text
 .. status:
 .. updated: 2019-03-27 00:11:17 UTC-07:00
@@ -205,54 +205,56 @@ Embed(plot=plot, file_name="class_counts", height_in_pixels=Plot.height)()
 It looks like there were a little more males than females, but not a whole lot more.
 
 * The Descent
-*** The Friendship Network
-    This is a dataset that shows whether a student identified another student as their friend.
+*** The Facebook Network
+    This is a dataset that shows whether a student was /facebook/ friends with another student.
 
 #+begin_src ipython :session highschool :results output :exports both
-friendship_path = HIGH_SCHOOL.joinpath(Files.friendship)
-assert friendship_path.is_file()
-with friendship_path.open() as reader:
+facebook_path = HIGH_SCHOOL.joinpath(Files.facebook)
+assert facebook_path.is_file()
+with facebook_path.open() as reader:
     for line in range(5):
         print(reader.readline(), end="")
 #+end_src
 
 #+RESULTS:
-: 1 55
-: 1 205
-: 1 272
-: 1 494
-: 1 779
+: 1 984 0
+: 1 883 1
+: 1 941 0
+: 1 650 0
+: 1 132 1
 
-The columns are the person who was making the report and the person that was identified as a friend.
+The columns are /one student/, /next student/, /facebook friends/.
+
+The third column is /0/ if they aren't facebook friends and /1/ if they are.
 
 #+begin_src ipython :session highschool :results none
-friendship_data = pandas.read_csv(friendship_path, delimiter=" ", 
-                                  names=["reporter", "friend"])
-friendship_data = friendship_data.dropna()
+facebook_data = pandas.read_csv(facebook_path, delimiter=" ", 
+                                names=["reporter", "other", "friend"])
+facebook_data = facebook_data.dropna()
 #+end_src
 * The Descent
 ** Looking at the Friendship Network
 
 #+begin_src ipython :session highschool :results output :exports both
 with TIMER:
-    friendship_graph = networkx.convert_matrix.from_pandas_edgelist(
-        friendship_data, "reporter", "friend", 
+    facebook_graph = networkx.convert_matrix.from_pandas_edgelist(
+        facebook_data, "reporter", "other", 
         create_using=networkx.DiGraph)
 #+end_src
 
 #+RESULTS:
-: Started: 2019-03-27 22:13:29.290048
-: Ended: 2019-03-27 22:13:29.291087
-: Elapsed: 0:00:00.001039
+: Started: 2019-03-27 23:05:04.495114
+: Ended: 2019-03-27 23:05:04.499622
+: Elapsed: 0:00:00.004508
 #+begin_src ipython :session highschool :results none
 genders = dict(zip(meta_data.id, meta_data.gender))
 classes = dict(zip(meta_data.id, meta_data["class"]))
 #+end_src
 
 #+begin_src ipython :session highschool :results none
-for node in friendship_graph.nodes:
-    friendship_graph.nodes[node]["gender"] = genders[node]
-    friendship_graph.nodes[node]["class"] = classes[node]
+for node in facebook_graph.nodes:
+    facebook_graph.nodes[node]["gender"] = genders[node]
+    facebook_graph.nodes[node]["class"] = classes[node]
 #+end_src
 
 #+begin_src ipython :session highschool :results output raw :exports both
@@ -263,22 +265,23 @@ hover = HoverTool(
     ],
 )
 
-plot = holoviews.Graph.from_networkx(friendship_graph,
+plot = holoviews.Graph.from_networkx(facebook_graph,
                                      networkx.circular_layout).opts(
                                          node_color=dim("gender"), cmap="Set1",
                                          tools=[hover],
                                          fontsize=Plot.fontsize,
                                          width=800,
                                          height=800,                                        
-                                         title="Friendship Network by Gender",
+                                         title="Facebook Network by Gender",
                                          xaxis=None, yaxis=None, directed=True)
-EmbedB(plot=plot, file_name="friendship_network_circular")()
+Embed(plot=plot, file_name="facebook_network_circular")()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-
-<script src="friendship_network_circular" id="0e377b26-b711-427c-b4f1-be45d3efaa3d"></script>
+<object type="text/html" data="facebook_network_circular.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
 #+end_export
 
 It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others.
@@ -291,57 +294,57 @@ hover = HoverTool(
     ],
 )
 
-plot = holoviews.Graph.from_networkx(friendship_graph,
+plot = holoviews.Graph.from_networkx(facebook_graph,
                                      networkx.circular_layout).opts(
                                          node_color=dim("class"), cmap="Set1",
                                          tools=[hover],
                                          fontsize=Plot.fontsize,
                                          width=800,
                                          height=800,                                        
-                                         title="Friendship Network by Class",
+                                         title="Facebook Network by Class",
                                          xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="friendship_network_circular_class")()
+Embed(plot=plot, file_name="facebook_network_circular_class")()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="friendship_network_circular_class.html" style="width:100%" height=800>
+<object type="text/html" data="facebook_network_circular_class.html" style="width:100%" height=800>
   <p>Figure Missing</p>
 </object>
 #+end_export
 
 #+begin_src ipython :session highschool :results output raw :exports both
-plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
+plot = holoviews.Graph.from_networkx(facebook_graph, networkx.spring_layout, ).opts(
                                          node_color=dim("class"), cmap="Set1",
                                          tools=["hover"],
                                          width=800,
                                          height=800,
-                                         title="Friendship Network By Class",
+                                         title="Facebook Network By Class",
                                          xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=810)()
+Embed(plot=plot, file_name="facebook_network_class_spring", height_in_pixels=810)()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="friendship_network_class_spring.html" style="width:100%" height=810>
+<object type="text/html" data="facebook_network_class_spring.html" style="width:100%" height=810>
   <p>Figure Missing</p>
 </object>
 #+end_export
 
 #+begin_src ipython :session highschool :results output raw :exports both
-plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
+plot = holoviews.Graph.from_networkx(facebook_graph, networkx.spring_layout, ).opts(
                                          node_color=dim("gender"), cmap="Set1",
                                          tools=["hover"],
                                          width=800,
                                          height=800,
-                                         title="Friendship Network By Gender",
+                                         title="Facebook Network By Gender",
                                          xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=810)()
+Embed(plot=plot, file_name="facebook_network_gender_spring", height_in_pixels=810)()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="friendship_network_gender_spring.html" style="width:100%" height=810>
+<object type="text/html" data="facebook_network_gender_spring.html" style="width:100%" height=810>
   <p>Figure Missing</p>
 </object>
 #+end_export
