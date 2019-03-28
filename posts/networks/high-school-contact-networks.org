@@ -1,11 +1,11 @@
 #+BEGIN_COMMENT
-.. title: High School Contact and Friendship Networks
-.. slug: high-school-contact-and-friendship-networks
-.. date: 2019-03-24 17:38:17 UTC-07:00
+.. title: High School Contact Networks
+.. slug: high-school-contact-networks
+.. date: 2019-03-27 17:38:17 UTC-07:00
 .. tags: networks,exploration
 .. category: Networks
 .. link: 
-.. description: A look at the High School Contact and Friendship Networks.
+.. description: A look at the High School Contact Networks.
 .. type: text
 .. status:
 .. updated: 2019-03-27 00:11:17 UTC-07:00
@@ -41,7 +41,7 @@ import pandas as pandas
 **** My Stuff
 #+begin_src ipython :session highschool :results none
 from graeae.timers import Timer
-from graeae.visualization import EmbedBokeh, EmbedHoloview
+from graeae.visualization import EmbedHoloview
 #+end_src
 *** Load the Dotenv
 #+begin_src ipython :session highschool :results none
@@ -54,10 +54,9 @@ TIMER = Timer()
 ** Setup The Plotting
 #+begin_src ipython :session highschool :results none
 holoviews.extension("bokeh")
-SLUG = "high-school-contact-and-friendship-networks/"
+SLUG = "high-school-contact-networks/"
 output = Path("../../files/posts/networks/" + SLUG)
 Embed = partial(EmbedHoloview, folder_path=output)
-EmbedB = partial(EmbedBokeh, folder_path=output)
 #+end_src
 
 #+begin_src ipython :session highschool :results none
@@ -205,54 +204,61 @@ Embed(plot=plot, file_name="class_counts", height_in_pixels=Plot.height)()
 It looks like there were a little more males than females, but not a whole lot more.
 
 * The Descent
-*** The Friendship Network
-    This is a dataset that shows whether a student identified another student as their friend.
+*** The Contact Network
+    This is a dataset that shows whether a student logged contact with another student.
 
 #+begin_src ipython :session highschool :results output :exports both
-friendship_path = HIGH_SCHOOL.joinpath(Files.friendship)
-assert friendship_path.is_file()
-with friendship_path.open() as reader:
+contact_path = HIGH_SCHOOL.joinpath(Files.contact_diaries)
+assert contact_path.is_file()
+with contact_path.open() as reader:
     for line in range(5):
         print(reader.readline(), end="")
 #+end_src
 
 #+RESULTS:
-: 1 55
-: 1 205
-: 1 272
-: 1 494
-: 1 779
+: 3 28 2
+: 3 106 1
+: 3 147 4
+: 3 177 1
+: 3 295 4
 
-The columns are the person who was making the report and the person that was identified as a friend.
+The columns are the person who was making the report, the person that was identified as a contact, and the time spent.
+
+| Code | Lower Limit (minutes) | Upper Limit (minutes) |
+|------+-----------------------+-----------------------|
+|    1 |                     0 |                     5 |
+|    2 |                     5 |                    15 |
+|    3 |                    15 |                    60 |
+|    4 |                    60 |              infinity |
 
 #+begin_src ipython :session highschool :results none
-friendship_data = pandas.read_csv(friendship_path, delimiter=" ", 
-                                  names=["reporter", "friend"])
-friendship_data = friendship_data.dropna()
+contact_data = pandas.read_csv(contact_path, delimiter=" ", 
+                                  names=["reporter", "contact", "time"])
+contact_data = contact_data.dropna()
 #+end_src
 * The Descent
 ** Looking at the Friendship Network
 
 #+begin_src ipython :session highschool :results output :exports both
 with TIMER:
-    friendship_graph = networkx.convert_matrix.from_pandas_edgelist(
-        friendship_data, "reporter", "friend", 
+    contact_graph = networkx.convert_matrix.from_pandas_edgelist(
+        contact_data, "reporter", "contact", 
         create_using=networkx.DiGraph)
 #+end_src
 
 #+RESULTS:
-: Started: 2019-03-27 22:13:29.290048
-: Ended: 2019-03-27 22:13:29.291087
-: Elapsed: 0:00:00.001039
+: Started: 2019-03-27 22:54:56.488545
+: Ended: 2019-03-27 22:54:56.489541
+: Elapsed: 0:00:00.000996
 #+begin_src ipython :session highschool :results none
 genders = dict(zip(meta_data.id, meta_data.gender))
 classes = dict(zip(meta_data.id, meta_data["class"]))
 #+end_src
 
 #+begin_src ipython :session highschool :results none
-for node in friendship_graph.nodes:
-    friendship_graph.nodes[node]["gender"] = genders[node]
-    friendship_graph.nodes[node]["class"] = classes[node]
+for node in contact_graph.nodes:
+    contact_graph.nodes[node]["gender"] = genders[node]
+    contact_graph.nodes[node]["class"] = classes[node]
 #+end_src
 
 #+begin_src ipython :session highschool :results output raw :exports both
@@ -263,22 +269,23 @@ hover = HoverTool(
     ],
 )
 
-plot = holoviews.Graph.from_networkx(friendship_graph,
+plot = holoviews.Graph.from_networkx(contact_graph,
                                      networkx.circular_layout).opts(
                                          node_color=dim("gender"), cmap="Set1",
                                          tools=[hover],
                                          fontsize=Plot.fontsize,
                                          width=800,
                                          height=800,                                        
-                                         title="Friendship Network by Gender",
+                                         title="Contact Network by Gender",
                                          xaxis=None, yaxis=None, directed=True)
-EmbedB(plot=plot, file_name="friendship_network_circular")()
+Embed(plot=plot, file_name="contact_network_circular")()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-
-<script src="friendship_network_circular" id="0e377b26-b711-427c-b4f1-be45d3efaa3d"></script>
+<object type="text/html" data="contact_network_circular.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
 #+end_export
 
 It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others.
@@ -291,57 +298,57 @@ hover = HoverTool(
     ],
 )
 
-plot = holoviews.Graph.from_networkx(friendship_graph,
+plot = holoviews.Graph.from_networkx(contact_graph,
                                      networkx.circular_layout).opts(
                                          node_color=dim("class"), cmap="Set1",
                                          tools=[hover],
                                          fontsize=Plot.fontsize,
                                          width=800,
                                          height=800,                                        
-                                         title="Friendship Network by Class",
+                                         title="Contact Network by Class",
                                          xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="friendship_network_circular_class")()
+Embed(plot=plot, file_name="contact_network_circular_class")()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="friendship_network_circular_class.html" style="width:100%" height=800>
+<object type="text/html" data="contact_network_circular_class.html" style="width:100%" height=800>
   <p>Figure Missing</p>
 </object>
 #+end_export
 
 #+begin_src ipython :session highschool :results output raw :exports both
-plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
+plot = holoviews.Graph.from_networkx(contact_graph, networkx.spring_layout, ).opts(
                                          node_color=dim("class"), cmap="Set1",
                                          tools=["hover"],
                                          width=800,
                                          height=800,
-                                         title="Friendship Network By Class",
+                                         title="Contact Network By Class",
                                          xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=810)()
+Embed(plot=plot, file_name="contact_network_class_spring", height_in_pixels=810)()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="friendship_network_class_spring.html" style="width:100%" height=810>
+<object type="text/html" data="contact_network_class_spring.html" style="width:100%" height=810>
   <p>Figure Missing</p>
 </object>
 #+end_export
 
 #+begin_src ipython :session highschool :results output raw :exports both
-plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
+plot = holoviews.Graph.from_networkx(contact_graph, networkx.spring_layout, ).opts(
                                          node_color=dim("gender"), cmap="Set1",
                                          tools=["hover"],
                                          width=800,
                                          height=800,
-                                         title="Friendship Network By Gender",
+                                         title="Contact Network By Gender",
                                          xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=810)()
+Embed(plot=plot, file_name="contact_network_gender_spring", height_in_pixels=810)()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="friendship_network_gender_spring.html" style="width:100%" height=810>
+<object type="text/html" data="contact_network_gender_spring.html" style="width:100%" height=810>
   <p>Figure Missing</p>
 </object>
 #+end_export
