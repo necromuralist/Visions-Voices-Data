@@ -1,0 +1,835 @@
+
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-1.0.4.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.0.4.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-1.0.4.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-gl-1.0.4.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" type="text/javascript"></script>
+<script type="text/javascript">function HoloViewsWidget() {
+}
+
+HoloViewsWidget.prototype.init_slider = function(init_val){
+  if(this.load_json) {
+    this.from_json()
+  } else {
+    this.update_cache();
+  }
+}
+
+HoloViewsWidget.prototype.populate_cache = function(idx){
+  this.cache[idx].innerHTML = this.frames[idx];
+  if (this.embed) {
+    delete this.frames[idx];
+  }
+}
+
+HoloViewsWidget.prototype.process_error = function(msg){
+}
+
+HoloViewsWidget.prototype.from_json = function() {
+  var data_url = this.json_path + this.id + '.json';
+  $.getJSON(data_url, $.proxy(function(json_data) {
+    this.frames = json_data;
+    this.update_cache();
+    this.update(0);
+  }, this));
+}
+
+HoloViewsWidget.prototype.dynamic_update = function(current){
+  if (current === undefined) {
+    return
+  }
+  this.current = current;
+  if (this.comm) {
+    var msg = {comm_id: this.id+'_client', content: current}
+    this.comm.send(msg);
+  }
+}
+
+HoloViewsWidget.prototype.update_cache = function(force){
+  var frame_len = Object.keys(this.frames).length;
+  for (var i=0; i<frame_len; i++) {
+    if(!this.load_json || this.dynamic)  {
+      var frame = Object.keys(this.frames)[i];
+    } else {
+      var frame = i;
+    }
+    if(!(frame in this.cache) || force) {
+      if ((frame in this.cache) && force) { this.cache[frame].remove() }
+      var div = document.createElement("div");
+      var parent = document.getElementById("_anim_img"+this.id);
+      div.style.display = "none";
+      parent.appendChild(div)
+      this.cache[frame] = div;
+      var cache_id = "_anim_img"+this.id+"_"+frame;
+      this.populate_cache(frame);
+    }
+  }
+}
+
+HoloViewsWidget.prototype.update = function(current){
+  if(current in this.cache) {
+    for (var index in this.cache) {
+      this.cache[index].style.display = "none";
+    }
+    this.cache[current].style.display = "";
+    this.wait = false;
+  }
+}
+
+HoloViewsWidget.prototype.init_comms = function() {
+  var that = this
+  HoloViews.comm_manager.register_target(this.plot_id, this.id, function (msg) { that.msg_handler(msg) })
+  if (!this.cached || this.dynamic) {
+    function ack_callback(msg) {
+      var msg = msg.metadata;
+      var comm_id = msg.comm_id;
+      var comm_status = HoloViews.comm_status[comm_id];
+      if (that.queue.length > 0) {
+        that.time = Date.now();
+        that.dynamic_update(that.queue[that.queue.length-1]);
+        that.queue = [];
+      } else {
+        that.wait = false;
+      }
+      if ((msg.msg_type == "Ready") && msg.content) {
+        console.log("Python callback returned following output:", msg.content);
+      } else if (msg.msg_type == "Error") {
+        console.log("Python failed with the following traceback:", msg.traceback)
+      }
+    }
+    var comm = HoloViews.comm_manager.get_client_comm(this.plot_id, this.id+'_client', ack_callback);
+    return comm
+  }
+}
+
+HoloViewsWidget.prototype.msg_handler = function(msg) {
+  var metadata = msg.metadata;
+  if ((metadata.msg_type == "Ready")) {
+    if (metadata.content) {
+      console.log("Python callback returned following output:", metadata.content);
+    }
+	return;
+  } else if (metadata.msg_type == "Error") {
+    console.log("Python failed with the following traceback:", metadata.traceback)
+    return
+  }
+  this.process_msg(msg)
+}
+
+HoloViewsWidget.prototype.process_msg = function(msg) {
+}
+
+function SelectionWidget(frames, id, slider_ids, keyMap, dim_vals, notFound, load_json, mode, cached, json_path, dynamic, plot_id){
+  this.frames = frames;
+  this.id = id;
+  this.plot_id = plot_id;
+  this.slider_ids = slider_ids;
+  this.keyMap = keyMap
+  this.current_frame = 0;
+  this.current_vals = dim_vals;
+  this.load_json = load_json;
+  this.mode = mode;
+  this.notFound = notFound;
+  this.cached = cached;
+  this.dynamic = dynamic;
+  this.cache = {};
+  this.json_path = json_path;
+  this.init_slider(this.current_vals[0]);
+  this.queue = [];
+  this.wait = false;
+  if (!this.cached || this.dynamic) {
+    this.comm = this.init_comms();
+  }
+}
+
+SelectionWidget.prototype = new HoloViewsWidget;
+
+
+SelectionWidget.prototype.get_key = function(current_vals) {
+  var key = "(";
+  for (var i=0; i<this.slider_ids.length; i++)
+  {
+    var val = this.current_vals[i];
+    if (!(typeof val === 'string')) {
+      if (val % 1 === 0) { val = val.toFixed(1); }
+      else { val = val.toFixed(10); val = val.slice(0, val.length-1);}
+    }
+    key += "'" + val + "'";
+    if(i != this.slider_ids.length-1) { key += ', ';}
+    else if(this.slider_ids.length == 1) { key += ',';}
+  }
+  key += ")";
+  return this.keyMap[key];
+}
+
+SelectionWidget.prototype.set_frame = function(dim_val, dim_idx){
+  this.current_vals[dim_idx] = dim_val;
+  var key = this.current_vals;
+  if (!this.dynamic) {
+    key = this.get_key(key)
+  }
+  if (this.dynamic || !this.cached) {
+    if ((this.time !== undefined) && ((this.wait) && ((this.time + 10000) > Date.now()))) {
+      this.queue.push(key);
+      return
+    }
+    this.queue = [];
+    this.time = Date.now();
+    this.current_frame = key;
+    this.wait = true;
+    this.dynamic_update(key)
+  } else if (key !== undefined) {
+    this.update(key)
+  }
+}
+
+
+/* Define the ScrubberWidget class */
+function ScrubberWidget(frames, num_frames, id, interval, load_json, mode, cached, json_path, dynamic, plot_id){
+  this.slider_id = "_anim_slider" + id;
+  this.loop_select_id = "_anim_loop_select" + id;
+  this.id = id;
+  this.plot_id = plot_id;
+  this.interval = interval;
+  this.current_frame = 0;
+  this.direction = 0;
+  this.dynamic = dynamic;
+  this.timer = null;
+  this.load_json = load_json;
+  this.mode = mode;
+  this.cached = cached;
+  this.frames = frames;
+  this.cache = {};
+  this.length = num_frames;
+  this.json_path = json_path;
+  document.getElementById(this.slider_id).max = this.length - 1;
+  this.init_slider(0);
+  this.wait = false;
+  this.queue = [];
+  if (!this.cached || this.dynamic) {
+    this.comm = this.init_comms()
+  }
+}
+
+ScrubberWidget.prototype = new HoloViewsWidget;
+
+ScrubberWidget.prototype.set_frame = function(frame){
+  this.current_frame = frame;
+  var widget = document.getElementById(this.slider_id);
+  if (widget === null) {
+    this.pause_animation();
+    return
+  }
+  widget.value = this.current_frame;
+  if (this.dynamic || !this.cached) {
+    if ((this.time !== undefined) && ((this.wait) && ((this.time + 10000) > Date.now()))) {
+      this.queue.push(frame);
+      return
+    }
+    this.queue = [];
+    this.time = Date.now();
+    this.wait = true;
+    this.dynamic_update(frame)
+  } else {
+    this.update(frame)
+  }
+}
+
+ScrubberWidget.prototype.get_loop_state = function(){
+  var button_group = document[this.loop_select_id].state;
+  for (var i = 0; i < button_group.length; i++) {
+    var button = button_group[i];
+    if (button.checked) {
+      return button.value;
+    }
+  }
+  return undefined;
+}
+
+
+ScrubberWidget.prototype.next_frame = function() {
+  this.set_frame(Math.min(this.length - 1, this.current_frame + 1));
+}
+
+ScrubberWidget.prototype.previous_frame = function() {
+  this.set_frame(Math.max(0, this.current_frame - 1));
+}
+
+ScrubberWidget.prototype.first_frame = function() {
+  this.set_frame(0);
+}
+
+ScrubberWidget.prototype.last_frame = function() {
+  this.set_frame(this.length - 1);
+}
+
+ScrubberWidget.prototype.slower = function() {
+  this.interval /= 0.7;
+  if(this.direction > 0){this.play_animation();}
+  else if(this.direction < 0){this.reverse_animation();}
+}
+
+ScrubberWidget.prototype.faster = function() {
+  this.interval *= 0.7;
+  if(this.direction > 0){this.play_animation();}
+  else if(this.direction < 0){this.reverse_animation();}
+}
+
+ScrubberWidget.prototype.anim_step_forward = function() {
+  if(this.current_frame < this.length - 1){
+    this.next_frame();
+  }else{
+    var loop_state = this.get_loop_state();
+    if(loop_state == "loop"){
+      this.first_frame();
+    }else if(loop_state == "reflect"){
+      this.last_frame();
+      this.reverse_animation();
+    }else{
+      this.pause_animation();
+      this.last_frame();
+    }
+  }
+}
+
+ScrubberWidget.prototype.anim_step_reverse = function() {
+  if(this.current_frame > 0){
+    this.previous_frame();
+  } else {
+    var loop_state = this.get_loop_state();
+    if(loop_state == "loop"){
+      this.last_frame();
+    }else if(loop_state == "reflect"){
+      this.first_frame();
+      this.play_animation();
+    }else{
+      this.pause_animation();
+      this.first_frame();
+    }
+  }
+}
+
+ScrubberWidget.prototype.pause_animation = function() {
+  this.direction = 0;
+  if (this.timer){
+    clearInterval(this.timer);
+    this.timer = null;
+  }
+}
+
+ScrubberWidget.prototype.play_animation = function() {
+  this.pause_animation();
+  this.direction = 1;
+  var t = this;
+  if (!this.timer) this.timer = setInterval(function(){t.anim_step_forward();}, this.interval);
+}
+
+ScrubberWidget.prototype.reverse_animation = function() {
+  this.pause_animation();
+  this.direction = -1;
+  var t = this;
+  if (!this.timer) this.timer = setInterval(function(){t.anim_step_reverse();}, this.interval);
+}
+
+function extend(destination, source) {
+  for (var k in source) {
+    if (source.hasOwnProperty(k)) {
+      destination[k] = source[k];
+    }
+  }
+  return destination;
+}
+
+function update_widget(widget, values) {
+  if (widget.hasClass("ui-slider")) {
+    widget.slider('option', {
+      min: 0,
+      max: values.length-1,
+      dim_vals: values,
+      value: 0,
+      dim_labels: values
+    })
+    widget.slider('option', 'slide').call(widget, event, {value: 0})
+  } else {
+    widget.empty();
+    for (var i=0; i<values.length; i++){
+      widget.append($("<option>", {
+        value: i,
+        text: values[i]
+      }))
+    };
+    widget.data('values', values);
+    widget.data('value', 0);
+    widget.trigger("change");
+  };
+}
+
+function init_slider(id, plot_id, dim, values, next_vals, labels, dynamic, step, value, next_dim,
+                     dim_idx, delay, jQueryUI_CDN, UNDERSCORE_CDN) {
+  // Slider JS Block START
+  function loadcssfile(filename){
+    var fileref=document.createElement("link")
+    fileref.setAttribute("rel", "stylesheet")
+    fileref.setAttribute("type", "text/css")
+    fileref.setAttribute("href", filename)
+    document.getElementsByTagName("head")[0].appendChild(fileref)
+  }
+  loadcssfile("https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css");
+  /* Check if jQuery and jQueryUI have been loaded
+     otherwise load with require.js */
+  var jQuery = window.jQuery,
+    // check for old versions of jQuery
+    oldjQuery = jQuery && !!jQuery.fn.jquery.match(/^1\.[0-4](\.|$)/),
+    jquery_path = '',
+    paths = {},
+    noConflict;
+  var jQueryUI = jQuery.ui;
+  // check for jQuery
+  if (!jQuery || oldjQuery) {
+    // load if it's not available or doesn't meet min standards
+    paths.jQuery = jQuery;
+    noConflict = !!oldjQuery;
+  } else {
+    // register the current jQuery
+    define('jquery', [], function() { return jQuery; });
+  }
+  if (!jQueryUI) {
+    paths.jQueryUI = jQueryUI_CDN.slice(null, -3);
+  } else {
+    define('jQueryUI', [], function() { return jQuery.ui; });
+  }
+  paths.underscore = UNDERSCORE_CDN.slice(null, -3);
+  var jquery_require = {
+    paths: paths,
+    shim: {
+      "jQueryUI": {
+        exports:"$",
+        deps: ['jquery']
+      },
+      "underscore": {
+        exports: '_'
+      }
+    }
+  }
+  require.config(jquery_require);
+  require(["jQueryUI", "underscore"], function(jUI, _){
+    if (noConflict) $.noConflict(true);
+    var vals = values;
+    if (dynamic && vals.constructor === Array) {
+      var default_value = parseFloat(value);
+      var min = parseFloat(vals[0]);
+      var max = parseFloat(vals[vals.length-1]);
+      var wstep = step;
+      var wlabels = [default_value];
+      var init_label = default_value;
+    } else {
+      var min = 0;
+      if (dynamic) {
+        var max = Object.keys(vals).length - 1;
+        var init_label = labels[value];
+        var default_value = values[value];
+      } else {
+        var max = vals.length - 1;
+        var init_label = labels[value];
+        var default_value = value;
+      }
+      var wstep = 1;
+      var wlabels = labels;
+    }
+    function adjustFontSize(text) {
+      var width_ratio = (text.parent().width()/8)/text.val().length;
+      var size = Math.min(0.9, Math.max(0.6, width_ratio))+'em';
+      text.css('font-size', size);
+    }
+    var slider = $('#_anim_widget'+id+'_'+dim);
+    slider.slider({
+      animate: "fast",
+      min: min,
+      max: max,
+      step: wstep,
+      value: default_value,
+      dim_vals: vals,
+      dim_labels: wlabels,
+      next_vals: next_vals,
+      slide: function(event, ui) {
+        var vals = slider.slider("option", "dim_vals");
+        var next_vals = slider.slider("option", "next_vals");
+        var dlabels = slider.slider("option", "dim_labels");
+        if (dynamic) {
+          var dim_val = ui.value;
+          if (vals.constructor === Array) {
+            var label = ui.value;
+          } else {
+            var label = dlabels[ui.value];
+          }
+        } else {
+          var dim_val = vals[ui.value];
+          var label = dlabels[ui.value];
+        }
+        var text = $('#textInput'+id+'_'+dim);
+        text.val(label);
+        adjustFontSize(text);
+        HoloViews.index[plot_id].set_frame(dim_val, dim_idx);
+        if (Object.keys(next_vals).length > 0) {
+          var new_vals = next_vals[dim_val];
+          var next_widget = $('#_anim_widget'+id+'_'+next_dim);
+          update_widget(next_widget, new_vals);
+        }
+      }
+    });
+    slider.keypress(function(event) {
+      if (event.which == 80 || event.which == 112) {
+        var start = slider.slider("option", "value");
+        var stop =  slider.slider("option", "max");
+        for (var i=start; i<=stop; i++) {
+          var delay = i*delay;
+          $.proxy(function doSetTimeout(i) { setTimeout($.proxy(function() {
+            var val = {value:i};
+            slider.slider('value',i);
+            slider.slider("option", "slide")(null, val);
+          }, slider), delay);}, slider)(i);
+        }
+      }
+      if (event.which == 82 || event.which == 114) {
+        var start = slider.slider("option", "value");
+        var stop =  slider.slider("option", "min");
+        var count = 0;
+        for (var i=start; i>=stop; i--) {
+          var delay = count*delay;
+          count = count + 1;
+          $.proxy(function doSetTimeout(i) { setTimeout($.proxy(function() {
+            var val = {value:i};
+            slider.slider('value',i);
+            slider.slider("option", "slide")(null, val);
+          }, slider), delay);}, slider)(i);
+        }
+      }
+    });
+    var textInput = $('#textInput'+id+'_'+dim)
+    textInput.val(init_label);
+    adjustFontSize(textInput);
+  });
+}
+
+function init_dropdown(id, plot_id, dim, vals, value, next_vals, labels, next_dim, dim_idx, dynamic) {
+  var widget = $("#_anim_widget"+id+'_'+dim);
+  widget.data('values', vals)
+  for (var i=0; i<vals.length; i++){
+    if (dynamic) {
+      var val = vals[i];
+    } else {
+      var val = i;
+    }
+    widget.append($("<option>", {
+      value: val,
+      text: labels[i]
+    }));
+  };
+  widget.data("next_vals", next_vals);
+  widget.val(value);
+  widget.on('change', function(event, ui) {
+    if (dynamic) {
+      var dim_val = parseInt(this.value);
+    } else {
+      var dim_val = $.data(this, 'values')[this.value];
+    }
+    var next_vals = $.data(this, "next_vals");
+    if (Object.keys(next_vals).length > 0) {
+      var new_vals = next_vals[dim_val];
+      var next_widget = $('#_anim_widget'+id+'_'+next_dim);
+      update_widget(next_widget, new_vals);
+    }
+    var widgets = HoloViews.index[plot_id]
+    if (widgets) {
+      widgets.set_frame(dim_val, dim_idx);
+    }
+  });
+}
+
+
+if (window.HoloViews === undefined) {
+  window.HoloViews = {}
+  window.PyViz = window.HoloViews
+} else if (window.PyViz === undefined) {
+  window.PyViz = window.HoloViews
+}
+
+
+var _namespace = {
+  init_slider: init_slider,
+  init_dropdown: init_dropdown,
+  comms: {},
+  comm_status: {},
+  index: {},
+  plot_index: {},
+  kernels: {},
+  receivers: {}
+}
+
+for (var k in _namespace) {
+  if (!(k in window.HoloViews)) {
+    window.HoloViews[k] = _namespace[k];
+  }
+}
+
+// Define Bokeh specific subclasses
+function BokehSelectionWidget() {
+  SelectionWidget.apply(this, arguments);
+}
+
+function BokehScrubberWidget() {
+  ScrubberWidget.apply(this, arguments);
+}
+
+// Let them inherit from the baseclasses
+BokehSelectionWidget.prototype = Object.create(SelectionWidget.prototype);
+BokehScrubberWidget.prototype = Object.create(ScrubberWidget.prototype);
+
+// Define methods to override on widgets
+var BokehMethods = {
+  update_cache : function(){
+    for (var index in this.frames) {
+      this.frames[index] = JSON.parse(this.frames[index]);
+    }
+  },
+  update : function(current){
+    if (current === undefined) {
+      return;
+    }
+    var data = this.frames[current];
+    if (data !== undefined) {
+      if (data.root in HoloViews.plot_index) {
+        var doc = HoloViews.plot_index[data.root].model.document;
+      } else {
+        var doc = Bokeh.index[data.root].model.document;
+      }
+      doc.apply_json_patch(data.content);
+    }
+  },
+  init_comms: function() {
+    if (Bokeh.protocol !== undefined) {
+      this.receiver = new Bokeh.protocol.Receiver()
+    } else {
+      this.receiver = null;
+    }
+    return HoloViewsWidget.prototype.init_comms.call(this);
+  },
+  process_msg : function(msg) {
+    if (this.plot_id in HoloViews.plot_index) {
+      var doc = HoloViews.plot_index[this.plot_id].model.document;
+    } else {
+      var doc = Bokeh.index[this.plot_id].model.document;
+    }
+    if (this.receiver === null) { return }
+    var receiver = this.receiver;
+    if (msg.buffers.length > 0) {
+      receiver.consume(msg.buffers[0].buffer)
+    } else {
+      receiver.consume(msg.content.data)
+    }
+    const comm_msg = receiver.message;
+    if ((comm_msg != null) && (doc != null)) {
+      doc.apply_json_patch(comm_msg.content, comm_msg.buffers)
+    }
+  }
+}
+
+// Extend Bokeh widgets with backend specific methods
+extend(BokehSelectionWidget.prototype, BokehMethods);
+extend(BokehScrubberWidget.prototype, BokehMethods);
+
+window.HoloViews.BokehSelectionWidget = BokehSelectionWidget
+window.HoloViews.BokehScrubberWidget = BokehScrubberWidget
+</script>
+<script type="text/javascript">
+    function JupyterCommManager() {
+    }
+
+    JupyterCommManager.prototype.register_target = function(plot_id, comm_id, msg_handler) {
+      if (window.comm_manager || ((window.Jupyter !== undefined) && (Jupyter.notebook.kernel != null))) {
+        var comm_manager = window.comm_manager || Jupyter.notebook.kernel.comm_manager;
+        comm_manager.register_target(comm_id, function(comm) {
+          comm.on_msg(msg_handler);
+        });
+      } else if ((plot_id in window.PyViz.kernels) && (window.PyViz.kernels[plot_id])) {
+        window.PyViz.kernels[plot_id].registerCommTarget(comm_id, function(comm) {
+          comm.onMsg = msg_handler;
+        });
+      }
+    }
+
+    JupyterCommManager.prototype.get_client_comm = function(plot_id, comm_id, msg_handler) {
+      if (comm_id in window.PyViz.comms) {
+        return window.PyViz.comms[comm_id];
+      } else if (window.comm_manager || ((window.Jupyter !== undefined) && (Jupyter.notebook.kernel != null))) {
+        var comm_manager = window.comm_manager || Jupyter.notebook.kernel.comm_manager;
+        var comm = comm_manager.new_comm(comm_id, {}, {}, {}, comm_id);
+        if (msg_handler) {
+          comm.on_msg(msg_handler);
+        }
+      } else if ((plot_id in window.PyViz.kernels) && (window.PyViz.kernels[plot_id])) {
+        var comm = window.PyViz.kernels[plot_id].connectToComm(comm_id);
+        comm.open();
+        if (msg_handler) {
+          comm.onMsg = msg_handler;
+        }
+      }
+
+      window.PyViz.comms[comm_id] = comm;
+      return comm;
+    }
+
+    window.PyViz.comm_manager = new JupyterCommManager();
+    </script>
+
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-1.0.4.min.css">
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.0.4.min.css">
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-tables-1.0.4.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+<style>div.hololayout {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+div.holoframe {
+  width: 75%;
+}
+
+div.holowell {
+  display: flex;
+  align-items: center;
+}
+
+form.holoform {
+  background-color: #fafafa;
+  border-radius: 5px;
+  overflow: hidden;
+  padding-left: 0.8em;
+  padding-right: 0.8em;
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  border: 1px solid #e3e3e3;
+}
+
+div.holowidgets {
+  padding-right: 0;
+  width: 25%;
+}
+
+div.holoslider {
+  min-height: 0 !important;
+  height: 0.8em;
+  width: 100%;
+}
+
+div.holoformgroup {
+  padding-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+div.hologroup {
+  padding-left: 0;
+  padding-right: 0.8em;
+  width: 100%;
+}
+
+.holoselect {
+  width: 92%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.holotext {
+  padding-left:  0.5em;
+  padding-right: 0;
+  width: 100%;
+}
+
+.holowidgets .ui-resizable-se {
+  visibility: hidden
+}
+
+.holoframe > .ui-resizable-se {
+  visibility: hidden
+}
+
+.holowidgets .ui-resizable-s {
+  visibility: hidden
+}
+
+
+/* CSS rules for noUISlider based slider used by JupyterLab extension  */
+
+.noUi-handle {
+  width: 20px !important;
+  height: 20px !important;
+  left: -5px !important;
+  top: -5px !important;
+}
+
+.noUi-handle:before, .noUi-handle:after {
+  visibility: hidden;
+  height: 0px;
+}
+
+.noUi-target {
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
+
+div.bk-hbox {
+    display: flex;
+    justify-content: center;
+}
+
+div.bk-hbox div.bk-plot {
+    padding: 8px;
+}
+
+div.bk-hbox div.bk-data-table {
+    padding: 20px;
+}
+</style><div style='display: table; margin: 0 auto;'>
+
+
+
+
+
+
+  <div class="bk-root" id="7fedd93b-63d0-44a7-b0de-999d794a4b3c" data-root-id="3761"></div>
+
+<script type="text/javascript">
+  (function(root) {
+  function embed_document(root) {
+    
+  var docs_json = {"b493d505-2cc0-4cc4-9b57-bc210eaf4002":{"roots":{"references":[{"attributes":{"below":[{"id":"3769","type":"LinearAxis"}],"left":[{"id":"3774","type":"LinearAxis"}],"min_border_bottom":10,"min_border_left":10,"min_border_right":10,"min_border_top":10,"plot_height":800,"plot_width":800,"renderers":[{"id":"3769","type":"LinearAxis"},{"id":"3773","type":"Grid"},{"id":"3774","type":"LinearAxis"},{"id":"3778","type":"Grid"},{"id":"3788","type":"BoxAnnotation"},{"id":"3809","type":"GraphRenderer"}],"title":{"id":"3760","type":"Title"},"toolbar":{"id":"3784","type":"Toolbar"},"x_range":{"id":"3757","type":"Range1d"},"x_scale":{"id":"3765","type":"LinearScale"},"y_range":{"id":"3758","type":"Range1d"},"y_scale":{"id":"3767","type":"LinearScale"}},"id":"3761","subtype":"Figure","type":"Plot"},{"attributes":{},"id":"3818","type":"NodesAndLinkedEdges"},{"attributes":{"callback":null,"data":{"class":["2BIO2","PC","MP*1","PC","2BIO2","PC","PC","2BIO1","2BIO1","PC","PC","PC","2BIO3","2BIO3","2BIO3","PC","2BIO3","2BIO1","PC","2BIO1","2BIO2","MP","MP","MP","2BIO2","2BIO3","2BIO2","2BIO1","PC","MP","PC","PC","PC","2BIO3","PC","MP","2BIO3","2BIO3","2BIO2","2BIO3","2BIO3","PC","2BIO2","2BIO2","2BIO3","2BIO2","PC","2BIO1","2BIO2","2BIO3","2BIO1","2BIO2","2BIO2","PC","MP","PC","2BIO1","2BIO1","2BIO2","PC","PC","2BIO1","2BIO3","PC","2BIO1","MP","2BIO2","MP","MP","MP","MP","MP","2BIO3","PC","MP","MP","MP","MP","2BIO1","2BIO1","MP","MP","MP","2BIO1","PC","MP","PC","2BIO3","PC","2BIO1","PC","PC","2BIO1","MP","MP","MP","2BIO1","2BIO1","2BIO1","2BIO1","2BIO1","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2","MP*2"],"gender":["M","M","M","M","M","F","M","F","M","F","F","M","F","F","F","F","F","F","F","F","M","M","F","M","F","F","F","F","M","M","F","F","F","F","F","F","F","F","F","F","F","F","F","M","F","M","F","F","M","F","M","M","F","M","F","F","F","M","F","M","M","F","M","M","F","F","F","F","F","F","F","M","F","F","M","M","M","M","F","F","M","M","F","M","M","F","M","F","M","F","M","F","F","M","M","F","F","F","F","F","F","F","M","M","M","M","M","M","M","F","F","M","M","M","F","M","M","F","M","M"],"index":{"__ndarray__":"AwAAAA8AAAAUAAAAFQAAABwAAAAtAAAAMAAAAD4AAABBAAAATwAAAFcAAABZAAAAZQAAAGoAAAB3AAAAeAAAAHoAAAB8AAAAhgAAAJEAAACTAAAAlwAAAJwAAACfAAAApQAAAKoAAACtAAAAsQAAAMgAAADJAAAA0gAAANMAAADoAAAA8AAAAPIAAAD1AAAA/wAAAAkBAAAMAQAAEAEAABMBAAAdAQAAJwEAAEcBAABsAQAAdAEAAIQBAACQAQAAlwEAAKkBAACsAQAArQEAALkBAADAAQAAxgEAANQBAADXAQAA2wEAAN4BAADgAQAA6AEAAOkBAADuAQAA8AEAAPIBAAD2AQAA+AEAAAgCAAANAgAAQAIAAEECAABGAgAASwIAAFkCAABdAgAAegIAAIACAACCAgAAigIAAKkCAACvAgAAswIAALYCAADVAgAA7wIAAPECAAADAwAACgMAABcDAAApAwAAOgMAAE0DAABZAwAAYgMAAGUDAABqAwAAnwMAALEDAAC6AwAAygMAANgDAACxBAAAtAQAAL4EAADMBAAA1QQAANYEAADsBAAADwUAADQFAAA+BQAAQQUAAE8FAAB5BQAAhAUAAI8FAADNBQAAOgYAAA0HAAAkBwAA","dtype":"int32","shape":[120]},"index_hover":["3","15","20","21","28","45","48","62","65","79","87","89","101","106","119","120","122","124","134","145","147","151","156","159","165","170","173","177","200","201","210","211","232","240","242","245","255","265","268","272","275","285","295","327","364","372","388","400","407","425","428","429","441","448","454","468","471","475","478","480","488","489","494","496","498","502","504","520","525","576","577","582","587","601","605","634","640","642","650","681","687","691","694","725","751","753","771","778","791","809","826","845","857","866","869","874","927","945","954","970","984","1201","1204","1214","1228","1237","1238","1260","1295","1332","1342","1345","1359","1401","1412","1423","1485","1594","1805","1828"],"node_color":["M","M","M","M","M","F","M","F","M","F","F","M","F","F","F","F","F","F","F","F","M","M","F","M","F","F","F","F","M","M","F","F","F","F","F","F","F","F","F","F","F","F","F","M","F","M","F","F","M","F","M","M","F","M","F","F","F","M","F","M","M","F","M","M","F","F","F","F","F","F","F","M","F","F","M","M","M","M","F","F","M","M","F","M","M","F","M","F","M","F","M","F","F","M","M","F","F","F","F","F","F","F","M","M","M","M","M","M","M","F","F","M","M","M","F","M","M","F","M","M"]},"selected":{"id":"3835","type":"Selection"},"selection_policy":{"id":"3834","type":"UnionRenderers"}},"id":"3794","type":"ColumnDataSource"},{"attributes":{"graph_layout":{"101":[0.22040763268499128,-0.2962733079787029],"106":[-0.030759567343491615,0.02118243051674836],"119":[0.3002021684327536,-0.33333658295635443],"120":[0.20131562123834446,0.49976429913671266],"1201":[-0.1823024446918191,0.09131477364428597],"1204":[-0.28773474471380756,0.132792095411771],"1214":[-0.09616075808674361,0.07378528411505196],"122":[0.3642902681732532,-0.3717520037076433],"1228":[-0.31163197346642785,0.06174639718448295],"1237":[-0.3469264774515897,0.09597124284607687],"1238":[-0.08243876046496941,0.110082622886488],"124":[-0.23646010627708197,-0.15184539355067878],"1260":[-0.4292223708720005,0.09704026558030239],"1295":[-0.1809089175675161,0.07094164612681284],"1332":[-0.23460267734998125,0.2206933834671134],"134":[0.036317387545374405,0.23110346695918632],"1342":[-0.18084081625016796,0.10873235358618119],"1345":[-0.24339827690674057,0.11112367106747667],"1359":[-0.34136987689143417,0.11759727024702292],"1401":[-0.27383491801991094,0.13254212628870732],"1412":[-0.23500732598547538,0.1018233516734603],"1423":[-0.34431490675479987,0.0583584574812687],"145":[0.08619688466886226,-0.3570176650082456],"147":[-0.09422885514151708,-0.10885610034316207],"1485":[-0.42194425983536504,0.019223965433187443],"15":[0.3099506106161183,0.35578208887036655],"151":[-0.005945510878631189,0.026668500103551155],"156":[0.2565975847989183,-0.0635688600554971],"159":[-0.003435559530686049,-0.011625152329044467],"1594":[-0.2221366184636566,0.11042486817332883],"165":[-0.07860137333171394,-0.337791775396228],"170":[0.045084216860412286,-0.03705471715555997],"173":[-0.03470657871497549,-0.21052089964281395],"177":[-0.17057735220696582,-0.28213195041439015],"1805":[-0.1131486078052947,0.05844682543299163],"1828":[-0.2398592424665845,0.07631657544411694],"20":[-0.3090892044510808,0.25737563800040997],"200":[0.4731514192342626,0.28024063524652126],"201":[-0.20986814300300505,0.04015532121736278],"21":[0.36812207206991004,0.3113718679394954],"210":[0.4525147428563596,0.3762937454260816],"211":[0.22404896847729944,0.41770254319637445],"232":[0.21952801110040096,0.4962390279505991],"240":[0.28089656949611835,-0.3118967989001111],"242":[0.23814585612775552,0.3277853654021831],"245":[-0.2576868229138015,0.09655837641733084],"255":[0.2754788243077405,-0.37011778767824005],"265":[0.06948133782451142,-0.15841573734353467],"268":[-0.10556553395119475,-0.24769277047742902],"272":[0.009612938706814416,0.001161175775473583],"275":[0.16804939036193062,-0.3360703747250023],"28":[-0.08040621537926107,-0.19454335773139023],"285":[0.22790913992808662,0.45455459909432705],"295":[-0.04907340570450702,-0.2885839469797877],"3":[-0.09467715341070039,-0.16139785611246582],"327":[-0.037657685785884736,-0.17326705144595222],"364":[0.0961096034537277,-0.26041117457849805],"372":[-0.03013803102751489,-0.076973741524971],"388":[0.047769605748548015,0.27871123099027156],"400":[-0.06338695082212488,-0.30127569106898616],"407":[-0.17018396424577803,-0.1864566763373879],"425":[0.2447292983705977,-0.31770747423188767],"428":[0.027016011305153412,-0.4841508907297579],"429":[-0.03204046202963864,-0.12454651031204313],"441":[-0.06725462819834216,-0.17006239915908675],"448":[0.3564853425366972,0.27086455072436083],"45":[0.10993885967532538,0.3787179771265717],"454":[0.18531908617306414,-0.06495757329323419],"468":[0.2165321935565024,0.37536377440366553],"471":[-0.17889474198515798,-0.1341459294275048],"475":[-0.2550375683369914,-0.1503046219958785],"478":[-0.04614584748307761,-0.10143421325982317],"48":[0.11269594915268241,0.4444859212254716],"480":[0.41795401939164856,0.3229894203382455],"488":[0.14194531314464232,0.5015554660817685],"489":[-0.007345119940132378,-0.37241799624800925],"494":[0.042026844071737006,-0.0969418695889835],"496":[-0.04942643063039047,0.12316143629327643],"498":[-0.06231081171094862,-0.4113111756621097],"502":[-0.1510308522822236,0.09843107996969136],"504":[-0.07782177364813497,-0.2240990699659457],"520":[-0.10044306255477564,0.15454410705002203],"525":[0.13055125304667933,-0.02380769564729001],"576":[-0.12142233858608527,0.15435026347086658],"577":[0.20984388696273976,-0.018181488603313953],"582":[-0.13058675539888026,0.03167212144053673],"587":[0.012193050978974194,-0.07810625003374627],"601":[0.037510755691231634,0.34429066804035624],"605":[-0.11344760878865837,0.07740838539729647],"62":[0.09192335664776702,-0.33800644708781435],"634":[-0.2503259160754874,0.20882667567200208],"640":[0.07496087769244346,-0.021995335583186816],"642":[-0.043941811014742746,0.02372005339325844],"65":[-0.3465916751974996,-0.2225384294160448],"650":[0.044589599553598536,-0.2884529837625143],"681":[-0.2750867197679388,-0.18907000413143665],"687":[-0.09030130081600608,0.054716802211917576],"691":[-0.22305609627575568,0.1575469642127904],"694":[0.21920639240586579,-0.04091193940605546],"725":[-0.049859210748682437,-0.9066605570547099],"751":[1.0,0.18163876728643846],"753":[0.08670722322551357,0.01326077828122907],"771":[0.3781518511040767,0.31994517047755944],"778":[-0.0035809643041694724,-0.08135555102218253],"79":[0.07704743659123038,0.38913858933320034],"791":[0.37553096543596265,0.3353882099686401],"809":[-0.3308571595871518,-0.23797790050281198],"826":[0.271150029932111,0.31951289882481954],"845":[0.29916283295783175,0.3805663828629607],"857":[-0.07566581154265924,-0.36388582002245573],"866":[-0.02778068036795455,0.03380025847709028],"869":[-0.2017522057000926,0.17713079965877068],"87":[0.12001112466830843,0.31047342343275297],"874":[0.26415564835613087,-0.0962462693559468],"89":[0.21649928079788824,0.5110407460345725],"927":[-0.06481836600383326,-0.8806886657350195],"945":[-0.10401072548815979,-0.29785394438516943],"954":[-0.034710849515411805,-0.36554098929327106],"970":[-0.23895440049781624,-0.1717263569793099],"984":[-0.15028545549790004,-0.11218545468463136]}},"id":"3796","type":"StaticLayoutProvider"},{"attributes":{},"id":"3775","type":"BasicTicker"},{"attributes":{"dimension":1,"grid_line_color":{"value":null},"plot":{"id":"3761","subtype":"Figure","type":"Plot"},"ticker":{"id":"3775","type":"BasicTicker"}},"id":"3778","type":"Grid"},{"attributes":{"callback":null,"data":{"end":[28,106,147,177,295,407,295,327,407,441,478,272,587,1214,3,28,106,407,400,407,809,857,945,28,954,3,28,65,147,268,429,441,809,21,48,200,211,242,480,771,791,826,845,15,200,826,45,79,488,15,21,448,601,751,826,242,468,488,845,87,211,388,468,480,791,21,771,791,15,21,200,480,791,826,15,21,448,480,771,15,21,200,601,15,48,200,210,211,232,242,285,448,826,634,691,869,1332,28,295,372,478,295,372,407,429,478,504,372,429,441,48,79,134,232,601,45,601,87,388,496,89,120,285,488,388,48,650,268,275,364,681,809,65,124,471,809,970,65,681,134,211,242,388,488,496,826,45,79,87,134,496,687,120,232,285,488,89,232,488,89,120,232,468,488,845,119,240,364,425,101,122,240,425,101,425,101,265,268,425,650,101,119,122,240,364,106,372,106,265,272,364,494,778,1805,106,1295,119,471,475,681,970,65,124,272,372,475,478,681,809,970,124,471,681,471,475,681,62,122,400,428,489,650,945,145,177,407,428,489,857,945,984,145,240,400,489,927,945,145,400,428,945,65,145,177,400,407,428,489,857,984,156,502,694,753,866,1359,454,694,151,201,245,582,634,691,866,869,156,525,577,151,577,866,151,156,159,502,640,694,753,1359,1401,1204,1401,1423,640,874,201,454,640,642,245,582,159,454,642,159,201,454,582,640,691,268,498,28,165,407,504,165,272,494,778,106,170,265,272,364,587,778,106,364,587,1805,295,429,441,327,372,441,478,400,498,945,954,21,89,134,200,210,211,388,496,751,826,845,201,502,691,869,1237,1423,201,605,642,89,120,200,232,285,468,751,845,120,210,211,242,285,388,601,845,245,502,634,869,1332,502,634,691,245,1260,1401,1423,1228,1412,1485,122,275,255,650,364,494,587,28,165,295,407,429,441,272,429,441,478,119,295,428,691,725,857,945,28,177,400,945,1332,725,454,582,605,576,605,520,605,201,520,576,582,642,687,159,577,640,694,525,694,106,1214,1295,634,691,869,927,1237,1295,1332,1359,1412,1214,1295,1342,1594,1828,106,1214,1228,1342,1401,1594,1805,1828,1201,1204,1214,1805,1201,1214,1295,1332,1345,1423,1828,1201,1214,1237,1295,1412,1423,1594,1342,1359,1295,1401,1423,1485,1423,1237,605,687,1228,1237,1295,1332,1401,1594,1805,1828,1201,1214,1228,1295,1332,1401,1423,1828],"start":[3,3,3,3,3,3,28,28,28,28,28,106,106,106,147,147,147,147,177,177,177,177,177,295,295,407,407,407,407,407,407,407,407,15,15,15,15,15,15,15,15,15,15,21,21,21,48,48,48,200,200,200,200,200,200,211,211,211,211,242,242,242,242,242,242,480,480,480,771,771,771,771,771,771,791,791,791,791,791,826,826,826,826,845,845,845,845,845,845,845,845,845,845,20,634,634,634,327,327,327,327,441,441,441,441,441,441,478,478,478,45,45,45,45,45,79,79,134,134,134,232,232,232,232,601,488,62,650,650,650,65,65,681,681,681,681,681,809,809,87,87,87,87,87,87,87,388,388,388,388,388,496,89,89,89,89,120,120,120,285,285,285,285,285,285,101,101,101,101,119,119,119,119,240,240,364,364,364,364,364,425,425,425,425,425,272,272,587,587,587,587,587,587,587,1214,1214,122,124,124,124,124,471,471,471,471,471,471,471,471,471,475,475,475,970,970,970,145,145,145,145,145,145,145,400,400,400,400,400,400,400,400,428,428,428,428,428,428,489,489,489,489,945,945,945,945,945,945,945,945,945,151,151,151,151,151,151,156,156,502,502,502,502,502,502,502,502,694,694,694,753,753,753,866,866,866,866,866,866,866,866,866,1359,1359,1359,454,454,159,159,159,159,201,201,640,640,640,642,642,642,642,642,642,165,165,268,268,268,268,498,170,170,170,494,494,494,494,494,494,494,778,778,778,778,173,173,173,429,429,429,429,857,857,857,857,448,448,448,448,448,448,448,448,448,448,448,245,245,245,245,245,245,582,582,582,210,210,210,210,210,210,210,210,468,468,468,468,468,468,468,468,691,691,691,691,691,869,869,869,1237,1237,1237,1237,1423,1423,1423,255,255,275,275,265,265,265,504,504,504,504,504,504,372,372,372,372,954,954,954,954,954,954,954,984,984,984,984,984,927,874,687,687,520,520,576,576,605,605,605,605,605,605,525,525,525,525,577,577,1805,1805,1805,1332,1332,1332,725,1401,1401,1401,1401,1401,1201,1201,1201,1201,1201,1295,1295,1295,1295,1295,1295,1295,1295,1342,1342,1342,1342,1594,1594,1594,1594,1594,1594,1594,1828,1828,1828,1828,1828,1828,1828,1204,1204,1228,1228,1228,1228,1485,1260,1238,1238,1345,1345,1345,1345,1345,1345,1345,1345,1412,1412,1412,1412,1412,1412,1412,1412],"xs":[{"__ndarray__":"GcyTDcM8uL+A9XJxgJW0vwAAAAAAAPh/Fdl56NXRvb+A9XJxgJW0v1Cpg3I8w7S/","dtype":"float64","shape":[6]},{"__ndarray__":"GcyTDcM8uL+hHB6fb3+fvwAAAAAAAPh/4Dv3zp+dnL+hHB6fb3+fvy4FWAkAdrC/","dtype":"float64","shape":[6]},{"__ndarray__":"GcyTDcM8uL9MHizbYR+4vwAAAAAAAPh/wB6KHz1Ls79MHizbYR+4v7BL48KFJ72/","dtype":"float64","shape":[6]},{"__ndarray__":"GcyTDcM8uL+JZpWKetXFvwAAAAAAAPh/phLjjt/AxL+JZpWKetXFv3gL2LJMlMC/","dtype":"float64","shape":[6]},{"__ndarray__":"GcyTDcM8uL9gWTVBJiCpvwAAAAAAAPh/9kYg8a04tb9gWTVBJiCpv5VT0cXf4Ke/","dtype":"float64","shape":[6]},{"__ndarray__":"GcyTDcM8uL++n16QlsjFvwAAAAAAAPh/FsgyilTpwL++n16QlsjFv2AEXDWHt76/","dtype":"float64","shape":[6]},{"__ndarray__":"gPVycYCVtL9gWTVBJiCpvwAAAAAAAPh/BBArL8MAtb9gWTVBJiCpv3qBFOqkS6e/","dtype":"float64","shape":[6]},{"__ndarray__":"gPVycYCVtL83bslB3kejvwAAAAAAAPh/RPaleIYZsr83bslB3kejv9hpwcdQfra/","dtype":"float64","shape":[6]},{"__ndarray__":"gPVycYCVtL++n16QlsjFvwAAAAAAAPh/zLvEKwpFv7++n16QlsjFvwWny5fAE8C/","dtype":"float64","shape":[6]},{"__ndarray__":"gPVycYCVtL8w1J1smTexvwAAAAAAAPh/GZ8T0ciBsr8w1J1smTexv8puUhaUMbu/","dtype":"float64","shape":[6]},{"__ndarray__":"gPVycYCVtL+CcZKzbaCnvwAAAAAAAPh/rPc0ueCXpr+CcZKzbaCnv5MhhC0GjbS/","dtype":"float64","shape":[6]},{"__ndarray__":"oRwen29/n79p7OnK8q+DPwAAAAAAAPh/l37TyWzJpL9p7OnK8q+DP25a3uO1DJi/","dtype":"float64","shape":[6]},{"__ndarray__":"oRwen29/n7/SlIuZq/iIPwAAAAAAAPh/6UnJFOCEmL/SlIuZq/iIP/gWfek4XYc/","dtype":"float64","shape":[6]},{"__ndarray__":"oRwen29/n78vISTP/Z24vwAAAAAAAPh/GlRaMPGAqL8vISTP/Z24v6xQ37yZbrK/","dtype":"float64","shape":[6]},{"__ndarray__":"TB4s22EfuL8ZzJMNwzy4vwAAAAAAAPh/pcs1yecQvb8ZzJMNwzy4v7We3CWfNLO/","dtype":"float64","shape":[6]},{"__ndarray__":"TB4s22EfuL+A9XJxgJW0vwAAAAAAAPh/ol1rVt1Yu7+A9XJxgJW0v0vJAPS0nLG/","dtype":"float64","shape":[6]},{"__ndarray__":"TB4s22EfuL+hHB6fb3+fvwAAAAAAAPh/Qt4fvUZUob+hHB6fb3+fv4Wd9oO4hrG/","dtype":"float64","shape":[6]},{"__ndarray__":"TB4s22EfuL++n16QlsjFvwAAAAAAAPh/fvUzJNthw7++n16QlsjFv9ExKlCvt7+/","dtype":"float64","shape":[6]},{"__ndarray__":"iWaVinrVxb8ZMcaQIDqwvwAAAAAAAPh/inSqbcPPvL8ZMcaQIDqwv3wyo4TxE7u/","dtype":"float64","shape":[6]},{"__ndarray__":"iWaVinrVxb++n16QlsjFvwAAAAAAAPh/h/TrmsNXw7++n16QlsjFv9IvIvTwRci/","dtype":"float64","shape":[6]},{"__ndarray__":"iWaVinrVxb/WwASCwyzVvwAAAAAAAPh/FUPl7YT60b/WwASCwyzVvylYzUYhotK/","dtype":"float64","shape":[6]},{"__ndarray__":"iWaVinrVxb/lQgCq1V6zvwAAAAAAAPh/ARIGzlqbv7/lQgCq1V6zv2gEgJ3bK7m/","dtype":"float64","shape":[6]},{"__ndarray__":"iWaVinrVxb82pmdocqC6vwAAAAAAAPh/UvI0Ahasw782pmdocqC6vw6Q7ZH1icK/","dtype":"float64","shape":[6]},{"__ndarray__":"YFk1QSYgqb+A9XJxgJW0vwAAAAAAAPh/WSTFxaBJqL+A9XJxgJW0v3RhAx3Bf7W/","dtype":"float64","shape":[6]},{"__ndarray__":"YFk1QSYgqb8/W/jWnsWhvwAAAAAAAPh/msamKj7Vr78/W/jWnsWhv548e0Ff5Ji/","dtype":"float64","shape":[6]},{"__ndarray__":"vp9ekJbIxb8ZzJMNwzy4vwAAAAAAAPh/tL31jKP9wL8ZzJMNwzy4v5qDenw0i8K/","dtype":"float64","shape":[6]},{"__ndarray__":"vp9ekJbIxb+A9XJxgJW0vwAAAAAAAPh/mLw1s9FwwL+A9XJxgJW0v/LmmGIs/7+/","dtype":"float64","shape":[6]},{"__ndarray__":"vp9ekJbIxb/dgILZji7WvwAAAAAAAPh/Mq1zlXGD07/dgILZji7Wv53MbPn6BNO/","dtype":"float64","shape":[6]},{"__ndarray__":"vp9ekJbIxb9MHizbYR+4vwAAAAAAAPh/zXKBs9jsvL9MHizbYR+4v/yV39Vv/MG/","dtype":"float64","shape":[6]},{"__ndarray__":"vp9ekJbIxb+CuOfDVwa7vwAAAAAAAPh/bM5U5SuHw7+CuOfDVwa7v7g7Zib4IsC/","dtype":"float64","shape":[6]},{"__ndarray__":"vp9ekJbIxb9jziGBm2egvwAAAAAAAPh/9kTkt1IMsb9jziGBm2egv4JzbF+1FLW/","dtype":"float64","shape":[6]},{"__ndarray__":"vp9ekJbIxb8w1J1smTexvwAAAAAAAPh/ALbUu1IyvL8w1J1smTexv22Z+59kv72/","dtype":"float64","shape":[6]},{"__ndarray__":"vp9ekJbIxb/WwASCwyzVvwAAAAAAAPh/DnexzbK30r/WwASCwyzVv1Hxu1b/9tG/","dtype":"float64","shape":[6]},{"__ndarray__":"YCz+FTvW0z8Xdx7hT4/XPwAAAAAAAPh/VBY5wlJy1D8Xdx7hT4/XPwKYpYlH8dU/","dtype":"float64","shape":[6]},{"__ndarray__":"YCz+FTvW0z+OoABIpNm8PwAAAAAAAPh/id6uLzbdxD+OoABIpNm8P0n2I56M18I/","dtype":"float64","shape":[6]},{"__ndarray__":"YCz+FTvW0z96surjHEjePwAAAAAAAPh/Q9VZRjwQ2z96surjHEjeP8R50b5UGdw/","dtype":"float64","shape":[6]},{"__ndarray__":"YCz+FTvW0z8uASj4oq3MPwAAAAAAAPh/xmvcxVB50T8uASj4oq3MPycBrOBICNA/","dtype":"float64","shape":[6]},{"__ndarray__":"YCz+FTvW0z+ckd87kHvOPwAAAAAAAPh/CoEyJumQ0T+ckd87kHvOP7+wbEAqdtI/","dtype":"float64","shape":[6]},{"__ndarray__":"YCz+FTvW0z9WNSE3wr/aPwAAAAAAAPh/XjtrAiWL1z9WNSE3wr/aP1rBm/x+Qtg/","dtype":"float64","shape":[6]},{"__ndarray__":"YCz+FTvW0z/cfFrSozPYPwAAAAAAAPh/6ouB7H7+1D/cfFrSozPYPx+B/OYMJNY/","dtype":"float64","shape":[6]},{"__ndarray__":"YCz+FTvW0z9wsssHswjYPwAAAAAAAPh/a4Gm/I/T1D9wsssHswjYPxEjVfz2jtU/","dtype":"float64","shape":[6]},{"__ndarray__":"YCz+FTvW0z+oirenhVrRPwAAAAAAAPh/9n+RO5Cv0j+oirenhVrRP08/M32FXtQ/","dtype":"float64","shape":[6]},{"__ndarray__":"YCz+FTvW0z/k4u7deyXTPwAAAAAAAPh/HGp+Ith21T/k4u7deyXTPyQ/XH4wNNM/","dtype":"float64","shape":[6]},{"__ndarray__":"F3ce4U+P1z9gLP4VO9bTPwAAAAAAAPh/I43jNDjz1j9gLP4VO9bTP3ULd21DdNU/","dtype":"float64","shape":[6]},{"__ndarray__":"F3ce4U+P1z96surjHEjePwAAAAAAAPh/AnS7AQ0U2z96surjHEjeP0QW4NFlx9s/","dtype":"float64","shape":[6]},{"__ndarray__":"F3ce4U+P1z+oirenhVrRPwAAAAAAAPh/5hmSIgxs1D+oirenhVrRP463AFZAN9Q/","dtype":"float64","shape":[6]},{"__ndarray__":"jqAASKTZvD9KdN3+8yS8PwAAAAAAAPh/P5Zs6oC3tz9KdN3+8yS8PyyF6vvUyMA/","dtype":"float64","shape":[6]},{"__ndarray__":"jqAASKTZvD9RZGZ8YbmzPwAAAAAAAPh/vo9eRkUGtj9RZGZ8YbmzP8iDw1+IUL4/","dtype":"float64","shape":[6]},{"__ndarray__":"jqAASKTZvD98a+OWQyvCPwAAAAAAAPh/fIE/QPilwT98a+OWQyvCP4iYP+Vuhbo/","dtype":"float64","shape":[6]},{"__ndarray__":"erLq4xxI3j9gLP4VO9bTPwAAAAAAAPh/lwmPsxsO1z9gLP4VO9bTPxdlFzsDBdY/","dtype":"float64","shape":[6]},{"__ndarray__":"erLq4xxI3j8Xdx7hT4/XPwAAAAAAAPh/jrVNw1/D2j8Xdx7hT4/XP04TKfMGENo/","dtype":"float64","shape":[6]},{"__ndarray__":"erLq4xxI3j/Fs+zlp9DWPwAAAAAAAPh/YLUmLrqu2T/Fs+zlp9DWPw5epoVI4dk/","dtype":"float64","shape":[6]},{"__ndarray__":"erLq4xxI3j8QWeIZnDSjPwAAAAAAAPh/ULOEYa8Ytj8QWeIZnDSjP0Z4Y4p8qbQ/","dtype":"float64","shape":[6]},{"__ndarray__":"erLq4xxI3j8AAAAAAADwPwAAAAAAAPh/u/9P4JNs7j8AAAAAAADwPyZXliygpu4/","dtype":"float64","shape":[6]},{"__ndarray__":"erLq4xxI3j+oirenhVrRPwAAAAAAAPh/+NhOzImC1D+oirenhVrRP3P4oEMZCtQ/","dtype":"float64","shape":[6]},{"__ndarray__":"LgEo+KKtzD+ckd87kHvOPwAAAAAAAPh/YTrymBogyz+ckd87kHvOPz5AUXQP/88/","dtype":"float64","shape":[6]},{"__ndarray__":"LgEo+KKtzD/jm+2wU7fLPwAAAAAAAPh/KqZJTkhUyj/jm+2wU7fLP95KkFAJL88/","dtype":"float64","shape":[6]},{"__ndarray__":"LgEo+KKtzD98a+OWQyvCPwAAAAAAAPh/OlBCiB8YyD98a+OWQyvCPwkSNKhDksQ/","dtype":"float64","shape":[6]},{"__ndarray__":"LgEo+KKtzD/k4u7deyXTPwAAAAAAAPh/RQ4Z8Xrdzz/k4u7deyXTP12tuI5vBtE/","dtype":"float64","shape":[6]},{"__ndarray__":"nJHfO5B7zj/AR5uPDLm+PwAAAAAAAPh/q+MXb4PkxD/AR5uPDLm+Px8ynF2Gm8U/","dtype":"float64","shape":[6]},{"__ndarray__":"nJHfO5B7zj8uASj4oq3MPwAAAAAAAPh/NKyKTYwE0D8uASj4oq3MP41Str8jKss/","dtype":"float64","shape":[6]},{"__ndarray__":"nJHfO5B7zj+Lm938QXWoPwAAAAAAAPh//UrYF02Gtj+Lm938QXWoP6YT7h1s/Lg/","dtype":"float64","shape":[6]},{"__ndarray__":"nJHfO5B7zj/jm+2wU7fLPwAAAAAAAPh/IZX/2Qg20D/jm+2wU7fLP/g7DgHm7ss/","dtype":"float64","shape":[6]},{"__ndarray__":"nJHfO5B7zj9WNSE3wr/aPwAAAAAAAPh/+YhGfNG91z9WNSE3wr/aP7RvmSylztc/","dtype":"float64","shape":[6]},{"__ndarray__":"nJHfO5B7zj9wsssHswjYPwAAAAAAAPh/5P4PQoAh1T9wsssHswjYP5YreD2h/tQ/","dtype":"float64","shape":[6]},{"__ndarray__":"VjUhN8K/2j8Xdx7hT4/XPwAAAAAAAPh/lnCrKpIt2j8Xdx7hT4/XP0hzx73bvNo/","dtype":"float64","shape":[6]},{"__ndarray__":"VjUhN8K/2j/cfFrSozPYPwAAAAAAAPh/zpQ8ricT2z/cfFrSozPYP7eDuYlIQ9s/","dtype":"float64","shape":[6]},{"__ndarray__":"VjUhN8K/2j9wsssHswjYPwAAAAAAAPh/x9bmeG082z9wsssHswjYP+pqpRpji9o/","dtype":"float64","shape":[6]},{"__ndarray__":"3Hxa0qMz2D9gLP4VO9bTPwAAAAAAAPh/Uh3X+18L1z9gLP4VO9bTPx0oXAHS5dU/","dtype":"float64","shape":[6]},{"__ndarray__":"3Hxa0qMz2D8Xdx7hT4/XPwAAAAAAAPh/3eQdcFsF2T8Xdx7hT4/XP+qqtkdqn9o/","dtype":"float64","shape":[6]},{"__ndarray__":"3Hxa0qMz2D96surjHEjePwAAAAAAAPh/NgnRl40P2z96surjHEjeP6bV1VHqAtw/","dtype":"float64","shape":[6]},{"__ndarray__":"3Hxa0qMz2D9WNSE3wr/aPwAAAAAAAPh/ZB0/Wz7g1z9WNSE3wr/aP3suwn8dsNc/","dtype":"float64","shape":[6]},{"__ndarray__":"3Hxa0qMz2D9wsssHswjYPwAAAAAAAPh/DTj3JUO/2T9wsssHswjYP9LQf7EQUdc/","dtype":"float64","shape":[6]},{"__ndarray__":"3Hxa0qMz2D+oirenhVrRPwAAAAAAAPh/9aBc8glT1D+oirenhVrRP9GfyJ6WVdQ/","dtype":"float64","shape":[6]},{"__ndarray__":"cLLLB7MI2D9gLP4VO9bTPwAAAAAAAPh/ZV0jIV4L1z9gLP4VO9bTP7+7dCH3T9Y/","dtype":"float64","shape":[6]},{"__ndarray__":"cLLLB7MI2D8Xdx7hT4/XPwAAAAAAAPh/g5BMkFpC1z8Xdx7hT4/XP28Zpm9nndk/","dtype":"float64","shape":[6]},{"__ndarray__":"cLLLB7MI2D/Fs+zlp9DWPwAAAAAAAPh/JGsDPa551j/Fs+zlp9DWPxTiFQr11tg/","dtype":"float64","shape":[6]},{"__ndarray__":"cLLLB7MI2D9WNSE3wr/aPwAAAAAAAPh//xAGxgeM1z9WNSE3wr/aP9x8RyQSPdg/","dtype":"float64","shape":[6]},{"__ndarray__":"cLLLB7MI2D/cfFrSozPYPwAAAAAAAPh/P/cutBN91j/cfFrSozPYP3pepihG69g/","dtype":"float64","shape":[6]},{"__ndarray__":"qIq3p4Va0T9gLP4VO9bTPwAAAAAAAPh/EjckgjCB0j9gLP4VO9bTP7h3gkA70tA/","dtype":"float64","shape":[6]},{"__ndarray__":"qIq3p4Va0T8Xdx7hT4/XPwAAAAAAAPh/2udDZsl91D8Xdx7hT4/XPzFK1TKVstQ/","dtype":"float64","shape":[6]},{"__ndarray__":"qIq3p4Va0T96surjHEjePwAAAAAAAPh/KmRTvxgg2z96surjHEjeP69EAUiJmNs/","dtype":"float64","shape":[6]},{"__ndarray__":"qIq3p4Va0T8QWeIZnDSjPwAAAAAAAPh/6AVHFp31tT8QWeIZnDSjP9PWEJpk67Q/","dtype":"float64","shape":[6]},{"__ndarray__":"5OLu3Xsl0z9gLP4VO9bTPwAAAAAAAPh/KKVu0d6E0T9gLP4VO9bTPyDQkHWGx9M/","dtype":"float64","shape":[6]},{"__ndarray__":"5OLu3Xsl0z+OoABIpNm8PwAAAAAAAPh/UcbKprvaxD+OoABIpNm8Pw3c9n9xQcM/","dtype":"float64","shape":[6]},{"__ndarray__":"5OLu3Xsl0z96surjHEjePwAAAAAAAPh/fpGsZ4sW2z96surjHEjeP+A5IgfLUdw/","dtype":"float64","shape":[6]},{"__ndarray__":"5OLu3Xsl0z+UqGFlAPbcPwAAAAAAAPh/AZnuCLbz2T+UqGFlAPbcPwMeR55JBdo/","dtype":"float64","shape":[6]},{"__ndarray__":"5OLu3Xsl0z8uASj4oq3MPwAAAAAAAPh/WFx24Y+N0T8uASj4oq3MPx42SsvdddA/","dtype":"float64","shape":[6]},{"__ndarray__":"5OLu3Xsl0z//th1ufhnMPwAAAAAAAPh/UQXz+6PA0D//th1ufhnMP36nZY6lcc0/","dtype":"float64","shape":[6]},{"__ndarray__":"5OLu3Xsl0z+ckd87kHvOPwAAAAAAAPh/deJw4X6v0D+ckd87kHvOP0F9VqpeTNI/","dtype":"float64","shape":[6]},{"__ndarray__":"5OLu3Xsl0z/prTlvICzNPwAAAAAAAPh/nt+gRsmJ0T/prTlvICzNP1rFmrZths8/","dtype":"float64","shape":[6]},{"__ndarray__":"5OLu3Xsl0z/Fs+zlp9DWPwAAAAAAAPh/j/HMny9Y1D/Fs+zlp9DWPzrH3tSFh9Y/","dtype":"float64","shape":[6]},{"__ndarray__":"5OLu3Xsl0z+oirenhVrRPwAAAAAAAPh/+yxm/Wh50T+oirenhVrRPyhiwzwCt9M/","dtype":"float64","shape":[6]},{"__ndarray__":"yn8qFh7I079cq7j9VgXQvwAAAAAAAPh/IM2wDJwZ079cq7j9VgXQvxBFQ6+mh9G/","dtype":"float64","shape":[6]},{"__ndarray__":"XKu4/VYF0L8WwlYnGo3MvwAAAAAAAPh/Dc1RCdbC0L8WwlYnGo3Mv761eABDK82/","dtype":"float64","shape":[6]},{"__ndarray__":"XKu4/VYF0L+GWrAqBNPJvwAAAAAAAPh/v3Dz2e4T0L+GWrAqBNPJv8+NArsbds2/","dtype":"float64","shape":[6]},{"__ndarray__":"XKu4/VYF0L/C12LldQfOvwAAAAAAAPh/MlEvs7Kl0L/C12LldQfOv2ox9CvgIdK/","dtype":"float64","shape":[6]},{"__ndarray__":"N27JQd5Ho7+A9XJxgJW0vwAAAAAAAPh/rmxjM9I/qL+A9XJxgJW0vwwLWSp77J6/","dtype":"float64","shape":[6]},{"__ndarray__":"N27JQd5Ho79gWTVBJiCpvwAAAAAAAPh/H2+Uhe9LsL9gWTVBJiCpvzGHN0Jb75m/","dtype":"float64","shape":[6]},{"__ndarray__":"N27JQd5Ho78gG4QGgdyevwAAAAAAAPh/9TD/dQvQjb8gG4QGgdyev4R63TJwHau/","dtype":"float64","shape":[6]},{"__ndarray__":"N27JQd5Ho7+CcZKzbaCnvwAAAAAAAPh/SK3NM6YUlr+CcZKzbaCnv28J51MxoK6/","dtype":"float64","shape":[6]},{"__ndarray__":"MNSdbJk3sb9gWTVBJiCpvwAAAAAAAPh/1I45MLQ9s79gWTVBJiCpvwoYouUH/aK/","dtype":"float64","shape":[6]},{"__ndarray__":"MNSdbJk3sb8gG4QGgdyevwAAAAAAAPh/goSuGB8tnr8gG4QGgdyev8JG6KUitLC/","dtype":"float64","shape":[6]},{"__ndarray__":"MNSdbJk3sb++n16QlsjFvwAAAAAAAPh/1i7D6DlLwL++n16QlsjFvz56X+1hCb+/","dtype":"float64","shape":[6]},{"__ndarray__":"MNSdbJk3sb9jziGBm2egvwAAAAAAAPh/IPy8TT8sp79jziGBm2egvywSFC63YrO/","dtype":"float64","shape":[6]},{"__ndarray__":"MNSdbJk3sb+CcZKzbaCnvwAAAAAAAPh/bUYZsEozpb+CcZKzbaCnv1Y2hU53BrS/","dtype":"float64","shape":[6]},{"__ndarray__":"MNSdbJk3sb+8Rry0IOyzvwAAAAAAAPh/bLXKMAl6tr+8Rry0IOyzvzInoXwsmam/","dtype":"float64","shape":[6]},{"__ndarray__":"gnGSs22gp78gG4QGgdyevwAAAAAAAPh/j0cNSkA3pL8gG4QGgdyev1IeeFrhW7K/","dtype":"float64","shape":[6]},{"__ndarray__":"gnGSs22gp79jziGBm2egvwAAAAAAAPh/nmND1pycsr9jziGBm2egv5bt6q2oY6S/","dtype":"float64","shape":[6]},{"__ndarray__":"gnGSs22gp78w1J1smTexvwAAAAAAAPh/umla7ipusr8w1J1smTexvzatw++xAqK/","dtype":"float64","shape":[6]},{"__ndarray__":"SnTd/vMkvD+OoABIpNm8PwAAAAAAAPh/Tb84roujwD+OoABIpNm8P4EKCU/ubLc/","dtype":"float64","shape":[6]},{"__ndarray__":"SnTd/vMkvD9RZGZ8YbmzPwAAAAAAAPh/5mjBZr1HwD9RZGZ8YbmzP7pPiTsPlb0/","dtype":"float64","shape":[6]},{"__ndarray__":"SnTd/vMkvD9CLJFPMZiiPwAAAAAAAPh/hbqdKy9lpD9CLJFPMZiiP49cijKZBbM/","dtype":"float64","shape":[6]},{"__ndarray__":"SnTd/vMkvD//th1ufhnMPwAAAAAAAPh/GnVb0/bXyT//th1ufhnMP4IrO8HaPMY/","dtype":"float64","shape":[6]},{"__ndarray__":"SnTd/vMkvD8QWeIZnDSjPwAAAAAAAPh/+kXOko08sj8QWeIZnDSjP6B0oNdEeLY/","dtype":"float64","shape":[6]},{"__ndarray__":"UWRmfGG5sz9KdN3+8yS8PwAAAAAAAPh/nQ2CW7Wdrj9KdN3+8yS8P+CIuj9GSbI/","dtype":"float64","shape":[6]},{"__ndarray__":"UWRmfGG5sz8QWeIZnDSjPwAAAAAAAPh/ynNV/CuNqz8QWeIZnDSjP36PawsxLLU/","dtype":"float64","shape":[6]},{"__ndarray__":"QiyRTzGYoj/AR5uPDLm+PwAAAAAAAPh/PRPju4h6uT/AR5uPDLm+P0eoePZ4sbI/","dtype":"float64","shape":[6]},{"__ndarray__":"QiyRTzGYoj+Lm938QXWoPwAAAAAAAPh/Uo3iMkF6rD+Lm938QXWoP8ccPpEPm5I/","dtype":"float64","shape":[6]},{"__ndarray__":"QiyRTzGYoj8GKDvOa06pvwAAAAAAAPh/PLNWzmQ4or8GKDvOa06pvxAShTviOHa/","dtype":"float64","shape":[6]},{"__ndarray__":"/7Ydbn4ZzD+vNVGZP7bLPwAAAAAAAPh/NC/wGvZRzz+vNVGZP7bLP1e+/C5lfco/","dtype":"float64","shape":[6]},{"__ndarray__":"/7Ydbn4ZzD8gQbLUtcTJPwAAAAAAAPh/JnMNdzwK0D8gQbLUtcTJP9xQISCcJM8/","dtype":"float64","shape":[6]},{"__ndarray__":"/7Ydbn4ZzD/prTlvICzNPwAAAAAAAPh/eJuewhaVyT/prTlvICzNP0NjLD6Das4/","dtype":"float64","shape":[6]},{"__ndarray__":"/7Ydbn4ZzD98a+OWQyvCPwAAAAAAAPh/QzJqonBGyD98a+OWQyvCP2EMn0km8Mc/","dtype":"float64","shape":[6]},{"__ndarray__":"EFniGZw0oz+Lm938QXWoPwAAAAAAAPh/0xbcWpoSlj+Lm938QXWoP7CWXHBjha4/","dtype":"float64","shape":[6]},{"__ndarray__":"fGvjlkMrwj+OoABIpNm8PwAAAAAAAPh/jXRI9TrkvT+OoABIpNm8P3/vQ0heVcM/","dtype":"float64","shape":[6]},{"__ndarray__":"jGuKAkqItz9AHaavctSmPwAAAAAAAPh/ytH2xbQztz9AHaavctSmPwAGBohJErA/","dtype":"float64","shape":[6]},{"__ndarray__":"QB2mr3LUpj+CuOfDVwa7vwAAAAAAAPh/NBBuhdR9rL+CuOfDVwa7vyYpTg481LC/","dtype":"float64","shape":[6]},{"__ndarray__":"QB2mr3LUpj8uztt1pILFPwAAAAAAAPh/uv35rwYkvj8uztt1pILFP78930A32MA/","dtype":"float64","shape":[6]},{"__ndarray__":"QB2mr3LUpj9jUKqTo5q4PwAAAAAAAPh/oAAgs56BsD9jUKqTo5q4P4bP1c2dlac/","dtype":"float64","shape":[6]},{"__ndarray__":"3YCC2Y4u1r/V5j1UBZvRvwAAAAAAAPh/nsJo4jbH07/V5j1UBZvRv8dMoFe/0tS/","dtype":"float64","shape":[6]},{"__ndarray__":"3YCC2Y4u1r/WwASCwyzVvwAAAAAAAPh/AJJhf4Mp2L/WwASCwyzVv6hB+pWBb9a/","dtype":"float64","shape":[6]},{"__ndarray__":"1eY9VAWb0b/dgILZji7WvwAAAAAAAPh/FKVXS10C1L/dgILZji7Wv+saINbU9tK/","dtype":"float64","shape":[6]},{"__ndarray__":"1eY9VAWb0b9yZqIjU0TOvwAAAAAAAPh/NHUt2rtr0L9yZqIjU0TOvzzmflWpIdK/","dtype":"float64","shape":[6]},{"__ndarray__":"1eY9VAWb0b+UVSDdBebGvwAAAAAAAPh/iaDUdTPYyr+UVSDdBebGv3CoN9oNSs2/","dtype":"float64","shape":[6]},{"__ndarray__":"1eY9VAWb0b/WwASCwyzVvwAAAAAAAPh/5sR4sg7A07/WwASCwyzVv27qEZH0H9K/","dtype":"float64","shape":[6]},{"__ndarray__":"1eY9VAWb0b/My6/LDpbOvwAAAAAAAPh/5PDxH0Jx0b/My6/LDpbOvxUzrZxagtK/","dtype":"float64","shape":[6]},{"__ndarray__":"1sAEgsMs1b/dgILZji7WvwAAAAAAAPh/s68l3M4x07/dgILZji7WvwsAjcXQ69S/","dtype":"float64","shape":[6]},{"__ndarray__":"1sAEgsMs1b/V5j1UBZvRvwAAAAAAAPh/xeLJI7oH07/V5j1UBZvRvz29MEXUp9S/","dtype":"float64","shape":[6]},{"__ndarray__":"wEebjwy5vj9CLJFPMZiiPwAAAAAAAPh/SJUB9zgVrT9CLJFPMZiiP5o160CsU7U/","dtype":"float64","shape":[6]},{"__ndarray__":"wEebjwy5vj8uASj4oq3MPwAAAAAAAPh/7n4JaaBNyj8uASj4oq3MP2v4qCy/w8Y/","dtype":"float64","shape":[6]},{"__ndarray__":"wEebjwy5vj+ckd87kHvOPwAAAAAAAPh/0VGVFJPzyD+ckd87kHvOP14DESaQPMg/","dtype":"float64","shape":[6]},{"__ndarray__":"wEebjwy5vj+Lm938QXWoPwAAAAAAAPh/UkL/HBoktT+Lm938QXWoP3ZQZ8oeHLk/","dtype":"float64","shape":[6]},{"__ndarray__":"wEebjwy5vj98a+OWQyvCPwAAAAAAAPh/0t9xOH3wwz98a+OWQyvCP/VEZUkSFb4/","dtype":"float64","shape":[6]},{"__ndarray__":"wEebjwy5vj8GKDvOa06pvwAAAAAAAPh/5rheCi2moL8GKDvOa06pv5CxhFv4L3C/","dtype":"float64","shape":[6]},{"__ndarray__":"wEebjwy5vj+oirenhVrRPwAAAAAAAPh/7Ac0ItjpzD+oirenhVrRP/ooSBl9nsw/","dtype":"float64","shape":[6]},{"__ndarray__":"i5vd/EF1qD9KdN3+8yS8PwAAAAAAAPh/rSgRaSAMuj9KdN3+8yS8P1URAUI9rLE/","dtype":"float64","shape":[6]},{"__ndarray__":"i5vd/EF1qD9RZGZ8YbmzPwAAAAAAAPh/wl/2O31wtT9RZGZ8YbmzP8Si7MnW0Kc/","dtype":"float64","shape":[6]},{"__ndarray__":"i5vd/EF1qD/AR5uPDLm+PwAAAAAAAPh/NNMKcZPPtT/AR5uPDLm+PxDFosOO17E/","dtype":"float64","shape":[6]},{"__ndarray__":"i5vd/EF1qD9CLJFPMZiiPwAAAAAAAPh/+HQYM2QmnT9CLJFPMZiiP7Tc58H137A/","dtype":"float64","shape":[6]},{"__ndarray__":"i5vd/EF1qD8GKDvOa06pvwAAAAAAAPh/myLfMsANpb8GKDvOa06pv2gJ2TuOUIG/","dtype":"float64","shape":[6]},{"__ndarray__":"Big7zmtOqb9Bf8pt/B23vwAAAAAAAPh/+sHNhkU/tb9Bf8pt/B23vzxPvwbsj6m/","dtype":"float64","shape":[6]},{"__ndarray__":"rzVRmT+2yz8gQbLUtcTJPwAAAAAAAPh/ZwXc+pkTzT8gQbLUtcTJP5Id/3cTAtA/","dtype":"float64","shape":[6]},{"__ndarray__":"rzVRmT+2yz//th1ufhnMPwAAAAAAAPh/er1+7Md9yD//th1ufhnMP1cucthYUs0/","dtype":"float64","shape":[6]},{"__ndarray__":"rzVRmT+2yz/prTlvICzNPwAAAAAAAPh/lTu5ttyTyT/prTlvICzNP6V4o/0Pac4/","dtype":"float64","shape":[6]},{"__ndarray__":"rzVRmT+2yz98a+OWQyvCPwAAAAAAAPh/PTZUqgbDxz98a+OWQyvCPz9CXYtTYsg/","dtype":"float64","shape":[6]},{"__ndarray__":"IEGy1LXEyT+vNVGZP7bLPwAAAAAAAPh/Z3Enc1tnyD+vNVGZP7bLP6o7BX7OdsU/","dtype":"float64","shape":[6]},{"__ndarray__":"IEGy1LXEyT//th1ufhnMPwAAAAAAAPh/0hG1VLvJxT//th1ufhnMP0OnriKYucY/","dtype":"float64","shape":[6]},{"__ndarray__":"IEGy1LXEyT98a+OWQyvCPwAAAAAAAPh/s9MAmTIxyD98a+OWQyvCPz+dq7AiC8g/","dtype":"float64","shape":[6]},{"__ndarray__":"6a05byAszT+vNVGZP7bLPwAAAAAAAPh/AqjRUYNOzz+vNVGZP7bLP/Nq5wpQeco/","dtype":"float64","shape":[6]},{"__ndarray__":"6a05byAszT8gQbLUtcTJPwAAAAAAAPh/fo1miyjpzj8gQbLUtcTJP5W7mCc7qco/","dtype":"float64","shape":[6]},{"__ndarray__":"6a05byAszT//th1ufhnMPwAAAAAAAPh/cMm4Goiwzz//th1ufhnMP6QBK58b28o/","dtype":"float64","shape":[6]},{"__ndarray__":"6a05byAszT/jm+2wU7fLPwAAAAAAAPh/BeneN08fyj/jm+2wU7fLP7ncgYGrAM8/","dtype":"float64","shape":[6]},{"__ndarray__":"6a05byAszT98a+OWQyvCPwAAAAAAAPh/FPiIn9iSyD98a+OWQyvCP46D0ohWNcY/","dtype":"float64","shape":[6]},{"__ndarray__":"6a05byAszT/k4u7deyXTPwAAAAAAAPh/OtrqzsIx0D/k4u7deyXTPytXPjpV+NE/","dtype":"float64","shape":[6]},{"__ndarray__":"X90VO1E2zD9w2OYngzbTPwAAAAAAAPh/EczbRFz9zz9w2OYngzbTP7BYgceICNE/","dtype":"float64","shape":[6]},{"__ndarray__":"X90VO1E2zD/F1+KaNfrRPwAAAAAAAPh/5HIbUWmTzT/F1+KaNfrRP4srIhsPz84/","dtype":"float64","shape":[6]},{"__ndarray__":"X90VO1E2zD9jUKqTo5q4PwAAAAAAAPh/UjMjWya0wj9jUKqTo5q4P2x57TJCVsE/","dtype":"float64","shape":[6]},{"__ndarray__":"X90VO1E2zD+W928mSlPPPwAAAAAAAPh/emxOx/g6yT+W928mSlPPP6851Y59fcw/","dtype":"float64","shape":[6]},{"__ndarray__":"cNjmJ4M20z9f3RU7UTbMPwAAAAAAAPh/F+EDo/1S0T9f3RU7UTbMP29u8P0iSdA/","dtype":"float64","shape":[6]},{"__ndarray__":"cNjmJ4M20z9FiAMhiFDXPwAAAAAAAPh/ho/4XOUg1D9FiAMhiFDXPy4KhclbZdU/","dtype":"float64","shape":[6]},{"__ndarray__":"cNjmJ4M20z/F1+KaNfrRPwAAAAAAAPh/innYgHXi1D/F1+KaNfrRP9pm5SR6DdM/","dtype":"float64","shape":[6]},{"__ndarray__":"cNjmJ4M20z+W928mSlPPPwAAAAAAAPh/gqmLsXfc0j+W928mSlPPPxnOKPJSMdI/","dtype":"float64","shape":[6]},{"__ndarray__":"xdfimjX60T9f3RU7UTbMPwAAAAAAAPh/Aw3gj6lL0T9f3RU7UTbMP6+w3KrWrdA/","dtype":"float64","shape":[6]},{"__ndarray__":"xdfimjX60T+W928mSlPPPwAAAAAAAPh/1n7kLL5n0j+W928mSlPPP38+u/PZy9I/","dtype":"float64","shape":[6]},{"__ndarray__":"Y1Cqk6OauD9f3RU7UTbMPwAAAAAAAPh/PtLHqXzPxT9f3RU7UTbMPyWM/dFgLcc/","dtype":"float64","shape":[6]},{"__ndarray__":"Y1Cqk6OauD+Te6Nph8mxPwAAAAAAAPh/UspGxIWQuT+Te6Nph8mxP2ccHLkDBrA/","dtype":"float64","shape":[6]},{"__ndarray__":"Y1Cqk6OauD+CuOfDVwa7vwAAAAAAAPh/G9UJZYGrrb+CuOfDVwa7vwByrYlE6a6/","dtype":"float64","shape":[6]},{"__ndarray__":"Y1Cqk6OauD+W928mSlPPPwAAAAAAAPh/AkKoj6riyD+W928mSlPPP+ycvjqyqMo/","dtype":"float64","shape":[6]},{"__ndarray__":"Y1Cqk6OauD9AHaavctSmPwAAAAAAAPh/Yl5dOD6Dsz9AHaavctSmP0B3kgQOOrg/","dtype":"float64","shape":[6]},{"__ndarray__":"lvdvJkpTzz9f3RU7UTbMPwAAAAAAAPh/PbQbTVEn0T9f3RU7UTbMP0absNIdDM8/","dtype":"float64","shape":[6]},{"__ndarray__":"lvdvJkpTzz9w2OYngzbTPwAAAAAAAPh/uSqTibAD0D9w2OYngzbTPyIG9kjVrtA/","dtype":"float64","shape":[6]},{"__ndarray__":"lvdvJkpTzz9FiAMhiFDXPwAAAAAAAPh/wia0vGIY1D9FiAMhiFDXP39PsBJVHNU/","dtype":"float64","shape":[6]},{"__ndarray__":"lvdvJkpTzz/F1+KaNfrRPwAAAAAAAPh/dKlsAjl4zj/F1+KaNfrRPyIqv3QBsM0/","dtype":"float64","shape":[6]},{"__ndarray__":"lvdvJkpTzz9jUKqTo5q4PwAAAAAAAPh/xt2cYPG9wj9jUKqTo5q4P9yChrXp98A/","dtype":"float64","shape":[6]},{"__ndarray__":"aezpyvKvgz+hHB6fb3+fvwAAAAAAAPh/wdb9WWPrkz+hHB6fb3+fvwigqVH9KWM/","dtype":"float64","shape":[6]},{"__ndarray__":"aezpyvKvgz8gG4QGgdyevwAAAAAAAPh/QYJEf4PZmr8gG4QGgdyev2CnXyODnIA/","dtype":"float64","shape":[6]},{"__ndarray__":"0pSLmav4iD+hHB6fb3+fvwAAAAAAAPh/zN7DCRkHdj+hHB6fb3+fv7LdFke2sZ6/","dtype":"float64","shape":[6]},{"__ndarray__":"0pSLmav4iD+Te6Nph8mxPwAAAAAAAPh/pvh17I9xmz+Te6Nph8mxP96jlO/yxq0/","dtype":"float64","shape":[6]},{"__ndarray__":"0pSLmav4iD9p7OnK8q+DPwAAAAAAAPh/dlZTsJQanz9p7OnK8q+DP1mrKGQno4C/","dtype":"float64","shape":[6]},{"__ndarray__":"0pSLmav4iD9jUKqTo5q4PwAAAAAAAPh/Vde0feNLrj9jUKqTo5q4P0b1nO0LG7g/","dtype":"float64","shape":[6]},{"__ndarray__":"0pSLmav4iD8XNa/hioSlPwAAAAAAAPh/GGG3l/YCf78XNa/hioSlP/CVB568m4o/","dtype":"float64","shape":[6]},{"__ndarray__":"0pSLmav4iD9euWKS01VtvwAAAAAAAPh/3LZsdGN+oz9euWKS01Vtv0VxaYH/eKc/","dtype":"float64","shape":[6]},{"__ndarray__":"0pSLmav4iD96lhyiTve8vwAAAAAAAPh/VRrnTuNIsb96lhyiTve8vwIA8gqajLi/","dtype":"float64","shape":[6]},{"__ndarray__":"LyEkz/2duL+hHB6fb3+fvwAAAAAAAPh/S36+HmE9tL+hHB6fb3+fv1avGPR/Hqy/","dtype":"float64","shape":[6]},{"__ndarray__":"LyEkz/2duL9K7UD+BSjHvwAAAAAAAPh/YkZ03nJKwb9K7UD+BSjHv6qtrgAfIMG/","dtype":"float64","shape":[6]},{"__ndarray__":"RYgDIYhQ1z9w2OYngzbTPwAAAAAAAPh/L9Hx6yVm1j9w2OYngzbTP4dWZX+vIdU/","dtype":"float64","shape":[6]},{"__ndarray__":"cmaiI1NEzr+UVSDdBebGvwAAAAAAAPh/3AswIt3cy7+UVSDdBebGv/7aGa3OT82/","dtype":"float64","shape":[6]},{"__ndarray__":"cmaiI1NEzr9Aj9AXiVLQvwAAAAAAAPh/vPTlxoaCyr9Aj9AXiVLQvyE2n+jZ6sq/","dtype":"float64","shape":[6]},{"__ndarray__":"cmaiI1NEzr/V5j1UBZvRvwAAAAAAAPh/2qThC3NR0L/V5j1UBZvRv6RnICELN82/","dtype":"float64","shape":[6]},{"__ndarray__":"cmaiI1NEzr/My6/LDpbOvwAAAAAAAPh/Jdmv3kkl0L/My6/LDpbOv5yh9RI1Zsu/","dtype":"float64","shape":[6]},{"__ndarray__":"lFUg3QXmxr/dgILZji7WvwAAAAAAAPh/+ET/KMgf1L/dgILZji7WvypAasOC+dK/","dtype":"float64","shape":[6]},{"__ndarray__":"lFUg3QXmxr9yZqIjU0TOvwAAAAAAAPh/KrCS3ntNyb9yZqIjU0TOvwjhqFOK2se/","dtype":"float64","shape":[6]},{"__ndarray__":"lFUg3QXmxr9p7OnK8q+DPwAAAAAAAPh/osXrCgdWkb9p7OnK8q+DP+7x3yIGK6S/","dtype":"float64","shape":[6]},{"__ndarray__":"lFUg3QXmxr8gG4QGgdyevwAAAAAAAPh/zMtfyKoOsb8gG4QGgdyev4i8JllJmLS/","dtype":"float64","shape":[6]},{"__ndarray__":"lFUg3QXmxr9Aj9AXiVLQvwAAAAAAAPh/xsOYSK1Vy79Aj9AXiVLQv+NlR/inT8q/","dtype":"float64","shape":[6]},{"__ndarray__":"lFUg3QXmxr+CcZKzbaCnvwAAAAAAAPh/Eoo5i+gwtr+CcZKzbaCnvyxvhoXkjLi/","dtype":"float64","shape":[6]},{"__ndarray__":"lFUg3QXmxr/V5j1UBZvRvwAAAAAAAPh/tILHD91Dz7/V5j1UBZvRv856ZKsC0sy/","dtype":"float64","shape":[6]},{"__ndarray__":"lFUg3QXmxr/WwASCwyzVvwAAAAAAAPh/5OlKSMpp07/WwASCwyzVvyrsPAnBBdK/","dtype":"float64","shape":[6]},{"__ndarray__":"lFUg3QXmxr/My6/LDpbOvwAAAAAAAPh/VVt/VTnZyr/My6/LDpbOv9wu/JG2O8i/","dtype":"float64","shape":[6]},{"__ndarray__":"QI/QF4lS0L9yZqIjU0TOvwAAAAAAAPh/G8guRm8z0r9yZqIjU0TOv2gnUrVF/9G/","dtype":"float64","shape":[6]},{"__ndarray__":"QI/QF4lS0L+UVSDdBebGvwAAAAAAAPh/TrAoxGo1zL+UVSDdBebGvzEOehRwO82/","dtype":"float64","shape":[6]},{"__ndarray__":"QI/QF4lS0L/V5j1UBZvRvwAAAAAAAPh/u6Rp+lZV0b/V5j1UBZvRv+blSDyPSc6/","dtype":"float64","shape":[6]},{"__ndarray__":"zMuvyw6Wzr+UVSDdBebGvwAAAAAAAPh/C8ZQU9uiyr+UVSDdBebGv4Ty0xZeQM2/","dtype":"float64","shape":[6]},{"__ndarray__":"zMuvyw6Wzr9Aj9AXiVLQvwAAAAAAAPh/Sv6clp0Zy79Aj9AXiVLQv0WeVfb7Cs+/","dtype":"float64","shape":[6]},{"__ndarray__":"zMuvyw6Wzr/V5j1UBZvRvwAAAAAAAPh/rrdHNJXpzr/V5j1UBZvRv0wz0Tpkx8y/","dtype":"float64","shape":[6]},{"__ndarray__":"G3urwP8Qtj+Ma4oCSoi3PwAAAAAAAPh/mAkI5vvRuD+Ma4oCSoi3P8wdB+7Cwa4/","dtype":"float64","shape":[6]},{"__ndarray__":"G3urwP8Qtj9FiAMhiFDXPwAAAAAAAPh/EtjZDxtH1D9FiAMhiFDXP/qzYBN/aNQ/","dtype":"float64","shape":[6]},{"__ndarray__":"G3urwP8Qtj8ZMcaQIDqwvwAAAAAAAPh/ZLyLxg/Qir8ZMcaQIDqwv85+N3f5LZu/","dtype":"float64","shape":[6]},{"__ndarray__":"G3urwP8Qtj+BkxjUFaqbPwAAAAAAAPh/CJ27JdfgnT+BkxjUFaqbP5vaIsLGaLA/","dtype":"float64","shape":[6]},{"__ndarray__":"G3urwP8Qtj/HW9me6hV+vwAAAAAAAPh/pqxm/psgoj/HW9me6hV+v49mXKDFVKU/","dtype":"float64","shape":[6]},{"__ndarray__":"G3urwP8Qtj9AHaavctSmPwAAAAAAAPh/fIbsGRzOtT9AHaavctSmPzTRzR4EwKo/","dtype":"float64","shape":[6]},{"__ndarray__":"G3urwP8Qtj82pmdocqC6vwAAAAAAAPh/AUutRsKXq782pmdocqC6v2IPgQmmubC/","dtype":"float64","shape":[6]},{"__ndarray__":"GTHGkCA6sL8be6vA/xC2PwAAAAAAAPh/HYNtUcJhoj8be6vA/xC2P2xTZhu7RKk/","dtype":"float64","shape":[6]},{"__ndarray__":"GTHGkCA6sL+JZpWKetXFvwAAAAAAAPh/oolGOFIVv7+JZpWKetXFv9jlphCSaMC/","dtype":"float64","shape":[6]},{"__ndarray__":"GTHGkCA6sL++n16QlsjFvwAAAAAAAPh/5O9mX6PZv7++n16QlsjFvwToEJwFicO/","dtype":"float64","shape":[6]},{"__ndarray__":"GTHGkCA6sL+BkxjUFaqbPwAAAAAAAPh/1sq2a6Q6hr+BkxjUFaqbPzGzuTGNPpg/","dtype":"float64","shape":[6]},{"__ndarray__":"GTHGkCA6sL/HW9me6hV+vwAAAAAAAPh/npcCCv08qr/HW9me6hV+v59Q86/yfZW/","dtype":"float64","shape":[6]},{"__ndarray__":"GTHGkCA6sL/lQgCq1V6zvwAAAAAAAPh/02MW5f7qtb/lQgCq1V6zv5Z1sCCee6i/","dtype":"float64","shape":[6]},{"__ndarray__":"GTHGkCA6sL82pmdocqC6vwAAAAAAAPh/2h+4ZiO0rL82pmdocqC6vz4IGRLlW66/","dtype":"float64","shape":[6]},{"__ndarray__":"GTHGkCA6sL/fxjbGjTzDvwAAAAAAAPh/uJz/x8sFvb/fxjbGjTzDv6qVYE/G/cK/","dtype":"float64","shape":[6]},{"__ndarray__":"gZMY1BWqmz8be6vA/xC2PwAAAAAAAPh/urhCbE+DtT8be6vA/xC2P8GKHed8Jak/","dtype":"float64","shape":[6]},{"__ndarray__":"gZMY1BWqmz/F1+KaNfrRPwAAAAAAAPh/YnCvuvo00D/F1+KaNfrRPwLmDPFMpc0/","dtype":"float64","shape":[6]},{"__ndarray__":"gZMY1BWqmz8ZMcaQIDqwvwAAAAAAAPh/eMskORohmr8ZMcaQIDqwvwvyXNB8vq6/","dtype":"float64","shape":[6]},{"__ndarray__":"gZMY1BWqmz/HW9me6hV+vwAAAAAAAPh/whbuMApTmT/HW9me6hV+vxr1kU3EwIi/","dtype":"float64","shape":[6]},{"__ndarray__":"gZMY1BWqmz++pyq675ewvwAAAAAAAPh/3wCzOhO2sr++pyq675ewv49F3veTNaK/","dtype":"float64","shape":[6]},{"__ndarray__":"gZMY1BWqmz82pmdocqC6vwAAAAAAAPh/bNabihF+r782pmdocqC6v9hN1hHbz7e/","dtype":"float64","shape":[6]},{"__ndarray__":"x1vZnuoVfr8be6vA/xC2PwAAAAAAAPh/GB4VL6Y+pj8be6vA/xC2Py5kH418CqM/","dtype":"float64","shape":[6]},{"__ndarray__":"x1vZnuoVfr8ZMcaQIDqwvwAAAAAAAPh/GuzJ1gL0k78ZMcaQIDqwv1vlbR0FeKm/","dtype":"float64","shape":[6]},{"__ndarray__":"x1vZnuoVfr+BkxjUFaqbPwAAAAAAAPh/1GgvEry5dL+BkxjUFaqbP42blal+QqA/","dtype":"float64","shape":[6]},{"__ndarray__":"x1vZnuoVfr82pmdocqC6vwAAAAAAAPh/1VJI7n9hrL82pmdocqC6v8OFTuyPNrS/","dtype":"float64","shape":[6]},{"__ndarray__":"NqZnaHKgur/dgILZji7WvwAAAAAAAPh/hiZxlnT50r/dgILZji7Wv6dcIkqVtNO/","dtype":"float64","shape":[6]},{"__ndarray__":"NqZnaHKgur8be6vA/xC2PwAAAAAAAPh/y/Q099x4oj8be6vA/xC2P4/IicNmVKg/","dtype":"float64","shape":[6]},{"__ndarray__":"NqZnaHKgur+JZpWKetXFvwAAAAAAAPh/pI4oeTvzvr+JZpWKetXFv5ap2yy+m8C/","dtype":"float64","shape":[6]},{"__ndarray__":"NqZnaHKgur8ZMcaQIDqwvwAAAAAAAPh/YsfRRYGAvL8ZMcaQIDqwvzBTIXCgrLu/","dtype":"float64","shape":[6]},{"__ndarray__":"NqZnaHKgur++n16QlsjFvwAAAAAAAPh/WuWJbuGfwL++n16QlsjFvy3VYLML3cS/","dtype":"float64","shape":[6]},{"__ndarray__":"NqZnaHKgur+BkxjUFaqbPwAAAAAAAPh//rCccCG3j7+BkxjUFaqbPwgy03m4Z5A/","dtype":"float64","shape":[6]},{"__ndarray__":"NqZnaHKgur/HW9me6hV+vwAAAAAAAPh/ECViNiKirL/HW9me6hV+v1xsDUyClqC/","dtype":"float64","shape":[6]},{"__ndarray__":"NqZnaHKgur/lQgCq1V6zvwAAAAAAAPh/uuhHMqiYvL/lQgCq1V6zv43u4SX4iLO/","dtype":"float64","shape":[6]},{"__ndarray__":"NqZnaHKgur/fxjbGjTzDvwAAAAAAAPh/o9auh3fPvr/fxjbGjTzDv3TVNMh0MMS/","dtype":"float64","shape":[6]},{"__ndarray__":"p/qB7FFaeL+HabxGGGzQPwAAAAAAAPh/0THgrjFqyj+HabxGGGzQPxhwwSt1BMw/","dtype":"float64","shape":[6]},{"__ndarray__":"p/qB7FFaeL+1nJ6d+lTDvwAAAAAAAPh/e2+IzAXPub+1nJ6d+lTDv8liZ+E2Lr6/","dtype":"float64","shape":[6]},{"__ndarray__":"p/qB7FFaeL//iTp/9A7MPwAAAAAAAPh/CtubhD+mxT//iTp/9A7MP1R8CFwbEcc/","dtype":"float64","shape":[6]},{"__ndarray__":"p/qB7FFaeL8VnxTQcTK2PwAAAAAAAPh/ckAWQMxroz8VnxTQcTK2P3eUbzbePqY/","dtype":"float64","shape":[6]},{"__ndarray__":"p/qB7FFaeL++YJDmiXKcvwAAAAAAAPh/vEulXmPvlj++YJDmiXKcvyQZsReyYIU/","dtype":"float64","shape":[6]},{"__ndarray__":"p/qB7FFaeL/8pUUKAdnVvwAAAAAAAPh/PuB15C6n0r/8pUUKAdnVv//LnttNTNO/","dtype":"float64","shape":[6]},{"__ndarray__":"h2m8Rhhs0D+kDTgribjHPwAAAAAAAPh/niztiYyfzT+kDTgribjHP6qZsKoiuM0/","dtype":"float64","shape":[6]},{"__ndarray__":"h2m8Rhhs0D//iTp/9A7MPwAAAAAAAPh/zK1xTIY20T//iTp/9A7MP61AmLvy3s8/","dtype":"float64","shape":[6]},{"__ndarray__":"tZyenfpUw7+n+oHsUVp4vwAAAAAAAPh/MtP5GinBrL+n+oHsUVp4v5bsO/HGAqS/","dtype":"float64","shape":[6]},{"__ndarray__":"tZyenfpUw7+8x1WV9dzKvwAAAAAAAPh/uEIBQ5FeyL+8x1WV9dzKv5qsjv1a5sS/","dtype":"float64","shape":[6]},{"__ndarray__":"tZyenfpUw79OmEHf8H3QvwAAAAAAAPh/bBnUtJkTy79OmEHf8H3Qv0zThx9x/cq/","dtype":"float64","shape":[6]},{"__ndarray__":"tZyenfpUw7/6Td0ZEbfAvwAAAAAAAPh/uIrIdqHQxL/6Td0ZEbfAv3FlXgLEGcC/","dtype":"float64","shape":[6]},{"__ndarray__":"tZyenfpUw79cq7j9VgXQvwAAAAAAAPh/BzRMkpM6yr9cq7j9VgXQv7pN88wC5c2/","dtype":"float64","shape":[6]},{"__ndarray__":"tZyenfpUw78WwlYnGo3MvwAAAAAAAPh/go2xnAJjxr8WwlYnGo3Mv3nB0dzIg8m/","dtype":"float64","shape":[6]},{"__ndarray__":"tZyenfpUw7++YJDmiXKcvwAAAAAAAPh/NPNSSHbxs7++YJDmiXKcv484ZMg9uq6/","dtype":"float64","shape":[6]},{"__ndarray__":"tZyenfpUw7+GWrAqBNPJvwAAAAAAAPh/ROoe8iuHxL+GWrAqBNPJv7yXQmwbrMi/","dtype":"float64","shape":[6]},{"__ndarray__":"/4k6f/QOzD+HabxGGGzQPwAAAAAAAPh/dAHQcxh6yj+HabxGGGzQP2AcG1EyCM0/","dtype":"float64","shape":[6]},{"__ndarray__":"/4k6f/QOzD+DxiRJ57XAPwAAAAAAAPh/jotAo3YFxz+DxiRJ57XAP/Ck3tZbFsY/","dtype":"float64","shape":[6]},{"__ndarray__":"/4k6f/QOzD9an+IbKtzKPwAAAAAAAPh/crBfrvVnzz9an+IbKtzKP/+DThTl2Mo/","dtype":"float64","shape":[6]},{"__ndarray__":"FZ8U0HEytj+n+oHsUVp4vwAAAAAAAPh/Yr6CIs3tpT+n+oHsUVp4v19qKSy7GqM/","dtype":"float64","shape":[6]},{"__ndarray__":"FZ8U0HEytj9an+IbKtzKPwAAAAAAAPh/biI6WMx7xD9an+IbKtzKP3CnV0gStMU/","dtype":"float64","shape":[6]},{"__ndarray__":"FZ8U0HEytj++YJDmiXKcvwAAAAAAAPh/ymdYwTbmlT++YJDmiXKcvxQcZepQ3o0/","dtype":"float64","shape":[6]},{"__ndarray__":"vmCQ5olynL+n+oHsUVp4vwAAAAAAAPh/khUr4EC8rL+n+oHsUVp4v/21xLa7nKa/","dtype":"float64","shape":[6]},{"__ndarray__":"vmCQ5olynL+HabxGGGzQPwAAAAAAAPh/ZICcgFBqyj+HabxGGGzQP/FVQTktA8w/","dtype":"float64","shape":[6]},{"__ndarray__":"vmCQ5olynL+x/Xz64yRsvwAAAAAAAPh/OZewPxyypb+x/Xz64yRsv4KcVuGXQIG/","dtype":"float64","shape":[6]},{"__ndarray__":"vmCQ5olynL+1nJ6d+lTDvwAAAAAAAPh/Zl6ObCHVub+1nJ6d+lTDv1I1r9B4ab6/","dtype":"float64","shape":[6]},{"__ndarray__":"vmCQ5olynL/bIivWojCzPwAAAAAAAPh/mrcD0OmBmT/bIivWojCzPzyW4DhlKqY/","dtype":"float64","shape":[6]},{"__ndarray__":"vmCQ5olynL//iTp/9A7MPwAAAAAAAPh/VHXRGOWlxT//iTp/9A7MP4DiAnxYE8c/","dtype":"float64","shape":[6]},{"__ndarray__":"vmCQ5olynL8VnxTQcTK2PwAAAAAAAPh/5tk0TIM4oz8VnxTQcTK2P8bGR3IKtKY/","dtype":"float64","shape":[6]},{"__ndarray__":"vmCQ5olynL/8pUUKAdnVvwAAAAAAAPh/FbsNY5Gn0r/8pUUKAdnVvwwSk919StO/","dtype":"float64","shape":[6]},{"__ndarray__":"vmCQ5olynL+1flnkgobRvwAAAAAAAPh/1afK7f6bzL+1flnkgobRv+b2vwUTcs6/","dtype":"float64","shape":[6]},{"__ndarray__":"/KVFCgHZ1b9i/539PmrSvwAAAAAAAPh/JNACXzDx1L9i/539PmrSv0gcgTw1ndW/","dtype":"float64","shape":[6]},{"__ndarray__":"/KVFCgHZ1b+1flnkgobRvwAAAAAAAPh/2vSg+CIq1L+1flnkgobRv3MZ/jd+stS/","dtype":"float64","shape":[6]},{"__ndarray__":"/KVFCgHZ1b+/YAJkQQnWvwAAAAAAAPh/dm3WY5Ye17+/YAJkQQnWv/YQo6FFqNS/","dtype":"float64","shape":[6]},{"__ndarray__":"pA04K4m4xz/bIivWojCzPwAAAAAAAPh/4A7iAREJwD/bIivWojCzP9CCpKdYfrw/","dtype":"float64","shape":[6]},{"__ndarray__":"pA04K4m4xz+Lka8X7efQPwAAAAAAAPh/VI0NOeheyz+Lka8X7efQP9nDpeuDMM0/","dtype":"float64","shape":[6]},{"__ndarray__":"sf18+uMkbL+8x1WV9dzKvwAAAAAAAPh/nhdpB5p9xL+8x1WV9dzKvxgLjWCwsMW/","dtype":"float64","shape":[6]},{"__ndarray__":"sf18+uMkbL+kDTgribjHPwAAAAAAAPh/8CfT775SwT+kDTgribjHP7DsO37wqcI/","dtype":"float64","shape":[6]},{"__ndarray__":"sf18+uMkbL/bIivWojCzPwAAAAAAAPh/Jviwpfb4mj/bIivWojCzPzL6wZeOEqA/","dtype":"float64","shape":[6]},{"__ndarray__":"sf18+uMkbL+GfXiCin+mvwAAAAAAAPh/4BeSM1/Cbj+GfXiCin+mvyK1KIiMFpa/","dtype":"float64","shape":[6]},{"__ndarray__":"vMdVlfXcyr9OmEHf8H3QvwAAAAAAAPh/8GgL5DtBy79OmEHf8H3Qv5gKjsn8A8+/","dtype":"float64","shape":[6]},{"__ndarray__":"vMdVlfXcyr/6Td0ZEbfAvwAAAAAAAPh/YK0asCjlxr/6Td0ZEbfAv8oHSLXeXsa/","dtype":"float64","shape":[6]},{"__ndarray__":"2yIr1qIwsz+x/Xz64yRsvwAAAAAAAPh/yPnVGXwipz+x/Xz64yRsv6p77NRojKQ/","dtype":"float64","shape":[6]},{"__ndarray__":"2yIr1qIwsz+kDTgribjHPwAAAAAAAPh/MpBrlMlHwT+kDTgribjHP6pde0KuEcM/","dtype":"float64","shape":[6]},{"__ndarray__":"2yIr1qIwsz+GfXiCin+mvwAAAAAAAPh/kKo56WgWej+GfXiCin+mv9hxZJc5iH6/","dtype":"float64","shape":[6]},{"__ndarray__":"hn14gop/pr+x/Xz64yRsvwAAAAAAAPh/325Ztf4tqr+x/Xz64yRsv5zlF/wkbZq/","dtype":"float64","shape":[6]},{"__ndarray__":"hn14gop/pr+8x1WV9dzKvwAAAAAAAPh/axkdt5OyxL+8x1WV9dzKv5Zs6mn9LsW/","dtype":"float64","shape":[6]},{"__ndarray__":"hn14gop/pr+kDTgribjHPwAAAAAAAPh/R88/Qd5HwT+kDTgribjHP16Lw1o0D8M/","dtype":"float64","shape":[6]},{"__ndarray__":"hn14gop/pr/6Td0ZEbfAvwAAAAAAAPh/9rWc/VYgtb/6Td0ZEbfAv/04RikNB7a/","dtype":"float64","shape":[6]},{"__ndarray__":"hn14gop/pr/bIivWojCzPwAAAAAAAPh/vCVtGdw9mT/bIivWojCzP2xWylzCsqM/","dtype":"float64","shape":[6]},{"__ndarray__":"hn14gop/pr8WwlYnGo3MvwAAAAAAAPh/vEnftdNOxr8WwlYnGo3Mv4dzHthMQsm/","dtype":"float64","shape":[6]},{"__ndarray__":"wmHhNzgftL+CuOfDVwa7vwAAAAAAAPh/8mYSKH3jsr+CuOfDVwa7v95TRcjiVby/","dtype":"float64","shape":[6]},{"__ndarray__":"wmHhNzgftL+rsvjkM+evvwAAAAAAAPh/gchxyhxXt7+rsvjkM+evv+tOLR8Ibau/","dtype":"float64","shape":[6]},{"__ndarray__":"grjnw1cGu7+A9XJxgJW0vwAAAAAAAPh/vl+T4W04tb+A9XJxgJW0v5iZvaEUIr6/","dtype":"float64","shape":[6]},{"__ndarray__":"grjnw1cGu7/CYeE3OB+0vwAAAAAAAPh/U7O20xJCvL/CYeE3OB+0v2bGgzOtz7K/","dtype":"float64","shape":[6]},{"__ndarray__":"grjnw1cGu7++n16QlsjFvwAAAAAAAPh/JVv7GS2Jv7++n16QlsjFv0dA7EvKKMO/","dtype":"float64","shape":[6]},{"__ndarray__":"grjnw1cGu7+8Rry0IOyzvwAAAAAAAPh/FDjp7L3Lub+8Rry0IOyzv4Ln4muOF8C/","dtype":"float64","shape":[6]},{"__ndarray__":"q7L45DPnr7/CYeE3OB+0vwAAAAAAAPh/LOXXv2p3qb/CYeE3OB+0v6ITxxpOXLa/","dtype":"float64","shape":[6]},{"__ndarray__":"bWX2SUcVpz9p7OnK8q+DPwAAAAAAAPh/xRHJny9YrD9p7OnK8q+DPzxydGyMx5s/","dtype":"float64","shape":[6]},{"__ndarray__":"bWX2SUcVpz8XNa/hioSlPwAAAAAAAPh/g/XPw1rEmT8XNa/hioSlP4809VUuSrA/","dtype":"float64","shape":[6]},{"__ndarray__":"bWX2SUcVpz9euWKS01VtvwAAAAAAAPh/NKf+WQxEkj9euWKS01VtvzzDZe2waKY/","dtype":"float64","shape":[6]},{"__ndarray__":"FzWv4YqEpT+hHB6fb3+fvwAAAAAAAPh/5m5TB+yJhD+hHB6fb3+fv9j9/LaWT5e/","dtype":"float64","shape":[6]},{"__ndarray__":"FzWv4YqEpT9tZfZJRxWnPwAAAAAAAPh/w5+9yaS3rz9tZfZJRxWnP9Fidv/qCpg/","dtype":"float64","shape":[6]},{"__ndarray__":"FzWv4YqEpT+Te6Nph8mxPwAAAAAAAPh/yu5NFOncoD+Te6Nph8mxP8zTOE5ob7E/","dtype":"float64","shape":[6]},{"__ndarray__":"FzWv4YqEpT9p7OnK8q+DPwAAAAAAAPh/aibCYuHApT9p7OnK8q+DP6alVVgtOHg/","dtype":"float64","shape":[6]},{"__ndarray__":"FzWv4YqEpT9jUKqTo5q4PwAAAAAAAPh/3uABijUvsD9jUKqTo5q4P7AKIIXTi7k/","dtype":"float64","shape":[6]},{"__ndarray__":"FzWv4YqEpT/SlIuZq/iIPwAAAAAAAPh/bgYJmxSjrz/SlIuZq/iIP880kKDGG6U/","dtype":"float64","shape":[6]},{"__ndarray__":"FzWv4YqEpT9euWKS01VtvwAAAAAAAPh/QDTXXOXhpz9euWKS01Vtvw1L6QA2gaE/","dtype":"float64","shape":[6]},{"__ndarray__":"XrliktNVbb+hHB6fb3+fvwAAAAAAAPh/AGhnh2MnLr+hHB6fb3+fv3RWwrRhLqO/","dtype":"float64","shape":[6]},{"__ndarray__":"XrliktNVbb9jUKqTo5q4PwAAAAAAAPh/B+kzux4DrT9jUKqTo5q4P+3e3YwiH7c/","dtype":"float64","shape":[6]},{"__ndarray__":"XrliktNVbb/SlIuZq/iIPwAAAAAAAPh/efpfjisrnr/SlIuZq/iIP6a3LNQxEKO/","dtype":"float64","shape":[6]},{"__ndarray__":"XrliktNVbb96lhyiTve8vwAAAAAAAPh/TYP/rzC+sb96lhyiTve8v/hIMIgQgbm/","dtype":"float64","shape":[6]},{"__ndarray__":"jeASiQ/Fob9gWTVBJiCpvwAAAAAAAPh/e+IpwbyDrr9gWTVBJiCpvxgz3R/BPJa/","dtype":"float64","shape":[6]},{"__ndarray__":"jeASiQ/Fob9jziGBm2egvwAAAAAAAPh/nrrPk2Aljb9jziGBm2egv1zuPHOr/6q/","dtype":"float64","shape":[6]},{"__ndarray__":"jeASiQ/Fob8w1J1smTexvwAAAAAAAPh/RO8V72uol78w1J1smTexv02jLBEDMqu/","dtype":"float64","shape":[6]},{"__ndarray__":"Y84hgZtnoL83bslB3kejvwAAAAAAAPh/zoaQ1ppZqr83bslB3kejv8YGbtZQCIu/","dtype":"float64","shape":[6]},{"__ndarray__":"Y84hgZtnoL8gG4QGgdyevwAAAAAAAPh/bhzOf6Udir8gG4QGgdyevz6KCnghPKq/","dtype":"float64","shape":[6]},{"__ndarray__":"Y84hgZtnoL8w1J1smTexvwAAAAAAAPh/pHqgDI+qq78w1J1smTexv9ikavy/Ipi/","dtype":"float64","shape":[6]},{"__ndarray__":"Y84hgZtnoL+CcZKzbaCnvwAAAAAAAPh/SMVrQXx2dr+CcZKzbaCnv09SyYZgpKO/","dtype":"float64","shape":[6]},{"__ndarray__":"5UIAqtVes78ZMcaQIDqwvwAAAAAAAPh/WCBgq+5bq78ZMcaQIDqwvzQ5bionW7e/","dtype":"float64","shape":[6]},{"__ndarray__":"5UIAqtVes7+rsvjkM+evvwAAAAAAAPh/KaospIDst7+rsvjkM+evv6x6ppND3ay/","dtype":"float64","shape":[6]},{"__ndarray__":"5UIAqtVes782pmdocqC6vwAAAAAAAPh/YAAg4J9msb82pmdocqC6v4/6hexPdrq/","dtype":"float64","shape":[6]},{"__ndarray__":"5UIAqtVes78/W/jWnsWhvwAAAAAAAPh/0kfOD3z6tL8/W/jWnsWhvyJTqfiLlLS/","dtype":"float64","shape":[6]},{"__ndarray__":"xbPs5afQ1j8Xdx7hT4/XPwAAAAAAAPh/p825LkHs1z8Xdx7hT4/XPzwhuICxjdU/","dtype":"float64","shape":[6]},{"__ndarray__":"xbPs5afQ1j+vNVGZP7bLPwAAAAAAAPh/BZRxklpr0D+vNVGZP7bLP3FRFs85lMw/","dtype":"float64","shape":[6]},{"__ndarray__":"xbPs5afQ1j9CLJFPMZiiPwAAAAAAAPh/kFVn9ICAtD9CLJFPMZiiP+S93Yyct7U/","dtype":"float64","shape":[6]},{"__ndarray__":"xbPs5afQ1j96surjHEjePwAAAAAAAPh/37Cwmwpq2z96surjHEjePzEIMUR8N9s/","dtype":"float64","shape":[6]},{"__ndarray__":"xbPs5afQ1j+UqGFlAPbcPwAAAAAAAPh//wWmqU3e2z+UqGFlAPbcP8pVaBu9C9o/","dtype":"float64","shape":[6]},{"__ndarray__":"xbPs5afQ1j8uASj4oq3MPwAAAAAAAPh/VGe8x1o/0T8uASj4oq3MPySKt7Vt1c4/","dtype":"float64","shape":[6]},{"__ndarray__":"xbPs5afQ1j+Lm938QXWoPwAAAAAAAPh/tCyOKehAuD+Lm938QXWoP2aKpN7DALg/","dtype":"float64","shape":[6]},{"__ndarray__":"xbPs5afQ1j8GKDvOa06pvwAAAAAAAPh/4OdWpW06ib8GKDvOa06pvwBxN/x88ks/","dtype":"float64","shape":[6]},{"__ndarray__":"xbPs5afQ1j8AAAAAAADwPwAAAAAAAPh/HSqLvApx7j8AAAAAAADwP7y4qg9hnO4/","dtype":"float64","shape":[6]},{"__ndarray__":"xbPs5afQ1j+oirenhVrRPwAAAAAAAPh/yyV6nZuM1D+oirenhVrRPy9S/6ANVNM/","dtype":"float64","shape":[6]},{"__ndarray__":"xbPs5afQ1j/k4u7deyXTPwAAAAAAAPh/GqUOJPSd1T/k4u7deyXTP2/P/O6dbtM/","dtype":"float64","shape":[6]},{"__ndarray__":"TphB3/B90L+8x1WV9dzKvwAAAAAAAPh/tMfmt81L0L+8x1WV9dzKv8DtSora1My/","dtype":"float64","shape":[6]},{"__ndarray__":"TphB3/B90L+1nJ6d+lTDvwAAAAAAAPh/5bNNp0I9yb+1nJ6d+lTDvwX6mTxrU8m/","dtype":"float64","shape":[6]},{"__ndarray__":"TphB3/B90L8WwlYnGo3MvwAAAAAAAPh/p9VKup5Yzb8WwlYnGo3Mv+ZyiHEa0dC/","dtype":"float64","shape":[6]},{"__ndarray__":"TphB3/B90L+GWrAqBNPJvwAAAAAAAPh/57FeSHUxy7+GWrAqBNPJv2BDGORKPs+/","dtype":"float64","shape":[6]},{"__ndarray__":"TphB3/B90L8JWbEcCzTWvwAAAAAAAPh/Fniqk1Y8078JWbEcCzTWv5AkQ6YvONO/","dtype":"float64","shape":[6]},{"__ndarray__":"TphB3/B90L+/YAJkQQnWvwAAAAAAAPh/Ojar6ojP07+/YAJkQQnWv8WHjgHn0NK/","dtype":"float64","shape":[6]},{"__ndarray__":"+k3dGRG3wL+8x1WV9dzKvwAAAAAAAPh/VmgY/92uxL+8x1WV9dzKv+wN6/knNcW/","dtype":"float64","shape":[6]},{"__ndarray__":"+k3dGRG3wL86g44J5wq9vwAAAAAAAPh/sLa7mkOavL86g44J5wq9v4IDlYwO68K/","dtype":"float64","shape":[6]},{"__ndarray__":"+k3dGRG3wL+GfXiCin+mvwAAAAAAAPh/wSRad5CNt7+GfXiCin+mv7qhsEvapra/","dtype":"float64","shape":[6]},{"__ndarray__":"lKhhZQD23D+vNVGZP7bLPwAAAAAAAPh/0KgK/CQN0T+vNVGZP7bLP7S4CCp8qM8/","dtype":"float64","shape":[6]},{"__ndarray__":"lKhhZQD23D8gQbLUtcTJPwAAAAAAAPh/LVrEJzkZ0D8gQbLUtcTJP88htyOsBc4/","dtype":"float64","shape":[6]},{"__ndarray__":"lKhhZQD23D96surjHEjePwAAAAAAAPh/wKvEcJZz3D96surjHEjeP2yK9hCa3N4/","dtype":"float64","shape":[6]},{"__ndarray__":"lKhhZQD23D//th1ufhnMPwAAAAAAAPh/5fvbmn1C0T//th1ufhnMPx8pbjegIdA/","dtype":"float64","shape":[6]},{"__ndarray__":"lKhhZQD23D/prTlvICzNPwAAAAAAAPh/iBDUuETN0T/prTlvICzNP5rrUs+d/dA/","dtype":"float64","shape":[6]},{"__ndarray__":"lKhhZQD23D/jm+2wU7fLPwAAAAAAAPh/Ors1NjbU0D/jm+2wU7fLPzR+4OOy1tA/","dtype":"float64","shape":[6]},{"__ndarray__":"lKhhZQD23D8AAAAAAADwPwAAAAAAAPh/F5P3jUFk7j8AAAAAAADwP2Dut9j2ze4/","dtype":"float64","shape":[6]},{"__ndarray__":"lKhhZQD23D/k4u7deyXTPwAAAAAAAPh/d/JhOsYn1j/k4u7deyXTP3VtCaUyFtY/","dtype":"float64","shape":[6]},{"__ndarray__":"45vtsFO3yz8gQbLUtcTJPwAAAAAAAPh/0iC7HB/wzD8gQbLUtcTJP6xhBYBFC8g/","dtype":"float64","shape":[6]},{"__ndarray__":"45vtsFO3yz+UqGFlAPbcPwAAAAAAAPh/TLuiB3T92T+UqGFlAPbcP1H491n3+tk/","dtype":"float64","shape":[6]},{"__ndarray__":"45vtsFO3yz8uASj4oq3MPwAAAAAAAPh/5/bLWq4Qzj8uASj4oq3MPzNShVjtNck/","dtype":"float64","shape":[6]},{"__ndarray__":"45vtsFO3yz+ckd87kHvOPwAAAAAAAPh/PgPOONLGyT+ckd87kHvOP4fxvuv9Q84/","dtype":"float64","shape":[6]},{"__ndarray__":"45vtsFO3yz/prTlvICzNPwAAAAAAAPh/x2BI6CTEzj/prTlvICzNPxNtpZ7I4sk/","dtype":"float64","shape":[6]},{"__ndarray__":"45vtsFO3yz+Lm938QXWoPwAAAAAAAPh/dGiWGJYbtD+Lm938QXWoP+X4PuAlArk/","dtype":"float64","shape":[6]},{"__ndarray__":"45vtsFO3yz8QWeIZnDSjPwAAAAAAAPh/RckUu8B8tD8QWeIZnDSjP9ifT311LLY/","dtype":"float64","shape":[6]},{"__ndarray__":"45vtsFO3yz/k4u7deyXTPwAAAAAAAPh/2pHfFwVB0D/k4u7deyXTPwH/bARdGdA/","dtype":"float64","shape":[6]},{"__ndarray__":"FsJWJxqNzL9OmEHf8H3QvwAAAAAAAPh/ho7HlS4Y0L9OmEHf8H3Qv+UMyQLH5su/","dtype":"float64","shape":[6]},{"__ndarray__":"FsJWJxqNzL+1nJ6d+lTDvwAAAAAAAPh/SdFDKBJ/yb+1nJ6d+lTDv1KdI+hLXsa/","dtype":"float64","shape":[6]},{"__ndarray__":"FsJWJxqNzL9cq7j9VgXQvwAAAAAAAPh/s34kEBwSy79cq7j9VgXQvw9jTyKFbM+/","dtype":"float64","shape":[6]},{"__ndarray__":"FsJWJxqNzL+GWrAqBNPJvwAAAAAAAPh/aCqlEZeJzL+GWrAqBNPJv40Cg2bK38+/","dtype":"float64","shape":[6]},{"__ndarray__":"FsJWJxqNzL/C12LldQfOvwAAAAAAAPh/6E+toZuIyr/C12LldQfOv9fyLaU1Ys+/","dtype":"float64","shape":[6]},{"__ndarray__":"hlqwKgTTyb+1nJ6d+lTDvwAAAAAAAPh/9www1tKgyL+1nJ6d+lTDv39fDFzje8S/","dtype":"float64","shape":[6]},{"__ndarray__":"hlqwKgTTyb9cq7j9VgXQvwAAAAAAAPh/wM86ctS1yb9cq7j9VgXQv24jH2uWZ8y/","dtype":"float64","shape":[6]},{"__ndarray__":"hlqwKgTTyb8WwlYnGo3MvwAAAAAAAPh/NPJhQIfWyb8WwlYnGo3Mvw8ahOtTgMa/","dtype":"float64","shape":[6]},{"__ndarray__":"CVmxHAs01r9OmEHf8H3QvwAAAAAAAPh/QXlIaKV1079OmEHf8H3Qv8fMr1XMedO/","dtype":"float64","shape":[6]},{"__ndarray__":"CVmxHAs01r851mYbYXjbvwAAAAAAAPh/JHKVGIx62L851mYbYXjbv+BlBJW+gti/","dtype":"float64","shape":[6]},{"__ndarray__":"CVmxHAs01r+1flnkgobRvwAAAAAAAPh/UPh3ipii07+1flnkgobRv2kWZBX8vNS/","dtype":"float64","shape":[6]},{"__ndarray__":"CVmxHAs01r+/YAJkQQnWvwAAAAAAAPh/OryyuM9417+/YAJkQQnWvxBVLLc7A9W/","dtype":"float64","shape":[6]},{"__ndarray__":"v2ACZEEJ1r+jR5s7x/HTvwAAAAAAAPh/UOCq7frG1r+jR5s7x/HTv0xj9hwNCNe/","dtype":"float64","shape":[6]},{"__ndarray__":"v2ACZEEJ1r+dybZVuBTOvwAAAAAAAPh//yOrBqdZ0b+dybZVuBTOv8eA8ijXQtK/","dtype":"float64","shape":[6]},{"__ndarray__":"v2ACZEEJ1r+XlC5/IgHbvwAAAAAAAPh/UXt9fe7m2L+XlC5/IgHbv+3tGJDXyte/","dtype":"float64","shape":[6]},{"__ndarray__":"ChtJ73Gh0T9FiAMhiFDXPwAAAAAAAPh//KEivQ5R1D9FiAMhiFDXP/ACiRirXNQ/","dtype":"float64","shape":[6]},{"__ndarray__":"ChtJ73Gh0T8uztt1pILFPwAAAAAAAPh/RVaIubTtyz8uztt1pILFPzqFOEBgcMo/","dtype":"float64","shape":[6]},{"__ndarray__":"Ls7bdaSCxT8KG0nvcaHRPwAAAAAAAPh//a3lmtPXzD8KG0nvcaHRPwh/NRQoVc4/","dtype":"float64","shape":[6]},{"__ndarray__":"Ls7bdaSCxT9AHaavctSmPwAAAAAAAPh/Qq2Qk3tLuD9AHaavctSmP38vzMETv7Q/","dtype":"float64","shape":[6]},{"__ndarray__":"k3ujaYfJsT9jUKqTo5q4PwAAAAAAAPh/pAEHOaXTsD9jUKqTo5q4P4+vMUQnXro/","dtype":"float64","shape":[6]},{"__ndarray__":"k3ujaYfJsT8XNa/hioSlPwAAAAAAAPh/uh5UUFgdtD8XNa/hioSlP6aEhBjJOKY/","dtype":"float64","shape":[6]},{"__ndarray__":"k3ujaYfJsT/SlIuZq/iIPwAAAAAAAPh/COBuw3EYrD/SlIuZq/iIP/1wKpSNFJg/","dtype":"float64","shape":[6]},{"__ndarray__":"vEa8tCDss7+A9XJxgJW0vwAAAAAAAPh/pHEpnFZFrb+A9XJxgJW0v/5k2t9ydbi/","dtype":"float64","shape":[6]},{"__ndarray__":"vEa8tCDss7/CYeE3OB+0vwAAAAAAAPh/0PiswHv4uL/CYeE3OB+0v9UbKJJVOK6/","dtype":"float64","shape":[6]},{"__ndarray__":"vEa8tCDss79gWTVBJiCpvwAAAAAAAPh/kfa/Eajptb9gWTVBJiCpv5gn+DgO0Km/","dtype":"float64","shape":[6]},{"__ndarray__":"vEa8tCDss7++n16QlsjFvwAAAAAAAPh/uufnYfmuvr++n16QlsjFv+Zz8/3ZM8G/","dtype":"float64","shape":[6]},{"__ndarray__":"vEa8tCDss79jziGBm2egvwAAAAAAAPh/Nlx+1Whkob9jziGBm2egv6Z8tzywp7G/","dtype":"float64","shape":[6]},{"__ndarray__":"vEa8tCDss78w1J1smTexvwAAAAAAAPh/AMse4WFTrb8w1J1smTexv1SHCeMjV7i/","dtype":"float64","shape":[6]},{"__ndarray__":"IBuEBoHcnr9p7OnK8q+DPwAAAAAAAPh/WnXVeO9Tdz9p7OnK8q+DP5r4vjLJUp2/","dtype":"float64","shape":[6]},{"__ndarray__":"IBuEBoHcnr9jziGBm2egvwAAAAAAAPh/1lRwpHJOqb9jziGBm2egv8xGZTHqZoa/","dtype":"float64","shape":[6]},{"__ndarray__":"IBuEBoHcnr8w1J1smTexvwAAAAAAAPh/2DkT6HFjsb8w1J1smTexv24orRAudaC/","dtype":"float64","shape":[6]},{"__ndarray__":"IBuEBoHcnr+CcZKzbaCnvwAAAAAAAPh/gjfH7G3Xor+CcZKzbaCnv2ATIg9ct3K/","dtype":"float64","shape":[6]},{"__ndarray__":"P1v41p7Fob9w2OYngzbTPwAAAAAAAPh/4AiGR2pe0D9w2OYngzbTP0WeqWQCItA/","dtype":"float64","shape":[6]},{"__ndarray__":"P1v41p7Fob9gWTVBJiCpvwAAAAAAAPh/CtwN2w0hlr9gWTVBJiCpv1EWcHeVc66/","dtype":"float64","shape":[6]},{"__ndarray__":"P1v41p7Fob+BkxjUFaqbPwAAAAAAAPh/1sGxIb2eh7+BkxjUFaqbP7ruC3DELZc/","dtype":"float64","shape":[6]},{"__ndarray__":"P1v41p7Fob8WwlYnGo3MvwAAAAAAAPh/QpUETyw3yL8WwlYnGo3Mv5IPDbS52sy/","dtype":"float64","shape":[6]},{"__ndarray__":"P1v41p7Fob8o0iN/JYepvwAAAAAAAPh/sVjl4f5bsb8o0iN/JYepvw9UkDNvAp6/","dtype":"float64","shape":[6]},{"__ndarray__":"P1v41p7Fob/lQgCq1V6zvwAAAAAAAPh/yKK4FqQcnb/lQgCq1V6zv4x1THNktJ6/","dtype":"float64","shape":[6]},{"__ndarray__":"P1v41p7Fob82pmdocqC6vwAAAAAAAPh/1usOIDdVrb82pmdocqC6v9Lhjfx4jrW/","dtype":"float64","shape":[6]},{"__ndarray__":"38Y2xo08w7+A9XJxgJW0vwAAAAAAAPh/ROpoVbIFwL+A9XJxgJW0v6A1rBKIhri/","dtype":"float64","shape":[6]},{"__ndarray__":"38Y2xo08w7+JZpWKetXFvwAAAAAAAPh/V+7wE3yTx7+JZpWKetXFv2rdQfsyrsK/","dtype":"float64","shape":[6]},{"__ndarray__":"38Y2xo08w78ZMcaQIDqwvwAAAAAAAPh/ICI0VXCtub8ZMcaQIDqwv4STcn6vt7C/","dtype":"float64","shape":[6]},{"__ndarray__":"38Y2xo08w782pmdocqC6vwAAAAAAAPh/qC6TNgslwb82pmdocqC6vwyJa2SkuLi/","dtype":"float64","shape":[6]},{"__ndarray__":"38Y2xo08w7/C12LldQfOvwAAAAAAAPh/EX13XJQtyr/C12LldQfOvzAD+2Eg9c6/","dtype":"float64","shape":[6]},{"__ndarray__":"vqcquu+XsL8o0iN/JYepvwAAAAAAAPh/uYnkdi76tr8o0iN/JYepv0SYiq5p3ay/","dtype":"float64","shape":[6]},{"__ndarray__":"i5GvF+3n0D+kDTgribjHPwAAAAAAAPh/ZqOJIXspzj+kDTgribjHP+Bs8W7fV8w/","dtype":"float64","shape":[6]},{"__ndarray__":"QX/Kbfwdt7/6Td0ZEbfAvwAAAAAAAPh/YKxQ09eLub/6Td0ZEbfAvzkQMJxmprS/","dtype":"float64","shape":[6]},{"__ndarray__":"QX/Kbfwdt786g44J5wq9vwAAAAAAAPh/iZh6QVcXsb86g44J5wq9vzPuVZ2M/re/","dtype":"float64","shape":[6]},{"__ndarray__":"cGjI9KK2ub+9JzvNiBW/vwAAAAAAAPh/hrdTpSI6s7+9JzvNiBW/v7xmI8vPIrO/","dtype":"float64","shape":[6]},{"__ndarray__":"cGjI9KK2ub86g44J5wq9vwAAAAAAAPh/hUtzk/Dsv786g44J5wq9v2NXKWWxM7a/","dtype":"float64","shape":[6]},{"__ndarray__":"vSc7zYgVv79waMj0ora5vwAAAAAAAPh/VOxXjgTJwr9waMj0ora5v7kUcPut1MK/","dtype":"float64","shape":[6]},{"__ndarray__":"vSc7zYgVv786g44J5wq9vwAAAAAAAPh/mt8kfkGWwb86g44J5wq9v9jdrDuWXbm/","dtype":"float64","shape":[6]},{"__ndarray__":"OoOOCecKvb+8x1WV9dzKvwAAAAAAAPh/CcP42zEzxr+8x1WV9dzKv86xLH9ObMS/","dtype":"float64","shape":[6]},{"__ndarray__":"OoOOCecKvb9waMj0ora5vwAAAAAAAPh/JKDjapnUtr9waMj0ora5vyTKlkzsRsC/","dtype":"float64","shape":[6]},{"__ndarray__":"OoOOCecKvb+9JzvNiBW/vwAAAAAAAPh/w+t/2uzzuL+9JzvNiBW/v5Bmjs1sYcG/","dtype":"float64","shape":[6]},{"__ndarray__":"OoOOCecKvb/6Td0ZEbfAvwAAAAAAAPh/P7RG0WLvwL/6Td0ZEbfAvykYHyTsori/","dtype":"float64","shape":[6]},{"__ndarray__":"OoOOCecKvb+GfXiCin+mvwAAAAAAAPh/Zoq5w+Out7+GfXiCin+mvx8T8C29p7G/","dtype":"float64","shape":[6]},{"__ndarray__":"OoOOCecKvb9Bf8pt/B23vwAAAAAAAPh/+TTvGsaIwb9Bf8pt/B23v0kUA9pWKry/","dtype":"float64","shape":[6]},{"__ndarray__":"g8YkSee1wD+x/Xz64yRsvwAAAAAAAPh/38hnPJ/Xpj+x/Xz64yRsvz/i+zt1DqU/","dtype":"float64","shape":[6]},{"__ndarray__":"g8YkSee1wD9an+IbKtzKPwAAAAAAAPh//QiFkQ4ZxT9an+IbKtzKP2K/cBa5v8Q/","dtype":"float64","shape":[6]},{"__ndarray__":"g8YkSee1wD/bIivWojCzPwAAAAAAAPh/yHGoQVY/vz/bIivWojCzP5imKLEU7b4/","dtype":"float64","shape":[6]},{"__ndarray__":"g8YkSee1wD//iTp/9A7MPwAAAAAAAPh/9MQeJWW/xT//iTp/9A7MP5KrgPF/rsY/","dtype":"float64","shape":[6]},{"__ndarray__":"Wp/iGyrcyj+DxiRJ57XAPwAAAAAAAPh/4FyC0wJ5xj+DxiRJ57XAP3ymlk5Y0sY/","dtype":"float64","shape":[6]},{"__ndarray__":"Wp/iGyrcyj//iTp/9A7MPwAAAAAAAPh/5ni97CiDxz//iTp/9A7MP1qlzoY5Esw/","dtype":"float64","shape":[6]},{"__ndarray__":"epYcok73vL+hHB6fb3+fvwAAAAAAAPh/EulGW2vAtL+hHB6fb3+fv+8FG34csLC/","dtype":"float64","shape":[6]},{"__ndarray__":"epYcok73vL8vISTP/Z24vwAAAAAAAPh/cgVDm9Alvr8vISTP/Z24v5SA2TjFYMK/","dtype":"float64","shape":[6]},{"__ndarray__":"epYcok73vL9K7UD+BSjHvwAAAAAAAPh/znvD7z7bwL9K7UD+BSjHv1BGUZEhwMG/","dtype":"float64","shape":[6]},{"__ndarray__":"wtdi5XUHzr9cq7j9VgXQvwAAAAAAAPh/FYx1er7GzL9cq7j9VgXQv6XL64hjzsm/","dtype":"float64","shape":[6]},{"__ndarray__":"wtdi5XUHzr8WwlYnGo3MvwAAAAAAAPh/+CSGNfoF0L8WwlYnGo3MvwGni2daMsu/","dtype":"float64","shape":[6]},{"__ndarray__":"wtdi5XUHzr+GWrAqBNPJvwAAAAAAAPh/qvdtSj5gz7+GWrAqBNPJvyldGaB6cMu/","dtype":"float64","shape":[6]},{"__ndarray__":"KNIjfyWHqb++pyq675ewvwAAAAAAAPh/ZBxgC1CFmb++pyq675ewv1+J7kSb2a2/","dtype":"float64","shape":[6]},{"__ndarray__":"tX5Z5IKG0b8JWbEcCzTWvwAAAAAAAPh/bt+SdvUX1L8JWbEcCzTWv1XBpuuR/dK/","dtype":"float64","shape":[6]},{"__ndarray__":"tX5Z5IKG0b9K7UD+BSjHvwAAAAAAAPh/xs64WKF6zb9K7UD+BSjHv2dTbNI9wcq/","dtype":"float64","shape":[6]},{"__ndarray__":"tX5Z5IKG0b/C12LldQfOvwAAAAAAAPh/ZLLwWGQyzr/C12LldQfOvxYnQBbEWdG/","dtype":"float64","shape":[6]},{"__ndarray__":"tX5Z5IKG0b/8pUUKAdnVvwAAAAAAAPh/1y/+9WA107/8pUUKAdnVvz4LobYFrdK/","dtype":"float64","shape":[6]},{"__ndarray__":"tX5Z5IKG0b+dybZVuBTOvwAAAAAAAPh/ySRyYZMj0r+dybZVuBTOv4/Xti4CnNC/","dtype":"float64","shape":[6]},{"__ndarray__":"uFL3vq9Vx78vISTP/Z24vwAAAAAAAPh/guZvcNahwr8vISTP/Z24v19LyV0lpsG/","dtype":"float64","shape":[6]},{"__ndarray__":"uFL3vq9Vx79K7UD+BSjHvwAAAAAAAPh/JHhRF54Fyr9K7UD+BSjHv4bcRT5fGsW/","dtype":"float64","shape":[6]},{"__ndarray__":"uFL3vq9Vx78GyMm3yiXHvwAAAAAAAPh/t8Tw3lAwxb8GyMm3yiXHvy5gazYVGsq/","dtype":"float64","shape":[6]},{"__ndarray__":"uFL3vq9Vx7/P0MUD+W7MvwAAAAAAAPh/yxHzqE0Axr/P0MUD+W7Mv06YOXpAIsi/","dtype":"float64","shape":[6]},{"__ndarray__":"uFL3vq9Vx7+7xgQptbPOvwAAAAAAAPh/urtOt3uQyb+7xgQptbPOvzKU/qk1Usi/","dtype":"float64","shape":[6]},{"__ndarray__":"Su1A/gUox7+hHB6fb3+fvwAAAAAAAPh/Qt89j2e5tL+hHB6fb3+fvyizty9Nn7G/","dtype":"float64","shape":[6]},{"__ndarray__":"Su1A/gUox78vISTP/Z24vwAAAAAAAPh/gLdeB5Iswr8vISTP/Z24vzhQJOXlVsK/","dtype":"float64","shape":[6]},{"__ndarray__":"Su1A/gUox7+jR5s7x/HTvwAAAAAAAPh/w7JR4f8P0b+jR5s7x/HTv+ZwMoa349C/","dtype":"float64","shape":[6]},{"__ndarray__":"Su1A/gUox78GyMm3yiXHvwAAAAAAAPh/kqBH0XGxxL8GyMm3yiXHvx1CZV+hn8m/","dtype":"float64","shape":[6]},{"__ndarray__":"Su1A/gUox7+1flnkgobRvwAAAAAAAPh/7xs7bmq6zL+1flnkgobRv02Xh/TNc8+/","dtype":"float64","shape":[6]},{"__ndarray__":"Su1A/gUox7/P0MUD+W7MvwAAAAAAAPh/f0MfhRhuxr/P0MUD+W7Mv53iCV4a18m/","dtype":"float64","shape":[6]},{"__ndarray__":"Su1A/gUox796lhyiTve8vwAAAAAAAPh/uLyLX27IxL96lhyiTve8vzfy/b2L48O/","dtype":"float64","shape":[6]},{"__ndarray__":"Su1A/gUox7+7xgQptbPOvwAAAAAAAPh/heXEMBqNyL+7xgQptbPOv0IqlbG1/8i/","dtype":"float64","shape":[6]},{"__ndarray__":"BsjJt8olx7+4Uve+r1XHvwAAAAAAAPh/B1bQlylLyb+4Uve+r1XHv5C6VUBlYcS/","dtype":"float64","shape":[6]},{"__ndarray__":"BsjJt8olx79i/539PmrSvwAAAAAAAPh/iQyYzoB7zr9i/539PmrSv+QXQ8SpkM+/","dtype":"float64","shape":[6]},{"__ndarray__":"BsjJt8olx78vISTP/Z24vwAAAAAAAPh/c4x5Rx/Awr8vISTP/Z24v6AfxLqd3sC/","dtype":"float64","shape":[6]},{"__ndarray__":"BsjJt8olx796lhyiTve8vwAAAAAAAPh/D32RHgy7xL96lhyiTve8vw00WCNgysG/","dtype":"float64","shape":[6]},{"__ndarray__":"z9DFA/luzL+4Uve+r1XHvwAAAAAAAPh/vBHKGVvEzb+4Uve+r1XHvzmLg0hoosu/","dtype":"float64","shape":[6]},{"__ndarray__":"z9DFA/luzL8vISTP/Z24vwAAAAAAAPh/Q144tTe2wr8vISTP/Z24v0V/a8C4VcG/","dtype":"float64","shape":[6]},{"__ndarray__":"z9DFA/luzL9K7UD+BSjHvwAAAAAAAPh/mnrnfOYozb9K7UD+BSjHv3zb/KPkv8m/","dtype":"float64","shape":[6]},{"__ndarray__":"z9DFA/luzL/C12LldQfOvwAAAAAAAPh/2fMnzzTpyr/C12LldQfOv3ALqJ5nz8+/","dtype":"float64","shape":[6]},{"__ndarray__":"z9DFA/luzL9NzZu7rCfPvwAAAAAAAPh/YwwGsSsgyb9NzZu7rCfPv5bR8+KhScm/","dtype":"float64","shape":[6]},{"__ndarray__":"z9DFA/luzL+/YAJkQQnWvwAAAAAAAPh/SJmjdyXI07+/YAJkQQnWv2+vGOS70NK/","dtype":"float64","shape":[6]},{"__ndarray__":"z9DFA/luzL+7xgQptbPOvwAAAAAAAPh/5zyWmjolzr+7xgQptbPOvxVHifQ1xcm/","dtype":"float64","shape":[6]},{"__ndarray__":"u8YEKbWzzr+4Uve+r1XHvwAAAAAAAPh/uV2tMOl4zL+4Uve+r1XHv0GF/T0vt82/","dtype":"float64","shape":[6]},{"__ndarray__":"u8YEKbWzzr8vISTP/Z24vwAAAAAAAPh/4qt/VHhNwr8vISTP/Z24v6J9bFs9N8K/","dtype":"float64","shape":[6]},{"__ndarray__":"u8YEKbWzzr8JWbEcCzTWvwAAAAAAAPh/7wOZycoN078JWbEcCzTWvwN5GG69f9O/","dtype":"float64","shape":[6]},{"__ndarray__":"u8YEKbWzzr9K7UD+BSjHvwAAAAAAAPh/gM6A9qBOzb9K7UD+BSjHv8OJsHUF3My/","dtype":"float64","shape":[6]},{"__ndarray__":"u8YEKbWzzr+dybZVuBTOvwAAAAAAAPh/ZGhmCnXFzL+dybZVuBTOv/aIk6C0ztC/","dtype":"float64","shape":[6]},{"__ndarray__":"u8YEKbWzzr+/YAJkQQnWvwAAAAAAAPh/jPpJ4u9P07+/YAJkQQnWvxOjtOwB5dK/","dtype":"float64","shape":[6]},{"__ndarray__":"u8YEKbWzzr/P0MUD+W7MvwAAAAAAAPh/pFo0knP9zL/P0MUD+W7MvzqoIBy8rtC/","dtype":"float64","shape":[6]},{"__ndarray__":"Yv+d/T5q0r8GyMm3yiXHvwAAAAAAAPh/Qbpt5Md+zb8GyMm3yiXHv+auwu6eacy/","dtype":"float64","shape":[6]},{"__ndarray__":"Yv+d/T5q0r/8pUUKAdnVvwAAAAAAAPh/OtXgqA9S07/8pUUKAdnVvxWJYssKptK/","dtype":"float64","shape":[6]},{"__ndarray__":"o0ebO8fx079K7UD+BSjHvwAAAAAAAPh/ChfUspTrzL9K7UD+BSjHv8WaEmklRM2/","dtype":"float64","shape":[6]},{"__ndarray__":"o0ebO8fx07+1flnkgobRvwAAAAAAAPh/phgceu/W0b+1flnkgobRvwaEv4+nA9S/","dtype":"float64","shape":[6]},{"__ndarray__":"o0ebO8fx07+/YAJkQQnWvwAAAAAAAPh/EsjysQ0007+/YAJkQQnWvxZFp4L78tK/","dtype":"float64","shape":[6]},{"__ndarray__":"o0ebO8fx07+XlC5/IgHbvwAAAAAAAPh/qJQMPdCr2L+XlC5/IgHbv5NMr+3SyNe/","dtype":"float64","shape":[6]},{"__ndarray__":"l5QufyIB27+/YAJkQQnWvwAAAAAAAPh/BXqzZXUj2L+/YAJkQQnWv2kHGFOMP9m/","dtype":"float64","shape":[6]},{"__ndarray__":"OdZmG2F4278JWbEcCzTWvwAAAAAAAPh/H72CH+Ax2b8JWbEcCzTWv2LJE6OtKdm/","dtype":"float64","shape":[6]},{"__ndarray__":"nawe5LQatb86g44J5wq9vwAAAAAAAPh/QnYVeM5suL86g44J5wq9v+kZ0tq/RbG/","dtype":"float64","shape":[6]},{"__ndarray__":"nawe5LQatb9Bf8pt/B23vwAAAAAAAPh/IFXCXjNTur9Bf8pt/B23v7mcXKfmj7C/","dtype":"float64","shape":[6]},{"__ndarray__":"Tc2bu6wnz7+jR5s7x/HTvwAAAAAAAPh/2IDbyJxB0r+jR5s7x/HTv3X4ri+iz9C/","dtype":"float64","shape":[6]},{"__ndarray__":"Tc2bu6wnz78JWbEcCzTWvwAAAAAAAPh/QltXFflv078JWbEcCzTWv4ok/FuUFNO/","dtype":"float64","shape":[6]},{"__ndarray__":"Tc2bu6wnz79K7UD+BSjHvwAAAAAAAPh/e+nwr99+zb9K7UD+BSjHv5EcmF821Mq/","dtype":"float64","shape":[6]},{"__ndarray__":"Tc2bu6wnz7/C12LldQfOvwAAAAAAAPh/WEdBm00MzL/C12LldQfOv2IhSM44e9C/","dtype":"float64","shape":[6]},{"__ndarray__":"Tc2bu6wnz7+1flnkgobRvwAAAAAAAPh/VPYzodPDzL+1flnkgobRv+ipCo81ms+/","dtype":"float64","shape":[6]},{"__ndarray__":"Tc2bu6wnz7/P0MUD+W7MvwAAAAAAAPh/3cgtBz070b/P0MUD+W7Mv0PmNu6BJtG/","dtype":"float64","shape":[6]},{"__ndarray__":"Tc2bu6wnz796lhyiTve8vwAAAAAAAPh/Xd0zObnsxL96lhyiTve8vwf5d2V+E8O/","dtype":"float64","shape":[6]},{"__ndarray__":"Tc2bu6wnz7+7xgQptbPOvwAAAAAAAPh/Jj4JXdfg0L+7xgQptbPOv07/ewH42cy/","dtype":"float64","shape":[6]},{"__ndarray__":"ncm2VbgUzr+4Uve+r1XHvwAAAAAAAPh/TrXt40Wnzb+4Uve+r1XHv4G6piN4sMy/","dtype":"float64","shape":[6]},{"__ndarray__":"ncm2VbgUzr8vISTP/Z24vwAAAAAAAPh/BaOJQ12hwr8vISTP/Z24v8/TR9SGp8G/","dtype":"float64","shape":[6]},{"__ndarray__":"ncm2VbgUzr+jR5s7x/HTvwAAAAAAAPh/gIWSevvg0b+jR5s7x/HTv/DxIiB+vNC/","dtype":"float64","shape":[6]},{"__ndarray__":"ncm2VbgUzr9K7UD+BSjHvwAAAAAAAPh/2Ng4nhOMzb9K7UD+BSjHv6Q+6AVXGsu/","dtype":"float64","shape":[6]},{"__ndarray__":"ncm2VbgUzr/C12LldQfOvwAAAAAAAPh/GwkUiI6Vy7/C12LldQfOv678nV7eQdC/","dtype":"float64","shape":[6]},{"__ndarray__":"ncm2VbgUzr+1flnkgobRvwAAAAAAAPh/dn2FW5fazL+1flnkgobRv+kX/MC56c+/","dtype":"float64","shape":[6]},{"__ndarray__":"ncm2VbgUzr+/YAJkQQnWvwAAAAAAAPh/jqEyiPa507+/YAJkQQnWv8ZE62XG0NK/","dtype":"float64","shape":[6]},{"__ndarray__":"ncm2VbgUzr+7xgQptbPOvwAAAAAAAPh/+pMqOnwB0L+7xgQptbPOv2x+lD0EK8u/","dtype":"float64","shape":[6]}],"ys":[{"__ndarray__":"EOPSWK+oxL/xH473y+bIvwAAAAAAAPh/pj8uC/hoxL/xH473y+bIvx6Wc9PTdcK/","dtype":"float64","shape":[6]},{"__ndarray__":"EOPSWK+oxL9W40bZ2LCVPwAAAAAAAPh/uCxSW4fDnb9W40bZ2LCVPwiurBEku5C/","dtype":"float64","shape":[6]},{"__ndarray__":"EOPSWK+oxL9gqPFO/t27vwAAAAAAAPh/T5Nt0Ovnw79gqPFO/t27vw676vom3cO/","dtype":"float64","shape":[6]},{"__ndarray__":"EOPSWK+oxL+b7wsrcw7SvwAAAAAAAPh/pnBqeSLDzb+b7wsrcw7Sv/GLVSxzMdC/","dtype":"float64","shape":[6]},{"__ndarray__":"EOPSWK+oxL87cZvNKHjSvwAAAAAAAPh/zPIPWZEV0L87cZvNKHjSv48qt6ofgc6/","dtype":"float64","shape":[6]},{"__ndarray__":"EOPSWK+oxL9Ltn73z93HvwAAAAAAAPh/TbxyEvCmw79Ltn73z93Hv9sXaprgVMi/","dtype":"float64","shape":[6]},{"__ndarray__":"8R+O98vmyL87cZvNKHjSvwAAAAAAAPh/7PmJqSoJ0L87cZvNKHjSvyuOtANbg86/","dtype":"float64","shape":[6]},{"__ndarray__":"8R+O98vmyL+4pLdfnS3GvwAAAAAAAPh/YWk+XngJy7+4pLdfnS3Gvz2mZlKAn8a/","dtype":"float64","shape":[6]},{"__ndarray__":"8R+O98vmyL9Ltn73z93HvwAAAAAAAPh/+/grYvLxxb9Ltn73z93Hv8ugb5UL28q/","dtype":"float64","shape":[6]},{"__ndarray__":"8R+O98vmyL8dc1XNmsTFvwAAAAAAAPh/oF5Rt3ItzL8dc1XNmsTFvwjgvD0e2Mm/","dtype":"float64","shape":[6]},{"__ndarray__":"8R+O98vmyL9xfKW0l/e5vwAAAAAAAPh/O4NZ75hrw79xfKW0l/e5v+j2dem7t8G/","dtype":"float64","shape":[6]},{"__ndarray__":"VuNG2diwlT/nmcH+UgZTPwAAAAAAAPh/U5bX/yKycj/nmcH+UgZTPxDGj6FgAaQ/","dtype":"float64","shape":[6]},{"__ndarray__":"VuNG2diwlT9oFYJtxf6zvwAAAAAAAPh/iNPP72cOpr9oFYJtxf6zvwQzGYSqc5y/","dtype":"float64","shape":[6]},{"__ndarray__":"VuNG2diwlT9jQTOml+OyPwAAAAAAAPh/ezVaWaaKrj9jQTOml+OyP4ZPE7gLWZ4/","dtype":"float64","shape":[6]},{"__ndarray__":"YKjxTv7du78Q49JYr6jEvwAAAAAAAPh/4ke8X4Vfvb8Q49JYr6jEv2T4wQoPdb2/","dtype":"float64","shape":[6]},{"__ndarray__":"YKjxTv7du7/xH473y+bIvwAAAAAAAPh/pZ1u7yZrw7/xH473y+bIv5YhrRAkosK/","dtype":"float64","shape":[6]},{"__ndarray__":"YKjxTv7du79W40bZ2LCVPwAAAAAAAPh/QOhdVVe/nb9W40bZ2LCVPzSroyqs5Ii/","dtype":"float64","shape":[6]},{"__ndarray__":"YKjxTv7du79Ltn73z93HvwAAAAAAAPh/stNfx4rjwb9Ltn73z93Hv5RTBtxtVsW/","dtype":"float64","shape":[6]},{"__ndarray__":"m+8LK3MO0r9rJg7WGUjTvwAAAAAAAPh/+UcnWMz4079rJg7WGUjTv1gjXdqIi9G/","dtype":"float64","shape":[6]},{"__ndarray__":"m+8LK3MO0r9Ltn73z93HvwAAAAAAAPh/8HDTY/3Tzb9Ltn73z93Hv81NHNTMzs2/","dtype":"float64","shape":[6]},{"__ndarray__":"m+8LK3MO0r/oR+pRD3bOvwAAAAAAAPh/mX0cWEeqzb/oR+pRD3bOv4Tz1Y+RNdG/","dtype":"float64","shape":[6]},{"__ndarray__":"m+8LK3MO0r+sXx7A50nXvwAAAAAAAPh/sZAibc9H1r+sXx7A50nXv6/JwOKladS/","dtype":"float64","shape":[6]},{"__ndarray__":"m+8LK3MO0r8mnIf9CRDTvwAAAAAAAPh/Oj2aogeU078mnIf9CRDTvyFezZTVLdG/","dtype":"float64","shape":[6]},{"__ndarray__":"O3GbzSh40r/xH473y+bIvwAAAAAAAPh/kA6xP8jEzb/xH473y+bIvzx0EI/CU8+/","dtype":"float64","shape":[6]},{"__ndarray__":"O3GbzSh40r9oLJcIBmXXvwAAAAAAAPh/Qm6KHgyy1L9oLJcIBmXXv/wnutFDPtS/","dtype":"float64","shape":[6]},{"__ndarray__":"S7Z+98/dx78Q49JYr6jEvwAAAAAAAPh/Dt3ePY/fyL8Q49JYr6jEv4CB57WeMcS/","dtype":"float64","shape":[6]},{"__ndarray__":"S7Z+98/dx7/xH473y+bIvwAAAAAAAPh/Qd3gjKnSyr/xH473y+bIv3E1nVmQ6cW/","dtype":"float64","shape":[6]},{"__ndarray__":"S7Z+98/dx7+W+TimI3zMvwAAAAAAAPh/ZEzsWongyL+W+TimI3zMv2KlOYAftc2/","dtype":"float64","shape":[6]},{"__ndarray__":"S7Z+98/dx79gqPFO/t27vwAAAAAAAPh/yLaXV0Tpw79gqPFO/t27v+Y28UJhdsC/","dtype":"float64","shape":[6]},{"__ndarray__":"S7Z+98/dx78Z/lOOZbTPvwAAAAAAAPh/Pn+NXnZmzb8Z/lOOZbTPv3DP9T9O0sm/","dtype":"float64","shape":[6]},{"__ndarray__":"S7Z+98/dx7/RA5+0R+K/vwAAAAAAAPh/icSu4SSgxL/RA5+0R+K/v+19ed1VIMC/","dtype":"float64","shape":[6]},{"__ndarray__":"S7Z+98/dx78dc1XNmsTFvwAAAAAAAPh/VUap134jyb8dc1XNmsTFv7S65AgFRcS/","dtype":"float64","shape":[6]},{"__ndarray__":"S7Z+98/dx7/oR+pRD3bOvwAAAAAAAPh/BwckYeJLyr/oR+pRD3bOv7jI2eDK/c6/","dtype":"float64","shape":[6]},{"__ndarray__":"vtkMPSLF1j+7c2xFhO3TPwAAAAAAAPh/pTeylfnA1D+7c2xFhO3TP/MP2a2YttY/","dtype":"float64","shape":[6]},{"__ndarray__":"vtkMPSLF1j+GiMwTdXLcPwAAAAAAAPh/D/Nuw85Z3D+GiMwTdXLcP0oeDrU7Gto/","dtype":"float64","shape":[6]},{"__ndarray__":"vtkMPSLF1j+BONlqdu/RPwAAAAAAAPh/w2UAaBoR0j+BONlqdu/RPwy89sDRTdQ/","dtype":"float64","shape":[6]},{"__ndarray__":"vtkMPSLF1j9SAZ9yo7vaPwAAAAAAAPh/ZFhpwCf+2T9SAZ9yo7vaP7bII9Az/tc/","dtype":"float64","shape":[6]},{"__ndarray__":"vtkMPSLF1j9XoCB4b/rUPwAAAAAAAPh/1qkMFik11z9XoCB4b/rUPxSPJOEt6dQ/","dtype":"float64","shape":[6]},{"__ndarray__":"vtkMPSLF1j/8oVPR26vUPwAAAAAAAPh/46teUD9b1D/8oVPR26vUP8jRcJ8et9Y/","dtype":"float64","shape":[6]},{"__ndarray__":"vtkMPSLF1j96tu1O+3nUPwAAAAAAAPh/pKfNZADF1D96tu1O+3nUPzwq7VGq89Y/","dtype":"float64","shape":[6]},{"__ndarray__":"vtkMPSLF1j/l31EcAHfVPwAAAAAAAPh/rLpEveYr1T/l31EcAHfVPxA35F+Hhtc/","dtype":"float64","shape":[6]},{"__ndarray__":"vtkMPSLF1j+Rk8Y65nLUPwAAAAAAAPh/02GdRaFh1z+Rk8Y65nLUP+Pj3uqXlNU/","dtype":"float64","shape":[6]},{"__ndarray__":"vtkMPSLF1j+dnhYaM1vYPwAAAAAAAPh/f6D30aIe1j+dnhYaM1vYP/TFSE/EItU/","dtype":"float64","shape":[6]},{"__ndarray__":"u3NsRYTt0z++2Qw9IsXWPwAAAAAAAPh/1BXH7Kzx1T++2Qw9IsXWP4Y9oNQN/NM/","dtype":"float64","shape":[6]},{"__ndarray__":"u3NsRYTt0z+BONlqdu/RPwAAAAAAAPh/0C1tpmqZ0T+BONlqdu/RP6uiR4V99tM/","dtype":"float64","shape":[6]},{"__ndarray__":"u3NsRYTt0z+Rk8Y65nLUPwAAAAAAAPh/t99oEJxt1T+Rk8Y65nLUP9qUnl66+NI/","dtype":"float64","shape":[6]},{"__ndarray__":"hojME3Vy3D8hnopT6jzYPwAAAAAAAPh/oqU72kJD2z8hnopT6jzYP1bBzfXTKNs/","dtype":"float64","shape":[6]},{"__ndarray__":"hojME3Vy3D8GDbOKpefYPwAAAAAAAPh/6WKzDfYS3D8GDbOKpefYPymhIgs7vdo/","dtype":"float64","shape":[6]},{"__ndarray__":"hojME3Vy3D+AcH4MvgzgPwAAAAAAAPh/k1C+Yp7j3D+AcH4MvgzgP7/j6952A94/","dtype":"float64","shape":[6]},{"__ndarray__":"gTjZanbv0T++2Qw9IsXWPwAAAAAAAPh/fKzlP36j1j++2Qw9IsXWPzRW7+bGZtQ/","dtype":"float64","shape":[6]},{"__ndarray__":"gTjZanbv0T+7c2xFhO3TPwAAAAAAAPh/bH7YCZBD1D+7c2xFhO3TP5EJ/ip95tE/","dtype":"float64","shape":[6]},{"__ndarray__":"gTjZanbv0T9xcMBE2FXRPwAAAAAAAPh/VII3dmfN0j9xcMBE2FXRP0MJBadWWNA/","dtype":"float64","shape":[6]},{"__ndarray__":"gTjZanbv0T/eSOO52wjWPwAAAAAAAPh/MkNIszzS1j/eSOO52wjWP0cq1wTbYdQ/","dtype":"float64","shape":[6]},{"__ndarray__":"gTjZanbv0T9EK5dq8D/HPwAAAAAAAPh/HXWueOXrxT9EK5dq8D/HP2pSvBeLxMo/","dtype":"float64","shape":[6]},{"__ndarray__":"gTjZanbv0T+Rk8Y65nLUPwAAAAAAAPh/06atZ0MX1T+Rk8Y65nLUP3PvkLvEq9I/","dtype":"float64","shape":[6]},{"__ndarray__":"UgGfcqO72j9XoCB4b/rUPwAAAAAAAPh/V/2cuiq61z9XoCB4b/rUPwH74N7pG9g/","dtype":"float64","shape":[6]},{"__ndarray__":"UgGfcqO72j/srcrH9QXYPwAAAAAAAPh/NM8mDTAr2z/srcrH9QXYPyZh04HevNo/","dtype":"float64","shape":[6]},{"__ndarray__":"UgGfcqO72j+AcH4MvgzgPwAAAAAAAPh/XafNEO3V3j+AcH4MvgzgP5uYhEtnHN0/","dtype":"float64","shape":[6]},{"__ndarray__":"UgGfcqO72j+dnhYaM1vYPwAAAAAAAPh/nvdFF/WR2D+dnhYaM1vYP1E0bNevx9o/","dtype":"float64","shape":[6]},{"__ndarray__":"V6AgeG/61D/y7vrry97TPwAAAAAAAPh/RevSUneF1T/y7vrry97TPwBQ8ZgKFdM/","dtype":"float64","shape":[6]},{"__ndarray__":"V6AgeG/61D9SAZ9yo7vaPwAAAAAAAPh/UqQiMOj71z9SAZ9yo7vaP6im3gspmtc/","dtype":"float64","shape":[6]},{"__ndarray__":"V6AgeG/61D89ZIihZ9bRPwAAAAAAAPh/GjGsfB7G0z89ZIihZ9bRPyR6HpcAY9E/","dtype":"float64","shape":[6]},{"__ndarray__":"V6AgeG/61D/srcrH9QXYPwAAAAAAAPh/4WL9S+LS1T/srcrH9QXYP2CRMkzdzdQ/","dtype":"float64","shape":[6]},{"__ndarray__":"V6AgeG/61D/8oVPR26vUPwAAAAAAAPh/7ApzW7yE0z/8oVPR26vUP5CScvWa+9U/","dtype":"float64","shape":[6]},{"__ndarray__":"V6AgeG/61D/l31EcAHfVPwAAAAAAAPh/FWwLo9cR1D/l31EcAHfVPzYfSNv4h9Y/","dtype":"float64","shape":[6]},{"__ndarray__":"/KFT0dur1D+7c2xFhO3TPwAAAAAAAPh/5DIHOMnN1T+7c2xFhO3TP0PIf3osZ9M/","dtype":"float64","shape":[6]},{"__ndarray__":"/KFT0dur1D96tu1O+3nUPwAAAAAAAPh/saJurLTu1T96tu1O+3nUP6MqwR9zedM/","dtype":"float64","shape":[6]},{"__ndarray__":"/KFT0dur1D/l31EcAHfVPwAAAAAAAPh/wG1+gCvQ1T/l31EcAHfVP+/e5tdqctM/","dtype":"float64","shape":[6]},{"__ndarray__":"erbtTvt51D++2Qw9IsXWPwAAAAAAAPh/lOgsJx161j++2Qw9IsXWP/xlDTpzS9Q/","dtype":"float64","shape":[6]},{"__ndarray__":"erbtTvt51D+7c2xFhO3TPwAAAAAAAPh/7/cjXlzM1j+7c2xFhO3TPxkqwdyj7NQ/","dtype":"float64","shape":[6]},{"__ndarray__":"erbtTvt51D+BONlqdu/RPwAAAAAAAPh/0s6CuhXy0T+BONlqdu/RPwTjiV1eONQ/","dtype":"float64","shape":[6]},{"__ndarray__":"erbtTvt51D/8oVPR26vUPwAAAAAAAPh/xbXScyI30z/8oVPR26vUP9MtgABkrNU/","dtype":"float64","shape":[6]},{"__ndarray__":"erbtTvt51D/l31EcAHfVPwAAAAAAAPh/5ZkjVr280j/l31EcAHfVPyrTkwUlU9I/","dtype":"float64","shape":[6]},{"__ndarray__":"erbtTvt51D+Rk8Y65nLUPwAAAAAAAPh/Gm3fb4Wx1T+Rk8Y65nLUPwPrJ7duOtM/","dtype":"float64","shape":[6]},{"__ndarray__":"5d9RHAB31T++2Qw9IsXWPwAAAAAAAPh/9/4ZnDsQ1z++2Qw9IsXWP5OCevmatdQ/","dtype":"float64","shape":[6]},{"__ndarray__":"5d9RHAB31T+7c2xFhO3TPwAAAAAAAPh/EfMcPnsi1z+7c2xFhO3TPxhkILJxaNY/","dtype":"float64","shape":[6]},{"__ndarray__":"5d9RHAB31T9xcMBE2FXRPwAAAAAAAPh/Af/9Dc+J1D9xcMBE2FXRP6wO0s4l19M/","dtype":"float64","shape":[6]},{"__ndarray__":"5d9RHAB31T/8oVPR26vUPwAAAAAAAPh/IRQnbbBS1D/8oVPR26vUP/KivhVxsNY/","dtype":"float64","shape":[6]},{"__ndarray__":"5d9RHAB31T96tu1O+3nUPwAAAAAAAPh/evwbFT401z96tu1O+3nUPzXDq2XWndc/","dtype":"float64","shape":[6]},{"__ndarray__":"kZPGOuZy1D++2Qw9IsXWPwAAAAAAAPh/fAs2MmfW0z++2Qw9IsXWP2yJ9Ixwo9U/","dtype":"float64","shape":[6]},{"__ndarray__":"kZPGOuZy1D+7c2xFhO3TPwAAAAAAAPh/lSfKb87y0j+7c2xFhO3TP3JylCGwZ9U/","dtype":"float64","shape":[6]},{"__ndarray__":"kZPGOuZy1D+BONlqdu/RPwAAAAAAAPh/QCXyPRlL0T+BONlqdu/RP5/cDuqXttM/","dtype":"float64","shape":[6]},{"__ndarray__":"kZPGOuZy1D/eSOO52wjWPwAAAAAAAPh/DOzAck7y1j/eSOO52wjWP1kkKVe7ftQ/","dtype":"float64","shape":[6]},{"__ndarray__":"nZ4WGjNb2D++2Qw9IsXWPwAAAAAAAPh/3NcrhbIB2T++2Qw9IsXWP2ey2geR/dk/","dtype":"float64","shape":[6]},{"__ndarray__":"nZ4WGjNb2D+GiMwTdXLcPwAAAAAAAPh/OmW45+yl3D+GiMwTdXLcP6HKBdXuUNo/","dtype":"float64","shape":[6]},{"__ndarray__":"nZ4WGjNb2D+BONlqdu/RPwAAAAAAAPh/WZbpt6Ra0j+BONlqdu/RP0uqsuVbfdQ/","dtype":"float64","shape":[6]},{"__ndarray__":"nZ4WGjNb2D/21pJcMhXYPwAAAAAAAPh/lYGXJ/3u1j/21pJcMhXYP9bYF4bWZdk/","dtype":"float64","shape":[6]},{"__ndarray__":"nZ4WGjNb2D9SAZ9yo7vaPwAAAAAAAPh/UqhvdeGE2j9SAZ9yo7vaP55rSbUmT9g/","dtype":"float64","shape":[6]},{"__ndarray__":"nZ4WGjNb2D9d/AJXYcLfPwAAAAAAAPh/DTSB49YB3j9d/AJXYcLfP8To+Kb4m9w/","dtype":"float64","shape":[6]},{"__ndarray__":"nZ4WGjNb2D9XoCB4b/rUPwAAAAAAAPh/SLvM2nfb1z9XoCB4b/rUP8qS5Ucr/tU/","dtype":"float64","shape":[6]},{"__ndarray__":"nZ4WGjNb2D9S0VYsbBfdPwAAAAAAAPh/xi8xZpfN2z9S0VYsbBfdPy3/HufRF9o/","dtype":"float64","shape":[6]},{"__ndarray__":"nZ4WGjNb2D9xcMBE2FXRPwAAAAAAAPh/BJu9iuNm0z9xcMBE2FXRPzXFUrwoi9Q/","dtype":"float64","shape":[6]},{"__ndarray__":"nZ4WGjNb2D+Rk8Y65nLUPwAAAAAAAPh/9VBJcOKq1z+Rk8Y65nLUP4qs3ia0o9Y/","dtype":"float64","shape":[6]},{"__ndarray__":"6O3/qtd40D9AlkUf1brKPwAAAAAAAPh/lnQe+reezD9AlkUf1brKP6O5JgHjNdA/","dtype":"float64","shape":[6]},{"__ndarray__":"QJZFH9W6yj/eYnC5fyrEPwAAAAAAAPh/DKrqw2VDyD/eYnC5fyrEPxo2gm0GlMo/","dtype":"float64","shape":[6]},{"__ndarray__":"QJZFH9W6yj8tCtPXOKzGPwAAAAAAAPh/GAEgDU/cxz8tCtPXOKzGP6xg+5Fb/cs/","dtype":"float64","shape":[6]},{"__ndarray__":"QJZFH9W6yj/PqDdIrj/MPwAAAAAAAPh/bIHxxx6yxj/PqDdIrj/MP0VS3tWUoco/","dtype":"float64","shape":[6]},{"__ndarray__":"uKS3X50txr/xH473y+bIvwAAAAAAAPh/SFsH+fAKxL/xH473y+bIv2we3wTpdMi/","dtype":"float64","shape":[6]},{"__ndarray__":"uKS3X50txr87cZvNKHjSvwAAAAAAAPh/on6+rPbFzr87cZvNKHjSv+wMRiROQs+/","dtype":"float64","shape":[6]},{"__ndarray__":"uKS3X50txr9EIYAWjbSzvwAAAAAAAPh/IHbydsL0v79EIYAWjbSzv+runQE6ML+/","dtype":"float64","shape":[6]},{"__ndarray__":"uKS3X50txr9xfKW0l/e5vwAAAAAAAPh/UAqMe86awr9xfKW0l/e5v9f5dFDsLsO/","dtype":"float64","shape":[6]},{"__ndarray__":"HXNVzZrExb87cZvNKHjSvwAAAAAAAPh/6cSApwduz787cZvNKHjSvyiAlxWmrs6/","dtype":"float64","shape":[6]},{"__ndarray__":"HXNVzZrExb9EIYAWjbSzvwAAAAAAAPh/Xifn90FLwL9EIYAWjbSzv+IGbkuR77y/","dtype":"float64","shape":[6]},{"__ndarray__":"HXNVzZrExb9Ltn73z93HvwAAAAAAAPh/E+Mq7et+xL9Ltn73z93Hv7Ru77tlXcm/","dtype":"float64","shape":[6]},{"__ndarray__":"HXNVzZrExb/RA5+0R+K/vwAAAAAAAPh/tv8ITV0oxr/RA5+0R+K/vwYB8egDJMO/","dtype":"float64","shape":[6]},{"__ndarray__":"HXNVzZrExb9xfKW0l/e5vwAAAAAAAPh/xMfl05hlw79xfKW0l/e5v/RFvPaG8sG/","dtype":"float64","shape":[6]},{"__ndarray__":"HXNVzZrExb8erEhAR6/MvwAAAAAAAPh/k8r62eJexr8erEhAR6/Mv748ggAgUce/","dtype":"float64","shape":[6]},{"__ndarray__":"cXyltJf3ub9EIYAWjbSzvwAAAAAAAPh/rjmuz7cuwL9EIYAWjbSzv1DtBqgZ97q/","dtype":"float64","shape":[6]},{"__ndarray__":"cXyltJf3ub/RA5+0R+K/vwAAAAAAAPh/WgnbqMFKuL/RA5+0R+K/vzlKqWiyJ7O/","dtype":"float64","shape":[6]},{"__ndarray__":"cXyltJf3ub8dc1XNmsTFvwAAAAAAAPh/ItOEp5u1vr8dc1XNmsTFv2Hr67DfzcC/","dtype":"float64","shape":[6]},{"__ndarray__":"IZ6KU+o82D+GiMwTdXLcPwAAAAAAAPh/BYEbjRxs2T+GiMwTdXLcP1FliXGLhtk/","dtype":"float64","shape":[6]},{"__ndarray__":"IZ6KU+o82D8GDbOKpefYPwAAAAAAAPh/yW+ciGAu2T8GDbOKpefYP7z9MULB1NY/","dtype":"float64","shape":[6]},{"__ndarray__":"IZ6KU+o82D9qfEpkzJTNPwAAAAAAAPh/r305efIA0j9qfEpkzJTNP4X3NTtI59A/","dtype":"float64","shape":[6]},{"__ndarray__":"IZ6KU+o82D9d/AJXYcLfPwAAAAAAAPh/vDL5Zgi+3D9d/AJXYcLfP9tzxItvbN4/","dtype":"float64","shape":[6]},{"__ndarray__":"IZ6KU+o82D/eSOO52wjWPwAAAAAAAPh/rZOnb+Ns2D/eSOO52wjWP6ffW5noMtY/","dtype":"float64","shape":[6]},{"__ndarray__":"Bg2ziqXn2D8hnopT6jzYPwAAAAAAAPh/XTuhVS/21z8hnopT6jzYP2utC5zOT9o/","dtype":"float64","shape":[6]},{"__ndarray__":"Bg2ziqXn2D/eSOO52wjWPwAAAAAAAPh/1Q87H/kU2T/eSOO52wjWPy+Puraic9c/","dtype":"float64","shape":[6]},{"__ndarray__":"anxKZMyUzT/y7vrry97TPwAAAAAAAPh/I99NbaHt0D/y7vrry97TP2BnxpqNt9I/","dtype":"float64","shape":[6]},{"__ndarray__":"anxKZMyUzT89ZIihZ9bRPwAAAAAAAPh/Zky+n95PzT89ZIihZ9bRP/FjoooSd84/","dtype":"float64","shape":[6]},{"__ndarray__":"anxKZMyUzT/tDAIFgoe/PwAAAAAAAPh/n0bPoUz1xT/tDAIFgoe/P2brAuE55MI/","dtype":"float64","shape":[6]},{"__ndarray__":"XfwCV2HC3z+yimQfclrgPwAAAAAAAPh/IF8rhNAJ3j+yimQfclrgP9SklSNNi90/","dtype":"float64","shape":[6]},{"__ndarray__":"XfwCV2HC3z/hCCBmI/zfPwAAAAAAAPh/yq68I5VQ4D/hCCBmI/zfP0fw1VySNd4/","dtype":"float64","shape":[6]},{"__ndarray__":"XfwCV2HC3z9S0VYsbBfdPwAAAAAAAPh/cJ/5BhPE3z9S0VYsbBfdP6CkDJg8IOA/","dtype":"float64","shape":[6]},{"__ndarray__":"XfwCV2HC3z+AcH4MvgzgPwAAAAAAAPh/0f0YNRuQ4D+AcH4MvgzgPyYXd1+Yqt4/","dtype":"float64","shape":[6]},{"__ndarray__":"3kjjudsI1j89ZIihZ9bRPwAAAAAAAPh/NbTkpUeW1D89ZIihZ9bRP2FKpHHR99Q/","dtype":"float64","shape":[6]},{"__ndarray__":"gHB+DL4M4D+GiMwTdXLcPwAAAAAAAPh/8xgLylKo3z+GiMwTdXLcP8eF3U16iN4/","dtype":"float64","shape":[6]},{"__ndarray__":"iBMFy+Wh1b89ZOyAA3bSvwAAAAAAAPh/8D0OHe3C0789ZOyAA3bSv1iOmMPWdtW/","dtype":"float64","shape":[6]},{"__ndarray__":"PWTsgAN20r8Z/lOOZbTPvwAAAAAAAPh/DLF1P3zizr8Z/lOOZbTPv7bmvLBL0tG/","dtype":"float64","shape":[6]},{"__ndarray__":"PWTsgAN20r9dSyZRLYLVvwAAAAAAAPh/pXQaEXOW1b9dSyZRLYLVv+3qySCiSdO/","dtype":"float64","shape":[6]},{"__ndarray__":"PWTsgAN20r9U95Shk6rQvwAAAAAAAPh/rssdzuor079U95Shk6rQv/jop4icAdG/","dtype":"float64","shape":[6]},{"__ndarray__":"lvk4piN8zL/iFTMmcjPIvwAAAAAAAPh/2BlD0ej0zL/iFTMmcjPIv77uPQK/fci/","dtype":"float64","shape":[6]},{"__ndarray__":"lvk4piN8zL/oR+pRD3bOvwAAAAAAAPh/iwT03WkNzL/oR+pRD3bOv37rNFuBiMi/","dtype":"float64","shape":[6]},{"__ndarray__":"4hUzJnIzyL+W+TimI3zMvwAAAAAAAPh/oPUo+6y6x7+W+TimI3zMv7ogLsrWMcy/","dtype":"float64","shape":[6]},{"__ndarray__":"4hUzJnIzyL/amKx7q2/DvwAAAAAAAPh/RPffnFdXyb/amKx7q2/Dv3x829B/ysW/","dtype":"float64","shape":[6]},{"__ndarray__":"4hUzJnIzyL8cLuSdsSvBvwAAAAAAAPh/aEbSlTZDxr8cLuSdsSvBv04HQxAe+8G/","dtype":"float64","shape":[6]},{"__ndarray__":"4hUzJnIzyL/oR+pRD3bOvwAAAAAAAPh/C5KISwOvyL/oR+pRD3bOv1ksMAD9Y8y/","dtype":"float64","shape":[6]},{"__ndarray__":"4hUzJnIzyL+HLosXIfvFvwAAAAAAAPh/F11KqGLHyr+HLosXIfvFv5KqUuB+Vca/","dtype":"float64","shape":[6]},{"__ndarray__":"6EfqUQ92zr+W+TimI3zMvwAAAAAAAPh/8zwvGsnkzr+W+TimI3zMvwArd87YNNG/","dtype":"float64","shape":[6]},{"__ndarray__":"6EfqUQ92zr/iFTMmcjPIvwAAAAAAAPh/v8uULH76zb/iFTMmcjPIv3Ex7XeERcq/","dtype":"float64","shape":[6]},{"__ndarray__":"8u7668ve0z9qfEpkzJTNPwAAAAAAAPh/BE7SsJC70T9qfEpkzJTNP42LswZJ488/","dtype":"float64","shape":[6]},{"__ndarray__":"8u7668ve0z9SAZ9yo7vaPwAAAAAAAPh/GKuHZSm91z9SAZ9yo7vaP1EruB2fdNk/","dtype":"float64","shape":[6]},{"__ndarray__":"8u7668ve0z9XoCB4b/rUPwAAAAAAAPh/BKRIEcRT0z9XoCB4b/rUP0k/KsswxNU/","dtype":"float64","shape":[6]},{"__ndarray__":"8u7668ve0z89ZIihZ9bRPwAAAAAAAPh/1izPM+Ap1D89ZIihZ9bRP5ifj7Qn6NE/","dtype":"float64","shape":[6]},{"__ndarray__":"8u7668ve0z+AcH4MvgzgPwAAAAAAAPh/3tLb+asA3T+AcH4MvgzgP9CEMl2kSN0/","dtype":"float64","shape":[6]},{"__ndarray__":"8u7668ve0z/tDAIFgoe/PwAAAAAAAPh/8L58ZAXVxT/tDAIFgoe/Px/wvZVMhsI/","dtype":"float64","shape":[6]},{"__ndarray__":"8u7668ve0z+Rk8Y65nLUPwAAAAAAAPh/mU88Im8K0z+Rk8Y65nLUP5hJifxmgNU/","dtype":"float64","shape":[6]},{"__ndarray__":"PWSIoWfW0T8hnopT6jzYPwAAAAAAAPh/PHFxtFgP1T8hnopT6jzYP19UbqGIXNY/","dtype":"float64","shape":[6]},{"__ndarray__":"PWSIoWfW0T8GDbOKpefYPwAAAAAAAPh/cNMhQ2y21T8GDbOKpefYP83j0nYoWNY/","dtype":"float64","shape":[6]},{"__ndarray__":"PWSIoWfW0T/y7vrry97TPwAAAAAAAPh/WSa0WVOL0T/y7vrry97TP5ez89gLzdM/","dtype":"float64","shape":[6]},{"__ndarray__":"PWSIoWfW0T9qfEpkzJTNPwAAAAAAAPh/P3zOg9740T9qfEpkzJTNP3pwXI5EZdE/","dtype":"float64","shape":[6]},{"__ndarray__":"PWSIoWfW0T/tDAIFgoe/PwAAAAAAAPh/5dOCkUQexj/tDAIFgoe/P54Kb+FrgcM/","dtype":"float64","shape":[6]},{"__ndarray__":"7QwCBYKHvz8kchU41wOsPwAAAAAAAPh/8QU/G0DBuj8kchU41wOsP0VXi+DwsrU/","dtype":"float64","shape":[6]},{"__ndarray__":"sopkH3Ja4D/hCCBmI/zfPwAAAAAAAPh/o7JMnNVf4T/hCCBmI/zfP5exVSKCYuA/","dtype":"float64","shape":[6]},{"__ndarray__":"sopkH3Ja4D9d/AJXYcLfPwAAAAAAAPh/UFnQiLo24T9d/AJXYcLfP3Y2Gzn8deE/","dtype":"float64","shape":[6]},{"__ndarray__":"sopkH3Ja4D9S0VYsbBfdPwAAAAAAAPh/us0dianD3z9S0VYsbBfdP7BEKNBOIOA/","dtype":"float64","shape":[6]},{"__ndarray__":"sopkH3Ja4D+AcH4MvgzgPwAAAAAAAPh/SNByzVPZ4D+AcH4MvgzgP3riPXebQN8/","dtype":"float64","shape":[6]},{"__ndarray__":"4QggZiP83z+yimQfclrgPwAAAAAAAPh//rhPbFzx3T+yimQfclrgPxi7PWAD7N8/","dtype":"float64","shape":[6]},{"__ndarray__":"4QggZiP83z9d/AJXYcLfPwAAAAAAAPh/qaepdVod3z9d/AJXYcLfP3uKJjB5xOA/","dtype":"float64","shape":[6]},{"__ndarray__":"4QggZiP83z+AcH4MvgzgPwAAAAAAAPh//ZyrNPWe4D+AcH4MvgzgPxw4y9gbx94/","dtype":"float64","shape":[6]},{"__ndarray__":"UtFWLGwX3T+yimQfclrgPwAAAAAAAPh//BgC4qYI3j+yimQfclrgP1Zdz8qyi90/","dtype":"float64","shape":[6]},{"__ndarray__":"UtFWLGwX3T/hCCBmI/zfPwAAAAAAAPh/LRaRuYAL3j/hCCBmI/zfPxnG9n+Hy9w/","dtype":"float64","shape":[6]},{"__ndarray__":"UtFWLGwX3T9d/AJXYcLfPwAAAAAAAPh/Pi5gfLoV3T9d/AJXYcLfP26EQFNUmdw/","dtype":"float64","shape":[6]},{"__ndarray__":"UtFWLGwX3T/srcrH9QXYPwAAAAAAAPh/MEhzX+Mk2z/srcrH9QXYPxUtXb0ky9o/","dtype":"float64","shape":[6]},{"__ndarray__":"UtFWLGwX3T+AcH4MvgzgPwAAAAAAAPh/MN1l+OTA3z+AcH4MvgzgP9bj434pl90/","dtype":"float64","shape":[6]},{"__ndarray__":"UtFWLGwX3T+dnhYaM1vYPwAAAAAAAPh/KUA84Ael2T+dnhYaM1vYP8JwTl/NWts/","dtype":"float64","shape":[6]},{"__ndarray__":"mo8cUiT20r9h6Jb2YlXVvwAAAAAAAPh/yGVskacy1b9h6Jb2YlXVvxtGSkFK9tK/","dtype":"float64","shape":[6]},{"__ndarray__":"mo8cUiT20r88MsD9HfbTvwAAAAAAAPh/PP8yoyBp1L88MsD9HfbTv12r/SAWBtK/","dtype":"float64","shape":[6]},{"__ndarray__":"mo8cUiT20r9U95Shk6rQvwAAAAAAAPh/XUGqA5NO0L9U95Shk6rQv6jD/2fvrNK/","dtype":"float64","shape":[6]},{"__ndarray__":"mo8cUiT20r97U+G6UVXUvwAAAAAAAPh/seQ3u2BK0797U+G6UVXUvxh21FLocNG/","dtype":"float64","shape":[6]},{"__ndarray__":"YeiW9mJV1b+ajxxSJPbSvwAAAAAAAPh/MxJHt98Y07+ajxxSJPbSv+AxaQc9VdW/","dtype":"float64","shape":[6]},{"__ndarray__":"YeiW9mJV1b8mZYnqyMrXvwAAAAAAAPh/PqfX2MVR178mZYnqyMrXv+wLAI55NNW/","dtype":"float64","shape":[6]},{"__ndarray__":"YeiW9mJV1b88MsD9HfbTvwAAAAAAAPh/8ABmUxRZ1b88MsD9HfbTv3SuAZdg/9a/","dtype":"float64","shape":[6]},{"__ndarray__":"YeiW9mJV1b97U+G6UVXUvwAAAAAAAPh/cGvqby/00797U+G6UVXUv1oeMFqhU9a/","dtype":"float64","shape":[6]},{"__ndarray__":"PDLA/R3207+ajxxSJPbSvwAAAAAAAPh/m8KprCGD0r+ajxxSJPbSv3kW3y4s5tS/","dtype":"float64","shape":[6]},{"__ndarray__":"PDLA/R320797U+G6UVXUvwAAAAAAAPh/0hQ3Ce2k0r97U+G6UVXUv8eOdX8HFNW/","dtype":"float64","shape":[6]},{"__ndarray__":"VPeUoZOq0L+ajxxSJPbSvwAAAAAAAPh/kUUH8CRS07+ajxxSJPbSv0bDsYvI89C/","dtype":"float64","shape":[6]},{"__ndarray__":"VPeUoZOq0L9p9oeF90bEvwAAAAAAAPh/sMKpibtpyb9p9oeF90bEvz0zUrORqMq/","dtype":"float64","shape":[6]},{"__ndarray__":"VPeUoZOq0L8Z/lOOZbTPvwAAAAAAAPh/ncqvf3Kezb8Z/lOOZbTPv3rMhfoQRdG/","dtype":"float64","shape":[6]},{"__ndarray__":"VPeUoZOq0L97U+G6UVXUvwAAAAAAAPh/ikticrZp1L97U+G6UVXUv0E9avrcHNK/","dtype":"float64","shape":[6]},{"__ndarray__":"VPeUoZOq0L89ZOyAA3bSvwAAAAAAAPh/xR/HqFjpz789ZOyAA3bSv5ly2Zn6HtK/","dtype":"float64","shape":[6]},{"__ndarray__":"e1PhulFV1L+ajxxSJPbSvwAAAAAAAPh/ZP7FURUB1L+ajxxSJPbSv/1sKbqN2tW/","dtype":"float64","shape":[6]},{"__ndarray__":"e1PhulFV1L9h6Jb2YlXVvwAAAAAAAPh/bNCNQYW21b9h6Jb2YlXVv4IdSFcTV9O/","dtype":"float64","shape":[6]},{"__ndarray__":"e1PhulFV1L8mZYnqyMrXvwAAAAAAAPh/bisSiomw178mZYnqyMrXv2mX8zl3cdW/","dtype":"float64","shape":[6]},{"__ndarray__":"e1PhulFV1L88MsD9HfbTvwAAAAAAAPh/5XBqr4Km1b88MsD9HfbTv/D2KzloN9O/","dtype":"float64","shape":[6]},{"__ndarray__":"e1PhulFV1L9U95Shk6rQvwAAAAAAAPh/Rv8T6i6W0L9U95Shk6rQv44NDGII49K/","dtype":"float64","shape":[6]},{"__ndarray__":"55nB/lIGUz9W40bZ2LCVPwAAAAAAAPh/Xxc9SbU0kj9W40bZ2LCVPy6P7DmDIZG/","dtype":"float64","shape":[6]},{"__ndarray__":"55nB/lIGUz9EIYAWjbSzvwAAAAAAAPh/6ADd9DZxm79EIYAWjbSzv32JI/3pqaa/","dtype":"float64","shape":[6]},{"__ndarray__":"aBWCbcX+s79W40bZ2LCVPwAAAAAAAPh/cJZD+tlajL9W40bZ2LCVP0Y/qFiS1p2/","dtype":"float64","shape":[6]},{"__ndarray__":"aBWCbcX+s79p9oeF90bEvwAAAAAAAPh/Ky9xAxzdwL9p9oeF90bEv7QV47Y8ALy/","dtype":"float64","shape":[6]},{"__ndarray__":"aBWCbcX+s7/nmcH+UgZTPwAAAAAAAPh/wYJyttXgpr/nmcH+UgZTP+trtfwUhae/","dtype":"float64","shape":[6]},{"__ndarray__":"aBWCbcX+s79U95Shk6rQvwAAAAAAAPh/S+C+CAf1zL9U95Shk6rQvxoFQoxC5cq/","dtype":"float64","shape":[6]},{"__ndarray__":"aBWCbcX+s7+Vbn+vLtG4vwAAAAAAAPh/K8qchbKhtr+Vbn+vLtG4vxgoiDhLlqy/","dtype":"float64","shape":[6]},{"__ndarray__":"aBWCbcX+s79qA/2mt9O0vwAAAAAAAPh/dFfNU2Yxq79qA/2mt9O0v4UqRRYqQbe/","dtype":"float64","shape":[6]},{"__ndarray__":"aBWCbcX+s78xVpQHvuytPwAAAAAAAPh/ejazkAUOoz8xVpQHvuytPyjQk5Dh34Y/","dtype":"float64","shape":[6]},{"__ndarray__":"Y0Ezppfjsj9W40bZ2LCVPwAAAAAAAPh/9r6vX/UUoj9W40bZ2LCVP1YmgO6KubA/","dtype":"float64","shape":[6]},{"__ndarray__":"Y0Ezppfjsj8+AApSOymyPwAAAAAAAPh/DwrpwOV8tz8+AApSOymyP3xM/yfiQ6s/","dtype":"float64","shape":[6]},{"__ndarray__":"JmWJ6sjK179h6Jb2YlXVvwAAAAAAAPh/SaZICGbO1b9h6Jb2YlXVv5tBIFOy69e/","dtype":"float64","shape":[6]},{"__ndarray__":"2pise6tvw78cLuSdsSvBvwAAAAAAAPh/DLSfzK9Gxb8cLuSdsSvBv5ab2uA8kMC/","dtype":"float64","shape":[6]},{"__ndarray__":"2pise6tvw7/tePSNLj3DvwAAAAAAAPh/nYCqri1Gwb/tePSNLj3Dv7LleCUMMMa/","dtype":"float64","shape":[6]},{"__ndarray__":"2pise6tvw7/iFTMmcjPIvwAAAAAAAPh/eLf/BMZLwr/iFTMmcjPIv0AyBNGd2MW/","dtype":"float64","shape":[6]},{"__ndarray__":"2pise6tvw7+HLosXIfvFvwAAAAAAAPh/Aklnc6WJv7+HLosXIfvFv/4WgX/yYcC/","dtype":"float64","shape":[6]},{"__ndarray__":"HC7knbErwb+W+TimI3zMvwAAAAAAAPh/0sn8V2uHx7+W+TimI3zMv/DabCP+48u/","dtype":"float64","shape":[6]},{"__ndarray__":"HC7knbErwb/amKx7q2/DvwAAAAAAAPh/1iXimVqpvr/amKx7q2/Dv2ArtjggC8S/","dtype":"float64","shape":[6]},{"__ndarray__":"HC7knbErwb/nmcH+UgZTPwAAAAAAAPh/RifclU9Mpb/nmcH+UgZTPyV3/I8NG4W/","dtype":"float64","shape":[6]},{"__ndarray__":"HC7knbErwb9EIYAWjbSzvwAAAAAAAPh/2gj8LOaTvL9EIYAWjbSzv/HEK8+PX7O/","dtype":"float64","shape":[6]},{"__ndarray__":"HC7knbErwb/tePSNLj3DvwAAAAAAAPh/eF5YHRkvv7/tePSNLj3Dv1lXVZc9asS/","dtype":"float64","shape":[6]},{"__ndarray__":"HC7knbErwb9xfKW0l/e5vwAAAAAAAPh/Mets2BjNwL9xfKW0l/e5v5M0JF4jB7i/","dtype":"float64","shape":[6]},{"__ndarray__":"HC7knbErwb/iFTMmcjPIvwAAAAAAAPh/lv1ELu0bw7/iFTMmcjPIv7A81LMFZMe/","dtype":"float64","shape":[6]},{"__ndarray__":"HC7knbErwb/oR+pRD3bOvwAAAAAAAPh/kHz0XHARyb/oR+pRD3bOv4tU6BiWI82/","dtype":"float64","shape":[6]},{"__ndarray__":"HC7knbErwb+HLosXIfvFvwAAAAAAAPh/+vFJ5/a7wL+HLosXIfvFv2WJpbfz6cS/","dtype":"float64","shape":[6]},{"__ndarray__":"7Xj0jS49w7/amKx7q2/DvwAAAAAAAPh/KpH2Wqxmxb/amKx7q2/DvxUsKOTNfMC/","dtype":"float64","shape":[6]},{"__ndarray__":"7Xj0jS49w78cLuSdsSvBvwAAAAAAAPh/zXcsnVPRxL8cLuSdsSvBv2GfBilF/b+/","dtype":"float64","shape":[6]},{"__ndarray__":"7Xj0jS49w7/iFTMmcjPIvwAAAAAAAPh/mRcOlDfIwb/iFTMmcjPIv2OqvDMNDMS/","dtype":"float64","shape":[6]},{"__ndarray__":"hy6LFyH7xb8cLuSdsSvBvwAAAAAAAPh/qGolzttqxr8cLuSdsSvBvz7Tyf3ePMK/","dtype":"float64","shape":[6]},{"__ndarray__":"hy6LFyH7xb/tePSNLj3DvwAAAAAAAPh/TFUV3q+Exr/tePSNLj3Dvz1UrRmCesm/","dtype":"float64","shape":[6]},{"__ndarray__":"hy6LFyH7xb/iFTMmcjPIvwAAAAAAAPh/UudzlTBnw7/iFTMmcjPIv9eZa10U2ce/","dtype":"float64","shape":[6]},{"__ndarray__":"LoDTnmDZ1r+IEwXL5aHVvwAAAAAAAPh/8cSQ51TW2L+IEwXL5aHVv6Lf0YBQINi/","dtype":"float64","shape":[6]},{"__ndarray__":"LoDTnmDZ1r8mZYnqyMrXvwAAAAAAAPh/KLKfbJXd2L8mZYnqyMrXv1T/Xa1fZ9a/","dtype":"float64","shape":[6]},{"__ndarray__":"LoDTnmDZ1r9rJg7WGUjTvwAAAAAAAPh/VwvLzG0q079rJg7WGUjTv1Vm8vfLedW/","dtype":"float64","shape":[6]},{"__ndarray__":"LoDTnmDZ1r9+3oAEVPzevwAAAAAAAPh//hrzhIbE279+3oAEVPzev970vuXbzty/","dtype":"float64","shape":[6]},{"__ndarray__":"LoDTnmDZ1r9l7pRKstXXvwAAAAAAAPh//QMVgpYi1r9l7pRKstXXvxtOAYxMkdi/","dtype":"float64","shape":[6]},{"__ndarray__":"LoDTnmDZ1r89ZOyAA3bSvwAAAAAAAPh//Nqh4pNd1L89ZOyAA3bSvx0X4bP6pNW/","dtype":"float64","shape":[6]},{"__ndarray__":"LoDTnmDZ1r8mnIf9CRDTvwAAAAAAAPh/w0ibjf7E0r8mnIf9CRDTvwZlCwKcH9W/","dtype":"float64","shape":[6]},{"__ndarray__":"ayYO1hlI078ugNOeYNnWvwAAAAAAAPh/QZsWqAz31r8ugNOeYNnWv0RA73yup9S/","dtype":"float64","shape":[6]},{"__ndarray__":"ayYO1hlI07+b7wsrcw7SvwAAAAAAAPh/Dc7yqMBd0b+b7wsrcw7Sv67yvCYEy9O/","dtype":"float64","shape":[6]},{"__ndarray__":"ayYO1hlI079Ltn73z93HvwAAAAAAAPh/wG6VnJuLyr9Ltn73z93Hv9rMomg9582/","dtype":"float64","shape":[6]},{"__ndarray__":"ayYO1hlI079+3oAEVPzevwAAAAAAAPh/TyH4lEDd3L9+3oAEVPzevw+tLP6Uxdu/","dtype":"float64","shape":[6]},{"__ndarray__":"ayYO1hlI079l7pRKstXXvwAAAAAAAPh/4Wp8lIhC1r9l7pRKstXXv7nePzcCvNS/","dtype":"float64","shape":[6]},{"__ndarray__":"ayYO1hlI07+sXx7A50nXvwAAAAAAAPh/hdYT954h1L+sXx7A50nXv+nONjgTm9S/","dtype":"float64","shape":[6]},{"__ndarray__":"ayYO1hlI078mnIf9CRDTvwAAAAAAAPh/Dt1ToYsV0r8mnIf9CRDTv3a8GJdpitS/","dtype":"float64","shape":[6]},{"__ndarray__":"ayYO1hlI07/3FvWaL7i8vwAAAAAAAPh/F8IiNPe8wr/3FvWaL7i8vx4RJYQGzMS/","dtype":"float64","shape":[6]},{"__ndarray__":"ft6ABFT83r8ugNOeYNnWvwAAAAAAAPh/rkNhHi4R2r8ugNOeYNnWv85plb3YBtm/","dtype":"float64","shape":[6]},{"__ndarray__":"ft6ABFT83r88MsD9HfbTvwAAAAAAAPh/6yr+vvKm1r88MsD9HfbTv1sVF1i2nNS/","dtype":"float64","shape":[6]},{"__ndarray__":"ft6ABFT83r9rJg7WGUjTvwAAAAAAAPh/muOWRS1n1b9rJg7WGUjTv9pXYtzYfta/","dtype":"float64","shape":[6]},{"__ndarray__":"ft6ABFT83r9l7pRKstXXvwAAAAAAAPh/W73GThZR2r9l7pRKstXXv4s29NKXCtu/","dtype":"float64","shape":[6]},{"__ndarray__":"ft6ABFT83r/qRSn/mS7svwAAAAAAAPh/9XK+Xu2X6r/qRSn/mS7sv7PJA+Ie3+q/","dtype":"float64","shape":[6]},{"__ndarray__":"ft6ABFT83r8mnIf9CRDTvwAAAAAAAPh/swG87p/J1L8mnIf9CRDTvyaL9e2uNNa/","dtype":"float64","shape":[6]},{"__ndarray__":"Ze6USrLV178ugNOeYNnWvwAAAAAAAPh/lmpTZ3yM2L8ugNOeYNnWv3ggZ13GHda/","dtype":"float64","shape":[6]},{"__ndarray__":"Ze6USrLV179rJg7WGUjTvwAAAAAAAPh/76kmjEPb1L9rJg7WGUjTvxc2Y+nJYda/","dtype":"float64","shape":[6]},{"__ndarray__":"Ze6USrLV179+3oAEVPzevwAAAAAAAPh/iA9PAPCA3L9+3oAEVPzev1iWIXxux9u/","dtype":"float64","shape":[6]},{"__ndarray__":"Ze6USrLV178mnIf9CRDTvwAAAAAAAPh/8fVMKXjn078mnIf9CRDTv+/0Nrss29W/","dtype":"float64","shape":[6]},{"__ndarray__":"JpyH/QkQ07+W+TimI3zMvwAAAAAAAPh/b2ckWjHly7+W+TimI3zMv4hBgidPTdC/","dtype":"float64","shape":[6]},{"__ndarray__":"JpyH/QkQ078ugNOeYNnWvwAAAAAAAPh/kdO/Dmwk178ugNOeYNnWv023T5rOydS/","dtype":"float64","shape":[6]},{"__ndarray__":"JpyH/QkQ07+b7wsrcw7SvwAAAAAAAPh/h075hXWK0b+b7wsrcw7Sv6AtxpOn8NO/","dtype":"float64","shape":[6]},{"__ndarray__":"JpyH/QkQ079rJg7WGUjTvwAAAAAAAPh/g+VBMphC1L9rJg7WGUjTvxsGfTy6zdG/","dtype":"float64","shape":[6]},{"__ndarray__":"JpyH/QkQ079Ltn73z93HvwAAAAAAAPh/pGP0oGm5y79Ltn73z93Hv33yYE8IPs6/","dtype":"float64","shape":[6]},{"__ndarray__":"JpyH/QkQ079+3oAEVPzevwAAAAAAAPh/8nhME75C3b9+3oAEVPzev37vEhSv19u/","dtype":"float64","shape":[6]},{"__ndarray__":"JpyH/QkQ079l7pRKstXXvwAAAAAAAPh/mpTPHkT+1r9l7pRKstXXv5yV5YyPCtW/","dtype":"float64","shape":[6]},{"__ndarray__":"JpyH/QkQ07+sXx7A50nXvwAAAAAAAPh/9Fkgt1gK1b+sXx7A50nXvx83Y5xoEdS/","dtype":"float64","shape":[6]},{"__ndarray__":"JpyH/QkQ07/3FvWaL7i8vwAAAAAAAPh/is9O59eJw7/3FvWaL7i8v1h7+LQVu8S/","dtype":"float64","shape":[6]},{"__ndarray__":"wcwcv/xOmz//e/t+DEawvwAAAAAAAPh/uwGyRTwRsb//e/t+DEawvz7nYJi8956/","dtype":"float64","shape":[6]},{"__ndarray__":"wcwcv/xOmz+YOWF9xzK5PwAAAAAAAPh/sdsENidXuD+YOWF9xzK5P3UqqgDgAK8/","dtype":"float64","shape":[6]},{"__ndarray__":"wcwcv/xOmz92pofjaPKkvwAAAAAAAPh/et0I0y6Mp792pofjaPKkv1ADX+o/ooK/","dtype":"float64","shape":[6]},{"__ndarray__":"wcwcv/xOmz8BkUyIdyiLPwAAAAAAAPh/0DhoU5UlTD8BkUyIdyiLP5O19cFK9aM/","dtype":"float64","shape":[6]},{"__ndarray__":"wcwcv/xOmz9HyoJ5RE6hPwAAAAAAAPh/tn/nBbpJoz9HyoJ5RE6hP6DpChZbT1E/","dtype":"float64","shape":[6]},{"__ndarray__":"wcwcv/xOmz9/Uc/N2hq+PwAAAAAAAPh/wKBqrcy/vz9/Uc/N2hq+PxGhwmBcO7Y/","dtype":"float64","shape":[6]},{"__ndarray__":"/3v7fgxGsL/TBew8D6GwvwAAAAAAAPh/TO3GMYLvpr/TBew8D6Gwv0gC9aOmU7W/","dtype":"float64","shape":[6]},{"__ndarray__":"/3v7fgxGsL92pofjaPKkvwAAAAAAAPh/VnNNS7zZqL92pofjaPKkvwvKijXS27S/","dtype":"float64","shape":[6]},{"__ndarray__":"mDlhfccyuT/BzBy//E6bPwAAAAAAAPh/X0SO3H29nj/BzBy//E6bP45X06wWhrA/","dtype":"float64","shape":[6]},{"__ndarray__":"mDlhfccyuT8zJMf+PI+kPwAAAAAAAPh/4+DNIrkotj8zJMf+PI+kP+Z71CtdTq4/","dtype":"float64","shape":[6]},{"__ndarray__":"mDlhfccyuT/0Bt68DLi4PwAAAAAAAPh/VHAa2YnbvT/0Bt68DLi4P6NKM0iN/7M/","dtype":"float64","shape":[6]},{"__ndarray__":"mDlhfccyuT9KaJALVDegPwAAAAAAAPh/+IOj8LQLsj9KaJALVDegPz6d+ajh7rQ/","dtype":"float64","shape":[6]},{"__ndarray__":"mDlhfccyuT9AlkUf1brKPwAAAAAAAPh/sU2aBxT0xz9AlkUf1brKP/hr02gBqMQ/","dtype":"float64","shape":[6]},{"__ndarray__":"mDlhfccyuT/eYnC5fyrEPwAAAAAAAPh/k4yhMbNLwj/eYnC5fyrEP5Llg2Ud+Lw/","dtype":"float64","shape":[6]},{"__ndarray__":"mDlhfccyuT9HyoJ5RE6hPwAAAAAAAPh/kjQ01uigoz9HyoJ5RE6hP0kLVVwYjLI/","dtype":"float64","shape":[6]},{"__ndarray__":"mDlhfccyuT8tCtPXOKzGPwAAAAAAAPh/vFwkJHEBwz8tCtPXOKzGP2ZVXmetVcA/","dtype":"float64","shape":[6]},{"__ndarray__":"dqaH42jypL//e/t+DEawvwAAAAAAAPh/HSsxlsWkrL//e/t+DEawv7wU0uy6jZe/","dtype":"float64","shape":[6]},{"__ndarray__":"dqaH42jypL9e/cpoC2GYvwAAAAAAAPh/i/66vWsRjL9e/cpoC2GYv6YCfzuwYaq/","dtype":"float64","shape":[6]},{"__ndarray__":"dqaH42jypL9pe8YLK56SvwAAAAAAAPh/brAvxMKQq79pe8YLK56Sv9fHlo/KibG/","dtype":"float64","shape":[6]},{"__ndarray__":"AZFMiHcoiz/BzBy//E6bPwAAAAAAAPh/v+lT7AUBpD/BzBy//E6bP+BD9epfFE8/","dtype":"float64","shape":[6]},{"__ndarray__":"AZFMiHcoiz9pe8YLK56SvwAAAAAAAPh/qLs132Lymb9pe8YLK56Sv7j+9iFoiog/","dtype":"float64","shape":[6]},{"__ndarray__":"AZFMiHcoiz9HyoJ5RE6hPwAAAAAAAPh/OsPD/c3Opj9HyoJ5RE6hP2DTkskhK3s/","dtype":"float64","shape":[6]},{"__ndarray__":"R8qCeUROoT/BzBy//E6bPwAAAAAAAPh/5WFTphFYlz/BzBy//E6bP1rZYABIa64/","dtype":"float64","shape":[6]},{"__ndarray__":"R8qCeUROoT//e/t+DEawvwAAAAAAAPh/7kdafBkVsb//e/t+DEawv+TVjNpYA5+/","dtype":"float64","shape":[6]},{"__ndarray__":"R8qCeUROoT/1nIOI7c6HvwAAAAAAAPh/vn5mk8y+lD/1nIOI7c6Hv/Y2B5FLsKM/","dtype":"float64","shape":[6]},{"__ndarray__":"R8qCeUROoT+YOWF9xzK5PwAAAAAAAPh/c4QIT3UJuD+YOWF9xzK5P+Umm7uim64/","dtype":"float64","shape":[6]},{"__ndarray__":"R8qCeUROoT9KMvr78YWWvwAAAAAAAPh/MqloRcQhkb9KMvr78YWWvyDm5+6sh5E/","dtype":"float64","shape":[6]},{"__ndarray__":"R8qCeUROoT92pofjaPKkvwAAAAAAAPh/rSdXDht+p792pofjaPKkv4SoAuxvdoK/","dtype":"float64","shape":[6]},{"__ndarray__":"R8qCeUROoT8BkUyIdyiLPwAAAAAAAPh/zLQi3UWZZD8BkUyIdyiLPxuUYyL+sqQ/","dtype":"float64","shape":[6]},{"__ndarray__":"R8qCeUROoT9/Uc/N2hq+PwAAAAAAAPh/JoSCZJfLvz9/Uc/N2hq+P/XaOITJRLY/","dtype":"float64","shape":[6]},{"__ndarray__":"R8qCeUROoT9cS+DwI/fAPwAAAAAAAPh/1UxB9WUJwT9cS+DwI/fAP3CkvnkG7Lg/","dtype":"float64","shape":[6]},{"__ndarray__":"f1HPzdoavj+6/XrVVP/APwAAAAAAAPh/2qXcra8Buj+6/XrVVP/AP5DcpQg9v8E/","dtype":"float64","shape":[6]},{"__ndarray__":"f1HPzdoavj9cS+DwI/fAPwAAAAAAAPh/eI81B4WLuj9cS+DwI/fAP87yWkQiFsI/","dtype":"float64","shape":[6]},{"__ndarray__":"f1HPzdoavj/Vc6fkKOGtPwAAAAAAAPh/eHU8D68Suz/Vc6fkKOGtPypHOClXlbo/","dtype":"float64","shape":[6]},{"__ndarray__":"0wXsPA+hsL9KMvr78YWWvwAAAAAAAPh/ITqU3fFqlb9KMvr78YWWv+i0lhJIFq2/","dtype":"float64","shape":[6]},{"__ndarray__":"0wXsPA+hsL+m7D5zmKO4vwAAAAAAAPh/7MtEBLDUuL+m7D5zmKO4vz1hw0myVK+/","dtype":"float64","shape":[6]},{"__ndarray__":"9ZyDiO3Oh78zJMf+PI+kPwAAAAAAAPh/YePeEgNVqD8zJMf+PI+kP0Zs8nTez4Q/","dtype":"float64","shape":[6]},{"__ndarray__":"9ZyDiO3Oh7/TBew8D6GwvwAAAAAAAPh/NChtsCYjsr/TBew8D6Gwv8GNMvXDS6G/","dtype":"float64","shape":[6]},{"__ndarray__":"9ZyDiO3Oh79KMvr78YWWvwAAAAAAAPh/0yDQX1rqob9KMvr78YWWv7jTEizILGo/","dtype":"float64","shape":[6]},{"__ndarray__":"9ZyDiO3Oh7+/a1XWEUqYPwAAAAAAAPh/CAmn2ZJhfz+/a1XWEUqYP3sme0HY35W/","dtype":"float64","shape":[6]},{"__ndarray__":"MyTH/jyPpD/0Bt68DLi4PwAAAAAAAPh/R6LVhfvTsj/0Bt68DLi4PyIudlIQ56g/","dtype":"float64","shape":[6]},{"__ndarray__":"MyTH/jyPpD9KaJALVDegPwAAAAAAAPh/Q8Gb8F7jkT9KaJALVDegP2RAsMLHjaw/","dtype":"float64","shape":[6]},{"__ndarray__":"SjL6+/GFlr/1nIOI7c6HvwAAAAAAAPh/MA5E9r90Vj/1nIOI7c6Hv54t3+KA2aK/","dtype":"float64","shape":[6]},{"__ndarray__":"SjL6+/GFlr/TBew8D6GwvwAAAAAAAPh/3IOFRM/nsL/TBew8D6Gwv8TffMqe3Z6/","dtype":"float64","shape":[6]},{"__ndarray__":"SjL6+/GFlr+/a1XWEUqYPwAAAAAAAPh/GVIJ2l+cmT+/a1XWEUqYP/LtmMQKaYa/","dtype":"float64","shape":[6]},{"__ndarray__":"v2tV1hFKmD/1nIOI7c6HvwAAAAAAAPh/Fmynbtkocj/1nIOI7c6Hv+Fhx6k5IaE/","dtype":"float64","shape":[6]},{"__ndarray__":"v2tV1hFKmD8zJMf+PI+kPwAAAAAAAPh/UDrPJJoGrD8zJMf+PI+kPz+f2ubfzJA/","dtype":"float64","shape":[6]},{"__ndarray__":"v2tV1hFKmD/TBew8D6GwvwAAAAAAAPh/4zqJkvnusL/TBew8D6Gwv9z0wfFX8p6/","dtype":"float64","shape":[6]},{"__ndarray__":"v2tV1hFKmD9KaJALVDegPwAAAAAAAPh/m/jc5ibcpz9KaJALVDegP06UbjUf4oA/","dtype":"float64","shape":[6]},{"__ndarray__":"v2tV1hFKmD9KMvr78YWWvwAAAAAAAPh/oxiu/z/Yl79KMvr78YWWv9xgT3lK8Yk/","dtype":"float64","shape":[6]},{"__ndarray__":"v2tV1hFKmD/eYnC5fyrEPwAAAAAAAPh/ywLBMSCUwj/eYnC5fyrEPxX0fjr/Qb0/","dtype":"float64","shape":[6]},{"__ndarray__":"G9ALZWGe1b8Z/lOOZbTPvwAAAAAAAPh/RP6iUYtZ0r8Z/lOOZbTPvxy5a/N7DtO/","dtype":"float64","shape":[6]},{"__ndarray__":"G9ALZWGe1b83rfwb7FLavwAAAAAAAPh/s0flnm2v1783rfwb7FLav+WuapjmJte/","dtype":"float64","shape":[6]},{"__ndarray__":"Gf5TjmW0z7/xH473y+bIvwAAAAAAAPh/ZW9USulVz7/xH473y+bIv5pQ7gjhOc2/","dtype":"float64","shape":[6]},{"__ndarray__":"Gf5TjmW0z78b0AtlYZ7VvwAAAAAAAPh/5NCS2ggf078b0AtlYZ7VvwsWyjgYatK/","dtype":"float64","shape":[6]},{"__ndarray__":"Gf5TjmW0z79Ltn73z93HvwAAAAAAAPh/JjVFJ78ryr9Ltn73z93Hv/Tk3EXnv82/","dtype":"float64","shape":[6]},{"__ndarray__":"Gf5TjmW0z78erEhAR6/MvwAAAAAAAPh/H5F9zYg10b8erEhAR6/Mv6xELRaOqc6/","dtype":"float64","shape":[6]},{"__ndarray__":"N638G+xS2r8b0AtlYZ7VvwAAAAAAAPh/nzUj4t9B2L8b0AtlYZ7Vv23Onehmyti/","dtype":"float64","shape":[6]},{"__ndarray__":"YPqw/NX4or/nmcH+UgZTPwAAAAAAAPh/R/+ZMYlKlL/nmcH+UgZTPzHCQ8rrj6e/","dtype":"float64","shape":[6]},{"__ndarray__":"YPqw/NX4or+Vbn+vLtG4vwAAAAAAAPh/620rtDNbqb+Vbn+vLtG4v8DlaOOdXKq/","dtype":"float64","shape":[6]},{"__ndarray__":"YPqw/NX4or9qA/2mt9O0vwAAAAAAAPh/SIiFsSJWor9qA/2mt9O0v21+iiPQdbC/","dtype":"float64","shape":[6]},{"__ndarray__":"lW5/ry7RuL9W40bZ2LCVPwAAAAAAAPh/igukCCb/gL9W40bZ2LCVPypiwnWjMJ2/","dtype":"float64","shape":[6]},{"__ndarray__":"lW5/ry7RuL9g+rD81fiivwAAAAAAAPh/0DTC0/+ftb9g+rD81fiiv+Z4I7xKH7W/","dtype":"float64","shape":[6]},{"__ndarray__":"lW5/ry7RuL9p9oeF90bEvwAAAAAAAPh/l7uMpE+yv79p9oeF90bEv5QkK9forLu/","dtype":"float64","shape":[6]},{"__ndarray__":"lW5/ry7RuL/nmcH+UgZTPwAAAAAAAPh/RFAaKorqor/nmcH+UgZTP8TmyXJ2Gqm/","dtype":"float64","shape":[6]},{"__ndarray__":"lW5/ry7RuL9U95Shk6rQvwAAAAAAAPh/Ljq8ruR0zL9U95Shk6rQvyLCM9Bw6Mq/","dtype":"float64","shape":[6]},{"__ndarray__":"lW5/ry7RuL9oFYJtxf6zvwAAAAAAAPh/0rlkl0Eutr9oFYJtxf6zv/FvvYDOhL6/","dtype":"float64","shape":[6]},{"__ndarray__":"lW5/ry7RuL9qA/2mt9O0vwAAAAAAAPh/w/yGIMMCtL9qA/2mt9O0vwqVOGl/V72/","dtype":"float64","shape":[6]},{"__ndarray__":"agP9prfTtL9W40bZ2LCVPwAAAAAAAPh/0G2ScIRHk79W40bZ2LCVP6AxzuGcYp2/","dtype":"float64","shape":[6]},{"__ndarray__":"agP9prfTtL9U95Shk6rQvwAAAAAAAPh/te58uPZUzb9U95Shk6rQv6q0KoD67sq/","dtype":"float64","shape":[6]},{"__ndarray__":"agP9prfTtL9oFYJtxf6zvwAAAAAAAPh/GG2Y6sk5u79oFYJtxf6zv07uOf5SkbG/","dtype":"float64","shape":[6]},{"__ndarray__":"agP9prfTtL8xVpQHvuytPwAAAAAAAPh/yqFPUC5FoT8xVpQHvuytPzAzYktNa4Q/","dtype":"float64","shape":[6]},{"__ndarray__":"tJGLTVnyyr87cZvNKHjSvwAAAAAAAPh/C4Q/7aijzr87cZvNKHjSv6JFLCQeiM+/","dtype":"float64","shape":[6]},{"__ndarray__":"tJGLTVnyyr/RA5+0R+K/vwAAAAAAAPh/aFfQjJD3xb/RA5+0R+K/v/4oPThx0MW/","dtype":"float64","shape":[6]},{"__ndarray__":"tJGLTVnyyr8dc1XNmsTFvwAAAAAAAPh/x3HitibcyL8dc1XNmsTFvzTp7jNR88u/","dtype":"float64","shape":[6]},{"__ndarray__":"0QOftEfiv7+4pLdfnS3GvwAAAAAAAPh/YGq9nYb3v7+4pLdfnS3Gv7/l9zJUjMC/","dtype":"float64","shape":[6]},{"__ndarray__":"0QOftEfiv79EIYAWjbSzvwAAAAAAAPh/lQ9bML7Lv79EIYAWjbSzv4hVJL3fZr+/","dtype":"float64","shape":[6]},{"__ndarray__":"0QOftEfiv78dc1XNmsTFvwAAAAAAAPh/oOo3tcIav78dc1XNmsTFvwD0s766kcK/","dtype":"float64","shape":[6]},{"__ndarray__":"0QOftEfiv79xfKW0l/e5vwAAAAAAAPh/dLs04I7HwL9xfKW0l/e5vwSbTYAWWcO/","dtype":"float64","shape":[6]},{"__ndarray__":"rF8ewOdJ179rJg7WGUjTvwAAAAAAAPh/kq8Yn2Jw1r9rJg7WGUjTvy639V3u9tW/","dtype":"float64","shape":[6]},{"__ndarray__":"rF8ewOdJ1783rfwb7FLavwAAAAAAAPh/cjt98izL1783rfwb7FLav/GBw8gcINe/","dtype":"float64","shape":[6]},{"__ndarray__":"rF8ewOdJ178mnIf9CRDTvwAAAAAAAPh/3qGFBplP1b8mnIf9CRDTv7PEQiGJSNa/","dtype":"float64","shape":[6]},{"__ndarray__":"rF8ewOdJ179oLJcIBmXXvwAAAAAAAPh/Rhzv+IyB2L9oLJcIBmXXv250+7X4Cta/","dtype":"float64","shape":[6]},{"__ndarray__":"cXDARNhV0T+7c2xFhO3TPwAAAAAAAPh/0imqJjW60D+7c2xFhO3TP7UxJhV1aNE/","dtype":"float64","shape":[6]},{"__ndarray__":"cXDARNhV0T+yimQfclrgPwAAAAAAAPh/d+LOq5/B3j+yimQfclrgP7Y4Td3Ug90/","dtype":"float64","shape":[6]},{"__ndarray__":"cXDARNhV0T9qfEpkzJTNPwAAAAAAAPh/njHL/Gxh0D9qfEpkzJTNP0A/AiJJ3ss/","dtype":"float64","shape":[6]},{"__ndarray__":"cXDARNhV0T+BONlqdu/RPwAAAAAAAPh/niZiOed30D+BONlqdu/RP7CflAj47NI/","dtype":"float64","shape":[6]},{"__ndarray__":"cXDARNhV0T/21pJcMhXYPwAAAAAAAPh/qNSuFYUN1T/21pJcMhXYP4yZFaF8ttY/","dtype":"float64","shape":[6]},{"__ndarray__":"cXDARNhV0T9SAZ9yo7vaPwAAAAAAAPh/kIZdKkdZ2T9SAZ9yo7vaP4RNfeGZstc/","dtype":"float64","shape":[6]},{"__ndarray__":"cXDARNhV0T89ZIihZ9bRPwAAAAAAAPh/99QET37+0j89ZIihZ9bRP8KgFW6ah9A/","dtype":"float64","shape":[6]},{"__ndarray__":"cXDARNhV0T/tDAIFgoe/PwAAAAAAAPh/iUU7ocodxD/tDAIFgoe/P9Dz0YJg974/","dtype":"float64","shape":[6]},{"__ndarray__":"cXDARNhV0T9EK5dq8D/HPwAAAAAAAPh/5Y1pdhOgxT9EK5dq8D/HP/jQlaVNgso/","dtype":"float64","shape":[6]},{"__ndarray__":"cXDARNhV0T+Rk8Y65nLUPwAAAAAAAPh/Fq1IGL4L1D+Rk8Y65nLUP1ibd4N759E/","dtype":"float64","shape":[6]},{"__ndarray__":"cXDARNhV0T+dnhYaM1vYPwAAAAAAAPh/CnQZ1CdK1j+dnhYaM1vYP9lJhKLiJdU/","dtype":"float64","shape":[6]},{"__ndarray__":"9AbevAy4uD8zJMf+PI+kPwAAAAAAAPh/x/Zrtq8rsD8zJMf+PI+kP/2BBhMjjLY/","dtype":"float64","shape":[6]},{"__ndarray__":"9AbevAy4uD+YOWF9xzK5PwAAAAAAAPh/OdAkYUoPtD+YOWF9xzK5P+r1C/JG670/","dtype":"float64","shape":[6]},{"__ndarray__":"9AbevAy4uD/eYnC5fyrEPwAAAAAAAPh/YJrwW/SLuz/eYnC5fyrEP4pNWFQ2NcA/","dtype":"float64","shape":[6]},{"__ndarray__":"9AbevAy4uD8tCtPXOKzGPwAAAAAAAPh/xhBDTcJgwD8tCtPXOKzGP9ihxZ+LMMM/","dtype":"float64","shape":[6]},{"__ndarray__":"9AbevAy4uD8zYGFFkpG4PwAAAAAAAPh/lkD3n8eTvT8zYGFFkpG4P4NEpXN1t7M/","dtype":"float64","shape":[6]},{"__ndarray__":"9AbevAy4uD/Vc6fkKOGtPwAAAAAAAPh/JPJLTvFAuD/Vc6fkKOGtP8VkodlUdq4/","dtype":"float64","shape":[6]},{"__ndarray__":"SmiQC1Q3oD8zJMf+PI+kPwAAAAAAAPh/26sJkuHUqz8zJMf+PI+kPzGYTo+ScZA/","dtype":"float64","shape":[6]},{"__ndarray__":"SmiQC1Q3oD+CsbczCdGzPwAAAAAAAPh/+u8eD9HCmz+CsbczCdGzPwVBjVwPzaQ/","dtype":"float64","shape":[6]},{"__ndarray__":"SmiQC1Q3oD+/a1XWEUqYPwAAAAAAAPh/N5Z4P9gAgj+/a1XWEUqYPxZ5XynVI6g/","dtype":"float64","shape":[6]},{"__ndarray__":"9taSXDIV2D+yimQfclrgPwAAAAAAAPh/s9EztZsm4D+yimQfclrgPzWxuI8nKd4/","dtype":"float64","shape":[6]},{"__ndarray__":"9taSXDIV2D/hCCBmI/zfPwAAAAAAAPh/KGPzXEjH3z/hCCBmI/zfP+7iXnjokN0/","dtype":"float64","shape":[6]},{"__ndarray__":"9taSXDIV2D+BONlqdu/RPwAAAAAAAPh/OFa9nfuV1D+BONlqdu/RP+7tIdWLGtU/","dtype":"float64","shape":[6]},{"__ndarray__":"9taSXDIV2D9d/AJXYcLfPwAAAAAAAPh/TCtAuT1+3z9d/AJXYcLfP1H8+VYjTd0/","dtype":"float64","shape":[6]},{"__ndarray__":"9taSXDIV2D9S0VYsbBfdPwAAAAAAAPh/rpCksb1G3T9S0VYsbBfdP57RlK/J8to/","dtype":"float64","shape":[6]},{"__ndarray__":"9taSXDIV2D/srcrH9QXYPwAAAAAAAPh/+pFAtoFE2T/srcrH9QXYPx8mMu1qzdY/","dtype":"float64","shape":[6]},{"__ndarray__":"9taSXDIV2D9EK5dq8D/HPwAAAAAAAPh/rbt9Fbfrxj9EK5dq8D/HP1zGj7P4kMs/","dtype":"float64","shape":[6]},{"__ndarray__":"9taSXDIV2D+dnhYaM1vYPwAAAAAAAPh//vMRT2iB2T+dnhYaM1vYP72ckfCOCtc/","dtype":"float64","shape":[6]},{"__ndarray__":"7K3Kx/UF2D/hCCBmI/zfPwAAAAAAAPh/ucsczUku3T/hCCBmI/zfP4eFXBuq4dw/","dtype":"float64","shape":[6]},{"__ndarray__":"7K3Kx/UF2D/21pJcMhXYPwAAAAAAAPh/6PIcbqbW1j/21pJcMhXYP8NeKze9Tdk/","dtype":"float64","shape":[6]},{"__ndarray__":"7K3Kx/UF2D9SAZ9yo7vaPwAAAAAAAPh/CuBCLWmW1z9SAZ9yo7vaPxhOlri6BNg/","dtype":"float64","shape":[6]},{"__ndarray__":"7K3Kx/UF2D9XoCB4b/rUPwAAAAAAAPh/Yuvt84It1z9XoCB4b/rUP+O8uPOHMtg/","dtype":"float64","shape":[6]},{"__ndarray__":"7K3Kx/UF2D9S0VYsbBfdPwAAAAAAAPh/DjeulH742T9S0VYsbBfdPylSxDY9Uto/","dtype":"float64","shape":[6]},{"__ndarray__":"7K3Kx/UF2D89ZIihZ9bRPwAAAAAAAPh/7gXaddJi1D89ZIihZ9bRP+AlQrQuP9I/","dtype":"float64","shape":[6]},{"__ndarray__":"7K3Kx/UF2D/eSOO52wjWPwAAAAAAAPh/fA+HHAnC1z/eSOO52wjWP5Sm8Ro9VNU/","dtype":"float64","shape":[6]},{"__ndarray__":"7K3Kx/UF2D+dnhYaM1vYPwAAAAAAAPh/Qh9eFWjw1j+dnhYaM1vYP5e8QtdAZtk/","dtype":"float64","shape":[6]},{"__ndarray__":"3mJwuX8qxD/0Bt68DLi4PwAAAAAAAPh/KBnn6YvAwj/0Bt68DLi4P84Yh8NPUcA/","dtype":"float64","shape":[6]},{"__ndarray__":"3mJwuX8qxD+YOWF9xzK5PwAAAAAAAPh/L+b+jGDwvD+YOWF9xzK5P+EMX8XUR8I/","dtype":"float64","shape":[6]},{"__ndarray__":"3mJwuX8qxD9AlkUf1brKPwAAAAAAAPh/Ek/LFO+hxj9AlkUf1brKPwTDM2tOUcQ/","dtype":"float64","shape":[6]},{"__ndarray__":"3mJwuX8qxD8tCtPXOKzGPwAAAAAAAPh/9t1IiX/UwD8tCtPXOKzGP6C04jK5dcQ/","dtype":"float64","shape":[6]},{"__ndarray__":"3mJwuX8qxD/PqDdIrj/MPwAAAAAAAPh/7Bp6dnPWxj/PqDdIrj/MP5sDnklr88U/","dtype":"float64","shape":[6]},{"__ndarray__":"LQrT1zisxj+YOWF9xzK5PwAAAAAAAPh/PEpfcitEwD+YOWF9xzK5P5NRJS/v78I/","dtype":"float64","shape":[6]},{"__ndarray__":"LQrT1zisxj9AlkUf1brKPwAAAAAAAPh/VZ/46b6KyT9AlkUf1brKP8E/HWWyacU/","dtype":"float64","shape":[6]},{"__ndarray__":"LQrT1zisxj/eYnC5fyrEPwAAAAAAAPh/FY/6BzkCyj/eYnC5fyrEP2u4YF7/YMY/","dtype":"float64","shape":[6]},{"__ndarray__":"M2BhRZKRuD/0Bt68DLi4PwAAAAAAAPh/kSZIYte1sz/0Bt68DLi4P6Qimo4pkr0/","dtype":"float64","shape":[6]},{"__ndarray__":"M2BhRZKRuD99AxB/ode4PwAAAAAAAPh/Vc5Q7iGevT99AxB/ode4P8qXo0n4wbM/","dtype":"float64","shape":[6]},{"__ndarray__":"M2BhRZKRuD9cS+DwI/fAPwAAAAAAAPh//D3QwgEyuD9cS+DwI/fAP1p+TI7IgcA/","dtype":"float64","shape":[6]},{"__ndarray__":"M2BhRZKRuD/Vc6fkKOGtPwAAAAAAAPh/LCTKZgZ5uj/Vc6fkKOGtPxrY8Q/hJ7s/","dtype":"float64","shape":[6]},{"__ndarray__":"1XOn5CjhrT+COhtJOZ2vPwAAAAAAAPh/W3181utZoz+COhtJOZ2vP1chWrThe7M/","dtype":"float64","shape":[6]},{"__ndarray__":"1XOn5CjhrT8sGGhdGBG6PwAAAAAAAPh/cHjzlUwWsT8sGGhdGBG6PzcRl0cHQLo/","dtype":"float64","shape":[6]},{"__ndarray__":"1XOn5CjhrT+RA1d7cq+TPwAAAAAAAPh/8rGERkddrT+RA1d7cq+TP+1Q1cL7gZc/","dtype":"float64","shape":[6]},{"__ndarray__":"Cb1vhAKw178mZYnqyMrXvwAAAAAAAPh/6o62T0P42L8mZYnqyMrXv6atxJ1Ggda/","dtype":"float64","shape":[6]},{"__ndarray__":"Cb1vhAKw179dSyZRLYLVvwAAAAAAAPh/h2tQR4c71b9dSyZRLYLVv/ICALEhlde/","dtype":"float64","shape":[6]},{"__ndarray__":"XUsmUS2C1b8JvW+EArDXvwAAAAAAAPh/35xFjqj2178JvW+EArDXv3QFliQOndW/","dtype":"float64","shape":[6]},{"__ndarray__":"XUsmUS2C1b89ZOyAA3bSvwAAAAAAAPh/9Tr4wL1h0r89ZOyAA3bSv63ESLGOrtS/","dtype":"float64","shape":[6]},{"__ndarray__":"afaHhfdGxL9U95Shk6rQvwAAAAAAAPh/YiIIP2MyzL9U95Shk6rQv9SxXxWN88q/","dtype":"float64","shape":[6]},{"__ndarray__":"afaHhfdGxL+Vbn+vLtG4vwAAAAAAAPh/6E8BC2fWwL+Vbn+vLtG4v2kbsnEa2cK/","dtype":"float64","shape":[6]},{"__ndarray__":"afaHhfdGxL9oFYJtxf6zvwAAAAAAAPh/5KOvcXzSur9oFYJtxf6zv0N21+A7RsC/","dtype":"float64","shape":[6]},{"__ndarray__":"HqxIQEevzL/xH473y+bIvwAAAAAAAPh/A55yH6Cdzr/xH473y+bIv3WFzVKTC8+/","dtype":"float64","shape":[6]},{"__ndarray__":"HqxIQEevzL8b0AtlYZ7VvwAAAAAAAPh/g1ad22+i0r8b0AtlYZ7VvzzhWanDptK/","dtype":"float64","shape":[6]},{"__ndarray__":"HqxIQEevzL87cZvNKHjSvwAAAAAAAPh/Pn+MK9xA0L87cZvNKHjSv18aZgLHf86/","dtype":"float64","shape":[6]},{"__ndarray__":"HqxIQEevzL9Ltn73z93HvwAAAAAAAPh/bRC/1WnUx79Ltn73z93Hv34eJMFBZcy/","dtype":"float64","shape":[6]},{"__ndarray__":"HqxIQEevzL/RA5+0R+K/vwAAAAAAAPh/n+J0cQ5hxr/RA5+0R+K/v2pOYBC0UcS/","dtype":"float64","shape":[6]},{"__ndarray__":"HqxIQEevzL8dc1XNmsTFvwAAAAAAAPh/qFSjM/8UzL8dc1XNmsTFv33iGw3CIsu/","dtype":"float64","shape":[6]},{"__ndarray__":"RCGAFo20s7/nmcH+UgZTPwAAAAAAAPh/RbWbGkwYqb/nmcH+UgZTPz2s5pf9JqC/","dtype":"float64","shape":[6]},{"__ndarray__":"RCGAFo20s7/RA5+0R+K/vwAAAAAAAPh/gBXEmhbLs7/RA5+0R+K/v47P+g31L7S/","dtype":"float64","shape":[6]},{"__ndarray__":"RCGAFo20s78dc1XNmsTFvwAAAAAAAPh/wrhcwT6nvr8dc1XNmsTFv06A3rIYJ8G/","dtype":"float64","shape":[6]},{"__ndarray__":"RCGAFo20s79xfKW0l/e5vwAAAAAAAPh/sFSSV2qdqr9xfKW0l/e5v2awHiMLtbK/","dtype":"float64","shape":[6]},{"__ndarray__":"aCyXCAZl179h6Jb2YlXVvwAAAAAAAPh/LGh9qGbY1r9h6Jb2YlXVv9FYXWQ0ZNS/","dtype":"float64","shape":[6]},{"__ndarray__":"aCyXCAZl1787cZvNKHjSvwAAAAAAAPh/YS+otyIr1b87cZvNKHjSv6d1eATrntW/","dtype":"float64","shape":[6]},{"__ndarray__":"aCyXCAZl179+3oAEVPzevwAAAAAAAPh/LmQvNjzq3L9+3oAEVPzev7r4kcTkxtu/","dtype":"float64","shape":[6]},{"__ndarray__":"aCyXCAZl17/eYnC5fyrEPwAAAAAAAPh/FzlXh5bNvj/eYnC5fyrEP5jGBdlldrs/","dtype":"float64","shape":[6]},{"__ndarray__":"aCyXCAZl17+c8CMAXQPtvwAAAAAAAPh/rt2U0jKC67+c8CMAXQPtv7R06VQHi+u/","dtype":"float64","shape":[6]},{"__ndarray__":"aCyXCAZl17+sXx7A50nXvwAAAAAAAPh/zm/Gz2At1r+sXx7A50nXv6YXuhL1o9i/","dtype":"float64","shape":[6]},{"__ndarray__":"aCyXCAZl178mnIf9CRDTvwAAAAAAAPh/HrCAephC1L8mnIf9CRDTv7knIbARBta/","dtype":"float64","shape":[6]},{"__ndarray__":"9xb1mi+4vL/xH473y+bIvwAAAAAAAPh/FcuRwlf1xb/xH473y+bIv0p4zrC8xMK/","dtype":"float64","shape":[6]},{"__ndarray__":"9xb1mi+4vL+b7wsrcw7SvwAAAAAAAPh/ZhT6Yzrpzb+b7wsrcw7SvyuXEFvffs6/","dtype":"float64","shape":[6]},{"__ndarray__":"9xb1mi+4vL9rJg7WGUjTvwAAAAAAAPh/HQu6IqoX0b9rJg7WGUjTv5rjuHoiENC/","dtype":"float64","shape":[6]},{"__ndarray__":"9xb1mi+4vL8mnIf9CRDTvwAAAAAAAPh/Hnqd8Cl50L8mnIf9CRDTv3BIkRMWwc+/","dtype":"float64","shape":[6]},{"__ndarray__":"9xb1mi+4vL/PqDdIrj/MPwAAAAAAAPh/ihE3erAVxz/PqDdIrj/MP3Ppw7/E38U/","dtype":"float64","shape":[6]},{"__ndarray__":"6kUp/5ku7L+c8CMAXQPtvwAAAAAAAPh/yS5+YAsI7L+c8CMAXQPtv8UgXZmNauu/","dtype":"float64","shape":[6]},{"__ndarray__":"puw+c5ijuL/TBew8D6GwvwAAAAAAAPh/jSbmq/dvsL/TBew8D6Gwv9pBSYtOmrm/","dtype":"float64","shape":[6]},{"__ndarray__":"JHIVONcDrD9KaJALVDegPwAAAAAAAPh/qpPjb01Msj9KaJALVDegP2xeusc0eqM/","dtype":"float64","shape":[6]},{"__ndarray__":"JHIVONcDrD+CsbczCdGzPwAAAAAAAPh/NDf/hUYCrj+CsbczCdGzP2wZIvUP2p8/","dtype":"float64","shape":[6]},{"__ndarray__":"CuHI7hnIwz/lQN7av8HDPwAAAAAAAPh/7f0buuRGxj/lQN7av8HDP4OfcHDCWME/","dtype":"float64","shape":[6]},{"__ndarray__":"CuHI7hnIwz+CsbczCdGzPwAAAAAAAPh/e86LKNQvwD+CsbczCdGzPwh8sN/8u74/","dtype":"float64","shape":[6]},{"__ndarray__":"5UDe2r/Bwz8K4cjuGcjDPwAAAAAAAPh/ASSLD/VCwT8K4cjuGcjDP2yCNlkXMcY/","dtype":"float64","shape":[6]},{"__ndarray__":"5UDe2r/Bwz+CsbczCdGzPwAAAAAAAPh//hKg0N0lvz+CsbczCdGzP0SNAJ0OFcA/","dtype":"float64","shape":[6]},{"__ndarray__":"grG3MwnRsz8zJMf+PI+kPwAAAAAAAPh/QW+8Gi8rsz8zJMf+PI+kP83sxJ3l8KM/","dtype":"float64","shape":[6]},{"__ndarray__":"grG3MwnRsz8K4cjuGcjDPwAAAAAAAPh/oNYxwJQBuz8K4cjuGcjDP473mDFApbw/","dtype":"float64","shape":[6]},{"__ndarray__":"grG3MwnRsz/lQN7av8HDPwAAAAAAAPh/TiDUGKsuvD/lQN7av8HDP8MYc69rKrs/","dtype":"float64","shape":[6]},{"__ndarray__":"grG3MwnRsz9KaJALVDegPwAAAAAAAPh/qCm49f77tD9KaJALVDegPyRFOYsrhrE/","dtype":"float64","shape":[6]},{"__ndarray__":"grG3MwnRsz+/a1XWEUqYPwAAAAAAAPh/RLpE773koj+/a1XWEUqYPxg/W8YoQLE/","dtype":"float64","shape":[6]},{"__ndarray__":"grG3MwnRsz8kchU41wOsPwAAAAAAAPh/+s7CjNHRsj8kchU41wOsPznkedJw3Lk/","dtype":"float64","shape":[6]},{"__ndarray__":"Xv3KaAthmL/1nIOI7c6HvwAAAAAAAPh/rLV65dZmaz/1nIOI7c6Hv+tXjUWV7aG/","dtype":"float64","shape":[6]},{"__ndarray__":"Xv3KaAthmL9pe8YLK56SvwAAAAAAAPh/k/pAo3jUpL9pe8YLK56SvwApMGoahmK/","dtype":"float64","shape":[6]},{"__ndarray__":"Xv3KaAthmL9KMvr78YWWvwAAAAAAAPh/XDPmqyt0cb9KMvr78YWWv+cy03CX5KW/","dtype":"float64","shape":[6]},{"__ndarray__":"Xv3KaAthmL92pofjaPKkvwAAAAAAAPh/gmV+qJMeqr92pofjaPKkv/qJuHH5BIu/","dtype":"float64","shape":[6]},{"__ndarray__":"aXvGCyuekr9e/cpoC2GYvwAAAAAAAPh/MDr44FJkVb9e/cpoC2GYv9S5pZM5V6S/","dtype":"float64","shape":[6]},{"__ndarray__":"aXvGCyuekr92pofjaPKkvwAAAAAAAPh/6J3ZKd2Fdb92pofjaPKkvwyuCtdaSIM/","dtype":"float64","shape":[6]},{"__ndarray__":"MVaUB77srT9W40bZ2LCVPwAAAAAAAPh/Ri0uUcxXlz9W40bZ2LCVP0DQrer/o60/","dtype":"float64","shape":[6]},{"__ndarray__":"MVaUB77srT9jQTOml+OyPwAAAAAAAPh/Wr6QnrUCnT9jQTOml+OyP/gU77GjJK0/","dtype":"float64","shape":[6]},{"__ndarray__":"MVaUB77srT8+AApSOymyPwAAAAAAAPh/H+NGQurZtD8+AApSOymyP1YeuPPITqY/","dtype":"float64","shape":[6]},{"__ndarray__":"z6g3SK4/zD9AlkUf1brKPwAAAAAAAPh/0t7FTzIk0D9AlkUf1brKP8vsnpHuWMw/","dtype":"float64","shape":[6]},{"__ndarray__":"z6g3SK4/zD/eYnC5fyrEPwAAAAAAAPh/wvAti7qTyT/eYnC5fyrEPxIICrjCdso/","dtype":"float64","shape":[6]},{"__ndarray__":"z6g3SK4/zD8tCtPXOKzGPwAAAAAAAPh/GLc/eLnwyT8tCtPXOKzGP3eZeomt6Mw/","dtype":"float64","shape":[6]},{"__ndarray__":"nPAjAF0D7b/qRSn/mS7svwAAAAAAAPh/vQfPnusp7b/qRSn/mS7sv8EV8GVpx+2/","dtype":"float64","shape":[6]},{"__ndarray__":"XEvg8CP3wD8zYGFFkpG4PwAAAAAAAPh/eNwoMuwmwT8zYGFFkpG4Pzj6iApJfLk/","dtype":"float64","shape":[6]},{"__ndarray__":"XEvg8CP3wD8+AApSOymyPwAAAAAAAPh/BKXF4tigtD8+AApSOymyP9tDDDbo2Lw/","dtype":"float64","shape":[6]},{"__ndarray__":"XEvg8CP3wD/PqDdIrj/MPwAAAAAAAPh/8D8TohzPxT/PqDdIrj/MPy2EhtlS0Mc/","dtype":"float64","shape":[6]},{"__ndarray__":"XEvg8CP3wD9/Uc/N2hq+PwAAAAAAAPh/Xywt1M6+wj9/Uc/N2hq+P5oC2ibe3Ls/","dtype":"float64","shape":[6]},{"__ndarray__":"XEvg8CP3wD8sGGhdGBG6PwAAAAAAAPh/eE2gEOSVvT8sGGhdGBG6PxO7FKfNqMI/","dtype":"float64","shape":[6]},{"__ndarray__":"OKBxrmdgtz9jQTOml+OyPwAAAAAAAPh/aAL3M2RusD9jQTOml+OyP2DK/X0RGLo/","dtype":"float64","shape":[6]},{"__ndarray__":"OKBxrmdgtz8+AApSOymyPwAAAAAAAPh/GicJwy+zvT8+AApSOymyP/a/FbZzX74/","dtype":"float64","shape":[6]},{"__ndarray__":"OKBxrmdgtz8qdasu4tW7PwAAAAAAAPh/gOp+oKIfrz8qdasu4tW7P6AT487pYrA/","dtype":"float64","shape":[6]},{"__ndarray__":"OKBxrmdgtz/+NHjdzUS8PwAAAAAAAPh/RHYmL8aQuz/+NHjdzUS8P0wKk/fCrLI/","dtype":"float64","shape":[6]},{"__ndarray__":"OKBxrmdgtz/W2ayre4mzPwAAAAAAAPh/huzUskNPuz/W2ayre4mzP/wPoXp2xLE/","dtype":"float64","shape":[6]},{"__ndarray__":"PgAKUjspsj9W40bZ2LCVPwAAAAAAAPh/oFh3tKzykT9W40bZ2LCVP2MIhj/Hsas/","dtype":"float64","shape":[6]},{"__ndarray__":"PgAKUjspsj9jQTOml+OyPwAAAAAAAPh/JG+obtofqz9jQTOml+OyP2ObPeTharc/","dtype":"float64","shape":[6]},{"__ndarray__":"PgAKUjspsj+COhtJOZ2vPwAAAAAAAPh/v4I0D4GPtT+COhtJOZ2vP3yhyoazcqc/","dtype":"float64","shape":[6]},{"__ndarray__":"PgAKUjspsj8qdasu4tW7PwAAAAAAAPh/W2I2k9jYrz8qdasu4tW7PwhUfLTx4a8/","dtype":"float64","shape":[6]},{"__ndarray__":"PgAKUjspsj9cS+DwI/fAPwAAAAAAAPh/8fEEUap2vz9cS+DwI/fAPxpTvv2aPrc/","dtype":"float64","shape":[6]},{"__ndarray__":"PgAKUjspsj/+NHjdzUS8PwAAAAAAAPh/VHaJ5cGYtz/+NHjdzUS8P0abhGSZebA/","dtype":"float64","shape":[6]},{"__ndarray__":"PgAKUjspsj8xVpQHvuytPwAAAAAAAPh/cJAaJ2CLqD8xVpQHvuytPywc+Ns1+LU/","dtype":"float64","shape":[6]},{"__ndarray__":"PgAKUjspsj/W2ayre4mzPwAAAAAAAPh/GeL7JMVdtz/W2ayre4mzP3VwaRalF6s/","dtype":"float64","shape":[6]},{"__ndarray__":"KnWrLuLVuz84oHGuZ2C3PwAAAAAAAPh/EdBuRjzTwT84oHGuZ2C3P+EAHQewacE/","dtype":"float64","shape":[6]},{"__ndarray__":"KnWrLuLVuz+6/XrVVP/APwAAAAAAAPh/w+cc3nUYwj+6/XrVVP/AP2JezGcokro/","dtype":"float64","shape":[6]},{"__ndarray__":"KnWrLuLVuz9jQTOml+OyPwAAAAAAAPh/YijI6VDfsj9jQTOml+OyP4YE0hvJ/Ls/","dtype":"float64","shape":[6]},{"__ndarray__":"KnWrLuLVuz8xVpQHvuytPwAAAAAAAPh/NQD1bkQasj8xVpQHvuytP43ffyiyBLo/","dtype":"float64","shape":[6]},{"__ndarray__":"/jR43c1EvD84oHGuZ2C3PwAAAAAAAPh/817DXG8UuD84oHGuZ2C3P3VlK0o5fMA/","dtype":"float64","shape":[6]},{"__ndarray__":"/jR43c1EvD9jQTOml+OyPwAAAAAAAPh/DMP8IqB6sT9jQTOml+OyPwaAxmKP8ro/","dtype":"float64","shape":[6]},{"__ndarray__":"/jR43c1EvD8+AApSOymyPwAAAAAAAPh/6L74SUfVtj8+AApSOymyP/aZ/cpv9L0/","dtype":"float64","shape":[6]},{"__ndarray__":"/jR43c1EvD/PqDdIrj/MPwAAAAAAAPh/khUlwJ+cxj/PqDdIrj/MP5rIxqbVDsY/","dtype":"float64","shape":[6]},{"__ndarray__":"/jR43c1EvD+Y2AvVmXK8PwAAAAAAAPh/Vv6OTAF+wD+Y2AvVmXK8P+kn+DL/ILc/","dtype":"float64","shape":[6]},{"__ndarray__":"/jR43c1EvD/Vc6fkKOGtPwAAAAAAAPh/fGp7Z1ckuD/Vc6fkKOGtP7fi3nYWJK4/","dtype":"float64","shape":[6]},{"__ndarray__":"/jR43c1EvD/W2ayre4mzPwAAAAAAAPh/Sk5e+rMvwD/W2ayre4mzP7RJvXR807s/","dtype":"float64","shape":[6]},{"__ndarray__":"1tmsq3uJsz84oHGuZ2C3PwAAAAAAAPh/DxuTTj81rz84oHGuZ2C3PxJqfd9sJbk/","dtype":"float64","shape":[6]},{"__ndarray__":"1tmsq3uJsz9jQTOml+OyPwAAAAAAAPh/X3jQ04lWrD9jQTOml+OyP5NqONVAB7g/","dtype":"float64","shape":[6]},{"__ndarray__":"1tmsq3uJsz8zYGFFkpG4PwAAAAAAAPh/efHYc9NEuz8zYGFFkpG4P9jWInLwkbE/","dtype":"float64","shape":[6]},{"__ndarray__":"1tmsq3uJsz8+AApSOymyPwAAAAAAAPh/9u91seOprD8+AApSOymyP9khgnLkJrg/","dtype":"float64","shape":[6]},{"__ndarray__":"1tmsq3uJsz8sGGhdGBG6PwAAAAAAAPh/ZzYB6G7nqj8sGGhdGBG6Pxxun47klq4/","dtype":"float64","shape":[6]},{"__ndarray__":"1tmsq3uJsz/Vc6fkKOGtPwAAAAAAAPh/qQKNztHQtT/Vc6fkKOGtPyfP39fiMag/","dtype":"float64","shape":[6]},{"__ndarray__":"1tmsq3uJsz/+NHjdzUS8PwAAAAAAAPh/guTQKMPdrj/+NHjdzUS8PyDFZxTN+rM/","dtype":"float64","shape":[6]},{"__ndarray__":"uv161VT/wD8qdasu4tW7PwAAAAAAAPh/GaFnHaCjuT8qdasu4tW7Px6J6rgxocE/","dtype":"float64","shape":[6]},{"__ndarray__":"uv161VT/wD9/Uc/N2hq+PwAAAAAAAPh/jVN0ZeoLwz9/Uc/N2hq+P9STeWcKm7w/","dtype":"float64","shape":[6]},{"__ndarray__":"gjobSTmdrz8+AApSOymyPwAAAAAAAPh/gDXGzq3QqD8+AApSOymyP8JMMjN+PrY/","dtype":"float64","shape":[6]},{"__ndarray__":"gjobSTmdrz9cS+DwI/fAPwAAAAAAAPh/lyxjQMAbtT9cS+DwI/fAP8kiC9SnwLk/","dtype":"float64","shape":[6]},{"__ndarray__":"gjobSTmdrz/Vc6fkKOGtPwAAAAAAAPh/fhijKzsStT/Vc6fkKOGtP6hrDsWehqY/","dtype":"float64","shape":[6]},{"__ndarray__":"gjobSTmdrz+RA1d7cq+TPwAAAAAAAPh/RPkdUCqbqz+RA1d7cq+TP6HOHeOUaJI/","dtype":"float64","shape":[6]},{"__ndarray__":"kQNXe3Kvkz/Vc6fkKOGtPwAAAAAAAPh/WIectzW3lD/Vc6fkKOGtPydN6EDk96s/","dtype":"float64","shape":[6]},{"__ndarray__":"fQMQf6HXuD8zYGFFkpG4PwAAAAAAAPh/XJUg1hHLsz8zYGFFkpG4P+bLzXo7p70/","dtype":"float64","shape":[6]},{"__ndarray__":"I8Yn8V8uvD+CsbczCdGzPwAAAAAAAPh/qXGekC7Yvz+CsbczCdGzPyy99+1zDrk/","dtype":"float64","shape":[6]},{"__ndarray__":"I8Yn8V8uvD8kchU41wOsPwAAAAAAAPh/4OOuPE58uj8kchU41wOsPzhcQtVgGbk/","dtype":"float64","shape":[6]},{"__ndarray__":"mNgL1ZlyvD+COhtJOZ2vPwAAAAAAAPh/htQAepDHuj+COhtJOZ2vPwZ8Y+F9yrI/","dtype":"float64","shape":[6]},{"__ndarray__":"mNgL1ZlyvD8zYGFFkpG4PwAAAAAAAPh/1r/ShL0rvz8zYGFFkpG4PwxG+cb5abU/","dtype":"float64","shape":[6]},{"__ndarray__":"mNgL1ZlyvD8+AApSOymyPwAAAAAAAPh/pBJWKq1ztD8+AApSOymyP/n1ZL73vrw/","dtype":"float64","shape":[6]},{"__ndarray__":"mNgL1ZlyvD/PqDdIrj/MPwAAAAAAAPh/n1VPAnkexj/PqDdIrj/MP7wJWPt3g8Y/","dtype":"float64","shape":[6]},{"__ndarray__":"mNgL1ZlyvD9cS+DwI/fAPwAAAAAAAPh/xr6Rvdwcvz9cS+DwI/fAPzY5NgdqDLc/","dtype":"float64","shape":[6]},{"__ndarray__":"mNgL1ZlyvD/+NHjdzUS8PwAAAAAAAPh/6hBmGWW7tz/+NHjdzUS8P9fyxT80y8A/","dtype":"float64","shape":[6]},{"__ndarray__":"mNgL1ZlyvD8xVpQHvuytPwAAAAAAAPh/RTNTOXe1rT8xVpQHvuytPyDRKgv3/rc/","dtype":"float64","shape":[6]},{"__ndarray__":"mNgL1ZlyvD/W2ayre4mzPwAAAAAAAPh/7H+kZV7hvj/W2ayre4mzP6LhHES44L8/","dtype":"float64","shape":[6]},{"__ndarray__":"LBhoXRgRuj84oHGuZ2C3PwAAAAAAAPh/H+sNNmvetD84oHGuZ2C3Pzmy5aEQir4/","dtype":"float64","shape":[6]},{"__ndarray__":"LBhoXRgRuj9jQTOml+OyPwAAAAAAAPh/sQy2G4ppsD9jQTOml+OyP1o7ptT3E7o/","dtype":"float64","shape":[6]},{"__ndarray__":"LBhoXRgRuj+COhtJOZ2vPwAAAAAAAPh/hMrHLlKxuT+COhtJOZ2vPzshN8pu9LA/","dtype":"float64","shape":[6]},{"__ndarray__":"LBhoXRgRuj8+AApSOymyPwAAAAAAAPh/uAAERLvHsz8+AApSOymyP+/sElUOWLw/","dtype":"float64","shape":[6]},{"__ndarray__":"LBhoXRgRuj/PqDdIrj/MPwAAAAAAAPh/yDWIIvJJxj/PqDdIrj/MP2HJ9hE+TsY/","dtype":"float64","shape":[6]},{"__ndarray__":"LBhoXRgRuj9cS+DwI/fAPwAAAAAAAPh/a2GILnxpvj9cS+DwI/fAP744//DErbY/","dtype":"float64","shape":[6]},{"__ndarray__":"LBhoXRgRuj/Vc6fkKOGtPwAAAAAAAPh/qFnIOWDrtz/Vc6fkKOGtP8GBSRBLg60/","dtype":"float64","shape":[6]},{"__ndarray__":"LBhoXRgRuj/W2ayre4mzPwAAAAAAAPh/ZyuKSm4TwD/W2ayre4mzP/Q6xcEhT74/","dtype":"float64","shape":[6]}]},"selected":{"id":"3833","type":"Selection"},"selection_policy":{"id":"3832","type":"UnionRenderers"}},"id":"3795","type":"ColumnDataSource"},{"attributes":{},"id":"3822","type":"BasicTickFormatter"},{"attributes":{"factors":["M","F"],"palette":["#e41a1c","#377eb8"]},"id":"3793","type":"CategoricalColorMapper"},{"attributes":{},"id":"3824","type":"BasicTickFormatter"},{"attributes":{"axis_label":"y","bounds":"auto","formatter":{"id":"3824","type":"BasicTickFormatter"},"major_label_orientation":"horizontal","plot":{"id":"3761","subtype":"Figure","type":"Plot"},"ticker":{"id":"3775","type":"BasicTicker"},"visible":false},"id":"3774","type":"LinearAxis"},{"attributes":{"fill_color":{"field":"node_color","transform":{"id":"3793","type":"CategoricalColorMapper"}},"size":{"units":"screen","value":15}},"id":"3797","type":"Circle"},{"attributes":{"callback":null,"reset_end":1.0,"reset_start":-0.4292223708720005,"start":-0.4292223708720005,"tags":[[["x","x",null]]]},"id":"3757","type":"Range1d"},{"attributes":{},"id":"3820","type":"NodesAndLinkedEdges"},{"attributes":{},"id":"3770","type":"BasicTicker"},{"attributes":{"fill_alpha":{"value":0.2},"fill_color":{"field":"node_color","transform":{"id":"3793","type":"CategoricalColorMapper"}},"line_alpha":{"value":0.2},"size":{"units":"screen","value":15}},"id":"3798","type":"Circle"},{"attributes":{"callback":null,"end":0.5110407460345725,"reset_end":0.5110407460345725,"reset_start":-0.9066605570547099,"start":-0.9066605570547099,"tags":[[["y","y",null]]]},"id":"3758","type":"Range1d"},{"attributes":{"grid_line_color":{"value":null},"plot":{"id":"3761","subtype":"Figure","type":"Plot"},"ticker":{"id":"3770","type":"BasicTicker"}},"id":"3773","type":"Grid"},{"attributes":{"plot":null,"text":"Contact Network By Gender","text_color":{"value":"black"},"text_font_size":{"value":"12pt"}},"id":"3760","type":"Title"},{"attributes":{"fill_color":{"field":"node_color","transform":{"id":"3793","type":"CategoricalColorMapper"}},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":15}},"id":"3799","type":"Circle"},{"attributes":{"bottom_units":"screen","fill_alpha":{"value":0.5},"fill_color":{"value":"lightgrey"},"left_units":"screen","level":"overlay","line_alpha":{"value":1.0},"line_color":{"value":"black"},"line_dash":[4,4],"line_width":{"value":2},"plot":null,"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"3788","type":"BoxAnnotation"},{"attributes":{"axis_label":"x","bounds":"auto","formatter":{"id":"3822","type":"BasicTickFormatter"},"major_label_orientation":"horizontal","plot":{"id":"3761","subtype":"Figure","type":"Plot"},"ticker":{"id":"3770","type":"BasicTicker"},"visible":false},"id":"3769","type":"LinearAxis"},{"attributes":{"fill_color":{"value":"limegreen"},"size":{"units":"screen","value":15}},"id":"3800","type":"Circle"},{"attributes":{},"id":"3767","type":"LinearScale"},{"attributes":{},"id":"3783","type":"ResetTool"},{"attributes":{"fill_color":{"field":"node_color","transform":{"id":"3793","type":"CategoricalColorMapper"}},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":15}},"id":"3801","type":"Circle"},{"attributes":{"data_source":{"id":"3794","type":"ColumnDataSource"},"glyph":{"id":"3797","type":"Circle"},"hover_glyph":{"id":"3800","type":"Circle"},"muted_glyph":{"id":"3801","type":"Circle"},"nonselection_glyph":{"id":"3798","type":"Circle"},"selection_glyph":{"id":"3799","type":"Circle"},"view":{"id":"3803","type":"CDSView"}},"id":"3802","type":"GlyphRenderer"},{"attributes":{},"id":"3765","type":"LinearScale"},{"attributes":{"source":{"id":"3794","type":"ColumnDataSource"}},"id":"3803","type":"CDSView"},{"attributes":{"overlay":{"id":"3788","type":"BoxAnnotation"}},"id":"3782","type":"BoxZoomTool"},{"attributes":{"line_width":{"value":2}},"id":"3804","type":"MultiLine"},{"attributes":{},"id":"3832","type":"UnionRenderers"},{"attributes":{"line_alpha":{"value":0.2},"line_width":{"value":2}},"id":"3805","type":"MultiLine"},{"attributes":{},"id":"3833","type":"Selection"},{"attributes":{"line_color":{"value":"limegreen"},"line_width":{"value":2}},"id":"3806","type":"MultiLine"},{"attributes":{},"id":"3780","type":"PanTool"},{"attributes":{},"id":"3834","type":"UnionRenderers"},{"attributes":{},"id":"3781","type":"WheelZoomTool"},{"attributes":{"data_source":{"id":"3795","type":"ColumnDataSource"},"glyph":{"id":"3804","type":"MultiLine"},"hover_glyph":{"id":"3806","type":"MultiLine"},"muted_glyph":null,"nonselection_glyph":{"id":"3805","type":"MultiLine"},"selection_glyph":null,"view":{"id":"3808","type":"CDSView"}},"id":"3807","type":"GlyphRenderer"},{"attributes":{},"id":"3835","type":"Selection"},{"attributes":{"source":{"id":"3795","type":"ColumnDataSource"}},"id":"3808","type":"CDSView"},{"attributes":{},"id":"3779","type":"SaveTool"},{"attributes":{"callback":null,"renderers":[{"id":"3809","type":"GraphRenderer"}],"tooltips":[["index","@{index_hover}"],["class","@{class}"],["gender","@{gender}"]]},"id":"3759","type":"HoverTool"},{"attributes":{"edge_renderer":{"id":"3807","type":"GlyphRenderer"},"inspection_policy":{"id":"3820","type":"NodesAndLinkedEdges"},"layout_provider":{"id":"3796","type":"StaticLayoutProvider"},"node_renderer":{"id":"3802","type":"GlyphRenderer"},"selection_policy":{"id":"3818","type":"NodesAndLinkedEdges"}},"id":"3809","type":"GraphRenderer"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"3759","type":"HoverTool"},{"id":"3779","type":"SaveTool"},{"id":"3780","type":"PanTool"},{"id":"3781","type":"WheelZoomTool"},{"id":"3782","type":"BoxZoomTool"},{"id":"3783","type":"ResetTool"}]},"id":"3784","type":"Toolbar"}],"root_ids":["3761"]},"title":"Bokeh Application","version":"1.0.4"}};
+  var render_items = [{"docid":"b493d505-2cc0-4cc4-9b57-bc210eaf4002","roots":{"3761":"7fedd93b-63d0-44a7-b0de-999d794a4b3c"}}];
+  root.Bokeh.embed.embed_items_notebook(docs_json, render_items);
+
+  }
+  if (root.Bokeh !== undefined) {
+    embed_document(root);
+  } else {
+    var attempts = 0;
+    var timer = setInterval(function(root) {
+      if (root.Bokeh !== undefined) {
+        embed_document(root);
+        clearInterval(timer);
+      }
+      attempts++;
+      if (attempts > 100) {
+        console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+        clearInterval(timer);
+      }
+    }, 10, root)
+  }
+})(window);
+</script>
+</div>
