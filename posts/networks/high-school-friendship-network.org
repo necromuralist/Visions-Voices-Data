@@ -1,6 +1,6 @@
 #+BEGIN_COMMENT
-.. title: High School Contact and Friendship Networks
-.. slug: high-school-contact-and-friendship-networks
+.. title: High School Friendship Networks
+.. slug: high-school-friendship-networks
 .. date: 2019-03-24 17:38:17 UTC-07:00
 .. tags: networks,exploration
 .. category: Networks
@@ -18,7 +18,7 @@
 %autoreload 2
 #+END_SRC
 * The Departure
-  This looks at data provided by [[http://www.sociopatterns.org][SocioPatterns]] that looks a the interactions between students at a High School in Marseilles, France, in December of 2013.
+  This looks at data provided by [[http://www.sociopatterns.org][SocioPatterns]] that looks a the interactions between students at a High School in Marseilles, France, in December of 2013. In particular, I'm going to look at the /Friendship Networks/ data - wherein the students reported who they were friends with.
 *** Imports
 **** From Python
 #+begin_src ipython :session highschool :results none
@@ -41,7 +41,8 @@ import pandas as pandas
 **** My Stuff
 #+begin_src ipython :session highschool :results none
 from graeae.timers import Timer
-from graeae.visualization import EmbedBokeh, EmbedHoloview
+from graeae.tables import CountPercentage
+from graeae.visualization import EmbedHoloview
 #+end_src
 *** Load the Dotenv
 #+begin_src ipython :session highschool :results none
@@ -54,7 +55,7 @@ TIMER = Timer()
 ** Setup The Plotting
 #+begin_src ipython :session highschool :results none
 holoviews.extension("bokeh")
-SLUG = "high-school-contact-and-friendship-networks/"
+SLUG = "high-school-friendship-networks/"
 output = Path("../../files/posts/networks/" + SLUG)
 Embed = partial(EmbedHoloview, folder_path=output)
 EmbedB = partial(EmbedBokeh, folder_path=output)
@@ -66,9 +67,10 @@ class Plot:
     width = 1000
     height = 800
     fontsize = 18
+    edge_color = "LightSteelBlue"
 #+end_src
-** Load The Data
-   Let's take a look at the data before loading it into pandas.
+** Meta-Data
+   Let's take a look at the meta-data before loading it into pandas.
 
 #+begin_src ipython :session highschool :results none
 HIGH_SCHOOL = Path(os.environ.get("HIGH_SCHOOL")).expanduser()
@@ -83,7 +85,6 @@ class Files:
     high_school = "High-School_data_2013.csv"
 #+end_src
 
-*** MetaData
 #+begin_src ipython :session highschool :results output :exports both
 metadata_path = HIGH_SCHOOL.joinpath(Files.metadata)
 assert metadata_path.is_file()
@@ -99,7 +100,7 @@ with metadata_path.open() as reader:
 : 857	2BIO1	F
 : 487	2BIO1	F
 
-This first file has the meta-data for the students. The three columns are the student's ID, class, and gender.
+This file has the meta-data for the students. The three columns are the student's ID, class, and gender. I don't know what /class/ refers to here.
 
 #+begin_src ipython :session highschool :results none
 meta_data = pandas.read_csv(metadata_path, sep="\t", 
@@ -108,8 +109,38 @@ meta_data.loc[:, "class"] = meta_data["class"].astype("category")
 meta_data.loc[:, "gender"] = meta_data.gender.astype("category")
 #+end_src
 
-**** Classes
-     First a bar-plot to look at how the classes are distributed.
+#+begin_src ipython :session highschool :results output :exports both
+print(len(meta_data))
+print(len(meta_data.id.unique()))
+#+end_src
+
+#+RESULTS:
+: 329
+: 329
+
+So there's one entry for each student, meaning the student's can't belong to more than one class.
+
+*** Classes
+First a table of the counts.
+#+begin_src ipython :session highschool :results output raw :exports both
+table = CountPercentage(meta_data["class"]).holoviews_table.opts(
+    width=Plot.width,
+    height=256,
+    fontsize=Plot.fontsize,
+)
+Embed(plot=table, file_name="class_table", height_in_pixels=270)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="class_table.html" style="width:100%" height=270>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+The fact that there are nine classes makes it seem like it's not likely they are 'classes' in the sense of freshman, sophomores, etc. At the same time, since each student only has one class, it doesn't seem like they are 'classes' in the sense of "Biology 101".
+
+Now a bar-plot to look at how the classes are distributed.
 
 #+begin_src ipython :session highschool :results none
 grouped = meta_data.groupby(["class", "gender"]).agg(
@@ -162,7 +193,7 @@ Embed(plot=plot, file_name="gender_counts", height_in_pixels=Plot.height)()
 [[file:gender_counts.html][Link to Plot]]
 
 Strangely, the classes that start with =2BIO= are more female while the others are more male.
-**** Gender
+*** Gender
      A stacked bar plot to get a sense of not just the distribution among genders but among classes.
 #+begin_src ipython :session highschool :results output raw :exports both
 plot = grouped.hvplot.bar(title="Gender Counts", x="gender", y="gender_count",
@@ -212,7 +243,7 @@ Embed(plot=plot, file_name="class_counts", height_in_pixels=Plot.height)()
 
 It looks like there were a little more males than females, but not a whole lot more.
 
-* The Descent
+* The Initiation
 ** The Friendship Network
     This is a dataset that shows whether a student identified another student as their friend.
 
@@ -249,9 +280,9 @@ with TIMER:
 #+end_src
 
 #+RESULTS:
-: Started: 2019-03-28 13:14:16.562278
-: Ended: 2019-03-28 13:14:16.564510
-: Elapsed: 0:00:00.002232
+: Started: 2019-03-31 11:44:01.341636
+: Ended: 2019-03-31 11:44:01.342629
+: Elapsed: 0:00:00.000993
 #+begin_src ipython :session highschool :results none
 genders = dict(zip(meta_data.id, meta_data.gender))
 classes = dict(zip(meta_data.id, meta_data["class"]))
@@ -279,7 +310,8 @@ plot = holoviews.Graph.from_networkx(friendship_graph,
                                          tools=[hover],
                                          fontsize=Plot.fontsize,
                                          width=800,
-                                         height=800,                                        
+                                         height=800,
+                                         edge_line_color=Plot.edge_color,
                                          title="Friendship Network by Gender",
                                          xaxis=None, yaxis=None, directed=True)
 EmbedB(plot=plot, file_name="friendship_network_circular")()
@@ -288,7 +320,7 @@ EmbedB(plot=plot, file_name="friendship_network_circular")()
 #+RESULTS:
 #+begin_export html
 
-<script src="friendship_network_circular" id="62f6c2d6-213f-49eb-aba8-56252673d1aa"></script>
+<script src="friendship_network_circular" id="de987ddc-354e-40cb-a2b5-ca123c83cef6"></script>
 #+end_export
 
 It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others.
@@ -307,7 +339,8 @@ plot = holoviews.Graph.from_networkx(friendship_graph,
                                          tools=[hover],
                                          fontsize=Plot.fontsize,
                                          width=800,
-                                         height=800,                                        
+                                         height=800,
+                                         edge_line_color=Plot.edge_color,
                                          title="Friendship Network by Class",
                                          xaxis=None, yaxis=None, directed=True)
 Embed(plot=plot, file_name="friendship_network_circular_class")()
@@ -324,12 +357,15 @@ Embed(plot=plot, file_name="friendship_network_circular_class")()
 
 #+begin_src ipython :session highschool :results output raw :exports both
 plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
-                                         node_color=dim("class"), cmap="Set1",
-                                         tools=["hover"],
-                                         width=800,
-                                         height=800,
-                                         title="Friendship Network By Class",
-                                         xaxis=None, yaxis=None, directed=True)
+    node_color=dim("class"), cmap="Set1",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_line_color=Plot.edge_color,
+    title="Friendship Network By Class",
+    xaxis=None, yaxis=None, directed=True,
+    legend_position="right"
+)
 Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=810)()
 #+end_src
 
@@ -342,12 +378,15 @@ Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=8
 
 [[file:friendship_network_class_spring.html][Link to Plot]]
 
+Unlike the circular plot, this plot shows that there are disconnected neighborhoods within the network and there seems to be a clustering by class.
+
 #+begin_src ipython :session highschool :results output raw :exports both
 plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
                                          node_color=dim("gender"), cmap="Set1",
                                          tools=["hover"],
                                          width=800,
                                          height=800,
+                                         edge_line_color=Plot.edge_color,
                                          title="Friendship Network By Gender",
                                          xaxis=None, yaxis=None, directed=True)
 Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=810)()
@@ -362,7 +401,8 @@ Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=
 
 [[file:friendship_network_gender_spring.html][Link to Plot]]
 
-* End
+Interestingly, this view seems to show that there is also some segregation by gender.
+* The Return
 ** Citations
    - R. Mastrandrea, J. Fournet, A. Barrat,
 Contact patterns in a high school: a comparison between data collected using wearable sensors, contact diaries and friendship surveys.
