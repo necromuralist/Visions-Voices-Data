@@ -137,6 +137,8 @@ Embed(plot=plot, file_name="gender_counts_stacked", height_in_pixels=Plot.height
 </object>
 #+end_export
 
+[[file:gender_counts_stacked.html][Link to Plot]]
+
 This is a look at the same thing except not stacked.
 #+begin_src ipython :session highschool :results output raw :exports both
 plot = grouped.hvplot.bar(title="Class Counts by Gender", x="class", 
@@ -155,6 +157,8 @@ Embed(plot=plot, file_name="gender_counts", height_in_pixels=Plot.height)()
   <p>Figure Missing</p>
 </object>
 #+end_export
+
+[[file:gender_counts.html][Link to Plot]]
 
 Strangely, the classes that start with =2BIO= are more female while the others are more male.
 **** Gender
@@ -180,6 +184,8 @@ Embed(plot=plot, file_name="class_counts_stacked", height_in_pixels=Plot.height)
 </object>
 #+end_export
 
+[[file:class_counts_stacked.html][Link to Plot]]
+
 A non-stacked bar plot to get a better sense of how the genders fill the different classes.
 
 #+begin_src ipython :session highschool :results output raw :exports both
@@ -200,6 +206,8 @@ Embed(plot=plot, file_name="class_counts", height_in_pixels=Plot.height)()
   <p>Figure Missing</p>
 </object>
 #+end_export
+
+[[file:class_counts.html][Link to Plot]]
 
 It looks like there were a little more males than females, but not a whole lot more.
 
@@ -222,7 +230,7 @@ with contact_path.open() as reader:
 : 3 177 1
 : 3 295 4
 
-The columns are the person who was making the report, the person that was identified as a contact, and the time spent.
+The columns are the person who was making the report, the person that was identified as a contact, and the time spent ecoded into one of four values.
 
 | Code | Lower Limit (minutes) | Upper Limit (minutes) |
 |------+-----------------------+-----------------------|
@@ -236,122 +244,6 @@ contact_data = pandas.read_csv(contact_path, delimiter=" ",
                                   names=["reporter", "contact", "time"])
 contact_data = contact_data.dropna()
 #+end_src
-* The Descent
-** Looking at the Friendship Network
-
-#+begin_src ipython :session highschool :results output :exports both
-with TIMER:
-    contact_graph = networkx.convert_matrix.from_pandas_edgelist(
-        contact_data, "reporter", "contact", 
-        create_using=networkx.DiGraph)
-#+end_src
-
-#+RESULTS:
-: Started: 2019-03-27 22:54:56.488545
-: Ended: 2019-03-27 22:54:56.489541
-: Elapsed: 0:00:00.000996
-#+begin_src ipython :session highschool :results none
-genders = dict(zip(meta_data.id, meta_data.gender))
-classes = dict(zip(meta_data.id, meta_data["class"]))
-#+end_src
-
-#+begin_src ipython :session highschool :results none
-for node in contact_graph.nodes:
-    contact_graph.nodes[node]["gender"] = genders[node]
-    contact_graph.nodes[node]["class"] = classes[node]
-#+end_src
-
-#+begin_src ipython :session highschool :results output raw :exports both
-hover = HoverTool(
-    tooltips = [
-         ("Gender", "@gender"),
-         ("Class", "@class"),
-    ],
-)
-
-plot = holoviews.Graph.from_networkx(contact_graph,
-                                     networkx.circular_layout).opts(
-                                         node_color=dim("gender"), cmap="Set1",
-                                         tools=[hover],
-                                         fontsize=Plot.fontsize,
-                                         width=800,
-                                         height=800,                                        
-                                         title="Contact Network by Gender",
-                                         xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="contact_network_circular")()
-#+end_src
-
-#+RESULTS:
-#+begin_export html
-<object type="text/html" data="contact_network_circular.html" style="width:100%" height=800>
-  <p>Figure Missing</p>
-</object>
-#+end_export
-
-It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others.
-
-#+begin_src ipython :session highschool :results output raw :exports both
-hover = HoverTool(
-    tooltips = [
-         ("Gender", "@gender"),
-         ("Class", "@class"),
-    ],
-)
-
-plot = holoviews.Graph.from_networkx(contact_graph,
-                                     networkx.circular_layout).opts(
-                                         node_color=dim("class"), cmap="Set1",
-                                         tools=[hover],
-                                         fontsize=Plot.fontsize,
-                                         width=800,
-                                         height=800,                                        
-                                         title="Contact Network by Class",
-                                         xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="contact_network_circular_class")()
-#+end_src
-
-#+RESULTS:
-#+begin_export html
-<object type="text/html" data="contact_network_circular_class.html" style="width:100%" height=800>
-  <p>Figure Missing</p>
-</object>
-#+end_export
-
-#+begin_src ipython :session highschool :results output raw :exports both
-plot = holoviews.Graph.from_networkx(contact_graph, networkx.spring_layout, ).opts(
-                                         node_color=dim("class"), cmap="Set1",
-                                         tools=["hover"],
-                                         width=800,
-                                         height=800,
-                                         title="Contact Network By Class",
-                                         xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="contact_network_class_spring", height_in_pixels=810)()
-#+end_src
-
-#+RESULTS:
-#+begin_export html
-<object type="text/html" data="contact_network_class_spring.html" style="width:100%" height=810>
-  <p>Figure Missing</p>
-</object>
-#+end_export
-
-#+begin_src ipython :session highschool :results output raw :exports both
-plot = holoviews.Graph.from_networkx(contact_graph, networkx.spring_layout, ).opts(
-                                         node_color=dim("gender"), cmap="Set1",
-                                         tools=["hover"],
-                                         width=800,
-                                         height=800,
-                                         title="Contact Network By Gender",
-                                         xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="contact_network_gender_spring", height_in_pixels=810)()
-#+end_src
-
-#+RESULTS:
-#+begin_export html
-<object type="text/html" data="contact_network_gender_spring.html" style="width:100%" height=810>
-  <p>Figure Missing</p>
-</object>
-#+end_export
 
 * End
 ** Citations
