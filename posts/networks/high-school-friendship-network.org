@@ -58,7 +58,6 @@ holoviews.extension("bokeh")
 SLUG = "high-school-friendship-networks/"
 output = Path("../../files/posts/networks/" + SLUG)
 Embed = partial(EmbedHoloview, folder_path=output)
-EmbedB = partial(EmbedBokeh, folder_path=output)
 #+end_src
 
 #+begin_src ipython :session highschool :results none
@@ -69,6 +68,7 @@ class Plot:
     fontsize = 18
     edge_color = "LightSteelBlue"
 #+end_src
+* The Initiation
 ** Meta-Data
    Let's take a look at the meta-data before loading it into pandas.
 
@@ -243,7 +243,6 @@ Embed(plot=plot, file_name="class_counts", height_in_pixels=Plot.height)()
 
 It looks like there were a little more males than females, but not a whole lot more.
 
-* The Initiation
 ** The Friendship Network
     This is a dataset that shows whether a student identified another student as their friend.
 
@@ -262,7 +261,7 @@ with friendship_path.open() as reader:
 : 1 494
 : 1 779
 
-The columns are the person who was making the report and the person that was identified as a friend.
+The first column is the person who reported who his or her friends were and the second column is the person that was identified as a friend.
 
 #+begin_src ipython :session highschool :results none
 friendship_data = pandas.read_csv(friendship_path, delimiter=" ", 
@@ -280,9 +279,9 @@ with TIMER:
 #+end_src
 
 #+RESULTS:
-: Started: 2019-03-31 11:44:01.341636
-: Ended: 2019-03-31 11:44:01.342629
-: Elapsed: 0:00:00.000993
+: Started: 2019-04-02 13:03:28.674216
+: Ended: 2019-04-02 13:03:28.677586
+: Elapsed: 0:00:00.003370
 #+begin_src ipython :session highschool :results none
 genders = dict(zip(meta_data.id, meta_data.gender))
 classes = dict(zip(meta_data.id, meta_data["class"]))
@@ -314,13 +313,14 @@ plot = holoviews.Graph.from_networkx(friendship_graph,
                                          edge_line_color=Plot.edge_color,
                                          title="Friendship Network by Gender",
                                          xaxis=None, yaxis=None, directed=True)
-EmbedB(plot=plot, file_name="friendship_network_circular")()
+Embed(plot=plot, file_name="friendship_network_circular")()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-
-<script src="friendship_network_circular" id="de987ddc-354e-40cb-a2b5-ca123c83cef6"></script>
+<object type="text/html" data="friendship_network_circular.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
 #+end_export
 
 It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others.
@@ -402,6 +402,113 @@ Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=
 [[file:friendship_network_gender_spring.html][Link to Plot]]
 
 Interestingly, this view seems to show that there is also some segregation by gender.
+** Degree Distribution
+*** Total Degrees
+#+begin_src ipython :session highschool :results none
+degree_sequence = sorted((degree for node, degree in friendship_graph.degree()), 
+                         reverse=True)
+degree_counts = Counter(degree_sequence)
+degrees, counts = zip(*degree_counts.items())
+#+end_src
+
+#+begin_src ipython :session highschool :results output raw :exports both
+table = holoviews.Table({"Degrees": degrees, "Count": counts}, ["Degrees"], ["Count"])
+plot = table.to.bars(kdims=["Degrees"], vdims=["Count"]).opts(
+    width=Plot.width,
+    height=Plot.height,
+    fontsize=Plot.fontsize,
+    title="Degree Distribution",
+    tools=["hover"],
+)
+Embed(plot=plot, file_name="degree_distribution")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="degree_distribution.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+*** In-Degree Distribution
+#+begin_src ipython :session highschool :results output raw :exports both
+in_degree_sequence = sorted((degree for node, degree in friendship_graph.in_degree), 
+                         reverse=True)
+in_degree_counts = Counter(in_degree_sequence)
+in_degrees, in_counts = zip(*in_degree_counts.items())
+
+in_data = pandas.DataFrame.from_dict({"Degrees": in_degrees, "Count": in_counts})
+in_data["Direction"] = "in"
+# in_table = holoviews.Table(in_data, ["Degrees"], ["Count"])
+plot = in_data.hvplot.bar(x="Degrees", y="Count").opts(
+    width=Plot.width,
+    height=Plot.height,
+    fontsize=Plot.fontsize,
+    title="In-Degree Distribution",
+    tools=["hover"],
+)
+Embed(plot=plot, file_name="in_degree_distribution")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="in_degree_distribution.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+The in-degree represents the number of times someone identified a student as a friend. Three people weren't identified as friends at all and the most common count was 2, although someone was identified 15 times.
+
+*** Out-Degree Distribution
+#+begin_src ipython :session highschool :results output raw :exports both
+out_degree_sequence = sorted((degree for node, degree in friendship_graph.out_degree), 
+                             reverse=True)
+out_degree_counts = Counter(out_degree_sequence)
+out_degrees, out_counts = zip(*out_degree_counts.items())
+
+out_data = pandas.DataFrame.from_dict({"Degrees": out_degrees, "Count": out_counts})
+out_data["Direction"] = "out"
+# table = holoviews.Table(, ["Degrees"], ["Count"])
+plot = out_data.hvplot.bar(x="Degrees", y="Count").opts(
+    width=Plot.width,
+    height=Plot.height,
+    fontsize=Plot.fontsize,
+    title="Out-Degree Distribution",
+    tools=["hover"],
+)
+Embed(plot=plot, file_name="out_degree_distribution")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="out_degree_distribution.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+The out-degree is the number of students a student identified as a friend.
+
+*** In-and-Out Degree
+
+#+begin_src ipython :session highschool :results output raw :exports both
+in_out = pandas.concat([in_data, 
+                        out_data]).sort_values(by="Degrees")
+plot = in_out.hvplot.bar(x="Degrees", y="Count", by="Direction").opts(
+    width=Plot.width,
+    height=Plot.height,
+    fontsize=Plot.fontsize,
+    title="In and Out-Degree Distribution",
+    tools=["hover"],
+)
+Embed(plot=plot, file_name="in_and_out_degree_distribution")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="in_and_out_degree_distribution.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
 * The Return
 ** Citations
    - R. Mastrandrea, J. Fournet, A. Barrat,
