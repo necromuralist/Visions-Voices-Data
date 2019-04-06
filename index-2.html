@@ -44,6 +44,248 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
+<h1 class="p-name entry-title"><a class="u-url" href="posts/libraries/holoviews-gridded-data/">HoloViews Gridded Data</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="posts/libraries/holoviews-gridded-data/" rel="bookmark"><time class="published dt-published" datetime="2019-03-04T16:50:25-08:00" itemprop="datePublished" title="2019-03-04 16:50">2019-03-04 16:50</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="posts/libraries/holoviews-gridded-data/#orgc23ddfb">The Beginning</a></li>
+<li><a href="posts/libraries/holoviews-gridded-data/#orgf04eb26">The Middle</a>
+<ul>
+<li><a href="posts/libraries/holoviews-gridded-data/#org96cf3af">Set Up</a></li>
+<li><a href="posts/libraries/holoviews-gridded-data/#orgae96f31">Build It</a></li>
+<li><a href="posts/libraries/holoviews-gridded-data/#org7d7e3a1">Save It</a></li>
+</ul>
+</li>
+<li><a href="posts/libraries/holoviews-gridded-data/#org2d0a30b">The End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc23ddfb">
+<h2 id="orgc23ddfb">The Beginning</h2>
+<div class="outline-text-2" id="text-orgc23ddfb">
+<p>This is a reproduction of the HoloViews <a href="http://holoviews.org/getting_started/Gridded_Datasets.html">Gridded Datasets</a> example in the Getting Started section of their documentation to make sure that I can do it myself. The <i>Gridded Data</i> that they're referring to is data with more than two dimensions (a table has two dimensions - <i>columns</i> and <i>rows</i>). One way to display this type of data might be to use three dimensions (assuming there's only three), but the suggestion here is to use a slider to step through the data instead (so the third dimension is time or something similar).</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgf04eb26">
+<h2 id="orgf04eb26">The Middle</h2>
+<div class="outline-text-2" id="text-orgf04eb26"></div>
+<div class="outline-3" id="outline-container-org96cf3af">
+<h3 id="org96cf3af">Set Up</h3>
+<div class="outline-text-3" id="text-org96cf3af"></div>
+<div class="outline-4" id="outline-container-org344224e">
+<h4 id="org344224e">Imports</h4>
+<div class="outline-text-4" id="text-org344224e"></div>
+<ul class="org-ul">
+<li><a id="org4065a99"></a>Python<br>
+<div class="outline-text-5" id="text-org4065a99">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">os</span>
+</pre></div>
+</div>
+</li>
+<li><a id="org814b7bd"></a>PyPi<br>
+<div class="outline-text-5" id="text-org814b7bd">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">import</span> <span class="nn">holoviews</span>
+<span class="kn">from</span> <span class="nn">holoviews</span> <span class="kn">import</span> <span class="n">opts</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+</pre></div>
+</div>
+</li>
+<li><a id="org0c313c8"></a>This Project<br>
+<div class="outline-text-5" id="text-org0c313c8">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="outline-4" id="outline-container-org8ce25f8">
+<h4 id="org8ce25f8">The Dotenv</h4>
+<div class="outline-text-4" id="text-org8ce25f8">
+<div class="highlight">
+<pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">".env"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org840c188">
+<h4 id="org840c188">Bokeh</h4>
+<div class="outline-text-4" id="text-org840c188">
+<div class="highlight">
+<pre><span></span><span class="c1">#+begin_src python :session holoviews :results none</span>
+<span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orge23402d">
+<h4 id="orge23402d">The Embedder</h4>
+<div class="outline-text-4" id="text-orge23402d">
+<div class="highlight">
+<pre><span></span><span class="n">files_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/holoviews-gridded-data/"</span><span class="p">)</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+    <span class="n">EmbedBokeh</span><span class="p">,</span>
+    <span class="n">folder_path</span><span class="o">=</span><span class="n">files_path</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org9486358">
+<h4 id="org9486358">The Output Path</h4>
+<div class="outline-text-4" id="text-org9486358">
+<p>This is where to store files and images that get created and need to get grabbed by nikola.</p>
+<div class="highlight">
+<pre><span></span><span class="n">OUTPUT_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/holoviews-gridded-data"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">OUTPUT_PATH</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orga0f9e22">
+<h4 id="orga0f9e22">The Data</h4>
+<div class="outline-text-4" id="text-orga0f9e22">
+<div class="highlight">
+<pre><span></span><span class="n">data_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"PHOTONS"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">data_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">data_path</span><span class="p">))</span>
+<span class="n">calcium</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"Calcium"</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="n">calcium</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+(62, 111, 50)
+
+</pre>
+<p>The <a href="https://www.numpy.org/devdocs/reference/generated/numpy.load.html">numpy.load</a> function loads a pickled dict-like object that doesn't unpickle the data until you retrieve it (e.g. when I created the <code>calcium</code> variable). The data is a 3D array of images with the third dimension representing time (it's a set of images that change over time) so there are 50 time-steps (I don't know what the imagaes actually are or what the time-intervals are).</p>
+<p>I'm going to load the data into a HoloViews Dataset, but is going to need time, x, and y coordinates to render the images. To make it simpler I'll just pass in integer arrays with zero-indexed indices for the images. Since this isn't really a dataset that I care about I don't know what the orientation of the image is, but the example set it up as a wide image.</p>
+<div class="highlight">
+<pre><span></span><span class="n">data_set</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Dataset</span><span class="p">((</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">111</span><span class="p">),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">62</span><span class="p">),</span> <span class="n">calcium</span><span class="p">),</span>
+                             <span class="p">[</span><span class="s2">"Time"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">],</span> <span class="s2">"Fluoresence"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">data_set</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+:Dataset   [Time,x,y]   (Fluoresence)
+
+</pre>
+<p>Note that holoviews treats labels in lists differently than tuples - if it's a tuple then it thinks it represents a <code>(&lt;variable&gt;, &lt;label&gt;)</code> pair and a list is treated as just labels, which is what we want here.</p>
+<p>The example says that really we should have used <a href="http://xarray.pydata.org/en/stable/">xarray</a> to load the data, so this is how to convert it to and <code>xarray</code>.</p>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">data_set</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">datatype</span><span class="o">=</span><span class="p">[</span><span class="s2">"xarray"</span><span class="p">])</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+&lt;xarray.Dataset&gt;
+Dimensions:      (Time: 50, x: 111, y: 62)
+Coordinates:
+  * Time         (Time) int64 0 1 2 3 4 5 6 7 8 9 ... 41 42 43 44 45 46 47 48 49
+  * x            (x) int64 0 1 2 3 4 5 6 7 8 ... 103 104 105 106 107 108 109 110
+  * y            (y) int64 0 1 2 3 4 5 6 7 8 9 ... 52 53 54 55 56 57 58 59 60 61
+Data variables:
+    Fluoresence  (y, x, Time) uint16 386 441 196 318 525 ... 806 801 899 583 774
+
+</pre>
+<p>But we want to use a Dataset, not an x-array so this was just for illustration…</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgae96f31">
+<h3 id="orgae96f31">Build It</h3>
+<div class="outline-text-3" id="text-orgae96f31"></div>
+<div class="outline-4" id="outline-container-orga3b2e7e">
+<h4 id="orga3b2e7e">Set Up the Plot</h4>
+<div class="outline-text-4" id="text-orga3b2e7e">
+<p>Before doing the plot I'll set the defaults for it.</p>
+<div class="highlight">
+<pre><span></span><span class="n">opts</span><span class="o">.</span><span class="n">defaults</span><span class="p">(</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">GridSpace</span><span class="p">(</span><span class="n">shared_xaxis</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">shared_yaxis</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s2">"viridis"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">400</span><span class="p">),</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Labels</span><span class="p">(</span><span class="n">text_color</span><span class="o">=</span><span class="s2">"white"</span><span class="p">,</span> <span class="n">text_font_size</span><span class="o">=</span><span class="s2">"8pt"</span><span class="p">,</span> <span class="n">text_align</span><span class="o">=</span><span class="s2">"left"</span><span class="p">,</span> <span class="n">text_baseline</span><span class="o">=</span><span class="s2">"bottom"</span><span class="p">),</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">"white"</span><span class="p">),</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Spread</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s2">"hover"</span><span class="p">]),</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">Overlay</span><span class="p">(</span><span class="n">show_legend</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+<p>Note that if you don't setup the backend with <code>holoviews.extension</code> then the opts won't have any of the attributes like <code>GridSpace</code>, <code>Image</code>, etc.</p>
+<div class="highlight">
+<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">data_set</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">holoviews</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="p">[</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">])</span><span class="o">.</span><span class="n">hist</span><span class="p">()</span>
+<span class="n">file_name</span> <span class="o">=</span> <span class="s2">"grid_image.html"</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">OUTPUT_PATH</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+<span class="n">holoviews</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">"[[file:{}][Link to the plot.]]"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_name</span><span class="p">))</span>
+</pre></div>
+<p><a href="posts/libraries/holoviews-gridded-data/grid_image.html">Link to the plot.</a></p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org48b9ede">
+<h4 id="org48b9ede">Zoom In</h4>
+<div class="outline-text-4" id="text-org48b9ede">
+<p>HoloViews provides a way to select out Regions of Interest (ROI). The pickle we loaded earlier has coordinates for rectangular bounding boxes in it (under the <code>ROIs</code> key).</p>
+<div class="highlight">
+<pre><span></span><span class="n">regions_of_interest</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"ROIs"</span><span class="p">]</span>
+<span class="n">bounds</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Path</span><span class="p">([</span><span class="n">holoviews</span><span class="o">.</span><span class="n">Bounds</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">region</span><span class="p">))</span> <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">regions_of_interest</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="n">regions_of_interest</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+(147, 4)
+
+</pre>
+<div class="highlight">
+<pre><span></span><span class="n">labels</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Labels</span><span class="p">([(</span><span class="n">roi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">roi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">roi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">regions_of_interest</span><span class="p">)])</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">holoviews</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="p">[</span><span class="s1">'x'</span><span class="p">,</span> <span class="s1">'y'</span><span class="p">])</span> <span class="o">*</span> <span class="n">bounds</span> <span class="o">*</span> <span class="n">labels</span><span class="p">)</span><span class="o">.</span><span class="n">relabel</span><span class="p">(</span><span class="s1">'Time: 21'</span><span class="p">)</span>
+<span class="n">file_name</span> <span class="o">=</span> <span class="s2">"bounds.html"</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">OUTPUT_PATH</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+<span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)()</span>
+</pre></div>
+<script id="a580519d-4957-40b8-adf0-cee7d5de93f3" src="posts/libraries/holoviews-gridded-data/bounds.js">
+</script></div>
+</div>
+<div class="outline-4" id="outline-container-org5ad461d">
+<h4 id="org5ad461d">Select the Facet</h4>
+<div class="outline-text-4" id="text-org5ad461d">
+<div class="highlight">
+<pre><span></span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">regions_of_interest</span><span class="p">[</span><span class="mi">60</span><span class="p">]</span>
+<span class="n">roi</span> <span class="o">=</span> <span class="n">data_set</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">),</span> <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">y1</span><span class="p">),</span> <span class="n">time</span><span class="o">=</span><span class="p">(</span><span class="mi">250</span><span class="p">,</span> <span class="mi">280</span><span class="p">))</span><span class="o">.</span><span class="n">relabel</span><span class="p">(</span><span class="s1">'ROI #60'</span><span class="p">)</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">roi</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">holoviews</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="p">[</span><span class="s1">'x'</span><span class="p">,</span> <span class="s1">'y'</span><span class="p">])</span>
+<span class="n">file_name</span> <span class="o">=</span> <span class="s2">"selection.html"</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">OUTPUT_PATH</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+<span class="n">holoviews</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">"[[file:{}][link]]"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_name</span><span class="p">))</span>
+</pre></div>
+<p><a href="posts/libraries/holoviews-gridded-data/selection.html">link</a></p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org420aa07">
+<h4 id="org420aa07">Mean and Standard Deviation</h4>
+<div class="outline-text-4" id="text-org420aa07">
+<div class="highlight">
+<pre><span></span><span class="n">agg</span> <span class="o">=</span> <span class="n">roi</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="s1">'Time'</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">spreadfn</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">std</span><span class="p">)</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Spread</span><span class="p">(</span><span class="n">agg</span><span class="p">)</span> <span class="o">*</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">agg</span><span class="p">)</span>
+<span class="n">file_name</span> <span class="o">=</span> <span class="s2">"spread.html"</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">OUTPUT_PATH</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+<span class="n">holoviews</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">"[[file:{}][Link]]"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_name</span><span class="p">))</span>
+</pre></div>
+<p><a href="posts/libraries/holoviews-gridded-data/spread.html">Link</a></p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org7d7e3a1">
+<h3 id="org7d7e3a1">Save It</h3>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org2d0a30b">
+<h2 id="org2d0a30b">The End</h2>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
 <h1 class="p-name entry-title"><a class="u-url" href="posts/libraries/aggregating-tabular-data/">Aggregating Tabular Data</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
@@ -55,29 +297,29 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/libraries/aggregating-tabular-data/#org2fbbd75">Set Up</a>
+<li><a href="posts/libraries/aggregating-tabular-data/#org4954f33">Set Up</a>
 <ul>
-<li><a href="posts/libraries/aggregating-tabular-data/#org043d3fd">Imports</a></li>
-<li><a href="posts/libraries/aggregating-tabular-data/#orgcd15403">Holoviews Bokeh</a></li>
-<li><a href="posts/libraries/aggregating-tabular-data/#org57c6965">The Embedder</a></li>
-<li><a href="posts/libraries/aggregating-tabular-data/#org7b4cc1d">Dotenv</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#orgfc73a40">Imports</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#org5212970">Holoviews Bokeh</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#orgf23fd59">The Embedder</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#orga1c64b3">Dotenv</a></li>
 </ul>
 </li>
-<li><a href="posts/libraries/aggregating-tabular-data/#org05938a1">Load the Data</a></li>
-<li><a href="posts/libraries/aggregating-tabular-data/#orgdc7eeb1">Convert the DataFrame to a Dataset</a></li>
-<li><a href="posts/libraries/aggregating-tabular-data/#org5a5c58e">Aggregate the Data</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#orgc914948">Load the Data</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#orgb3f5d38">Convert the DataFrame to a Dataset</a></li>
+<li><a href="posts/libraries/aggregating-tabular-data/#org62d5d69">Aggregate the Data</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org2fbbd75">
-<h2 id="org2fbbd75">Set Up</h2>
-<div class="outline-text-2" id="text-org2fbbd75"></div>
-<div class="outline-3" id="outline-container-org043d3fd">
-<h3 id="org043d3fd">Imports</h3>
-<div class="outline-text-3" id="text-org043d3fd"></div>
-<div class="outline-4" id="outline-container-org2c41379">
-<h4 id="org2c41379">Python</h4>
-<div class="outline-text-4" id="text-org2c41379">
+<div class="outline-2" id="outline-container-org4954f33">
+<h2 id="org4954f33">Set Up</h2>
+<div class="outline-text-2" id="text-org4954f33"></div>
+<div class="outline-3" id="outline-container-orgfc73a40">
+<h3 id="orgfc73a40">Imports</h3>
+<div class="outline-text-3" id="text-orgfc73a40"></div>
+<div class="outline-4" id="outline-container-org2af64b4">
+<h4 id="org2af64b4">Python</h4>
+<div class="outline-text-4" id="text-org2af64b4">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
@@ -85,9 +327,9 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgc2fcd5c">
-<h4 id="orgc2fcd5c">PyPi</h4>
-<div class="outline-text-4" id="text-orgc2fcd5c">
+<div class="outline-4" id="outline-container-org539da4f">
+<h4 id="org539da4f">PyPi</h4>
+<div class="outline-text-4" id="text-org539da4f">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
 <span class="kn">from</span> <span class="nn">holoviews</span> <span class="kn">import</span> <span class="n">opts</span>
@@ -98,27 +340,27 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgc09ec6a">
-<h4 id="orgc09ec6a">My Projects</h4>
-<div class="outline-text-4" id="text-orgc09ec6a">
+<div class="outline-4" id="outline-container-orgb10a09c">
+<h4 id="orgb10a09c">My Projects</h4>
+<div class="outline-text-4" id="text-orgb10a09c">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgcd15403">
-<h3 id="orgcd15403">Holoviews Bokeh</h3>
-<div class="outline-text-3" id="text-orgcd15403">
+<div class="outline-3" id="outline-container-org5212970">
+<h3 id="org5212970">Holoviews Bokeh</h3>
+<div class="outline-text-3" id="text-org5212970">
 <p>I don't know why but you have to specify that you're using <code>bokeh</code>, even though it looks like it's working when you don't.</p>
 <div class="highlight">
 <pre><span></span><span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org57c6965">
-<h3 id="org57c6965">The Embedder</h3>
-<div class="outline-text-3" id="text-org57c6965">
+<div class="outline-3" id="outline-container-orgf23fd59">
+<h3 id="orgf23fd59">The Embedder</h3>
+<div class="outline-text-3" id="text-orgf23fd59">
 <div class="highlight">
 <pre><span></span><span class="n">files_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/aggregating-tabular-data/"</span><span class="p">)</span>
 <span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
@@ -127,9 +369,9 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org7b4cc1d">
-<h3 id="org7b4cc1d">Dotenv</h3>
-<div class="outline-text-3" id="text-org7b4cc1d">
+<div class="outline-3" id="outline-container-orga1c64b3">
+<h3 id="orga1c64b3">Dotenv</h3>
+<div class="outline-text-3" id="text-orga1c64b3">
 <p>I have the path to the data-set in a <code>.env</code> file so I'll load it into the environment dictionary.</p>
 <div class="highlight">
 <pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">".env"</span><span class="p">)</span>
@@ -137,9 +379,9 @@
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org05938a1">
-<h2 id="org05938a1">Load the Data</h2>
-<div class="outline-text-2" id="text-org05938a1">
+<div class="outline-2" id="outline-container-orgc914948">
+<h2 id="orgc914948">Load the Data</h2>
+<div class="outline-text-2" id="text-orgc914948">
 <p>This is the same measles/pertusis data that I used before.</p>
 <div class="highlight">
 <pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"DISEASES"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
@@ -149,9 +391,9 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgdc7eeb1">
-<h2 id="orgdc7eeb1">Convert the DataFrame to a Dataset</h2>
-<div class="outline-text-2" id="text-orgdc7eeb1">
+<div class="outline-2" id="outline-container-orgb3f5d38">
+<h2 id="orgb3f5d38">Convert the DataFrame to a Dataset</h2>
+<div class="outline-text-2" id="text-orgb3f5d38">
 <div class="highlight">
 <pre><span></span><span class="n">key_dimensions</span> <span class="o">=</span> <span class="s2">"Year State"</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
 <span class="n">value_dimensions</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"measles"</span><span class="p">,</span> <span class="s2">"Measles Incidence"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"pertussis"</span><span class="p">,</span> <span class="s2">"Pertusis Incidence"</span><span class="p">)]</span>
@@ -159,9 +401,9 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org5a5c58e">
-<h2 id="org5a5c58e">Aggregate the Data</h2>
-<div class="outline-text-2" id="text-org5a5c58e">
+<div class="outline-2" id="outline-container-org62d5d69">
+<h2 id="org62d5d69">Aggregate the Data</h2>
+<div class="outline-text-2" id="text-org62d5d69">
 <p>While I had aggregated the data before, this time I'm going to pass in the "Year" column as an argument so it won't keep the states separate.</p>
 <div class="highlight">
 <pre><span></span><span class="n">aggregator</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">spreadfn</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">std</span><span class="p">)</span>
@@ -190,32 +432,32 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/libraries/selecting-tabular-data/#orgf47ec95">Set Up</a>
+<li><a href="posts/libraries/selecting-tabular-data/#org4587e13">Set Up</a>
 <ul>
-<li><a href="posts/libraries/selecting-tabular-data/#org96b77a3">Imports</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#orgce571a7">Holoviews Bokeh</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#org54d566c">The Embedder</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#org1db1398">Dotenv</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#org2003068">Imports</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#orge35558c">Holoviews Bokeh</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#orga8c2029">The Embedder</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#org58432ce">Dotenv</a></li>
 </ul>
 </li>
-<li><a href="posts/libraries/selecting-tabular-data/#org1edcfef">Load the Data</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#orgf51fb17">Convert the DataFrame to a Dataset</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#orgf5ba30e">Aggregate The Data</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#orgbb41cbd">Plot a Subset</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#orgfbb53b7">Facets</a></li>
-<li><a href="posts/libraries/selecting-tabular-data/#orgef9add6">Overlays</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#orgafb4206">Load the Data</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#orgdb87dc2">Convert the DataFrame to a Dataset</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#org5ab9b27">Aggregate The Data</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#org20442db">Plot a Subset</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#org4ab4750">Facets</a></li>
+<li><a href="posts/libraries/selecting-tabular-data/#orgbdb33cb">Overlays</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgf47ec95">
-<h2 id="orgf47ec95">Set Up</h2>
-<div class="outline-text-2" id="text-orgf47ec95"></div>
-<div class="outline-3" id="outline-container-org96b77a3">
-<h3 id="org96b77a3">Imports</h3>
-<div class="outline-text-3" id="text-org96b77a3"></div>
-<div class="outline-4" id="outline-container-orgb0a4ebb">
-<h4 id="orgb0a4ebb">Python</h4>
-<div class="outline-text-4" id="text-orgb0a4ebb">
+<div class="outline-2" id="outline-container-org4587e13">
+<h2 id="org4587e13">Set Up</h2>
+<div class="outline-text-2" id="text-org4587e13"></div>
+<div class="outline-3" id="outline-container-org2003068">
+<h3 id="org2003068">Imports</h3>
+<div class="outline-text-3" id="text-org2003068"></div>
+<div class="outline-4" id="outline-container-org3b182c3">
+<h4 id="org3b182c3">Python</h4>
+<div class="outline-text-4" id="text-org3b182c3">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
@@ -223,9 +465,9 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgf4e0b45">
-<h4 id="orgf4e0b45">PyPi</h4>
-<div class="outline-text-4" id="text-orgf4e0b45">
+<div class="outline-4" id="outline-container-org0d6034e">
+<h4 id="org0d6034e">PyPi</h4>
+<div class="outline-text-4" id="text-org0d6034e">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
 <span class="kn">from</span> <span class="nn">holoviews</span> <span class="kn">import</span> <span class="n">opts</span>
@@ -236,27 +478,27 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgd25891e">
-<h4 id="orgd25891e">My Projects</h4>
-<div class="outline-text-4" id="text-orgd25891e">
+<div class="outline-4" id="outline-container-org6e429f5">
+<h4 id="org6e429f5">My Projects</h4>
+<div class="outline-text-4" id="text-org6e429f5">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgce571a7">
-<h3 id="orgce571a7">Holoviews Bokeh</h3>
-<div class="outline-text-3" id="text-orgce571a7">
+<div class="outline-3" id="outline-container-orge35558c">
+<h3 id="orge35558c">Holoviews Bokeh</h3>
+<div class="outline-text-3" id="text-orge35558c">
 <p>I don't know why but you have to specify that you're using <code>bokeh</code>, even though it looks like it's working when you don't.</p>
 <div class="highlight">
 <pre><span></span><span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org54d566c">
-<h3 id="org54d566c">The Embedder</h3>
-<div class="outline-text-3" id="text-org54d566c">
+<div class="outline-3" id="outline-container-orga8c2029">
+<h3 id="orga8c2029">The Embedder</h3>
+<div class="outline-text-3" id="text-orga8c2029">
 <div class="highlight">
 <pre><span></span><span class="n">files_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/selecting-tabular-data/"</span><span class="p">)</span>
 <span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
@@ -265,9 +507,9 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org1db1398">
-<h3 id="org1db1398">Dotenv</h3>
-<div class="outline-text-3" id="text-org1db1398">
+<div class="outline-3" id="outline-container-org58432ce">
+<h3 id="org58432ce">Dotenv</h3>
+<div class="outline-text-3" id="text-org58432ce">
 <p>I have the path to the data-set in a <code>.env</code> file so I'll load it into the environment dictionary.</p>
 <div class="highlight">
 <pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">".env"</span><span class="p">)</span>
@@ -275,9 +517,9 @@
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org1edcfef">
-<h2 id="org1edcfef">Load the Data</h2>
-<div class="outline-text-2" id="text-org1edcfef">
+<div class="outline-2" id="outline-container-orgafb4206">
+<h2 id="orgafb4206">Load the Data</h2>
+<div class="outline-text-2" id="text-orgafb4206">
 <p>This is the same measles/pertusis data that I used before.</p>
 <div class="highlight">
 <pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"DISEASES"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
@@ -344,9 +586,9 @@
 </table>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgf51fb17">
-<h2 id="orgf51fb17">Convert the DataFrame to a Dataset</h2>
-<div class="outline-text-2" id="text-orgf51fb17">
+<div class="outline-2" id="outline-container-orgdb87dc2">
+<h2 id="orgdb87dc2">Convert the DataFrame to a Dataset</h2>
+<div class="outline-text-2" id="text-orgdb87dc2">
 <div class="highlight">
 <pre><span></span><span class="n">key_dimensions</span> <span class="o">=</span> <span class="s2">"Year State"</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
 <span class="n">value_dimensions</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"measles"</span><span class="p">,</span> <span class="s2">"Measles Incidence"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"pertussis"</span><span class="p">,</span> <span class="s2">"Pertusis Incidence"</span><span class="p">)]</span>
@@ -354,9 +596,9 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgf5ba30e">
-<h2 id="orgf5ba30e">Aggregate The Data</h2>
-<div class="outline-text-2" id="text-orgf5ba30e">
+<div class="outline-2" id="outline-container-org5ab9b27">
+<h2 id="org5ab9b27">Aggregate The Data</h2>
+<div class="outline-text-2" id="text-org5ab9b27">
 <div class="highlight">
 <pre><span></span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
 </pre></div>
@@ -370,9 +612,9 @@
 
 </pre></div>
 </div>
-<div class="outline-2" id="outline-container-orgbb41cbd">
-<h2 id="orgbb41cbd">Plot a Subset</h2>
-<div class="outline-text-2" id="text-orgbb41cbd">
+<div class="outline-2" id="outline-container-org20442db">
+<h2 id="org20442db">Plot a Subset</h2>
+<div class="outline-text-2" id="text-org20442db">
 <div class="highlight">
 <pre><span></span><span class="n">northwest</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Oregon"</span><span class="p">,</span> <span class="s2">"Washington"</span><span class="p">,</span> <span class="s2">"Idaho"</span><span class="p">]</span>
 <span class="n">bars</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">State</span><span class="o">=</span><span class="n">northwest</span><span class="p">,</span> <span class="n">Year</span><span class="o">=</span><span class="p">(</span><span class="mi">1928</span><span class="p">,</span> <span class="mi">1938</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
@@ -390,9 +632,9 @@
 <p>Interesting how Oregon spiked up in 1935 and 1936 then dropped down in 1937. According to <a href="https://www.cdc.gov/measles/about/history.html">the CDC</a>, the measles vaccine didn't come out until 1963, so I guess those ebb-and-flows are just the normal way diseases cycle through populations. Oregon and Washington probably had more immigrants than Idaho, as well as higher population densities in their main cities, which might account for their higher rates. Hard to say without corellating data.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgfbb53b7">
-<h2 id="orgfbb53b7">Facets</h2>
-<div class="outline-text-2" id="text-orgfbb53b7">
+<div class="outline-2" id="outline-container-org4ab4750">
+<h2 id="org4ab4750">Facets</h2>
+<div class="outline-text-2" id="text-org4ab4750">
 <p>The bar-plot is okay for comparing the cities within any given year but they are hard to get trends from. Here's how to use selecting to plot lines for each city.</p>
 <div class="highlight">
 <pre><span></span><span class="n">grouped</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">State</span><span class="o">=</span><span class="n">northwest</span><span class="p">,</span> <span class="n">Year</span><span class="o">=</span><span class="p">(</span><span class="mi">1928</span><span class="p">,</span> <span class="mi">2011</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">holoviews</span><span class="o">.</span><span class="n">Curve</span><span class="p">,</span> <span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"measles"</span><span class="p">)</span>
@@ -407,9 +649,9 @@
 <script id="e0183ad8-47df-4d67-befe-c2c4ba24e369" src="posts/libraries/selecting-tabular-data/northwest_measles_grid.js">
 </script></div>
 </div>
-<div class="outline-2" id="outline-container-orgef9add6">
-<h2 id="orgef9add6">Overlays</h2>
-<div class="outline-text-2" id="text-orgef9add6">
+<div class="outline-2" id="outline-container-orgbdb33cb">
+<h2 id="orgbdb33cb">Overlays</h2>
+<div class="outline-text-2" id="text-orgbdb33cb">
 <p>While the side-by-side plots are clearer than the bar-plots, it's harder to compare the cities year-by-year, so it might be better to plot them over each other.</p>
 <div class="highlight">
 <pre><span></span><span class="n">overlay</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">overlay</span><span class="p">(</span><span class="s2">"State"</span><span class="p">)</span>
@@ -435,7 +677,11 @@
 </div>
 </div>
 <script src="assets/js/all-nocdn.js">
-</script>
+</script><!-- fancy dates -->
+<script>
+    moment.locale("en");
+    fancydates(0, "YYYY-MM-DD HH:mm");
+</script><!-- end fancy dates -->
 <script>
     baguetteBox.run('div#content', {
         ignoreClass: 'islink',
