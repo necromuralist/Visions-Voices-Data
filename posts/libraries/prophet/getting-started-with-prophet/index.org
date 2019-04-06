@@ -1,0 +1,60 @@
+#+BEGIN_COMMENT
+.. title: Getting Started With Prophet
+.. slug: getting-started-with-prophet
+.. date: 2019-04-05 14:53:40 UTC-07:00
+.. tags: prophet,tutorial,timeseries
+.. category: Prophet
+.. link: 
+.. description: A first look at Prophet.
+.. type: text
+.. status:
+.. updated: 
+#+END_COMMENT
+#+OPTIONS: H:5
+#+TOC: headlines 2
+#+BEGIN_SRC ipython :session prophet :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* The Departure
+  This is a first look at [[https://facebook.github.io/prophet/][Prophet]] a time-series forecasting library. It depends on =pystan=, a Bayesian modelling platform, which in turn depends on =numpy= and =cython=.
+** Imports
+*** Python
+#+BEGIN_SRC ipython :session prophet :results none
+from pathlib import Path
+import os
+#+END_SRC
+*** PyPi
+#+BEGIN_SRC ipython :session prophet :results none
+from dotenv import load_dotenv
+import modin.pandas as pandas
+#+END_SRC
+*** My Stuff
+#+BEGIN_SRC ipython :session prophet :results none
+from graeae.timers import Timer
+#+END_SRC
+** Setup
+*** The Paths
+#+BEGIN_SRC ipython :session prophet :results none
+load_dotenv(".env", override=True)
+DATA = Path(os.environ.get("PEYTON_MANNING_WIKIPEDIA_VIEWS")).expanduser()
+assert DATA.is_file()
+#+END_SRC
+*** The Timer
+#+BEGIN_SRC ipython :session prophet :results none
+TIMER = Timer()
+#+END_SRC
+* The Initiation
+** Load The Data
+#+BEGIN_SRC ipython :session prophet :results output :exports both
+with TIMER:
+    data = pandas.read_csv(DATA)
+print(data.shape)
+#+END_SRC
+
+#+RESULTS:
+: WARNING: Falling back to serializing objects of type <class 'pathlib.PosixPath'> by using pickle. This may be inefficient.
+: Started: 2019-04-05 15:23:56.038686
+: Ended: 2019-04-05 15:23:56.236422
+: Elapsed: 0:00:00.197736
+: (2905, 2)
