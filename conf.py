@@ -1273,7 +1273,7 @@ SEARCH_FORM = """
 
 # Additional metadata that is added to a post when creating a new_post
 ADDITIONAL_METADATA = {
-    "status": "draft",
+    "status": "",
     "updated": "",
 }
 
