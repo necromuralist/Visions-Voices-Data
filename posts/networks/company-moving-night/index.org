@@ -1,0 +1,354 @@
+#+BEGIN_COMMENT
+.. title: Company Movie Night
+.. slug: company-moving-night
+.. date: 2019-04-11 13:04:23 UTC-07:00
+.. tags: networks,networkx
+.. category: Networks
+.. link: 
+.. description: An introductiton to creating and manipulating graphs in networkx.
+.. type: text
+.. status:
+.. updated: 
+
+#+END_COMMENT
+#+TOC: headlines 2
+#+OPTIONS: H:5
+* The Departure
+  This is a look at working with networks using [[https://networkx.github.io][networkx]]. Our scene - eight employees are trying to choose three movies to watch. We have two sources of data - the candidate movies and the /relationship/ between pairs of employees. The relationships are on a scale from -100 to 100, with -100 being the strongest of enemies and 100 meaning they are best of friends. Zero either means they have no relationship (don't interact) or are indifferent about the other person.
+** Imports
+*** From Python
+#+BEGIN_SRC ipython :session movie-night :results none
+from functools import partial
+from pathlib import Path
+import os
+#+END_SRC
+*** From PyPi
+#+BEGIN_SRC ipython :session movie-night :results none
+from dotenv import load_dotenv
+from bokeh.models import HoverTool
+import holoviews
+import hvplot.pandas
+import networkx
+import pandas
+import numpy
+from networkx.algorithms import bipartite
+#+END_SRC
+*** My Stuff
+#+BEGIN_SRC ipython :session movie-night :results none
+from graeae.visualization import EmbedHoloview
+#+END_SRC
+** Set Up
+*** Load Dotenv
+#+BEGIN_SRC ipython :session movie-night :results none
+load_dotenv(".env", override=True)
+#+END_SRC
+** The Plotting
+#+BEGIN_SRC ipython :session movie-night :results none
+SLUG = 'company-movie-night'
+OUTPUT = Path("../../files/posts/networks/" + SLUG)
+Embed = partial(EmbedHoloview, folder_path=OUTPUT)
+holoviews.extension("bokeh")
+#+END_SRC
+* The Initiation
+** The Data
+*** This Is the Set Of Employee-Relationships
+
+#+BEGIN_SRC ipython :session movie-night :results none
+employee_relationships_path = Path(os.environ.get("EMPLOYEE_RELATIONSHIPS"))
+relationships_data = pandas.read_csv(
+    employee_relationships_path, 
+    delimiter="\t", 
+    header=None,
+    names="employee_1 employee_2 relationship".split())
+#+END_SRC
+
+#+BEGIN_SRC ipython :session movie-night :results output raw :exports both
+table = holoviews.Table(relationships_data)
+Embed(plot=table, file_name="relationships_data")()
+#+END_SRC
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="relationships_data.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+#+BEGIN_SRC ipython :session movie-night :results output :exports both
+employees = set(relationships_data.employee_1.unique()) | set(relationships_data.employee_2.unique())
+print(employees)
+#+END_SRC
+
+#+RESULTS:
+: {'Claude', 'Pablo', 'Lee', 'Andy', 'Vincent', 'Joan', 'Frida', 'Georgia'}
+
+
+#+BEGIN_SRC ipython :session movie-night :results output :exports both
+print(len(employees))
+#+END_SRC
+
+#+RESULTS:
+: 8
+
+#+BEGIN_SRC ipython :session movie-night :results output :exports both
+print(len(relationships_data))
+#+END_SRC
+
+#+RESULTS:
+: 28
+
+We have eight employees and twenty-eight links. Is this a fully connected graph? The handshake problem says that the amount of links in a fully-connected network is:
+
+\[
+ links = \frac{n(n-1)}{2}
+\]
+
+#+BEGIN_SRC ipython :session movie-night :results output :exports both
+print(len(employees) * (len(employees) - 1)/2)
+#+END_SRC
+
+#+RESULTS:
+: 28.0
+
+It looks like our relationships data creates a fully-connected network (unless there is a duplicate which would be an error).
+
+*** This Is the Movie Choices
+#+BEGIN_SRC ipython :session movie-night :results output :exports both
+employee_movies_path = Path(os.environ.get("EMPLOYEE_MOVIE_CHOICES"))
+movies_data = pandas.read_csv(
+    employee_movies_path, 
+    delimiter="\t", 
+    header=None,
+    skiprows=1,
+    names="employee movie".split())
+print(movies_data.head())
+#+END_SRC
+
+#+RESULTS:
+:   employee                            movie
+: 0     Andy                         Anaconda
+: 1     Andy                       Mean Girls
+: 2     Andy                       The Matrix
+: 3   Claude                         Anaconda
+: 4   Claude  Monty Python and the Holy Grail
+
+#+BEGIN_SRC ipython :session movie-night :results output
+movies = set(movies_data.movie.unique())
+print(movies)
+print(len(movies))
+#+END_SRC
+
+#+RESULTS:
+: {'The Dark Knight', 'The Matrix', 'Monty Python and the Holy Grail', 'Anaconda', 'The Godfather', 'Snakes on a Plane', 'The Social Network', 'Mean Girls', 'Forrest Gump', 'Kung Fu Panda', 'The Shawshank Redemption'}
+: 11
+
+The eight employees chose 11 movies between them.
+
+** Plot Graph
+You can use the following function to plot graphs.
+
+#+BEGIN_SRC ipython :session movie-night :results none
+def plot_graph(graph, file_name, plot_title, weight_name=None, directed=False):
+    """Plots an interactive graph using the spring-layout
+
+    Args:
+     graph: a networkx graph
+     file_name: name to store the plot (without extension)
+     plot_title: name to give the plot
+     weight_name: name of the attribute for plotting edge weights (if G is weighted)
+     directed: whether it is a directed graph
+    """
+    plot = holoviews.Graph.from_networkx(graph,
+                                         networkx.spring_layout).opts(
+                                             cmap="Set1",                                             
+                                             fontsize=Plot.fontsize,
+                                             width=Plot.width,
+                                             height=Plot.height,
+                                             edge_line_color=Plot.edge_color,
+                                             title=plot_title,
+                                             xaxis=None, yaxis=None, directed=directed)
+    Embed(plot=plot, file_name=file_name)()
+    return
+#+END_SRC
+
+** The Employee Movie Choices Graph
+   The employee-movie network consists of employees and movies as nodes and the edges indicate an employee chose a movie. Not every movie is chosen by every employee, so it isn't a complete graph.
+#+BEGIN_SRC ipython :session movie-night :results output :exports both
+expected_edges = len(movies_data)
+expected_nodes = len(employees) + len(movies)
+print("Expected Edges: {}".format(expected_edges))
+print("Expected Nodes: {}".format(expected_nodes))
+#+END_SRC
+
+#+RESULTS:
+: Expected Edges: 24
+: Expected Nodes: 19
+
+#+BEGIN_SRC ipython :session movie-night :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph,
+                                     networkx.circular_layout).opts(
+                                         node_color=dim("gender"), cmap="Set1",
+                                         tools=[hover],
+                                         fontsize=Plot.fontsize,
+                                         width=800,
+                                         height=800,
+                                         edge_line_color=Plot.edge_color,
+                                         title="Friendship Network by Gender",
+                                         xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="employee_movie_choices_plot")()
+#+END_SRC
+
+#+BEGIN_SRC ipython :session movie-night :results none
+def answer_one():
+    """Loads the Employee Movie Choices
+
+    Returns:
+     Graph: graph with movie and employees as nodes
+    """
+    movie_choices = pandas.read_table('Employee_Movie_Choices.txt')
+    movie_choices = networkx.from_pandas_dataframe(movie_choices, "#Employee", "Movie")
+    return movie_choices
+#+END_SRC
+
+#+BEGIN_SRC ipython :session movie-night :file /tmp/employee_movie_choices.png
+movie_choices = answer_one()
+edges = movie_choices.edges()
+assert len(edges) == 24
+assert len(movie_choices.nodes()) == 19
+assert networkx.is_bipartite(movie_choices)
+positions = networkx.spring_layout(movie_choices)
+
+networkx.draw_networkx(movie_choices, positions, edges=edges)
+#+END_SRC
+
+#+RESULTS:
+[[file:/tmp/employee_movie_choices.png]]
+
+** Question 2
+
+Using the graph from the previous question, add nodes attributes named `'type'` where movies have the value `'movie'` and employees have the value `'employee'` and return that graph.
+
+ *This function should return a networkx graph with node attributes `{'type': 'movie'}` or `{'type': 'employee'}`*
+
+#+BEGIN_SRC ipython :session movie-night :results none
+def answer_two():
+    """Adds 'type' to nodes from movie-graph
+
+    Returns:
+     Graph: answer_one with 'type' attribute added (employee or movie)
+    """
+    graph = answer_one()
+    new_graph = networkx.Graph()
+    nodes = graph.nodes()
+    employee_nodes = [node for node in nodes if node in employees]
+    movie_nodes = [node for node in nodes if node in movies]
+    new_graph.add_nodes_from(employee_nodes, bipartite=0, type='employee')
+    new_graph.add_nodes_from(movie_nodes, bipartite=1, type="movie")
+    new_graph.add_edges_from(graph.edges())
+    return new_graph
+#+END_SRC
+
+#+BEGIN_SRC ipython :session movie-night
+two = answer_two()
+two.nodes(data=True)
+#+END_SRC
+
+#+RESULTS:
+| Andy                            | (bipartite : 0 type : employee) |
+| Frida                           | (bipartite : 0 type : employee) |
+| Mean Girls                      | (bipartite : 1 type : movie)    |
+| The Shawshank Redemption        | (bipartite : 1 type : movie)    |
+| Snakes on a Plane               | (bipartite : 1 type : movie)    |
+| The Godfather                   | (bipartite : 1 type : movie)    |
+| The Matrix                      | (bipartite : 1 type : movie)    |
+| The Social Network              | (bipartite : 1 type : movie)    |
+| Monty Python and the Holy Grail | (bipartite : 1 type : movie)    |
+| Anaconda                        | (bipartite : 1 type : movie)    |
+| The Dark Knight                 | (bipartite : 1 type : movie)    |
+| Claude                          | (bipartite : 0 type : employee) |
+| Vincent                         | (bipartite : 0 type : employee) |
+| Joan                            | (bipartite : 0 type : employee) |
+| Lee                             | (bipartite : 0 type : employee) |
+| Forrest Gump                    | (bipartite : 1 type : movie)    |
+| Georgia                         | (bipartite : 0 type : employee) |
+| Kung Fu Panda                   | (bipartite : 1 type : movie)    |
+| Pablo                           | (bipartite : 0 type : employee) |
+
+#+BEGIN_SRC ipython :session movie-night :file /tmp/answer_two.png
+plot_graph(two)
+#+END_SRC
+
+#+RESULTS:
+[[file:/tmp/answer_two.png]]
+
+** Question 3
+
+Find a weighted projection of the graph from `answer_two` which tells us how many movies different pairs of employees have in common.
+
+ *This function should return a weighted projected graph.*
+
+#+BEGIN_SRC ipython :session movie-night :results none
+def answer_three():
+    graph = answer_two()
+    assert networkx.is_bipartite(graph)
+    return bipartite.weighted_projected_graph(graph, employees)
+#+END_SRC
+
+#+BEGIN_SRC ipython :session movie-night :file /tmp/answer_three.png
+three = answer_three()
+plot_graph(three)
+#+END_SRC
+
+#+RESULTS:
+[[file:/tmp/answer_three.png]]
+
+** Question 4
+
+Suppose you'd like to find out if people that have a high relationship score also like the same types of movies.
+
+Find the Pearson correlation ( using `DataFrame.corr()` ) between employee relationship scores and the number of movies they have in common. If two employees have no movies in common it should be treated as a 0, not a missing value, and should be included in the correlation calculation.
+
+ *This function should return a float.*
+
+#+BEGIN_SRC ipython :session movie-night :results none
+def answer_four():
+    """calculates the pearson correlation for data
+
+    Returns:
+     float: Pearson correlation for weight and relationship_score
+    """
+    three = answer_three()
+    relationships = pandas.read_table(
+        "Employee_Relationships.txt",
+        names="employee_left employee_right relationship_score".split())
+    relationships["employees"] = relationships.apply(
+        lambda row: tuple(sorted((row["employee_left"],
+                                  row['employee_right']))), axis=1)
+
+    weights = pandas.DataFrame(
+        three.edges(data=True),
+        columns="employee_left employee_right weight".split())
+    weights["weight"] = weights.weight.map(lambda row: row["weight"])
+    weights["employees"] = weights.apply(lambda row: tuple(sorted(
+        (row["employee_left"],
+         row["employee_right"]))),
+                                         axis=1)
+
+    joined = pandas.merge(relationships, weights, how="outer", 
+                          on=['employees'])
+    assert len(joined) == len(relationships)
+    joined['weight'] = joined["weight"].fillna(0)
+
+    data = joined[["relationship_score", "weight"]]
+    correlation = data.corr()
+    return correlation.relationship_score.weight
+#+END_SRC
+
+#+BEGIN_SRC ipython :session movie-night :results output
+print(answer_four())
+#+END_SRC
+
+#+RESULTS:
+: 0.788396222173
+
+* The Return
