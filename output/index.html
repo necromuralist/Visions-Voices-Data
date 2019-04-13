@@ -15,7 +15,7 @@
 <link href="index-2.html" rel="next" type="text/html"><!--[if lt IE 9]><script src="assets/js/html5.js"></script><![endif]-->
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
 </script>
-<link href="posts/libraries/prophet/getting-started-with-prophet/" rel="prefetch" type="text/html">
+<link href="posts/networks/some-networkx-examples/" rel="prefetch" type="text/html">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -42,6 +42,609 @@
 <div class="container" id="content" role="main">
 <div class="body-content"><!--Body content-->
 <div class="postindex">
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="posts/networks/some-networkx-examples/">Some Networkx Examples</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="posts/networks/some-networkx-examples/" rel="bookmark"><time class="published dt-published" datetime="2019-04-12T13:12:58-07:00" itemprop="datePublished" title="2019-04-12 13:12">2019-04-12 13:12</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="posts/networks/some-networkx-examples/#org655365f">The Departure</a>
+<ul>
+<li><a href="posts/networks/some-networkx-examples/#orgbda8c92">Imports</a></li>
+<li><a href="posts/networks/some-networkx-examples/#org42127b5">Set Up</a></li>
+</ul>
+</li>
+<li><a href="posts/networks/some-networkx-examples/#orgf719c5b">The Initiation</a>
+<ul>
+<li><a href="posts/networks/some-networkx-examples/#org813fd2f">Different Ways to Create Network Graphs</a></li>
+<li><a href="posts/networks/some-networkx-examples/#org0a0aa7b">A Chess Example</a></li>
+</ul>
+</li>
+<li><a href="posts/networks/some-networkx-examples/#orgb187ad2">The Return</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org655365f">
+<h2 id="org655365f">The Departure</h2>
+<div class="outline-text-2" id="text-org655365f">
+<p>This is a look at different ways of creating and manipulating graphs using <a href="https://networkx.github.io">NetworkX</a>.</p>
+</div>
+<div class="outline-3" id="outline-container-orgbda8c92">
+<h3 id="orgbda8c92">Imports</h3>
+<div class="outline-text-3" id="text-orgbda8c92"></div>
+<div class="outline-4" id="outline-container-org2eb1683">
+<h4 id="org2eb1683">Python</h4>
+<div class="outline-text-4" id="text-org2eb1683">
+<div class="highlight">
+<pre><span></span>from functools import partial
+from pathlib import Path
+import os
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgd524745">
+<h4 id="orgd524745">PyPi</h4>
+<div class="outline-text-4" id="text-orgd524745">
+<div class="highlight">
+<pre><span></span>from bokeh.models import HoverTool
+import holoviews
+import hvplot.pandas
+import networkx
+import numpy
+import pandas
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org37771fe">
+<h4 id="org37771fe">My Stuff</h4>
+<div class="outline-text-4" id="text-org37771fe">
+<div class="highlight">
+<pre><span></span>from graeae.visualization import EmbedHoloview
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org42127b5">
+<h3 id="org42127b5">Set Up</h3>
+<div class="outline-text-3" id="text-org42127b5">
+<div class="highlight">
+<pre><span></span>SLUG = "some-networkx-examples"
+OUTPUT_PATH = Path("../../files/posts/networks/" + SLUG)
+Embed = partial(EmbedHoloview, folder_path=OUTPUT_PATH)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgf719c5b">
+<h2 id="orgf719c5b">The Initiation</h2>
+<div class="outline-text-2" id="text-orgf719c5b"></div>
+<div class="outline-3" id="outline-container-org813fd2f">
+<h3 id="org813fd2f">Different Ways to Create Network Graphs</h3>
+<div class="outline-text-3" id="text-org813fd2f">
+<p><b>NetworkX</b> has a few different ways to create graphs, some more flexible than others. This is a non-exhaustive showing of some of them.</p>
+</div>
+<div class="outline-4" id="outline-container-org860d460">
+<h4 id="org860d460">Adding Edges To An Existing Graph</h4>
+<div class="outline-text-4" id="text-org860d460">
+<p>You can create a graph using the graph constructors. This is an example of an undirected <a href="https://networkx.github.io/documentation/stable/reference/classes/graph.html">Graph</a>.</p>
+<div class="highlight">
+<pre><span></span>graph_1 = networkx.Graph()
+</pre></div>
+<div class="highlight">
+<pre><span></span>G1.add_edges_from([(0, 1),
+                   (0, 2),
+                   (0, 3),
+                   (0, 5),
+                   (1, 3),
+                   (1, 6),
+                   (3, 4),
+                   (4, 5),
+                   (4, 7),
+                   (5, 8),
+                   (8, 9)])
+
+networkx.draw_networkx(G1)
+</pre></div>
+<div class="figure">
+<p><img alt="graph_one.png" src="file:///tmp/graph_one.png"></p>
+</div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org8baf85a">
+<h4 id="org8baf85a">Adjacency List</h4>
+<div class="outline-text-4" id="text-org8baf85a">
+<div class="highlight">
+<pre><span></span>with open("G_adjlist.txt") as reader:
+    print(reader.read())
+</pre></div>
+<div class="highlight">
+<pre><span></span>G2 = networkx.read_adjlist('G_adjlist.txt', nodetype=int)
+G2.edges()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgced4ac0">
+<h4 id="orgced4ac0">Adjacency Matrix</h4>
+<div class="outline-text-4" id="text-orgced4ac0">
+<div class="highlight">
+<pre><span></span>G_mat = numpy.array([[0, 1, 1, 1, 0, 1, 0, 0, 0, 0],
+                     [1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+                     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                     [1, 1, 0, 0, 1, 0, 0, 0, 0, 0],
+                     [0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+                     [1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+                     [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                     [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                     [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+                     [0, 0, 0, 0, 0, 0, 0, 0, 1, 0]])
+G_mat
+</pre></div>
+<div class="highlight">
+<pre><span></span>G3 = networkx.Graph(G_mat)
+G3.edges()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org98f8245">
+<h4 id="org98f8245">Edgelist</h4>
+<div class="outline-text-4" id="text-org98f8245">
+<div class="highlight">
+<pre><span></span>with open('G_edgelist.txt') as reader:
+    print(reader.read())
+</pre></div>
+<div class="highlight">
+<pre><span></span>G4 = networkx.read_edgelist('G_edgelist.txt', data=[('Weight', int)])
+
+G4.edges(data=True)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org1e609e0">
+<h4 id="org1e609e0">Pandas DataFrame</h4>
+<div class="outline-text-4" id="text-org1e609e0">
+<div class="highlight">
+<pre><span></span>G_df = pandas.read_csv('G_edgelist.txt', delim_whitespace=True, 
+                       header=None, names=['n1', 'n2', 'weight'])
+G_df
+</pre></div>
+<div class="highlight">
+<pre><span></span>G5 = networkx.from_pandas_dataframe(G_df, 'n1', 'n2', edge_attr='weight')
+G5.edges(data=True)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org0a0aa7b">
+<h3 id="org0a0aa7b">A Chess Example</h3>
+<div class="outline-text-3" id="text-org0a0aa7b">
+<div class="highlight">
+<pre><span></span>with open('chess_graph.txt') as reader:
+    count = 0
+    for line in reader:
+        print(line.strip())
+        count += 1
+        if count == 5:
+            break
+</pre></div>
+<div class="highlight">
+<pre><span></span>chess = networkx.read_edgelist('chess_graph.txt', data=[('outcome', int), ('timestamp', float)], 
+                         create_using=networkx.MultiDiGraph())
+</pre></div>
+<div class="highlight">
+<pre><span></span>chess.is_directed(), chess.is_multigraph()
+</pre></div>
+<div class="highlight">
+<pre><span></span>chess.edges(data=True)[:5]
+</pre></div>
+<div class="highlight">
+<pre><span></span>games_played = chess.degree()
+games_played
+</pre></div>
+<div class="highlight">
+<pre><span></span>max_value = max(games_played.values())
+max_key, = [i for i in games_played.keys() if games_played[i] == max_value]
+
+print('player {}\n{} games'.format(max_key, max_value))
+</pre></div>
+<div class="highlight">
+<pre><span></span>df = pd.DataFrame(chess.edges(data=True), columns=['white', 'black', 'outcome'])
+df.head()
+</pre></div>
+<div class="highlight">
+<pre><span></span>df['outcome'] = df['outcome'].map(lambda x: x['outcome'])
+df.head()
+</pre></div>
+<div class="highlight">
+<pre><span></span>won_as_white = df[df['outcome']==1].groupby('white').sum()
+won_as_black = df[df['outcome']==-1].groupby('black').sum()
+win_count = won_as_white.add(won_as_black, fill_value=0)
+print(win_count.head())
+</pre></div>
+<div class="highlight">
+<pre><span></span>win_count.nlargest(5, 'outcome')
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgb187ad2">
+<h2 id="orgb187ad2">The Return</h2>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="posts/networks/company-moving-night/">Company Movie Night</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="posts/networks/company-moving-night/" rel="bookmark"><time class="published dt-published" datetime="2019-04-11T13:04:23-07:00" itemprop="datePublished" title="2019-04-11 13:04">2019-04-11 13:04</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="posts/networks/company-moving-night/#orge1aa908">The Departure</a>
+<ul>
+<li><a href="posts/networks/company-moving-night/#org9e6f0b0">Imports</a></li>
+<li><a href="posts/networks/company-moving-night/#org56d4f3a">Set Up</a></li>
+<li><a href="posts/networks/company-moving-night/#orgfc9ce6f">The Plotting</a></li>
+</ul>
+</li>
+<li><a href="posts/networks/company-moving-night/#org139f799">The Initiation</a>
+<ul>
+<li><a href="posts/networks/company-moving-night/#org60aaf34">The Data</a></li>
+<li><a href="posts/networks/company-moving-night/#org437cd95">Plot Graph</a></li>
+<li><a href="posts/networks/company-moving-night/#org0cd50e6">The Employee Movie Choices Graph</a></li>
+<li><a href="posts/networks/company-moving-night/#org834f7c4">Question 2</a></li>
+<li><a href="posts/networks/company-moving-night/#orgd8adb4a">Question 3</a></li>
+<li><a href="posts/networks/company-moving-night/#orgd1a39bc">Question 4</a></li>
+</ul>
+</li>
+<li><a href="posts/networks/company-moving-night/#org7f33992">The Return</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orge1aa908">
+<h2 id="orge1aa908">The Departure</h2>
+<div class="outline-text-2" id="text-orge1aa908">
+<p>This is a look at working with networks using <a href="https://networkx.github.io">networkx</a>. Our scene - eight employees are trying to choose three movies to watch. We have two sources of data - the candidate movies and the <i>relationship</i> between pairs of employees. The relationships are on a scale from -100 to 100, with -100 being the strongest of enemies and 100 meaning they are best of friends. Zero either means they have no relationship (don't interact) or are indifferent about the other person.</p>
+</div>
+<div class="outline-3" id="outline-container-org9e6f0b0">
+<h3 id="org9e6f0b0">Imports</h3>
+<div class="outline-text-3" id="text-org9e6f0b0"></div>
+<div class="outline-4" id="outline-container-org1abe5f0">
+<h4 id="org1abe5f0">From Python</h4>
+<div class="outline-text-4" id="text-org1abe5f0">
+<div class="highlight">
+<pre><span></span>from functools import partial
+from pathlib import Path
+import os
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org03e8981">
+<h4 id="org03e8981">From PyPi</h4>
+<div class="outline-text-4" id="text-org03e8981">
+<div class="highlight">
+<pre><span></span>from dotenv import load_dotenv
+from bokeh.models import HoverTool
+import holoviews
+import hvplot.pandas
+import networkx
+import pandas
+import numpy
+from networkx.algorithms import bipartite
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org3232c7b">
+<h4 id="org3232c7b">My Stuff</h4>
+<div class="outline-text-4" id="text-org3232c7b">
+<div class="highlight">
+<pre><span></span>from graeae.visualization import EmbedHoloview
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org56d4f3a">
+<h3 id="org56d4f3a">Set Up</h3>
+<div class="outline-text-3" id="text-org56d4f3a"></div>
+<div class="outline-4" id="outline-container-orgb3c6ac1">
+<h4 id="orgb3c6ac1">Load Dotenv</h4>
+<div class="outline-text-4" id="text-orgb3c6ac1">
+<div class="highlight">
+<pre><span></span>load_dotenv(".env", override=True)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgfc9ce6f">
+<h3 id="orgfc9ce6f">The Plotting</h3>
+<div class="outline-text-3" id="text-orgfc9ce6f">
+<div class="highlight">
+<pre><span></span>SLUG = 'company-movie-night'
+OUTPUT = Path("../../files/posts/networks/" + SLUG)
+Embed = partial(EmbedHoloview, folder_path=OUTPUT)
+holoviews.extension("bokeh")
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org139f799">
+<h2 id="org139f799">The Initiation</h2>
+<div class="outline-text-2" id="text-org139f799"></div>
+<div class="outline-3" id="outline-container-org60aaf34">
+<h3 id="org60aaf34">The Data</h3>
+<div class="outline-text-3" id="text-org60aaf34"></div>
+<div class="outline-4" id="outline-container-org7730834">
+<h4 id="org7730834">This Is the Set Of Employee-Relationships</h4>
+<div class="outline-text-4" id="text-org7730834">
+<div class="highlight">
+<pre><span></span>employee_relationships_path = Path(os.environ.get("EMPLOYEE_RELATIONSHIPS"))
+relationships_data = pandas.read_csv(
+    employee_relationships_path, 
+    delimiter="\t", 
+    header=None,
+    names="employee_1 employee_2 relationship".split())
+</pre></div>
+<div class="highlight">
+<pre><span></span>table = holoviews.Table(relationships_data)
+Embed(plot=table, file_name="relationships_data")()
+</pre></div>
+<object data="posts/networks/company-moving-night/relationships_data.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span>employees = set(relationships_data.employee_1.unique()) | set(relationships_data.employee_2.unique())
+print(employees)
+</pre></div>
+<pre class="example">
+{'Claude', 'Pablo', 'Lee', 'Andy', 'Vincent', 'Joan', 'Frida', 'Georgia'}
+
+</pre>
+<div class="highlight">
+<pre><span></span>print(len(employees))
+</pre></div>
+<pre class="example">
+8
+
+</pre>
+<div class="highlight">
+<pre><span></span>print(len(relationships_data))
+</pre></div>
+<pre class="example">
+28
+
+</pre>
+<p>We have eight employees and twenty-eight links. Is this a fully connected graph? The handshake problem says that the amount of links in a fully-connected network is:</p>
+<p>\[ links = \frac{n(n-1)}{2} \]</p>
+<div class="highlight">
+<pre><span></span>print(len(employees) * (len(employees) - 1)/2)
+</pre></div>
+<pre class="example">
+28.0
+
+</pre>
+<p>It looks like our relationships data creates a fully-connected network (unless there is a duplicate which would be an error).</p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org653b217">
+<h4 id="org653b217">This Is the Movie Choices</h4>
+<div class="outline-text-4" id="text-org653b217">
+<div class="highlight">
+<pre><span></span>employee_movies_path = Path(os.environ.get("EMPLOYEE_MOVIE_CHOICES"))
+movies_data = pandas.read_csv(
+    employee_movies_path, 
+    delimiter="\t", 
+    header=None,
+    skiprows=1,
+    names="employee movie".split())
+print(movies_data.head())
+</pre></div>
+<pre class="example">
+  employee                            movie
+0     Andy                         Anaconda
+1     Andy                       Mean Girls
+2     Andy                       The Matrix
+3   Claude                         Anaconda
+4   Claude  Monty Python and the Holy Grail
+
+</pre>
+<div class="highlight">
+<pre><span></span>movies = set(movies_data.movie.unique())
+print(movies)
+print(len(movies))
+</pre></div>
+<p>The eight employees chose 11 movies between them.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org437cd95">
+<h3 id="org437cd95">Plot Graph</h3>
+<div class="outline-text-3" id="text-org437cd95">
+<p>You can use the following function to plot graphs.</p>
+<div class="highlight">
+<pre><span></span>def plot_graph(graph, file_name, plot_title, weight_name=None, directed=False):
+    """Plots an interactive graph using the spring-layout
+
+    Args:
+     graph: a networkx graph
+     file_name: name to store the plot (without extension)
+     plot_title: name to give the plot
+     weight_name: name of the attribute for plotting edge weights (if G is weighted)
+     directed: whether it is a directed graph
+    """
+    plot = holoviews.Graph.from_networkx(graph,
+                                         networkx.spring_layout).opts(
+                                             cmap="Set1",                                             
+                                             fontsize=Plot.fontsize,
+                                             width=Plot.width,
+                                             height=Plot.height,
+                                             edge_line_color=Plot.edge_color,
+                                             title=plot_title,
+                                             xaxis=None, yaxis=None, directed=directed)
+    Embed(plot=plot, file_name=file_name)()
+    return
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org0cd50e6">
+<h3 id="org0cd50e6">The Employee Movie Choices Graph</h3>
+<div class="outline-text-3" id="text-org0cd50e6">
+<p>The employee-movie network consists of employees and movies as nodes and the edges indicate an employee chose a movie. Not every movie is chosen by every employee, so it isn't a complete graph.</p>
+<div class="highlight">
+<pre><span></span>expected_edges = len(movies_data)
+expected_nodes = len(employees) + len(movies)
+print("Expected Edges: {}".format(expected_edges))
+print("Expected Nodes: {}".format(expected_nodes))
+</pre></div>
+<pre class="example">
+Expected Edges: 24
+Expected Nodes: 19
+
+</pre>
+<div class="highlight">
+<pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph,
+                                     networkx.circular_layout).opts(
+                                         node_color=dim("gender"), cmap="Set1",
+                                         tools=[hover],
+                                         fontsize=Plot.fontsize,
+                                         width=800,
+                                         height=800,
+                                         edge_line_color=Plot.edge_color,
+                                         title="Friendship Network by Gender",
+                                         xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="employee_movie_choices_plot")()
+</pre></div>
+<div class="highlight">
+<pre><span></span>def answer_one():
+    """Loads the Employee Movie Choices
+
+    Returns:
+     Graph: graph with movie and employees as nodes
+    """
+    movie_choices = pandas.read_table('Employee_Movie_Choices.txt')
+    movie_choices = networkx.from_pandas_dataframe(movie_choices, "#Employee", "Movie")
+    return movie_choices
+</pre></div>
+<div class="highlight">
+<pre><span></span>movie_choices = answer_one()
+edges = movie_choices.edges()
+assert len(edges) == 24
+assert len(movie_choices.nodes()) == 19
+assert networkx.is_bipartite(movie_choices)
+positions = networkx.spring_layout(movie_choices)
+
+networkx.draw_networkx(movie_choices, positions, edges=edges)
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org834f7c4">
+<h3 id="org834f7c4">Question 2</h3>
+<div class="outline-text-3" id="text-org834f7c4">
+<p>Using the graph from the previous question, add nodes attributes named `'type'` where movies have the value `'movie'` and employees have the value `'employee'` and return that graph.</p>
+<p><b>This function should return a networkx graph with node attributes `{'type': 'movie'}` or `{'type': 'employee'}`</b></p>
+<div class="highlight">
+<pre><span></span>def answer_two():
+    """Adds 'type' to nodes from movie-graph
+
+    Returns:
+     Graph: answer_one with 'type' attribute added (employee or movie)
+    """
+    graph = answer_one()
+    new_graph = networkx.Graph()
+    nodes = graph.nodes()
+    employee_nodes = [node for node in nodes if node in employees]
+    movie_nodes = [node for node in nodes if node in movies]
+    new_graph.add_nodes_from(employee_nodes, bipartite=0, type='employee')
+    new_graph.add_nodes_from(movie_nodes, bipartite=1, type="movie")
+    new_graph.add_edges_from(graph.edges())
+    return new_graph
+</pre></div>
+<div class="highlight">
+<pre><span></span>two = answer_two()
+two.nodes(data=True)
+</pre></div>
+<div class="highlight">
+<pre><span></span>plot_graph(two)
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgd8adb4a">
+<h3 id="orgd8adb4a">Question 3</h3>
+<div class="outline-text-3" id="text-orgd8adb4a">
+<p>Find a weighted projection of the graph from `answer<sub>two</sub>` which tells us how many movies different pairs of employees have in common.</p>
+<p><b>This function should return a weighted projected graph.</b></p>
+<div class="highlight">
+<pre><span></span>def answer_three():
+    graph = answer_two()
+    assert networkx.is_bipartite(graph)
+    return bipartite.weighted_projected_graph(graph, employees)
+</pre></div>
+<div class="highlight">
+<pre><span></span>three = answer_three()
+plot_graph(three)
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgd1a39bc">
+<h3 id="orgd1a39bc">Question 4</h3>
+<div class="outline-text-3" id="text-orgd1a39bc">
+<p>Suppose you'd like to find out if people that have a high relationship score also like the same types of movies.</p>
+<p>Find the Pearson correlation ( using `DataFrame.corr()` ) between employee relationship scores and the number of movies they have in common. If two employees have no movies in common it should be treated as a 0, not a missing value, and should be included in the correlation calculation.</p>
+<p><b>This function should return a float.</b></p>
+<div class="highlight">
+<pre><span></span>def answer_four():
+    """calculates the pearson correlation for data
+
+    Returns:
+     float: Pearson correlation for weight and relationship_score
+    """
+    three = answer_three()
+    relationships = pandas.read_table(
+        "Employee_Relationships.txt",
+        names="employee_left employee_right relationship_score".split())
+    relationships["employees"] = relationships.apply(
+        lambda row: tuple(sorted((row["employee_left"],
+                                  row['employee_right']))), axis=1)
+
+    weights = pandas.DataFrame(
+        three.edges(data=True),
+        columns="employee_left employee_right weight".split())
+    weights["weight"] = weights.weight.map(lambda row: row["weight"])
+    weights["employees"] = weights.apply(lambda row: tuple(sorted(
+        (row["employee_left"],
+         row["employee_right"]))),
+                                         axis=1)
+
+    joined = pandas.merge(relationships, weights, how="outer", 
+                          on=['employees'])
+    assert len(joined) == len(relationships)
+    joined['weight'] = joined["weight"].fillna(0)
+
+    data = joined[["relationship_score", "weight"]]
+    correlation = data.corr()
+    return correlation.relationship_score.weight
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(answer_four())
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org7f33992">
+<h2 id="org7f33992">The Return</h2>
+</div>
+</div>
+</article>
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
 <h1 class="p-name entry-title"><a class="u-url" href="posts/libraries/prophet/getting-started-with-prophet/">Getting Started With Prophet</a></h1>
@@ -865,39 +1468,39 @@ Embed(plot=plot, file_name="facebook_network_gender_spring", height_in_pixels=81
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/networks/high-school-friendship-networks/#orgee88738">The Departure</a>
+<li><a href="posts/networks/high-school-friendship-networks/#org204ffbc">The Departure</a>
 <ul>
-<li><a href="posts/networks/high-school-friendship-networks/#org3f9a773">Setup The Plotting</a></li>
+<li><a href="posts/networks/high-school-friendship-networks/#org71831d7">Setup The Plotting</a></li>
 </ul>
 </li>
-<li><a href="posts/networks/high-school-friendship-networks/#org4b1d05e">The Initiation</a>
+<li><a href="posts/networks/high-school-friendship-networks/#org25b09fc">The Initiation</a>
 <ul>
-<li><a href="posts/networks/high-school-friendship-networks/#org9e4c900">Meta-Data</a></li>
-<li><a href="posts/networks/high-school-friendship-networks/#org01c7aa9">The Friendship Network</a></li>
-<li><a href="posts/networks/high-school-friendship-networks/#org920d2eb">Looking at the Friendship Network</a></li>
-<li><a href="posts/networks/high-school-friendship-networks/#org8bbdc98">Plotting</a></li>
-<li><a href="posts/networks/high-school-friendship-networks/#org51bb1e6">Degree Distribution</a></li>
+<li><a href="posts/networks/high-school-friendship-networks/#orgb5d41ca">Meta-Data</a></li>
+<li><a href="posts/networks/high-school-friendship-networks/#org126505b">The Friendship Network</a></li>
+<li><a href="posts/networks/high-school-friendship-networks/#orgf733fa2">Looking at the Friendship Network</a></li>
+<li><a href="posts/networks/high-school-friendship-networks/#orgac238f7">Plotting</a></li>
+<li><a href="posts/networks/high-school-friendship-networks/#org2730db9">Degree Distribution</a></li>
 </ul>
 </li>
-<li><a href="posts/networks/high-school-friendship-networks/#org99524bf">The Return</a>
+<li><a href="posts/networks/high-school-friendship-networks/#org6b74b55">The Return</a>
 <ul>
-<li><a href="posts/networks/high-school-friendship-networks/#org37ce93b">Citations</a></li>
+<li><a href="posts/networks/high-school-friendship-networks/#org2844870">Citations</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgee88738">
-<h2 id="orgee88738">The Departure</h2>
-<div class="outline-text-2" id="text-orgee88738">
+<div class="outline-2" id="outline-container-org204ffbc">
+<h2 id="org204ffbc">The Departure</h2>
+<div class="outline-text-2" id="text-org204ffbc">
 <p>This looks at data provided by <a href="http://www.sociopatterns.org">SocioPatterns</a> that looks a the interactions between students at a High School in Marseilles, France, in December of 2013. In particular, I'm going to look at the <i>Friendship Networks</i> data - wherein the students reported who they were friends with.</p>
 </div>
-<div class="outline-4" id="outline-container-orgf87739d">
-<h4 id="orgf87739d">Imports</h4>
-<div class="outline-text-4" id="text-orgf87739d"></div>
-<div class="outline-5" id="outline-container-org0071f27">
-<h5 id="org0071f27">From Python</h5>
-<div class="outline-text-5" id="text-org0071f27">
+<div class="outline-4" id="outline-container-orgbe6c3cf">
+<h4 id="orgbe6c3cf">Imports</h4>
+<div class="outline-text-4" id="text-orgbe6c3cf"></div>
+<div class="outline-5" id="outline-container-orgee28045">
+<h5 id="orgee28045">From Python</h5>
+<div class="outline-text-5" id="text-orgee28045">
 <div class="highlight">
 <pre><span></span>from collections import Counter
 from functools import partial
@@ -906,9 +1509,9 @@ import os
 </pre></div>
 </div>
 </div>
-<div class="outline-5" id="outline-container-orgb7388d8">
-<h5 id="orgb7388d8">From PyPi</h5>
-<div class="outline-text-5" id="text-orgb7388d8">
+<div class="outline-5" id="outline-container-org7d5bb09">
+<h5 id="org7d5bb09">From PyPi</h5>
+<div class="outline-text-5" id="text-org7d5bb09">
 <div class="highlight">
 <pre><span></span>from bokeh.models import HoverTool
 from dotenv import load_dotenv
@@ -921,9 +1524,9 @@ import pandas as pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-5" id="outline-container-org7e124dd">
-<h5 id="org7e124dd">My Stuff</h5>
-<div class="outline-text-5" id="text-org7e124dd">
+<div class="outline-5" id="outline-container-orgde8bc33">
+<h5 id="orgde8bc33">My Stuff</h5>
+<div class="outline-text-5" id="text-orgde8bc33">
 <div class="highlight">
 <pre><span></span>from graeae.timers import Timer
 from graeae.tables import CountPercentage
@@ -932,25 +1535,25 @@ from graeae.visualization import EmbedHoloview
 </div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orga860564">
-<h4 id="orga860564">Load the Dotenv</h4>
-<div class="outline-text-4" id="text-orga860564">
+<div class="outline-4" id="outline-container-orgc1335fa">
+<h4 id="orgc1335fa">Load the Dotenv</h4>
+<div class="outline-text-4" id="text-orgc1335fa">
 <div class="highlight">
 <pre><span></span>load_dotenv(".env")
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orge3747a5">
-<h4 id="orge3747a5">Build the Timer</h4>
-<div class="outline-text-4" id="text-orge3747a5">
+<div class="outline-4" id="outline-container-org7f190ed">
+<h4 id="org7f190ed">Build the Timer</h4>
+<div class="outline-text-4" id="text-org7f190ed">
 <div class="highlight">
 <pre><span></span>TIMER = Timer()
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org3f9a773">
-<h3 id="org3f9a773">Setup The Plotting</h3>
-<div class="outline-text-3" id="text-org3f9a773">
+<div class="outline-3" id="outline-container-org71831d7">
+<h3 id="org71831d7">Setup The Plotting</h3>
+<div class="outline-text-3" id="text-org71831d7">
 <div class="highlight">
 <pre><span></span>holoviews.extension("bokeh")
 SLUG = "high-school-friendship-networks/"
@@ -968,12 +1571,12 @@ Embed = partial(EmbedHoloview, folder_path=output)
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org4b1d05e">
-<h2 id="org4b1d05e">The Initiation</h2>
-<div class="outline-text-2" id="text-org4b1d05e"></div>
-<div class="outline-3" id="outline-container-org9e4c900">
-<h3 id="org9e4c900">Meta-Data</h3>
-<div class="outline-text-3" id="text-org9e4c900">
+<div class="outline-2" id="outline-container-org25b09fc">
+<h2 id="org25b09fc">The Initiation</h2>
+<div class="outline-text-2" id="text-org25b09fc"></div>
+<div class="outline-3" id="outline-container-orgb5d41ca">
+<h3 id="orgb5d41ca">Meta-Data</h3>
+<div class="outline-text-3" id="text-orgb5d41ca">
 <p>Let's take a look at the meta-data before loading it into pandas.</p>
 <div class="highlight">
 <pre><span></span>HIGH_SCHOOL = Path(os.environ.get("HIGH_SCHOOL")).expanduser()
@@ -1020,9 +1623,9 @@ print(len(meta_data.id.unique()))
 </pre>
 <p>So there's one entry for each student, meaning the student's can't belong to more than one class.</p>
 </div>
-<div class="outline-4" id="outline-container-org241da13">
-<h4 id="org241da13">Classes</h4>
-<div class="outline-text-4" id="text-org241da13">
+<div class="outline-4" id="outline-container-org8699e8e">
+<h4 id="org8699e8e">Classes</h4>
+<div class="outline-text-4" id="text-org8699e8e">
 <p>First a table of the counts.</p>
 <div class="highlight">
 <pre><span></span>table = CountPercentage(meta_data["class"]).holoviews_table.opts(
@@ -1077,9 +1680,9 @@ Embed(plot=plot, file_name="gender_counts", height_in_pixels=Plot.height)()
 <p>Strangely, the classes that start with <code>2BIO</code> are more female while the others are more male.</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org8f73a34">
-<h4 id="org8f73a34">Gender</h4>
-<div class="outline-text-4" id="text-org8f73a34">
+<div class="outline-4" id="outline-container-org3a232ab">
+<h4 id="org3a232ab">Gender</h4>
+<div class="outline-text-4" id="text-org3a232ab">
 <p>A stacked bar plot to get a sense of not just the distribution among genders but among classes.</p>
 <div class="highlight">
 <pre><span></span>plot = grouped.hvplot.bar(title="Gender Counts", x="gender", y="gender_count",
@@ -1119,9 +1722,9 @@ Embed(plot=plot, file_name="class_counts", height_in_pixels=Plot.height)()
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org01c7aa9">
-<h3 id="org01c7aa9">The Friendship Network</h3>
-<div class="outline-text-3" id="text-org01c7aa9">
+<div class="outline-3" id="outline-container-org126505b">
+<h3 id="org126505b">The Friendship Network</h3>
+<div class="outline-text-3" id="text-org126505b">
 <p>This is a dataset that shows whether a student identified another student as their friend.</p>
 <div class="highlight">
 <pre><span></span>friendship_path = HIGH_SCHOOL.joinpath(Files.friendship)
@@ -1146,9 +1749,9 @@ friendship_data = friendship_data.dropna()
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org920d2eb">
-<h3 id="org920d2eb">Looking at the Friendship Network</h3>
-<div class="outline-text-3" id="text-org920d2eb">
+<div class="outline-3" id="outline-container-orgf733fa2">
+<h3 id="orgf733fa2">Looking at the Friendship Network</h3>
+<div class="outline-text-3" id="text-orgf733fa2">
 <div class="highlight">
 <pre><span></span>with TIMER:
     friendship_graph = networkx.convert_matrix.from_pandas_edgelist(
@@ -1156,9 +1759,9 @@ friendship_data = friendship_data.dropna()
         create_using=networkx.DiGraph)
 </pre></div>
 <pre class="example">
-Started: 2019-04-04 20:47:03.546266
-Ended: 2019-04-04 20:47:03.547510
-Elapsed: 0:00:00.001244
+Started: 2019-04-10 15:15:14.469087
+Ended: 2019-04-10 15:15:14.471246
+Elapsed: 0:00:00.002159
 
 </pre>
 <div class="highlight">
@@ -1172,15 +1775,15 @@ classes = dict(zip(meta_data.id, meta_data["class"]))
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org8bbdc98">
-<h3 id="org8bbdc98">Plotting</h3>
-<div class="outline-text-3" id="text-org8bbdc98"></div>
-<div class="outline-4" id="outline-container-org8c7c3f3">
-<h4 id="org8c7c3f3">Friendship Network Circular</h4>
-<div class="outline-text-4" id="text-org8c7c3f3"></div>
-<div class="outline-5" id="outline-container-org26f5bcd">
-<h5 id="org26f5bcd">By Gender</h5>
-<div class="outline-text-5" id="text-org26f5bcd">
+<div class="outline-3" id="outline-container-orgac238f7">
+<h3 id="orgac238f7">Plotting</h3>
+<div class="outline-text-3" id="text-orgac238f7"></div>
+<div class="outline-4" id="outline-container-org6d4da52">
+<h4 id="org6d4da52">Friendship Network Circular</h4>
+<div class="outline-text-4" id="text-org6d4da52"></div>
+<div class="outline-5" id="outline-container-org7bb2c7b">
+<h5 id="org7bb2c7b">By Gender</h5>
+<div class="outline-text-5" id="text-org7bb2c7b">
 <div class="highlight">
 <pre><span></span>hover = HoverTool(
     tooltips = [
@@ -1205,6 +1808,11 @@ Embed(plot=plot, file_name="friendship_network_circular")()
 <p>Figure Missing</p>
 </object>
 <p>It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others.</p>
+</div>
+</div>
+<div class="outline-5" id="outline-container-org02a15fb">
+<h5 id="org02a15fb">By Class</h5>
+<div class="outline-text-5" id="text-org02a15fb">
 <div class="highlight">
 <pre><span></span>hover = HoverTool(
     tooltips = [
@@ -1229,6 +1837,15 @@ Embed(plot=plot, file_name="friendship_network_circular_class")()
 <p>Figure Missing</p>
 </object>
 <p><a href="posts/networks/high-school-friendship-networks/friendship_network_circular_class.html">Link to Plot</a></p>
+</div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org741e24b">
+<h4 id="org741e24b">Spring Layout</h4>
+<div class="outline-text-4" id="text-org741e24b"></div>
+<div class="outline-5" id="outline-container-org274bd27">
+<h5 id="org274bd27">Class</h5>
+<div class="outline-text-5" id="text-org274bd27">
 <div class="highlight">
 <pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
     node_color=dim("class"), cmap="Set1",
@@ -1247,6 +1864,11 @@ Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=8
 </object>
 <p><a href="posts/networks/high-school-friendship-networks/friendship_network_class_spring.html">Link to Plot</a></p>
 <p>Unlike the circular plot, this plot shows that there are disconnected neighborhoods within the network and there seems to be a clustering by class.</p>
+</div>
+</div>
+<div class="outline-5" id="outline-container-org67fe1c8">
+<h5 id="org67fe1c8">Gender</h5>
+<div class="outline-text-5" id="text-org67fe1c8">
 <div class="highlight">
 <pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
                                          node_color=dim("gender"), cmap="Set1",
@@ -1267,12 +1889,12 @@ Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org51bb1e6">
-<h3 id="org51bb1e6">Degree Distribution</h3>
-<div class="outline-text-3" id="text-org51bb1e6"></div>
-<div class="outline-4" id="outline-container-org960562d">
-<h4 id="org960562d">Total Degrees</h4>
-<div class="outline-text-4" id="text-org960562d">
+<div class="outline-3" id="outline-container-org2730db9">
+<h3 id="org2730db9">Degree Distribution</h3>
+<div class="outline-text-3" id="text-org2730db9"></div>
+<div class="outline-4" id="outline-container-org5bd2dc1">
+<h4 id="org5bd2dc1">Total Degrees</h4>
+<div class="outline-text-4" id="text-org5bd2dc1">
 <div class="highlight">
 <pre><span></span>degree_sequence = sorted((degree for node, degree in friendship_graph.degree()))
 degree_counts = Counter(degree_sequence)
@@ -1293,9 +1915,9 @@ Embed(plot=plot, file_name="degree_distribution")()
 <p>Figure Missing</p>
 </object></div>
 </div>
-<div class="outline-4" id="outline-container-org6bb0e87">
-<h4 id="org6bb0e87">In-Degree Distribution</h4>
-<div class="outline-text-4" id="text-org6bb0e87">
+<div class="outline-4" id="outline-container-orgb75a7df">
+<h4 id="orgb75a7df">In-Degree Distribution</h4>
+<div class="outline-text-4" id="text-orgb75a7df">
 <div class="highlight">
 <pre><span></span>in_degree_sequence = sorted((degree for node, degree in friendship_graph.in_degree))
 in_degree_counts = Counter(in_degree_sequence)
@@ -1316,12 +1938,12 @@ Embed(plot=plot, file_name="in_degree_distribution")()
 <object data="posts/networks/high-school-friendship-networks/in_degree_distribution.html" height="800" style="width:100%" type="text/html">
 <p>Figure Missing</p>
 </object>
-<p>The in-degree represents the number of times someone identified a student as a friend. Three people weren't identified as friends at all and the most common count was 2, although someone was identified 15 times.</p>
+<p>The in-degree represents the number of times a student (the node) was identified by someone else as a friend. Three people weren't identified as friends at all and the most common count was 2, although someone was identified 15 times.</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org67918d4">
-<h4 id="org67918d4">Out-Degree Distribution</h4>
-<div class="outline-text-4" id="text-org67918d4">
+<div class="outline-4" id="outline-container-orgfc84c84">
+<h4 id="orgfc84c84">Out-Degree Distribution</h4>
+<div class="outline-text-4" id="text-orgfc84c84">
 <div class="highlight">
 <pre><span></span>out_degree_sequence = sorted((degree for node, degree in friendship_graph.out_degree))
 out_degree_counts = Counter(out_degree_sequence)
@@ -1342,12 +1964,12 @@ Embed(plot=plot, file_name="out_degree_distribution")()
 <object data="posts/networks/high-school-friendship-networks/out_degree_distribution.html" height="800" style="width:100%" type="text/html">
 <p>Figure Missing</p>
 </object>
-<p>The out-degree is the number of students a student identified as a friend.</p>
+<p>The out-degree is the number of other students a student identified as a friend.</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org3a9a527">
-<h4 id="org3a9a527">In-and-Out Degree</h4>
-<div class="outline-text-4" id="text-org3a9a527">
+<div class="outline-4" id="outline-container-orgedc4056">
+<h4 id="orgedc4056">In-and-Out Degree</h4>
+<div class="outline-text-4" id="text-orgedc4056">
 <div class="highlight">
 <pre><span></span>in_out = pandas.concat([in_data, 
                         out_data]).sort_values(by="Degrees")
@@ -1362,16 +1984,38 @@ Embed(plot=plot, file_name="in_and_out_degree_distribution")()
 </pre></div>
 <object data="posts/networks/high-school-friendship-networks/in_and_out_degree_distribution.html" height="800" style="width:100%" type="text/html">
 <p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span>for node in friendship_graph.nodes:
+    friendship_graph.nodes[node]["In-Degree"] = friendship_graph.in_degree[node]
+    friendship_graph.nodes[node]["Out-Degree"] = friendship_graph.out_degree[node]
+</pre></div>
+<div class="highlight">
+<pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout)
+plot = plot.opts(
+    node_color=dim("gender"), cmap="Set1",
+    tools=["hover"],
+    width=800,
+    height=800,
+#    edge_line_color="In-Degree",
+    edge_cmap="viridis",
+#    edge_line_width=holoviews.dim("In-Degree"),
+    title="Friendship Network In-Degrees By Gender",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_degree_gender_spring", height_in_pixels=810)()
+</pre></div>
+<object data="posts/networks/high-school-friendship-networks/friendship_network_in_degree_gender_spring.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
 </object></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org99524bf">
-<h2 id="org99524bf">The Return</h2>
-<div class="outline-text-2" id="text-org99524bf"></div>
-<div class="outline-3" id="outline-container-org37ce93b">
-<h3 id="org37ce93b">Citations</h3>
-<div class="outline-text-3" id="text-org37ce93b">
+<div class="outline-2" id="outline-container-org6b74b55">
+<h2 id="org6b74b55">The Return</h2>
+<div class="outline-text-2" id="text-org6b74b55"></div>
+<div class="outline-3" id="outline-container-org2844870">
+<h3 id="org2844870">Citations</h3>
+<div class="outline-text-3" id="text-org2844870">
 <ul class="org-ul">
 <li>R. Mastrandrea, J. Fournet, A. Barrat,</li>
 </ul>
@@ -2511,1244 +3155,6 @@ print('''#+begin_export html
 <p>How interesting is the result? Does this represent an interesting choice of data and/or an interesting way to display the data?</p>
 </div>
 </div>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="posts/libraries/walking-through-the-pyviz-workflow-example/">Walking Through the Pyviz Workflow Example</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="posts/libraries/walking-through-the-pyviz-workflow-example/" rel="bookmark"><time class="published dt-published" datetime="2019-03-14T12:48:04-07:00" itemprop="datePublished" title="2019-03-14 12:48">2019-03-14 12:48</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org74389ef">Beginning</a>
-<ul>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#orgce18527">Set Up</a>
-<ul>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org317b546">Imports</a></li>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org492e185">Presets</a></li>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#orgaf342bd">Constants</a></li>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org8132f8c">Load Some Data</a></li>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org231c879">Looking at the Missing Data</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org2fe7a19">Middle</a>
-<ul>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org7cfcaf8">Looking at Measles</a>
-<ul>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org8dbc052">By Year</a></li>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org946f612">Vaccines Enter The Picture</a></li>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org4e5c0ce">Measles By State</a></li>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org334c575">Oregon Vs Hawaii</a></li>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org6367726">Four States</a></li>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#org90bf6ad">Faceting</a></li>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#orgc13abf2">Bar Chart</a></li>
-<li><a href="posts/libraries/walking-through-the-pyviz-workflow-example/#orge068466">Nationwide Mean With Error Bars</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org74389ef">
-<h2 id="org74389ef">Beginning</h2>
-<div class="outline-text-2" id="text-org74389ef">
-<p>This is a replication of (most of) the <a href="http://pyviz.org/tutorial/01_Workflow_Introduction.html">pyviz workflow introduction</a> to see if I can replicate it. Nothing new here.</p>
-</div>
-<div class="outline-3" id="outline-container-orgce18527">
-<h3 id="orgce18527">Set Up</h3>
-<div class="outline-text-3" id="text-orgce18527"></div>
-<div class="outline-4" id="outline-container-org317b546">
-<h4 id="org317b546">Imports</h4>
-<div class="outline-text-4" id="text-org317b546">
-<p>From Python.</p>
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">os</span>
-</pre></div>
-<p>From PyPi.</p>
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">bokeh.models</span> <span class="kn">import</span> <span class="n">CrosshairTool</span><span class="p">,</span> <span class="n">HoverTool</span>
-<span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
-<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
-
-<span class="kn">import</span> <span class="nn">holoviews</span>
-<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">pandas</span>
-</pre></div>
-<p>My Stuff.</p>
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">graeae.visualization</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org492e185">
-<h4 id="org492e185">Presets</h4>
-<div class="outline-text-4" id="text-org492e185">
-<p>Load the dotenv.</p>
-<div class="highlight">
-<pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">".env"</span><span class="p">)</span>
-</pre></div>
-<p>Set up the bokeh.</p>
-<div class="highlight">
-<pre><span></span><span class="n">OUTPUT_FOLDER</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/libraries/walking-through-the-pyviz-workflow-example/"</span><span class="p">)</span>
-<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedBokeh</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="n">OUTPUT_FOLDER</span><span class="p">)</span>
-<span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">)</span>
-</pre></div>
-<p>Set up the table printer.</p>
-<div class="highlight">
-<pre><span></span><span class="n">TABLE</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-orgaf342bd">
-<h4 id="orgaf342bd">Constants</h4>
-<div class="outline-text-4" id="text-orgaf342bd">
-<div class="highlight">
-<pre><span></span><span class="k">class</span> <span class="nc">Plots</span><span class="p">:</span>
-    <span class="n">width</span> <span class="o">=</span> <span class="mi">1000</span>
-    <span class="n">height</span> <span class="o">=</span> <span class="mi">600</span>
-    <span class="n">font_size</span> <span class="o">=</span> <span class="mi">18</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org8132f8c">
-<h4 id="org8132f8c">Load Some Data</h4>
-<div class="outline-text-4" id="text-org8132f8c">
-<p>Measles and pertusis by state.</p>
-<div class="highlight">
-<pre><span></span><span class="n">diseases</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"DISEASES"</span><span class="p">)))</span>
-</pre></div>
-<p>What does the data look like?</p>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">diseases</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">)))</span>
-</pre></div>
-<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
-<colgroup>
-<col class="org-right">
-<col class="org-right">
-<col class="org-left">
-<col class="org-right">
-<col class="org-right"></colgroup>
-<thead>
-<tr>
-<th class="org-right" scope="col">Year</th>
-<th class="org-right" scope="col">Week</th>
-<th class="org-left" scope="col">State</th>
-<th class="org-right" scope="col">measles</th>
-<th class="org-right" scope="col">pertussis</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-right">1928</td>
-<td class="org-right">1</td>
-<td class="org-left">Alabama</td>
-<td class="org-right">3.67</td>
-<td class="org-right">nan</td>
-</tr>
-<tr>
-<td class="org-right">1928</td>
-<td class="org-right">2</td>
-<td class="org-left">Alabama</td>
-<td class="org-right">6.25</td>
-<td class="org-right">nan</td>
-</tr>
-<tr>
-<td class="org-right">1928</td>
-<td class="org-right">3</td>
-<td class="org-left">Alabama</td>
-<td class="org-right">7.95</td>
-<td class="org-right">nan</td>
-</tr>
-<tr>
-<td class="org-right">1928</td>
-<td class="org-right">4</td>
-<td class="org-left">Alabama</td>
-<td class="org-right">12.58</td>
-<td class="org-right">nan</td>
-</tr>
-<tr>
-<td class="org-right">1928</td>
-<td class="org-right">5</td>
-<td class="org-left">Alabama</td>
-<td class="org-right">8.03</td>
-<td class="org-right">nan</td>
-</tr>
-</tbody>
-</table>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">diseases</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">5</span><span class="p">)))</span>
-</pre></div>
-<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
-<colgroup>
-<col class="org-right">
-<col class="org-right">
-<col class="org-left">
-<col class="org-right">
-<col class="org-right"></colgroup>
-<thead>
-<tr>
-<th class="org-right" scope="col">Year</th>
-<th class="org-right" scope="col">Week</th>
-<th class="org-left" scope="col">State</th>
-<th class="org-right" scope="col">measles</th>
-<th class="org-right" scope="col">pertussis</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-right">1945</td>
-<td class="org-right">18</td>
-<td class="org-left">Tennessee</td>
-<td class="org-right">2.26</td>
-<td class="org-right">0.66</td>
-</tr>
-<tr>
-<td class="org-right">1988</td>
-<td class="org-right">7</td>
-<td class="org-left">Mississippi</td>
-<td class="org-right">nan</td>
-<td class="org-right">nan</td>
-</tr>
-<tr>
-<td class="org-right">1973</td>
-<td class="org-right">14</td>
-<td class="org-left">North Dakota</td>
-<td class="org-right">0</td>
-<td class="org-right">nan</td>
-</tr>
-<tr>
-<td class="org-right">1963</td>
-<td class="org-right">29</td>
-<td class="org-left">Montana</td>
-<td class="org-right">5.55</td>
-<td class="org-right">nan</td>
-</tr>
-<tr>
-<td class="org-right">1932</td>
-<td class="org-right">13</td>
-<td class="org-left">Utah</td>
-<td class="org-right">0.39</td>
-<td class="org-right">nan</td>
-</tr>
-</tbody>
-</table>
-<p>It looks like this data set has weekly measles… counts? I don't know why the values are fractions. It also looks like pertusis (<a href="https://www.cdc.gov/pertussis/index.html">whooping cough</a>) is missing values.</p>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org231c879">
-<h4 id="org231c879">Looking at the Missing Data</h4>
-<div class="outline-text-4" id="text-org231c879">
-<div class="highlight">
-<pre><span></span><span class="n">missing_measles</span> <span class="o">=</span> <span class="n">diseases</span><span class="p">[</span><span class="n">diseases</span><span class="o">.</span><span class="n">measles</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">"Missing Measles: {:.2f} %"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-    <span class="mi">100</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_measles</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">diseases</span><span class="p">)))</span>
-
-<span class="n">missing_pertussis</span> <span class="o">=</span> <span class="n">diseases</span><span class="p">[</span><span class="n">diseases</span><span class="o">.</span><span class="n">pertussis</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">"Missing Pertussis: {:.2f} %"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-    <span class="mi">100</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_pertussis</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">diseases</span><span class="p">)))</span>
-</pre></div>
-<pre class="example">
-Missing Measles: 34.84 %
-Missing Pertussis: 51.04 %
-
-</pre>
-<p>It looks like they both have missing values, but there are more missing pertussis values. I'll look at how the missing values are distributed.</p>
-</div>
-<ul class="org-ul">
-<li><a id="org64b009c"></a>Measles<br>
-<div class="outline-text-5" id="text-org64b009c">
-<div class="highlight">
-<pre><span></span><span class="n">decade_hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
-    <span class="n">tooltips</span><span class="o">=</span><span class="p">[</span>
-        <span class="p">(</span><span class="s2">"Missing"</span><span class="p">,</span> <span class="s2">"@Year_count{0,0}"</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">"Decade Center Year"</span><span class="p">,</span> <span class="s2">"@Year{0}"</span><span class="p">),</span>
-    <span class="p">],</span>
-    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">"Count"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">,</span>
-        <span class="s2">"Year"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="n">mode</span><span class="o">=</span><span class="s2">"vline"</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">histogram</span> <span class="o">=</span> <span class="p">(</span><span class="n">missing_measles</span><span class="p">[(</span><span class="n">missing_measles</span><span class="o">.</span><span class="n">Year</span> <span class="o">&gt;</span><span class="mi">1929</span><span class="p">)</span> 
-                             <span class="o">&</span> <span class="p">(</span><span class="n">missing_measles</span><span class="o">.</span><span class="n">Year</span> <span class="o">&lt;</span> <span class="mi">2011</span><span class="p">)]</span>
-             <span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">decade_hover</span><span class="p">],</span>
-                          <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-                          <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span>
-                          <span class="n">title</span><span class="o">=</span><span class="s2">"Missing Weekly Measles Reports by Decade"</span><span class="p">)</span>
-             <span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">))</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">histogram</span><span class="p">,</span> <span class="s2">"missing_measles_histogram"</span><span class="p">)()</span>
-</pre></div>
-<script id="3b264531-d9b5-45ae-83f6-16bf70fa0da8" src="posts/libraries/walking-through-the-pyviz-workflow-example/missing_measles_histogram.js">
-</script>
-<p>Since we have roughly eight decades of data I trimmed the years to exactly eight and then made a histogram with eight bins to get the counts per decade. Since this is a post about doing the plotting and not really about measles or pertussis I should probably mention that the way I got the <code>Year_count</code> variable name for the <code>HoverTool</code> was by printing the <code>histogram</code> object after I'd plotted it once.</p>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">histogram</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-:Histogram   [Year]   (Year_count)
-
-</pre>
-<div class="highlight">
-<pre><span></span><span class="n">year_hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
-    <span class="n">tooltips</span><span class="o">=</span><span class="p">[</span>
-        <span class="p">(</span><span class="s2">"Missing"</span><span class="p">,</span> <span class="s2">"@count{0,0}"</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"@Year{0}"</span><span class="p">),</span>
-    <span class="p">],</span>
-    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">"Count"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">,</span>
-        <span class="s2">"Year"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="n">mode</span><span class="o">=</span><span class="s2">"vline"</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">year_counts</span> <span class="o">=</span> <span class="p">(</span><span class="n">missing_measles</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">)</span>
-               <span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s2">"Year"</span><span class="p">:</span> <span class="s2">"count"</span><span class="p">})</span>
-               <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"Year"</span><span class="p">:</span> <span class="s2">"count"</span><span class="p">})</span><span class="o">.</span><span class="n">reset_index</span><span class="p">())</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">year_counts</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">year_hover</span><span class="p">],</span> <span class="n">x</span><span class="o">=</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"count"</span><span class="p">,</span>
-                          <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-                          <span class="n">xlabel</span><span class="o">=</span><span class="s2">"Missing Count"</span><span class="p">,</span>
-                          <span class="n">title</span><span class="o">=</span><span class="s2">"Missing Measles Reports by Year"</span><span class="p">)</span>
-        <span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">))</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"aggregated_missing_measles"</span><span class="p">)()</span>
-</pre></div>
-<script id="84285ed8-6ae8-4029-b7fa-98b877b35529" src="posts/libraries/walking-through-the-pyviz-workflow-example/aggregated_missing_measles.js">
-</script>
-<p>It looks like there are more missing values from 1981 onward. That kind of surprised me, but I guess that prior to this <a href="https://www.doh.wa.gov/YouandYourFamily/IllnessandDisease/Measles/MeaslesOutbreak">latest outbreak</a> the reporting might have become less necessary since measles was less common (it was declared eliminated from the Americas in <a href="https://en.wikipedia.org/wiki/Measles#Americas">2016</a>).</p>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">histogram</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-:Histogram   [Year]   (Year_count)
-
-</pre>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">diseases</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">diseases</span><span class="o">.</span><span class="n">Week</span><span class="o">.</span><span class="n">unique</span><span class="p">()))</span>
-</pre></div>
-<pre class="example">
-2652
-
-</pre>
-<p>By 2003 there are 2,652 missing values, which is our maxmimum value so it looks like there was no reporting in this data set from this year forward.</p>
-</div>
-</li>
-<li><a id="orgf34a71c"></a>Pertussis<br>
-<div class="outline-text-5" id="text-orgf34a71c">
-<div class="highlight">
-<pre><span></span><span class="n">histogram</span> <span class="o">=</span> <span class="p">(</span><span class="n">missing_pertussis</span><span class="p">[(</span><span class="n">missing_pertussis</span><span class="o">.</span><span class="n">Year</span> <span class="o">&gt;</span> <span class="mi">1929</span><span class="p">)</span> 
-                              <span class="o">&</span> <span class="p">(</span><span class="n">missing_pertussis</span><span class="o">.</span><span class="n">Year</span> <span class="o">&lt;</span> <span class="mi">2011</span><span class="p">)]</span>
-             <span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> 
-                          <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Count of Missing"</span><span class="p">,</span>
-                          <span class="n">title</span><span class="o">=</span><span class="s2">"Missing Pertussis by Decade"</span><span class="p">,</span> 
-                          <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">decade_hover</span><span class="p">])</span>
-             <span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">))</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">histogram</span><span class="p">,</span> <span class="s2">"missing_pertussis_distribution"</span><span class="p">)()</span>
-</pre></div>
-<script id="f7664a4d-5cad-4b77-bc63-21c98a270f15" src="posts/libraries/walking-through-the-pyviz-workflow-example/missing_pertussis_distribution.js">
-</script>
-<p>Strangely the missing reports seem to peak in the 1960s. This seems problematic if you're going to look at the incident rates, but I'm only going to look at measles anyway.</p>
-</div>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org2fe7a19">
-<h2 id="org2fe7a19">Middle</h2>
-<div class="outline-text-2" id="text-org2fe7a19"></div>
-<div class="outline-3" id="outline-container-org7cfcaf8">
-<h3 id="org7cfcaf8">Looking at Measles</h3>
-<div class="outline-text-3" id="text-org7cfcaf8"></div>
-<div class="outline-4" id="outline-container-org8dbc052">
-<h4 id="org8dbc052">By Year</h4>
-<div class="outline-text-4" id="text-org8dbc052">
-<div class="highlight">
-<pre><span></span><span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
-    <span class="n">tooltips</span><span class="o">=</span><span class="p">[</span>
-        <span class="p">(</span><span class="s2">"Measles"</span><span class="p">,</span> <span class="s2">"@measles{0,0}"</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"@Year"</span><span class="p">),</span>
-    <span class="p">],</span>
-    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span><span class="s2">"measles"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">},</span>
-    <span class="n">mode</span><span class="o">=</span><span class="s2">"vline"</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">measles_by_year</span> <span class="o">=</span> <span class="n">diseases</span><span class="p">[[</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"measles"</span><span class="p">]]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">)</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="n">measles_by_year</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"Measles In the U.S. by Year"</span><span class="p">,</span> 
-                              <span class="n">xlabel</span><span class="o">=</span><span class="s2">"Year"</span><span class="p">,</span> 
-                              <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Cases"</span><span class="p">,</span> 
-                              <span class="n">width</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-                              <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">hover</span><span class="p">])</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"measles_by_year"</span><span class="p">)()</span>
-</pre></div>
-<script id="4ecde4b8-c917-413a-bb74-ffbf9a4d86db" src="posts/libraries/walking-through-the-pyviz-workflow-example/measles_by_year.js">
-</script>
-<p>You can see from the plot that cases of measles have dropped dramatically over the years, with a particularly sharp drop in the 1960's.</p>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org946f612">
-<h4 id="org946f612">Vaccines Enter The Picture</h4>
-<div class="outline-text-4" id="text-org946f612">
-<p>According to the <a href="https://www.cdc.gov/measles/about/history.html">CDC</a>, the Edmonston-D vaccine was released in the United States in 1963 and the Edmonston-Enders vaccine (which is still currently in use) was released in 1968. Let's draw some lines to mark when certain events happened.</p>
-<div class="highlight">
-<pre><span></span><span class="n">first</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">VLine</span><span class="p">(</span><span class="mi">1963</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-<span class="n">first_label</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="mi">1963</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">27000</span><span class="p">,</span> <span class="s2">"Vaccine Introduced"</span><span class="p">,</span> 
-                             <span class="n">halign</span><span class="o">=</span><span class="s2">"right"</span><span class="p">)</span>
-<span class="n">current</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">VLine</span><span class="p">(</span><span class="mi">1968</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-<span class="n">current_label</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="mi">1968</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">27000</span><span class="p">,</span> <span class="s2">"Newer Vaccine"</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
-<span class="n">highest</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">VLine</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">measles_by_year</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()))</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">"red"</span><span class="p">)</span>
-<span class="n">highest_label</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">measles_by_year</span><span class="o">.</span><span class="n">idxmax</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">27000</span><span class="p">,</span> 
-                               <span class="s2">"Year of the Most Cases"</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
-<span class="n">lowest</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">VLine</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">measles_by_year</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()))</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">"blue"</span><span class="p">,</span> 
-                                                             <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-<span class="n">lowest_label</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">measles_by_year</span><span class="o">.</span><span class="n">idxmin</span><span class="p">())</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">27000</span><span class="p">,</span> 
-                              <span class="s2">"Zero Cases"</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"right"</span><span class="p">)</span>
-
-<span class="n">plot_2</span> <span class="o">=</span> <span class="p">(</span><span class="n">plot</span>
-          <span class="o">*</span> <span class="n">first</span> <span class="o">*</span> <span class="n">first_label</span> 
-          <span class="o">*</span> <span class="n">current</span> <span class="o">*</span> <span class="n">current_label</span> 
-          <span class="o">*</span> <span class="n">highest</span> <span class="o">*</span> <span class="n">highest_label</span> 
-          <span class="o">*</span> <span class="n">lowest</span> <span class="o">*</span> <span class="n">lowest_label</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">)</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">plot_2</span><span class="p">,</span> <span class="s2">"measles_with_landmarks"</span><span class="p">)()</span>
-</pre></div>
-<script id="7a5f6d06-eede-4cf0-8881-6ddd5d408ca9" src="posts/libraries/walking-through-the-pyviz-workflow-example/measles_with_landmarks.js">
-</script>
-<p>It does look like the introduction of the vaccine(s) had a dramatic effect on the incidence of measles in the United States.</p>
-<p>It appears that there were zero cases in 2002, but the actual value is 0.31, but my formatter cuts off the decimal place. 2003 is the first true zero, but as we saw above, this is also the first N/A value. Maybe N/A means zero, not missing. It's hard to say without some documentation about the data.</p>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org4e5c0ce">
-<h4 id="org4e5c0ce">Measles By State</h4>
-<div class="outline-text-4" id="text-org4e5c0ce">
-<p>This creates a dropdown menu so we can see the states' measles cases separately. It doesn't work in this template so I'm saving it as a separate page.</p>
-<div class="highlight">
-<pre><span></span><span class="n">measles_by_state</span> <span class="o">=</span> <span class="n">diseases</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"State"</span><span class="p">])[</span><span class="s2">"measles"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-<span class="n">states_plot</span> <span class="o">=</span> <span class="n">measles_by_state</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s2">"State"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">dynamic</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="n">file_name</span> <span class="o">=</span> <span class="s2">"measles_by_state.html"</span>
-<span class="n">holoviews</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">states_plot</span><span class="p">,</span> <span class="n">OUTPUT_FOLDER</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">file_name</span><span class="p">))</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">"[[file:{}][Link to plot]]"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_name</span><span class="p">))</span>
-</pre></div>
-<p><a href="posts/libraries/walking-through-the-pyviz-workflow-example/measles_by_state.html">Link to plot</a></p>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org334c575">
-<h4 id="org334c575">Oregon Vs Hawaii</h4>
-<div class="outline-text-4" id="text-org334c575">
-<p>Instead of looking at all the states one at a time, we can choose two states and lay them out side by side to make them easier to compare. The addition sign is used to make plots next to each other.</p>
-<div class="highlight">
-<pre><span></span><span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
-    <span class="n">tooltips</span><span class="o">=</span><span class="p">[</span>
-        <span class="p">(</span><span class="s2">"Measles Cases"</span><span class="p">,</span> <span class="s2">"@measles{0,0}"</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"@Year"</span><span class="p">),</span>
-    <span class="p">],</span>
-    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span><span class="s2">"measles"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">},</span>
-    <span class="n">mode</span><span class="o">=</span><span class="s2">"vline"</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">oregon_plot</span> <span class="o">=</span> <span class="n">states_plot</span><span class="p">[</span><span class="s2">"Oregon"</span><span class="p">]</span><span class="o">.</span><span class="n">relabel</span><span class="p">(</span><span class="s2">"Measles in Oregon"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
-    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">hover</span><span class="p">],</span>
-    <span class="n">width</span><span class="o">=</span><span class="mi">550</span><span class="p">,</span> 
-    <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">)</span>
-<span class="n">hawaii_plot</span> <span class="o">=</span> <span class="n">states_plot</span><span class="p">[</span><span class="s2">"Hawaii"</span><span class="p">]</span><span class="o">.</span><span class="n">relabel</span><span class="p">(</span><span class="s2">"Measles in Hawaii"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
-    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">hover</span><span class="p">],</span>
-    <span class="n">width</span><span class="o">=</span><span class="mi">550</span><span class="p">,</span> 
-    <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">)</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">oregon_plot</span> <span class="o">*</span> <span class="n">first</span> <span class="o">*</span> <span class="n">current</span> <span class="o">*</span> <span class="n">current_label</span> <span class="o">*</span> <span class="n">first_label</span>
-        <span class="o">+</span> <span class="n">hawaii_plot</span> <span class="o">*</span> <span class="n">first</span> <span class="o">*</span> <span class="n">first_label</span> <span class="o">*</span> <span class="n">current</span> <span class="o">*</span> <span class="n">current_label</span><span class="p">)</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"oregon_vs_hawaii"</span><span class="p">)()</span>
-</pre></div>
-<script id="d4b7b792-b833-46c8-baaa-dd67da1e0ed9" src="posts/libraries/walking-through-the-pyviz-workflow-example/oregon_vs_hawaii.js">
-</script>
-<p>I don't know why but the labels don't work. This is one of the problems with HoloViews, I think - they make some things really easy but the minute you step outside of what they have documented there's no way to figure out what's going on and how to fix it (or do it in the first place). It's an impressive programming feat but not documented enough to be as useful as it might be. More of a thing for quick sketching after which you have to switch back over to bokeh if you want anything other than the canned views (kind of like Excel… except with less documentation).</p>
-<p>Surprisingly (to me), Hawaii had more cases in their peak years and huge swings. Perhaps since it's an island the sailors and other travelers introduced epidemics. Or maybe they weren't as good at keeping records back then.</p>
-<p>According to the <a href="https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_historical_population">1960 Census Count</a> Oregon was quite a bit more populous than Hawaii.</p>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org6367726">
-<h4 id="org6367726">Four States</h4>
-<div class="outline-text-4" id="text-org6367726">
-<p>Since Oregon had a much larger population that Hawaii I thought I'd plot the states closer to it in size. The four states nearest to Hawaii in population (from the same 1960 popurlation report) are (in descending order):</p>
-<ul class="org-ul">
-<li>Montana (674,767)</li>
-<li>Idaho (667,191)</li>
-<li>Hawaii (632,772)</li>
-<li>North Dakota (632,446)</li>
-</ul>
-<p>While the side-by side plot lets you see groupings and heights you can't easily compare values for each year so this time I'll put them all on the same plot. HoloViews automatically creates a legend which lets you dim a line by clicking on it in the legend.</p>
-<div class="highlight">
-<pre><span></span><span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
-    <span class="n">tooltips</span><span class="o">=</span><span class="p">[</span>
-        <span class="p">(</span><span class="s2">"Measles"</span><span class="p">,</span> <span class="s2">"@measles{0,0}"</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"@Year"</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">"State"</span><span class="p">,</span> <span class="s2">"@State"</span><span class="p">),</span>
-    <span class="p">],</span>
-    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span><span class="s2">"measles"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">},</span>
-<span class="p">)</span>
-
-<span class="n">states</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Montana"</span><span class="p">,</span> <span class="s2">"Idaho"</span><span class="p">,</span> <span class="s2">"Hawaii"</span><span class="p">,</span> <span class="s2">"North Dakota"</span><span class="p">]</span>
-<span class="n">start_year</span><span class="p">,</span> <span class="n">end_year</span> <span class="o">=</span> <span class="mi">1930</span><span class="p">,</span> <span class="mi">2005</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">measles_by_state</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">start_year</span><span class="p">:</span><span class="n">end_year</span><span class="p">,</span> <span class="n">states</span><span class="p">]</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span>
-    <span class="n">by</span><span class="o">=</span><span class="s2">"State"</span><span class="p">,</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"Measles 1930 - 2005"</span><span class="p">,</span>
-    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">hover</span><span class="p">],</span>
-    <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">)</span> 
-        <span class="o">*</span> <span class="n">first</span> <span class="o">*</span> <span class="n">first_label</span> 
-        <span class="o">*</span> <span class="n">current</span> <span class="o">*</span> <span class="n">current_label</span><span class="p">)</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"four_states_measles"</span><span class="p">)()</span>
-</pre></div>
-<script id="9d388cfc-ccc6-47a2-bfb1-fc9b3ac234bc" src="posts/libraries/walking-through-the-pyviz-workflow-example/four_states_measles.js">
-</script>
-<p>Surprisingly Hawaii had the highest values in 1951 and 1955 and it looks like they had a really bad outbreak from 1955 through 1958, although Montana had higher values overall. Once again, the introduction of a vaccine seems to have a dramatic effect, although there continued to be mini outbreaks in the 1970s.</p>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org90bf6ad">
-<h4 id="org90bf6ad">Faceting</h4>
-<div class="outline-text-4" id="text-org90bf6ad">
-<p>Another way to compare the states is to plot them side-by side.</p>
-<div class="highlight">
-<pre><span></span><span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
-    <span class="n">tooltips</span><span class="o">=</span><span class="p">[</span>
-        <span class="p">(</span><span class="s2">"Measles"</span><span class="p">,</span> <span class="s2">"@measles{0,0}"</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"@Year"</span><span class="p">),</span>
-    <span class="p">],</span>
-    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span><span class="s2">"measles"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">},</span>
-<span class="p">)</span>
-
-<span class="n">crosshairs</span> <span class="o">=</span> <span class="n">CrosshairTool</span><span class="p">()</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">measles_by_state</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">start_year</span><span class="p">:</span><span class="n">end_year</span><span class="p">,</span> <span class="n">states</span><span class="p">]</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">"State"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">rot</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">crosshairs</span><span class="p">])</span>
-        <span class="o">*</span> <span class="n">first</span> <span class="o">*</span> <span class="n">first_label</span> <span class="o">*</span> <span class="n">current</span> <span class="o">*</span> <span class="n">current_label</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"Measles By Year"</span><span class="p">)</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"faceted_measles_states"</span><span class="p">)()</span>
-</pre></div>
-<script id="f29ad2b5-8752-430a-b1fa-ce4ee13260c8" src="posts/libraries/walking-through-the-pyviz-workflow-example/faceted_measles_states.js">
-</script>
-<p>This makes it harder to compare year by year, but it looks kind of elegant and it's clearer that Hawaii only had this one intense period recorded (starting in 1950) before the vaccine came out, while Idaho and North Dakota had this steady low-level amount of cases and something was much worse in Montana (although, really, their pattern looks closer to that of the United States as a whole) and all of them benefitted from the vaccines.</p>
-<p>As far as the plot goes, it might not be obvious but the main difference with what I did to get this plot is that the <code>State</code> column was assigned to the <code>col</code> argument instead of the <code>by</code> argument. I also had to set the title using the <code>opts</code> for the total plot, setting it for the <code>hvplot</code> didn't do anything.</p>
-</div>
-</div>
-<div class="outline-4" id="outline-container-orgc13abf2">
-<h4 id="orgc13abf2">Bar Chart</h4>
-<div class="outline-text-4" id="text-orgc13abf2">
-<p>This time I'll plot the counts for the states using a bar-chart instead of a line-plot.</p>
-<div class="highlight">
-<pre><span></span><span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
-    <span class="n">tooltips</span><span class="o">=</span><span class="p">[</span>
-        <span class="p">(</span><span class="s2">"Measles"</span><span class="p">,</span> <span class="s2">"@measles{0,0}"</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"@Year"</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">"State"</span><span class="p">,</span> <span class="s2">"@State"</span><span class="p">),</span>
-    <span class="p">],</span>
-    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span><span class="s2">"measles"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">},</span>
-    <span class="n">mode</span><span class="o">=</span><span class="s2">"vline"</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">plot</span> <span class="o">=</span> <span class="n">measles_by_state</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">1960</span><span class="p">:</span><span class="mi">1970</span><span class="p">,</span> <span class="n">states</span><span class="p">]</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
-    <span class="s2">"Year"</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
-    <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"Measles Count by Year"</span><span class="p">,</span>
-    <span class="n">by</span><span class="o">=</span><span class="s2">"State"</span><span class="p">,</span> 
-    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">hover</span><span class="p">],</span>
-    <span class="n">rot</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"measles_bar_chart"</span><span class="p">)()</span>
-</pre></div>
-<script id="db2fbc58-2d62-4f36-be4d-b2b9e8f15191" src="posts/libraries/walking-through-the-pyviz-workflow-example/measles_bar_chart.js">
-</script>
-<p>This gives pretty much the same information as the earlier line-plot, except it makes it easier to see a states' case-count for a given year. On the other hand it's harder to really see the year-to-year patterns and you can't turn off states to highlight other states. This looks like something business people would use more than what scientists would use. I think there is a certain aesthetic advantage to it which is traded off by the extra trend information given by a line plot. It does have a major advantage in the way it simplifies the output, though. It also allows you to use the "vline" option so the user only has to be on the same x-axis as a bar to trigger the pop-up. When I did this with the line plots the ones for the different states ended up covering each other up (since they all shared the same x-value).</p>
-<p>I tried to add the previous vertical lines to indicate when vaccines were introduced but a bar-plot uses different inputs so it raised an error. It's probably less important for a bar-chart anyway, since you aren't emphasizing the time line quite so much as with a line plot.</p>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">first</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">plot</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-:VLine   [x,y]
-:Bars   [Year,State]   (measles)
-
-</pre>
-<p>I think (guess) that it needs both the year and state, while the line plot only needed the year.</p>
-</div>
-</div>
-<div class="outline-4" id="outline-container-orge068466">
-<h4 id="orge068466">Nationwide Mean With Error Bars</h4>
-<div class="outline-text-4" id="text-orge068466">
-<div class="highlight">
-<pre><span></span><span class="n">error</span> <span class="o">=</span> <span class="n">diseases</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s2">"measles"</span><span class="p">:</span> <span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">std</span><span class="p">]})</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span>
-    <span class="s2">"measles"</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"mean"</span><span class="p">,</span> 
-                     <span class="n">title</span><span class="o">=</span><span class="s2">"Mean National Measles Cases By Year"</span><span class="p">)</span> 
-        <span class="o">*</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">ErrorBars</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="s2">"Year"</span><span class="p">)</span><span class="o">.</span><span class="n">redim</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span> 
-        <span class="o">*</span> <span class="n">first</span> <span class="o">*</span> <span class="n">first_label</span> <span class="o">*</span> <span class="n">current</span> <span class="o">*</span> <span class="n">current_label</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
-            <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
-            <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
-        <span class="p">)</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"error_bars"</span><span class="p">)()</span>
-</pre></div>
-<script id="629a475e-89e1-4466-a8e6-eab5a4969341" src="posts/libraries/walking-through-the-pyviz-workflow-example/error_bars.js">
-</script>
-<p>So looking at this we can see that the national mean actually paints a slightly different picture from the raw counts for measles. My guess would be that the different populations for each state offset each other enough that the mean is flattened out.</p>
-<p>Actually, in thinking about it, the mean is really a weekly mean for the year so… I'll have to think about this.</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="posts/giss/giss-zone-anomalies/">GISS Zone Anomalies</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="posts/giss/giss-zone-anomalies/" rel="bookmark"><time class="published dt-published" datetime="2019-03-08T12:58:41-08:00" itemprop="datePublished" title="2019-03-08 12:58">2019-03-08 12:58</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="posts/giss/giss-zone-anomalies/#org6f73c3e">Introduction</a></li>
-<li><a href="posts/giss/giss-zone-anomalies/#orge582092">Set Up</a>
-<ul>
-<li><a href="posts/giss/giss-zone-anomalies/#org1749e6f">Imports</a></li>
-<li><a href="posts/giss/giss-zone-anomalies/#org5cea2b3">Load Dotenv</a></li>
-<li><a href="posts/giss/giss-zone-anomalies/#org9df92c4">HoloViews Backend</a></li>
-<li><a href="posts/giss/giss-zone-anomalies/#org96b1aeb">The Embedder</a></li>
-<li><a href="posts/giss/giss-zone-anomalies/#org8fd6a72">Some Settings</a></li>
-</ul>
-</li>
-<li><a href="posts/giss/giss-zone-anomalies/#org8493d24">The Data</a></li>
-<li><a href="posts/giss/giss-zone-anomalies/#orgc9477f8">Tidying the Data</a></li>
-<li><a href="posts/giss/giss-zone-anomalies/#org48ccb26">The Frigid North</a></li>
-<li><a href="posts/giss/giss-zone-anomalies/#org9dbf8fe">All Zones Dropdown</a></li>
-<li><a href="posts/giss/giss-zone-anomalies/#org617254c">All Zones Overlay</a>
-<ul>
-<li><a href="posts/giss/giss-zone-anomalies/#orgc36fa95">Hemisphere Spikes</a></li>
-</ul>
-</li>
-<li><a href="posts/giss/giss-zone-anomalies/#orge21bbcd">Hemispheres</a></li>
-<li><a href="posts/giss/giss-zone-anomalies/#org8c04729">Extratropics</a></li>
-<li><a href="posts/giss/giss-zone-anomalies/#org9e07efb">The Zones</a></li>
-<li><a href="posts/giss/giss-zone-anomalies/#org6845a13">Tabbed Plots</a></li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org6f73c3e">
-<h2 id="org6f73c3e">Introduction</h2>
-<div class="outline-text-2" id="text-org6f73c3e">
-<p>This is a look at the <a href="https://data.giss.nasa.gov/gistemp/">Godard Institute for Space Studies' surface temperature data</a>. I'll look at the mean difference between the yearly mean and the historical "normal" mean.</p>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orge582092">
-<h2 id="orge582092">Set Up</h2>
-<div class="outline-text-2" id="text-orge582092"></div>
-<div class="outline-3" id="outline-container-org1749e6f">
-<h3 id="org1749e6f">Imports</h3>
-<div class="outline-text-3" id="text-org1749e6f"></div>
-<div class="outline-4" id="outline-container-orge5f5574">
-<h4 id="orge5f5574">Python</h4>
-<div class="outline-text-4" id="text-orge5f5574">
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">os</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-orgc8f7d2c">
-<h4 id="orgc8f7d2c">PyPi</h4>
-<div class="outline-text-4" id="text-orgc8f7d2c">
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
-<span class="kn">from</span> <span class="nn">holoviews</span> <span class="kn">import</span> <span class="n">opts</span>
-<span class="kn">import</span> <span class="nn">holoviews</span>
-<span class="kn">from</span> <span class="nn">holoviews.plotting.links</span> <span class="kn">import</span> <span class="n">RangeToolLink</span>
-<span class="kn">from</span> <span class="nn">bokeh.models</span> <span class="kn">import</span> <span class="n">CrosshairTool</span><span class="p">,</span> <span class="n">HoverTool</span>
-<span class="kn">from</span> <span class="nn">bokeh.palettes</span> <span class="kn">import</span> <span class="n">Category20</span>
-
-<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
-<span class="kn">import</span> <span class="nn">pandas</span>
-<span class="kn">import</span> <span class="nn">seaborn</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org5c42b35">
-<h4 id="org5c42b35">This Project</h4>
-<div class="outline-text-4" id="text-org5c42b35">
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
-<span class="kn">from</span> <span class="nn">graeae.tables</span> <span class="kn">import</span> <span class="n">CountPercentage</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org5cea2b3">
-<h3 id="org5cea2b3">Load Dotenv</h3>
-<div class="outline-text-3" id="text-org5cea2b3">
-<div class="highlight">
-<pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">".env"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org9df92c4">
-<h3 id="org9df92c4">HoloViews Backend</h3>
-<div class="outline-text-3" id="text-org9df92c4">
-<div class="highlight">
-<pre><span></span><span class="n">holoviews</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">"bokeh"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org96b1aeb">
-<h3 id="org96b1aeb">The Embedder</h3>
-<div class="outline-text-3" id="text-org96b1aeb">
-<div class="highlight">
-<pre><span></span><span class="n">OUTPUT_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/giss/giss-zone-anomalies/"</span><span class="p">)</span>
-<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedBokeh</span><span class="p">,</span> 
-                <span class="n">folder_path</span><span class="o">=</span><span class="n">OUTPUT_PATH</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org8fd6a72">
-<h3 id="org8fd6a72">Some Settings</h3>
-<div class="outline-text-3" id="text-org8fd6a72">
-<div class="highlight">
-<pre><span></span><span class="k">class</span> <span class="nc">Plots</span><span class="p">:</span>
-    <span class="n">width</span> <span class="o">=</span> <span class="mi">1200</span>
-    <span class="n">height</span> <span class="o">=</span> <span class="mi">600</span>
-    <span class="n">font</span> <span class="o">=</span> <span class="s2">"Open Sans"</span>
-    <span class="n">font_size</span> <span class="o">=</span> <span class="s2">"24pt"</span>
-    <span class="n">line_width</span> <span class="o">=</span> <span class="mi">3</span>
-    <span class="n">tools</span> <span class="o">=</span>  <span class="p">[</span><span class="s2">"hover"</span><span class="p">]</span>
-    <span class="n">blue</span> <span class="o">=</span> <span class="n">seaborn</span><span class="o">.</span><span class="n">color_palette</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">light_blue</span> <span class="o">=</span> <span class="n">Category20</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">red</span> <span class="o">=</span> <span class="n">seaborn</span><span class="o">.</span><span class="n">color_palette</span><span class="p">()[</span><span class="mi">3</span><span class="p">]</span>
-    <span class="n">yellow</span> <span class="o">=</span> <span class="n">seaborn</span><span class="o">.</span><span class="n">color_palette</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">green</span> <span class="o">=</span> <span class="n">seaborn</span><span class="o">.</span><span class="n">color_palette</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
-    <span class="n">gray</span> <span class="o">=</span> <span class="n">seaborn</span><span class="o">.</span><span class="n">color_palette</span><span class="p">()[</span><span class="mi">7</span><span class="p">]</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org8493d24">
-<h2 id="org8493d24">The Data</h2>
-<div class="outline-text-2" id="text-org8493d24">
-<p>The data is the <i>Combined Land-Surface Air and Sea-Surface Water Temperature Anomolies'</i> <a href="https://data.giss.nasa.gov/gistemp/tabledata_v3/ZonAnn.Ts+dSST.csv">Zonal Annual Means</a> which shows the different annual mean for each zone in a given year.</p>
-<div class="highlight">
-<pre><span></span><span class="n">zone_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ZONES"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
-<span class="k">assert</span> <span class="n">zone_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
-<span class="k">with</span> <span class="n">zone_path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
-    <span class="n">giss</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">giss</span><span class="o">.</span><span class="n">describe</span><span class="p">())</span>
-</pre></div>
-<pre class="example">
-              Year        Glob        NHem        SHem     24N-90N  \
-count   139.000000  139.000000  139.000000  139.000000  139.000000   
-mean   1949.000000    0.032302    0.056043    0.008561    0.077698   
-std      40.269923    0.336896    0.393435    0.301848    0.464606   
-min    1880.000000   -0.490000   -0.540000   -0.490000   -0.580000   
-25%    1914.500000   -0.200000   -0.220000   -0.235000   -0.280000   
-50%    1949.000000   -0.070000   -0.010000   -0.080000    0.020000   
-75%    1983.500000    0.215000    0.210000    0.265000    0.255000   
-max    2018.000000    0.980000    1.260000    0.710000    1.500000   
-
-          24S-24N     90S-24S     64N-90N     44N-64N     24N-44N     EQU-24N  \
-count  139.000000  139.000000  139.000000  139.000000  139.000000  139.000000   
-mean     0.036115   -0.018561    0.111079    0.117770    0.027698    0.027626   
-std      0.331384    0.295695    0.917715    0.516729    0.356416    0.326111   
-min     -0.650000   -0.470000   -1.640000   -0.710000   -0.590000   -0.720000   
-25%     -0.215000   -0.250000   -0.545000   -0.270000   -0.200000   -0.230000   
-50%     -0.030000   -0.100000    0.020000    0.000000   -0.070000    0.000000   
-75%      0.255000    0.230000    0.660000    0.360000    0.135000    0.240000   
-max      0.970000    0.700000    3.050000    1.440000    1.060000    0.930000   
-
-          24S-EQU     44S-24S     64S-44S     90S-64S  
-count  139.000000  139.000000  139.000000  139.000000  
-mean     0.045683    0.020432   -0.069353   -0.078129  
-std      0.343385    0.312688    0.269380    0.732359  
-min     -0.580000   -0.430000   -0.540000   -2.570000  
-25%     -0.210000   -0.220000   -0.265000   -0.490000  
-50%     -0.030000   -0.080000   -0.090000    0.050000  
-75%      0.290000    0.260000    0.180000    0.410000  
-max      1.020000    0.780000    0.450000    1.270000  
-</pre>
-<p>So we have years from 1880 through 2018.</p>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">giss</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-</pre></div>
-<pre class="example">
-Year       1880.00
-Glob         -0.18
-NHem         -0.31
-SHem         -0.06
-24N-90N      -0.38
-24S-24N      -0.17
-90S-24S      -0.01
-64N-90N      -0.97
-44N-64N      -0.47
-24N-44N      -0.25
-EQU-24N      -0.21
-24S-EQU      -0.13
-44S-24S      -0.04
-64S-44S       0.05
-90S-64S       0.67
-Name: 0, dtype: float64
-</pre></div>
-</div>
-<div class="outline-2" id="outline-container-orgc9477f8">
-<h2 id="orgc9477f8">Tidying the Data</h2>
-<div class="outline-text-2" id="text-orgc9477f8">
-<p>I'm going to use the locations for names so I'll make them something more meaningful for me. I don't know if these are, strictly speaking, the right names, but it's close enough.</p>
-<div class="highlight">
-<pre><span></span><span class="n">name_remap</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"Glob"</span><span class="p">:</span> <span class="s2">"Global"</span><span class="p">,</span>
-    <span class="s2">"NHem"</span><span class="p">:</span> <span class="s2">"Northern Hemisphere"</span><span class="p">,</span>
-    <span class="s2">"SHem"</span><span class="p">:</span> <span class="s2">"Southern Hemisphere"</span><span class="p">,</span>
-    <span class="s2">"24N-90N"</span><span class="p">:</span> <span class="s2">"Northern Extratropics"</span><span class="p">,</span>
-    <span class="s2">"24S-24N"</span><span class="p">:</span> <span class="s2">"Tropics"</span><span class="p">,</span>
-    <span class="s2">"90S-24S"</span><span class="p">:</span> <span class="s2">"Southern Extratropics"</span><span class="p">,</span>
-    <span class="s2">"64N-90N"</span><span class="p">:</span> <span class="s2">"North Frigid"</span><span class="p">,</span>
-    <span class="s2">"44N-64N"</span><span class="p">:</span> <span class="s2">"North Temperate"</span><span class="p">,</span>
-    <span class="s2">"24N-44N"</span><span class="p">:</span> <span class="s2">"North Sub-Tropic"</span><span class="p">,</span>
-    <span class="s2">"EQU-24N"</span><span class="p">:</span> <span class="s2">"Tropic of Cancer"</span><span class="p">,</span>
-    <span class="s2">"24S-EQU"</span><span class="p">:</span> <span class="s2">"Tropic of Capricorn"</span><span class="p">,</span>
-    <span class="s2">"44S-24S"</span><span class="p">:</span> <span class="s2">"South Sub-Tropic"</span><span class="p">,</span>
-    <span class="s2">"64S-44S"</span><span class="p">:</span> <span class="s2">"South Temperate"</span><span class="p">,</span>
-    <span class="s2">"90S-64S"</span><span class="p">:</span> <span class="s2">"South Frigid"</span><span class="p">,</span>
-<span class="p">}</span>
-<span class="n">giss</span> <span class="o">=</span> <span class="n">giss</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">name_remap</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">giss</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-Index(['Year', 'Global', 'Northern Hemisphere', 'Southern Hemisphere',
-       'Northern Extratropics', 'Tropics', 'Southern Extratropics',
-       'North Frigid', 'North Temperate', 'North Sub-Tropic',
-       'Tropic of Cancer', 'Tropic of Capricorn', 'South Sub-Tropic',
-       'South Temperate', 'South Frigid'],
-      dtype='object')
-
-</pre>
-<div class="highlight">
-<pre><span></span><span class="n">giss_tidy</span> <span class="o">=</span> <span class="n">giss</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">"Year"</span><span class="p">],</span> <span class="n">var_name</span><span class="o">=</span><span class="s2">"location"</span><span class="p">,</span> 
-                      <span class="n">value_name</span><span class="o">=</span><span class="s2">"Difference From Normal"</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-</pre></div>
-<pre class="example">
-Year                        1880
-location                  Global
-Difference From Normal     -0.18
-Name: 0, dtype: object
-
-</pre>
-<div class="highlight">
-<pre><span></span><span class="n">location</span> <span class="o">=</span> <span class="n">CountPercentage</span><span class="p">(</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
-<span class="c1"># plot = location.table.hvplot.table()</span>
-<span class="c1"># Embed(plot, "location_table")()</span>
-<span class="n">location</span><span class="p">()</span>
-</pre></div>
-<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
-<colgroup>
-<col class="org-left">
-<col class="org-right">
-<col class="org-right"></colgroup>
-<thead>
-<tr>
-<th class="org-left" scope="col">Value</th>
-<th class="org-right" scope="col">Count</th>
-<th class="org-right" scope="col">Percentage</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-left">Southern Extratropics</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">Tropics</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">North Temperate</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">North Frigid</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">Northern Extratropics</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">North Sub-Tropic</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">South Sub-Tropic</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">Southern Hemisphere</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">Global</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">South Frigid</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">South Temperate</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">Tropic of Cancer</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">Northern Hemisphere</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-<tr>
-<td class="org-left">Tropic of Capricorn</td>
-<td class="org-right">139</td>
-<td class="org-right">7.14</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org48ccb26">
-<h2 id="org48ccb26">The Frigid North</h2>
-<div class="outline-text-2" id="text-org48ccb26">
-<p>This is a plot of the temperature anomalies for the Frigid North using a Range Finder. You can select a range of years using the mini-plot below the main one.</p>
-<div class="highlight">
-<pre><span></span><span class="c1"># The Tools</span>
-<span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
-    <span class="n">tooltips</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"@Year"</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">"Temperature Anomaly (C)"</span><span class="p">,</span> <span class="s2">"@{North Frigid}{0.00}"</span><span class="p">),</span>
-<span class="p">],</span>
-    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span><span class="s2">"North Frigid"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">},</span>
-    <span class="n">mode</span><span class="o">=</span><span class="s2">"vline"</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="c1"># The Parts</span>
-<span class="n">curve</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span>
-    <span class="n">giss</span><span class="p">,</span> <span class="s2">"Year"</span><span class="p">,</span>
-    <span class="p">(</span><span class="s2">"North Frigid"</span><span class="p">,</span> <span class="s2">"Temperature Anomaly (C)"</span><span class="p">),</span>
-<span class="p">)</span>
-
-<span class="n">main</span> <span class="o">=</span> <span class="n">curve</span><span class="o">.</span><span class="n">relabel</span><span class="p">(</span><span class="s2">"North Frigid Zone"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> 
-                                               <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> 
-                                               <span class="n">labelled</span><span class="o">=</span><span class="p">[</span><span class="s2">"y"</span><span class="p">],</span>
-                                               <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
-                                               <span class="n">color</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">blue</span><span class="p">,</span>
-                                               <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s2">"pan"</span><span class="p">,</span> <span class="s2">"zoom_in"</span><span class="p">,</span> 
-                                                      <span class="n">hover</span><span class="p">,</span> <span class="s2">"reset"</span><span class="p">])</span>
-<span class="n">range_finder</span> <span class="o">=</span> <span class="n">curve</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">yaxis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default_tools</span><span class="o">=</span><span class="p">[])</span>
-<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">RangeToolLink</span><span class="p">(</span><span class="n">range_finder</span><span class="p">,</span> <span class="n">main</span><span class="p">)</span>
-
-<span class="n">layout</span> <span class="o">=</span> <span class="p">(</span><span class="n">main</span> <span class="o">*</span> <span class="n">line</span> <span class="o">+</span> <span class="n">range_finder</span><span class="p">)</span><span class="o">.</span><span class="n">cols</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">layout</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
-    <span class="n">opts</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span><span class="n">shared_axes</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">merge_tools</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
-    <span class="n">opts</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="s2">"north_frigid_zone"</span><span class="p">)()</span>
-</pre></div>
-<script id="1a5b91e2-6256-4db1-9913-a4d66e967e41" src="posts/giss/giss-zone-anomalies/north_frigid_zone.js">
-</script>
-<p>This plot is kind of unusual in that the column name has a space in it ("North Frigid") so in the hover tool you have to <a href="https://github.com/bokeh/bokeh/issues/4796e">put braces around it</a>.</p>
-<p>If we were only looking at one zone I would think this is the most useful type, but when I tried to add multiple zones I couldn't get it to work. HoloViews… I also tried to change the font and couldn't figure out how to do it. I really don't get what bokeh and HoloViews are doing with their documentation.</p>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org9dbf8fe">
-<h2 id="org9dbf8fe">All Zones Dropdown</h2>
-<div class="outline-text-2" id="text-org9dbf8fe">
-<p>This creates a plot with all the zones but only showing one at a time (you select which one using a dropdown). To get it you specify the dropdown column using <code>groupby</code>.</p>
-<div class="highlight">
-<pre><span></span><span class="c1"># the Tools</span>
-<span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
-<span class="n">tooltips</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"@Year"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"Difference from Normal"</span><span class="p">,</span> <span class="s2">"@Difference From Normal"</span><span class="p">),</span>
-<span class="p">],</span>
-    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span><span class="s2">"Difference From Normal"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">},</span>
-    <span class="n">mode</span><span class="o">=</span><span class="s2">"vline"</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">plot</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s2">"location"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">dynamic</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">hover</span><span class="p">])</span>
-<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">layout</span> <span class="o">=</span> <span class="n">plot</span> <span class="o">*</span> <span class="n">line</span>
-<span class="n">file_name</span> <span class="o">=</span> <span class="s2">"zones.html"</span>
-
-<span class="n">plot_file</span> <span class="o">=</span> <span class="n">OUTPUT_PATH</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
-<span class="n">holoviews</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">plot_file</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">"[[file:{}][Link To Plot]]"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_name</span><span class="p">))</span>
-</pre></div>
-<p><a href="posts/giss/giss-zone-anomalies/zones.html">Link To Plot</a></p>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org617254c">
-<h2 id="org617254c">All Zones Overlay</h2>
-<div class="outline-text-2" id="text-org617254c">
-<p>The dropdown is a convenient way to look at different zones individually but make it hard to compare different zones. I'm going to put all of them on one plot first to get an overall picture.</p>
-<div class="highlight">
-<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"Difference From Normal"</span><span class="p">,</span> 
-                        <span class="n">by</span><span class="o">=</span><span class="s2">"location"</span><span class="p">,</span> 
-                        <span class="n">title</span><span class="o">=</span><span class="s2">"Difference by Zone"</span><span class="p">,</span> 
-                        <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Normal"</span><span class="p">,</span>
-                        <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> 
-                        <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
-                            <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
-                        <span class="p">)</span>
-<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">layout</span> <span class="o">=</span> <span class="n">plot</span> <span class="o">*</span> <span class="n">line</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="s2">"all_zones"</span><span class="p">)()</span>
-</pre></div>
-<script id="3bf7c386-9e71-4449-a232-a8f788d7077d" src="posts/giss/giss-zone-anomalies/all_zones.js">
-</script>
-<p>This is kind of a messy plot, but it does show that the North Frigid and South Frigid zones seem to have the largest anomalies.</p>
-</div>
-<div class="outline-3" id="outline-container-orgc36fa95">
-<h3 id="orgc36fa95">Hemisphere Spikes</h3>
-<div class="outline-text-3" id="text-orgc36fa95">
-<div class="highlight">
-<pre><span></span><span class="n">hemisphere_map</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">'Global'</span><span class="p">:</span> <span class="s2">"Global"</span><span class="p">,</span> 
-    <span class="s1">'Northern Hemisphere'</span><span class="p">:</span> <span class="s2">"Northern"</span><span class="p">,</span> 
-    <span class="s1">'Southern Hemisphere'</span><span class="p">:</span> <span class="s2">"Southern"</span><span class="p">,</span>
-    <span class="s1">'Northern Extratropics'</span><span class="p">:</span> <span class="s2">"Northern"</span><span class="p">,</span> 
-    <span class="s1">'Tropics'</span><span class="p">:</span> <span class="s2">"Tropics"</span><span class="p">,</span> 
-    <span class="s1">'Southern Extratropics'</span><span class="p">:</span> <span class="s2">"Southern"</span><span class="p">,</span>
-    <span class="s1">'North Frigid'</span><span class="p">:</span> <span class="s2">"Northern"</span><span class="p">,</span> 
-    <span class="s1">'North Temperate'</span><span class="p">:</span> <span class="s2">"Northern"</span><span class="p">,</span> 
-    <span class="s1">'North Sub-Tropic'</span><span class="p">:</span> <span class="s2">"Northern"</span><span class="p">,</span>
-    <span class="s1">'Tropic of Cancer'</span><span class="p">:</span> <span class="s2">"Northern"</span><span class="p">,</span> 
-    <span class="s1">'Tropic of Capricorn'</span><span class="p">:</span> <span class="s2">"Southern"</span><span class="p">,</span> 
-    <span class="s1">'South Sub-Tropic'</span><span class="p">:</span> <span class="s2">"Southern"</span><span class="p">,</span>
-    <span class="s1">'South Temperate'</span><span class="p">:</span> <span class="s2">"Southern"</span><span class="p">,</span> 
-    <span class="s1">'South Frigid'</span><span class="p">:</span> <span class="s2">"Southern"</span><span class="p">,</span>
-<span class="p">}</span>
-
-<span class="n">giss_tidy</span><span class="p">[</span><span class="s2">"hemisphere"</span><span class="p">]</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">hemisphere_map</span><span class="p">)</span>
-</pre></div>
-<p>Separate out the hemispheres for plotting.</p>
-<div class="highlight">
-<pre><span></span><span class="n">northern</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">hemisphere</span><span class="o">==</span><span class="s2">"Northern"</span><span class="p">]</span>
-<span class="n">southern</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">hemisphere</span><span class="o">==</span><span class="s2">"Southern"</span><span class="p">]</span>
-<span class="n">global_anomalies</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">location</span><span class="o">==</span><span class="s2">"Global"</span><span class="p">]</span>
-</pre></div>
-<p>Plot.</p>
-<div class="highlight">
-<pre><span></span><span class="c1"># The Tools</span>
-<span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span>
-<span class="n">tooltips</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"@Year"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"Difference from Normal"</span><span class="p">,</span> <span class="s2">"@{Difference From Normal}"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"Hemisphere"</span><span class="p">,</span> <span class="s2">"@Hemisphere"</span><span class="p">),</span>
-<span class="p">],</span>
-    <span class="n">formatters</span><span class="o">=</span><span class="p">{</span><span class="s2">"Difference From Normal"</span><span class="p">:</span> <span class="s2">"numeral"</span><span class="p">},</span>
-<span class="p">)</span>
-
-<span class="n">northern_spikes</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Spikes</span><span class="p">(</span><span class="n">northern</span><span class="p">,</span> <span class="s2">"Year"</span><span class="p">,</span> <span class="p">(</span><span class="s2">"Difference From Normal"</span><span class="p">,</span> 
-                                                      <span class="s2">"Difference From Normal"</span><span class="p">),</span>
-                                   <span class="n">group</span><span class="o">=</span><span class="s2">"Hemisphere"</span><span class="p">,</span>
-                                   <span class="n">label</span><span class="o">=</span><span class="s2">"Northern"</span><span class="p">)</span>
-<span class="n">southern_spikes</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Spikes</span><span class="p">(</span><span class="n">southern</span><span class="p">,</span> <span class="s2">"Year"</span><span class="p">,</span> <span class="p">(</span><span class="s2">"Difference From Normal"</span><span class="p">,</span>
-                                                      <span class="s2">"Difference From Normal"</span><span class="p">),</span> 
-                                   <span class="n">group</span><span class="o">=</span><span class="s2">"Hemisphere"</span><span class="p">,</span>
-                                   <span class="n">label</span><span class="o">=</span><span class="s2">"Southern"</span><span class="p">)</span>
-<span class="n">overlay</span> <span class="o">=</span> <span class="p">(</span><span class="n">northern_spikes</span>
-           <span class="o">*</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">northern_spikes</span><span class="p">)</span>
-           <span class="o">*</span> <span class="n">southern_spikes</span>
-           <span class="o">*</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">southern_spikes</span><span class="p">)</span>
-           <span class="p">)</span>
-<span class="n">overlay</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
-    <span class="n">opts</span><span class="o">.</span><span class="n">Spikes</span><span class="p">(</span><span class="s2">"Hemisphere.Northern"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">blue</span><span class="p">),</span>
-    <span class="n">opts</span><span class="o">.</span><span class="n">Spikes</span><span class="p">(</span><span class="s2">"Hemisphere.Southern"</span><span class="p">,</span> 
-                <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
-                <span class="n">color</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">red</span><span class="p">,</span> 
-                <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
-                <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">),</span>
-    <span class="n">opts</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">hover</span><span class="p">]),</span>
-<span class="p">)</span>
-<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">layout</span> <span class="o">=</span> <span class="n">overlay</span> <span class="o">*</span> <span class="n">line</span>
-<span class="n">bokeh_layout</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
-<span class="n">bokeh_layout</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">text_font</span> <span class="o">=</span> <span class="s2">"open sans"</span>
-<span class="n">bokeh_layout</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s2">"top_left"</span>
-<span class="n">embed</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">bokeh_layout</span><span class="p">,</span> <span class="s2">"all_hemispheres"</span><span class="p">)</span>
-<span class="n">embed</span><span class="o">.</span><span class="n">_figure</span> <span class="o">=</span> <span class="n">bokeh_layout</span>
-<span class="n">embed</span><span class="p">()</span>
-</pre></div>
-<script id="9cc6d1ae-5342-408e-bb8c-2e21d827df92" src="posts/giss/giss-zone-anomalies/all_hemispheres.js">
-</script>
-<p>This one is a little hard to understand at first. All of the zones are still being plotted, but they are grouped by their hemisphere, so they look different from just the Hemisphere temperatures that come later. Mostly what you're seeing is a highlightt of the most anomalous zone for each year.</p>
-<p>I also couldn't figure out how to get the zone information into the hovertool. With <code>hvPlot</code> you can pass in extra columns, but the <code>Spikes</code> didn't like it when I tried… such a frustrating library.</p>
-<p>Anyway, it looks like the Northern Hemisphere started out below average while the Southern started out above average, then during the baseline period it sort of flipped, and now they're both above average, but the Northern is even more so.</p>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orge21bbcd">
-<h2 id="orge21bbcd">Hemispheres</h2>
-<div class="outline-text-2" id="text-orge21bbcd">
-<p>This plot shows what happens when you average the zones by hemisphere.</p>
-<div class="highlight">
-<pre><span></span><span class="n">hemispheres</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Global"</span><span class="p">,</span> <span class="s2">"Northern Hemisphere"</span><span class="p">,</span> <span class="s2">"Southern Hemisphere"</span><span class="p">]</span>
-<span class="n">hemispheres</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">hemispheres</span><span class="p">)]</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="n">hemispheres</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"Difference From Normal"</span><span class="p">,</span> 
-                          <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Normal (C)"</span><span class="p">,</span>
-                          <span class="n">by</span><span class="o">=</span><span class="s2">"location"</span><span class="p">,</span> 
-                          <span class="n">title</span><span class="o">=</span><span class="s2">"Difference by Hemisphere"</span><span class="p">,</span>
-                          <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
-                          <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
-<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">layout</span> <span class="o">=</span> <span class="n">plot</span> <span class="o">*</span> <span class="n">line</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="s2">"hemispheres"</span><span class="p">)()</span>
-</pre></div>
-<script id="2a28deb8-1fa0-4561-90ea-9061fbc88794" src="posts/giss/giss-zone-anomalies/hemispheres.js">
-</script>
-<p>This shows a different view than the Zones grouped by Hemisphere, as all the values start out below normal and move in sort of a linear fashion upwards. This probably is the result of the fact that the Frigid Zones are more extreme in their differences than the other zones, so averaging all of the zones supresses them. At least that's my initial thought. Looking at the previous plot, though, it looks quite different - the lowest value in the Hemispheres plot comes in 1917, while the zones grouped by hemisphere puts it at 1930 and 1917 actually doesn't look so special. Maybe they're calculated differently.</p>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org8c04729">
-<h2 id="org8c04729">Extratropics</h2>
-<div class="outline-text-2" id="text-org8c04729">
-<div class="highlight">
-<pre><span></span><span class="n">zones</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Global"</span><span class="p">,</span> <span class="s2">"Northern Extratropics"</span><span class="p">,</span> <span class="s2">"Southern Extratropics"</span><span class="p">,</span> <span class="s2">"Tropics"</span><span class="p">]</span>
-<span class="n">zones</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">zones</span><span class="p">)]</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="n">zones</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"Difference From Normal"</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">"location"</span><span class="p">,</span>
-                    <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Normal (C)"</span><span class="p">,</span>
-                    <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
-                    <span class="n">title</span><span class="o">=</span><span class="s2">"Tropics and Extratropics"</span><span class="p">,</span> 
-                    <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
-<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">layout</span> <span class="o">=</span> <span class="n">plot</span> <span class="o">*</span> <span class="n">line</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="s2">"tropics"</span><span class="p">)()</span>
-</pre></div>
-<script id="4021695f-d222-43bb-80ff-16a1aab7d12c" src="posts/giss/giss-zone-anomalies/tropics.js">
-</script></div>
-</div>
-<div class="outline-2" id="outline-container-org9e07efb">
-<h2 id="org9e07efb">The Zones</h2>
-<div class="outline-text-2" id="text-org9e07efb">
-<p>I did a previous plot "by zone" but in that case I was including all the zones given in the data. In this case we're only looking at the non-overlapping zones - so this chops up the planet by the smallest latitudinal zones that don't overlapy.</p>
-<div class="highlight">
-<pre><span></span><span class="n">zones</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"North Frigid"</span><span class="p">,</span> <span class="s2">"North Temperate"</span><span class="p">,</span> <span class="s2">"North Sub-Tropic"</span><span class="p">,</span> 
-         <span class="s2">"Tropic of Cancer"</span><span class="p">,</span> <span class="s2">"Tropic of Capricorn"</span><span class="p">,</span>
-         <span class="s2">"South Frigid"</span><span class="p">,</span> <span class="s2">"South Temperate"</span><span class="p">,</span> <span class="s2">"South Sub-Tropic"</span><span class="p">]</span>
-<span class="n">zones</span> <span class="o">=</span>  <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">zones</span><span class="p">)]</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="n">zones</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="s2">"Year"</span><span class="p">,</span> <span class="s2">"Difference From Normal"</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">"location"</span><span class="p">,</span>
-                    <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Normal (C)"</span><span class="p">,</span>
-                    <span class="n">title</span><span class="o">=</span><span class="s2">"Difference By (Non-Overlapping) Zones"</span><span class="p">,</span> 
-                    <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
-                    <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
-<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">HLine</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">layout</span> <span class="o">=</span> <span class="n">plot</span> <span class="o">*</span> <span class="n">line</span>
-<span class="n">Embed</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="s2">"zones"</span><span class="p">)()</span>
-</pre></div>
-<script id="1fb8863b-4a0a-4d24-9ab7-746fa3af649f" src="posts/giss/giss-zone-anomalies/zones.js">
-</script></div>
-</div>
-<div class="outline-2" id="outline-container-org6845a13">
-<h2 id="org6845a13">Tabbed Plots</h2>
-<div class="outline-text-2" id="text-org6845a13">
-<div class="highlight">
-<pre><span></span><span class="n">giss_tidy</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"location"</span><span class="p">:</span> <span class="s2">"Location"</span><span class="p">})</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="k">class</span> <span class="nc">PlotGroups</span><span class="p">:</span>
-    <span class="n">hemisphere</span> <span class="o">=</span> <span class="s2">"Hemishpere"</span>
-    <span class="n">tropics</span> <span class="o">=</span> <span class="s2">"Tropics"</span>
-    <span class="n">climate_zones</span> <span class="o">=</span> <span class="s2">"Zones"</span>
-
-<span class="n">group_map</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"Global"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">hemisphere</span><span class="p">,</span>
-    <span class="s2">"Northern Hemisphere"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">hemisphere</span><span class="p">,</span>
-    <span class="s2">"Southern Hemisphere"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">hemisphere</span><span class="p">,</span>
-    <span class="s2">"Northern Extratropics"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">tropics</span><span class="p">,</span>
-    <span class="s2">"Southern Extratropics"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">tropics</span><span class="p">,</span>
-    <span class="s2">"Tropics"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">tropics</span><span class="p">,</span>
-    <span class="s2">"North Frigid"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
-    <span class="s2">"North Sub-Tropic"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
-    <span class="s2">"North Temperate"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
-    <span class="s2">"Tropic of Cancer"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
-    <span class="s2">"Tropic of Capricorn"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
-    <span class="s2">"South Temperate"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
-    <span class="s2">"South Sub-Tropic"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
-    <span class="s2">"South Frigid"</span><span class="p">:</span> <span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">,</span>
-<span class="p">}</span>
-<span class="n">giss_tidy</span><span class="p">[</span><span class="s2">"plot_group"</span><span class="p">]</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">group_map</span><span class="p">)</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="n">hemispheric</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">plot_group</span><span class="o">==</span><span class="n">PlotGroups</span><span class="o">.</span><span class="n">hemisphere</span><span class="p">]</span>
-<span class="n">tropical</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">plot_group</span><span class="o">==</span><span class="n">PlotGroups</span><span class="o">.</span><span class="n">tropics</span><span class="p">]</span>
-<span class="n">zones</span> <span class="o">=</span> <span class="n">giss_tidy</span><span class="p">[</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">plot_group</span><span class="o">==</span><span class="n">PlotGroups</span><span class="o">.</span><span class="n">climate_zones</span><span class="p">]</span>
-
-<span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hemispheric</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> 
-        <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">tropical</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> 
-        <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">zones</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">()))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">giss_tidy</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
-<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">hemispheric</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> <span class="o">==</span> <span class="mi">3</span>
-<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tropical</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> <span class="o">==</span> <span class="mi">3</span>
-<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">zones</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> <span class="o">==</span> <span class="mi">8</span><span class="p">,</span> <span class="n">zones</span><span class="o">.</span><span class="n">Location</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-
-<span class="n">cross_hair</span> <span class="o">=</span> <span class="n">CrosshairTool</span><span class="p">()</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">hemispheric</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Difference From Normal"</span><span class="p">,</span> 
-                           <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Historical Mean"</span><span class="p">,</span>
-                           <span class="n">by</span><span class="o">=</span><span class="s2">"Location"</span><span class="p">,</span>
-                           <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> 
-                           <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-                           <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">cross_hair</span><span class="p">]</span>
-<span class="p">)</span><span class="o">.</span><span class="n">relabel</span><span class="p">(</span><span class="s2">"Hemispheres"</span><span class="p">)</span>
-        <span class="o">*</span> <span class="n">tropical</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Difference From Normal"</span><span class="p">,</span>
-                          <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Historical Mean"</span><span class="p">,</span>                          
-                          <span class="n">by</span><span class="o">=</span><span class="s2">"Location"</span><span class="p">,</span>
-                          <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> 
-                          <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-                          <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">cross_hair</span><span class="p">])</span><span class="o">.</span><span class="n">relabel</span><span class="p">(</span>
-                              <span class="s2">"Tropics vs Extra-Tropics"</span><span class="p">)</span>
-        <span class="o">*</span> <span class="n">zones</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Year"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Difference From Normal"</span><span class="p">,</span>
-                       <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Difference From Historical Mean"</span><span class="p">,</span>                       
-                       <span class="n">by</span><span class="o">=</span><span class="s2">"Location"</span><span class="p">,</span>
-                       <span class="n">width</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> 
-                       <span class="n">height</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-                       <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">cross_hair</span><span class="p">],</span>
-                       <span class="p">)</span><span class="o">.</span><span class="n">relabel</span><span class="p">(</span><span class="s2">"Climate Zones"</span><span class="p">)</span>
-<span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">tabs</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">font_size</span><span class="p">)</span>
-
-<span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="s2">"tabbed_plots"</span><span class="p">)()</span>
-</pre></div>
-<script id="605e4d9d-af93-4e83-a217-be0667c173ec" src="posts/giss/giss-zone-anomalies/tabbed_plots.js">
-</script></div>
 </div>
 </div>
 </article>

@@ -280,9 +280,9 @@ with TIMER:
 #+end_src
 
 #+RESULTS:
-: Started: 2019-04-04 20:47:03.546266
-: Ended: 2019-04-04 20:47:03.547510
-: Elapsed: 0:00:00.001244
+: Started: 2019-04-10 15:15:14.469087
+: Ended: 2019-04-10 15:15:14.471246
+: Elapsed: 0:00:00.002159
 #+begin_src ipython :session highschool :results none
 genders = dict(zip(meta_data.id, meta_data.gender))
 classes = dict(zip(meta_data.id, meta_data["class"]))
@@ -325,7 +325,7 @@ Embed(plot=plot, file_name="friendship_network_circular")()
 #+end_export
 
 It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others.
-
+**** By Class
 #+begin_src ipython :session highschool :results output raw :exports both
 hover = HoverTool(
     tooltips = [
@@ -355,7 +355,8 @@ Embed(plot=plot, file_name="friendship_network_circular_class")()
 #+end_export
 
 [[file:friendship_network_circular_class.html][Link to Plot]]
-
+*** Spring Layout
+**** Class
 #+begin_src ipython :session highschool :results output raw :exports both
 plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
     node_color=dim("class"), cmap="Set1",
@@ -381,6 +382,7 @@ Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=8
 
 Unlike the circular plot, this plot shows that there are disconnected neighborhoods within the network and there seems to be a clustering by class.
 
+**** Gender
 #+begin_src ipython :session highschool :results output raw :exports both
 plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
                                          node_color=dim("gender"), cmap="Set1",
@@ -455,7 +457,7 @@ Embed(plot=plot, file_name="in_degree_distribution")()
 </object>
 #+end_export
 
-The in-degree represents the number of times someone identified a student as a friend. Three people weren't identified as friends at all and the most common count was 2, although someone was identified 15 times.
+The in-degree represents the number of times a student (the node) was identified by someone else as a friend. Three people weren't identified as friends at all and the most common count was 2, although someone was identified 15 times.
 
 *** Out-Degree Distribution
 #+begin_src ipython :session highschool :results output raw :exports both
@@ -483,7 +485,7 @@ Embed(plot=plot, file_name="out_degree_distribution")()
 </object>
 #+end_export
 
-The out-degree is the number of students a student identified as a friend.
+The out-degree is the number of other students a student identified as a friend.
 
 *** In-and-Out Degree
 
@@ -503,6 +505,34 @@ Embed(plot=plot, file_name="in_and_out_degree_distribution")()
 #+RESULTS:
 #+begin_export html
 <object type="text/html" data="in_and_out_degree_distribution.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+#+begin_src ipython :session highschool :results none
+for node in friendship_graph.nodes:
+    friendship_graph.nodes[node]["In-Degree"] = friendship_graph.in_degree[node]
+    friendship_graph.nodes[node]["Out-Degree"] = friendship_graph.out_degree[node]
+#+end_src
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout)
+plot = plot.opts(
+    node_color=dim("gender"), cmap="Set1",
+    tools=["hover"],
+    width=800,
+    height=800,
+#    edge_line_color="In-Degree",
+    edge_cmap="viridis",
+#    edge_line_width=holoviews.dim("In-Degree"),
+    title="Friendship Network In-Degrees By Gender",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_degree_gender_spring", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_in_degree_gender_spring.html" style="width:100%" height=810>
   <p>Figure Missing</p>
 </object>
 #+end_export
