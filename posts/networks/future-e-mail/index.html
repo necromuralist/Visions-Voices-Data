@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="Predicting whether someone will send an email." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Future E-Mail | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
+</script>
+<meta content="Cloistered Monkey" name="author">
+<link href="../friends-and-politics/" rel="prev" title="Friends and Politics" type="text/html">
+<link href="../selecting-the-e-mail-model/" rel="next" title="Selecting the E-Mail Model" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Future E-Mail" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/" property="og:url">
+<meta content="Predicting whether someone will send an email." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2019-04-13T11:52:40-07:00" property="article:published_time">
+<meta content="networks" property="article:tag">
+<meta content="prediction" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="../../../archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="../../../pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"><input name="k8" type="hidden" value="#444444"><input name="k9" type="hidden" value="#D51920"><input name="kt" type="hidden" value="h"><input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"><input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href=".">Future E-Mail</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2019-04-13T11:52:40-07:00" itemprop="datePublished" title="2019-04-13 11:52">2019-04-13 11:52</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org10af2bc">Tangle</a></li>
+<li><a href="#org88839ab">Imports</a></li>
+<li><a href="#org4c24dc7">Constants</a></li>
+<li><a href="#orgd68ccc3">The Email-Graph</a></li>
+<li><a href="#orgc65bc7c">The Data</a>
+<ul>
+<li><a href="#org227f2c0">The Given Data</a></li>
+</ul>
+</li>
+<li><a href="#org4df48cf">Adding networkx features</a>
+<ul>
+<li><a href="#org362fc1d">Add Networkx Data</a></li>
+<li><a href="#orgc7f6164">Adding A Resource Allocation Index</a></li>
+<li><a href="#org08b797f">Adding the Jaccard Coefficient</a></li>
+<li><a href="#org4349331">Adamic Adar</a></li>
+<li><a href="#org9a00030">Preferential Attachment</a></li>
+<li><a href="#org86e225d">Community-Based Link Prediction</a></li>
+<li><a href="#org3e02e6a">Saving the Data</a></li>
+</ul>
+</li>
+<li><a href="#orgea7fdb5">Setup the Training and Testing Data</a>
+<ul>
+<li><a href="#org94f8192">Separating the Edges Without 'Future Connection' Values</a></li>
+<li><a href="#org1907c92">Separate the Target and Training Sets</a></li>
+<li><a href="#org9a710d6">Setting Up the Testing and Training Sets</a></li>
+<li><a href="#org88f4562">Scaling the Data</a></li>
+<li><a href="#org8223efe">Feature Selection</a></li>
+</ul>
+</li>
+<li><a href="#org7df20bc">Fitting the Models</a>
+<ul>
+<li><a href="#org5efc44b">Persistent Storage</a></li>
+<li><a href="#org6538dc8">Logistic Regression</a></li>
+<li><a href="#orgb86926e">Fit Grid Search</a></li>
+<li><a href="#orgd9f102b">Random Forests</a></li>
+<li><a href="#org64e3526">Extra Trees</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<p>This will select a model to predict whether an edge in the email-network that currently doesn't have an edge will have one in the future.</p>
+<div class="outline-2" id="outline-container-org10af2bc">
+<h2 id="org10af2bc">Tangle</h2>
+<div class="outline-text-2" id="text-org10af2bc">
+<div class="highlight">
+<pre><span></span><span class="o">&lt;&lt;</span><span class="n">imports</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">futures</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">data</span><span class="o">-</span><span class="n">names</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">files</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">training</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">load</span><span class="o">-</span><span class="n">graph</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">load</span><span class="o">-</span><span class="n">future</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">add</span><span class="o">-</span><span class="n">networkx</span><span class="o">-</span><span class="n">data</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">future</span><span class="o">-</span><span class="n">connections</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">jaccard</span><span class="o">-</span><span class="n">coefficient</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">adamic</span><span class="o">-</span><span class="n">adar</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">preferential</span><span class="o">-</span><span class="n">attachment</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">save</span><span class="o">-</span><span class="n">future</span><span class="o">-</span><span class="n">connections</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">split</span><span class="o">-</span><span class="n">future</span><span class="o">-</span><span class="n">connections</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">train</span><span class="o">-</span><span class="n">test</span><span class="o">-</span><span class="n">predict</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">train</span><span class="o">-</span><span class="n">test</span><span class="o">-</span><span class="n">split</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">scaled</span><span class="o">-</span><span class="n">data</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">pickle</span><span class="o">-</span><span class="n">it</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">unpickle</span><span class="o">-</span><span class="n">it</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">lr</span><span class="o">-</span><span class="n">rfs</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">trees</span><span class="o">-</span><span class="n">rfs</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">lr</span><span class="o">-</span><span class="n">sfm</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">trees</span><span class="o">-</span><span class="n">fsm</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">scores</span><span class="o">-</span><span class="n">identifiers</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">fit</span><span class="o">-</span><span class="ow">and</span><span class="o">-</span><span class="k">print</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">data</span><span class="o">-</span><span class="n">sets</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">key</span><span class="o">-</span><span class="n">by</span><span class="o">-</span><span class="n">value</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">fit</span><span class="o">-</span><span class="ow">and</span><span class="o">-</span><span class="k">print</span><span class="o">-</span><span class="nb">all</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">logistic</span><span class="o">-</span><span class="n">model</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">fit</span><span class="o">-</span><span class="n">grid</span><span class="o">-</span><span class="n">search</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">fit</span><span class="o">-</span><span class="n">grid</span><span class="o">-</span><span class="n">searches</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">random</span><span class="o">-</span><span class="n">forests</span><span class="o">&gt;&gt;</span>
+
+<span class="o">&lt;&lt;</span><span class="n">extra</span><span class="o">-</span><span class="n">trees</span><span class="o">&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org88839ab">
+<h2 id="org88839ab">Imports</h2>
+<div class="outline-text-2" id="text-org88839ab">
+<div class="highlight">
+<pre><span></span># python standard library
+import os
+import pickle
+
+# pypi
+import networkx
+import pandas
+import seaborn
+
+from numba import jit
+
+from sklearn.ensemble import (
+    ExtraTreesClassifier,
+    RandomForestClassifier,
+    )
+from sklearn.feature_selection import (
+    RFECV,
+    SelectFromModel,
+    )
+from sklearn.linear_model import LogisticRegressionCV
+from sklearn.model_selection import (
+    train_test_split,
+    GridSearchCV,
+    StratifiedKFold,
+    )
+from sklearn.preprocessing import StandardScaler
+</pre></div>
+<div class="highlight">
+<pre><span></span>% matplotlib inline
+seaborn.set_style("whitegrid")
+</pre></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org4c24dc7">
+<h2 id="org4c24dc7">Constants</h2>
+<div class="outline-text-2" id="text-org4c24dc7">
+<div class="highlight">
+<pre><span></span>class Futures(object):
+    target = "Future Connection"
+    data_file = "Future_Connections.csv"
+    graph_file = "email_prediction.txt"
+    networkx_data_index = 2
+    folds = 10
+</pre></div>
+<div class="highlight">
+<pre><span></span>class DataNames(object):
+    resource_allocation = 'resource_allocation'
+    jaccard = 'jaccard_coefficient'
+    adamic = "adamic_adar"
+    preferential = "preferential_attachment"
+</pre></div>
+<div class="highlight">
+<pre><span></span>class Files(object):
+    """File-names for data persistence"""
+    future_training_data = 'future_training_data.csv'
+    future_selection_outcomes = 'future_selection_outcomes.pkl'
+    future_model_selection = "future_model_cvs.pkl"
+</pre></div>
+<div class="highlight">
+<pre><span></span>class Training(object):
+    """data-pickles"""
+    x_train_lr_rfs = "x_train_lr_rfs.pkl"
+    x_test_lr_rfs = "x_test_lr_rfs.pkl"
+    x_train_trees_rfs = "x_train_trees_rfs.pkl"
+    x_test_trees_rfs = "x_test_trees_rfs.pkl"
+    x_train_lr_sfm = "x_train_lr_sfm.pkl"
+    x_test_lr_sfm = "x_test_lr_sfm.pkl"
+    x_train_trees_sfm = "x_train_trees_sfm.pkl"
+    x_test_trees_sfm = "x_test_trees_sfm.pkl"
+</pre></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgd68ccc3">
+<h2 id="orgd68ccc3">The Email-Graph</h2>
+<div class="outline-text-2" id="text-orgd68ccc3">
+<p>To get the features for the models we'll need to use the email-graph.</p>
+<div class="highlight">
+<pre><span></span>email = networkx.read_gpickle(Futures.graph_file)
+</pre></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc65bc7c">
+<h2 id="orgc65bc7c">The Data</h2>
+<div class="outline-text-2" id="text-orgc65bc7c"></div>
+<div class="outline-3" id="outline-container-org227f2c0">
+<h3 id="org227f2c0">The Given Data</h3>
+<div class="outline-text-3" id="text-org227f2c0">
+<p>We're given a csv file with the training and prediction data in it ('Future<sub>Connections.csv</sub>').</p>
+<div class="highlight">
+<pre><span></span>head Future_Connections.csv
+<span class="nb">echo</span>
+</pre></div>
+<p>Org-mode converted it to a table, but it's actually a CSV. The first line of data looks like this.</p>
+<pre class="example">
+"(6, 840)",0.0
+</pre>
+<div class="highlight">
+<pre><span></span>future_connections_pre_loaded = os.path.isfile(Files.future_training_data)
+if future_connections_pre_loaded:
+    future_connections = pandas.read_csv(Files.future_training_data,
+                                         index_col=0)
+else:
+    future_connections = pandas.read_csv(Futures.data_file,
+                                         index_col=0,
+                                         converters={0: eval})
+</pre></div>
+<p>So, we're loading the node-pairs (edges) as the index of the data-frame and explicitly telling pandas that the Future Connection values should be converted , which I don't think is necessary, but this came with the problem statement so I'll just leave it in in case there's some side-effect I'm not aware of.</p>
+<div class="highlight">
+<pre><span></span>print(future_connections[Futures.target].value_counts())
+</pre></div>
+<p>This is a fairly big (and lopsided) data-set.</p>
+<div class="highlight">
+<pre><span></span>seaborn.countplot(x=Futures.target, data=future_connections)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org4df48cf">
+<h2 id="org4df48cf">Adding networkx features</h2>
+<div class="outline-text-2" id="text-org4df48cf">
+<p>To create features to train the model and make predictions, I'm going to use the networkx <a href="https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.link_prediction.html">link prediction</a> algorithms.</p>
+</div>
+<div class="outline-3" id="outline-container-org362fc1d">
+<h3 id="org362fc1d">Add Networkx Data</h3>
+<div class="outline-text-3" id="text-org362fc1d">
+<p>This is a function to get networkx data and add it to the data-frame. It won't work for the community-based algorithms.</p>
+<div class="highlight">
+<pre><span></span>def add_networkx_data(adder, name, graph=email, frame=future_connections):
+    """Adds networkx data to the frame
+
+    The networkx link-prediction functions return generators of triples:
+     (first-node, second-node, value)
+
+    This will use the index of the frame that's passed in as the source of 
+    node-pairs for the networkx function (called `ebunch` in the networkx
+    documentation) and the add only the value we want back to the frame
+
+    Args:
+     adder: networkx function to call to get the new data
+     name: column-name to add to the frame
+     graph: networkx graph to pass to the function
+     frame (pandas.DataFrame): frame with node-pairs as index to add data to
+    """
+    frame[name] = [output[Futures.networkx_data_index]
+                   for output in adder(graph, frame.index)]
+    return frame
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgc7f6164">
+<h3 id="orgc7f6164">Adding A Resource Allocation Index</h3>
+<div class="outline-text-3" id="text-orgc7f6164">
+<div class="highlight">
+<pre><span></span>if not future_connections_pre_loaded:
+    add_networkx_data(networkx.resource_allocation_index,
+                      DataNames.resource_allocation)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(future_connections.head(1))
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org08b797f">
+<h3 id="org08b797f">Adding the Jaccard Coefficient</h3>
+<div class="outline-text-3" id="text-org08b797f">
+<div class="highlight">
+<pre><span></span>if not future_connections_pre_loaded:
+    add_networkx_data(networkx.jaccard_coefficient, DataNames.jaccard)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(future_connections.head(1))
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org4349331">
+<h3 id="org4349331">Adamic Adar</h3>
+<div class="outline-text-3" id="text-org4349331">
+<div class="highlight">
+<pre><span></span>if not future_connections_pre_loaded:
+    add_networkx_data(networkx.adamic_adar_index, DataNames.adamic)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(future_connections.head(1))
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org9a00030">
+<h3 id="org9a00030">Preferential Attachment</h3>
+<div class="outline-text-3" id="text-org9a00030">
+<div class="highlight">
+<pre><span></span>if not future_connections_pre_loaded:
+    add_networkx_data(networkx.preferential_attachment, DataNames.preferential)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(future_connections.head(1))
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org86e225d">
+<h3 id="org86e225d">Community-Based Link Prediction</h3>
+<div class="outline-text-3" id="text-org86e225d">
+<p>This requires identifying 'communities' first, so I'll defer it for now.</p>
+<div class="highlight">
+<pre><span></span>#add_networkx_data(networkx.cn_soundarajan_hopcroft, DataNames.common_neighbors)
+</pre></div>
+<p>These three all require communities for them to work (so I'm skipping them):</p>
+<ul class="org-ul">
+<li>cn<sub>soundarajan</sub><sub>hopcroft</sub></li>
+<li>ra<sub>index</sub><sub>soundarajan</sub><sub>hopcroft</sub></li>
+<li>within<sub>inter</sub><sub>cluster</sub></li>
+</ul>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org3e02e6a">
+<h3 id="org3e02e6a">Saving the Data</h3>
+<div class="outline-text-3" id="text-org3e02e6a">
+<div class="highlight">
+<pre><span></span>future_connections.to_csv(Files.future_training_data)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgea7fdb5">
+<h2 id="orgea7fdb5">Setup the Training and Testing Data</h2>
+<div class="outline-text-2" id="text-orgea7fdb5"></div>
+<div class="outline-3" id="outline-container-org94f8192">
+<h3 id="org94f8192">Separating the Edges Without 'Future Connection' Values</h3>
+<div class="outline-text-3" id="text-org94f8192">
+<p>We are going to train on the values in the data with predictions and then make predictions for those that don't. For model selection we don't need the set missing predictions, but I'll separate it out anyway to be complete.</p>
+<div class="highlight">
+<pre><span></span>prediction_set = future_connections[future_connections[Futures.target].isnull()]
+training_set = future_connections[future_connections[Futures.target].notnull()]
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(prediction_set.shape)
+print(training_set.shape)
+assert len(prediction_set) + len(training_set) == len(future_connections)
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org1907c92">
+<h3 id="org1907c92">Separate the Target and Training Sets</h3>
+<div class="outline-text-3" id="text-org1907c92">
+<div class="highlight">
+<pre><span></span>non_target = [column for column in future_connections.columns
+              if column != Futures.target]
+training = training_set[non_target]
+testing = training_set[Futures.target]
+predictions = prediction_set[non_target]
+</pre></div>
+<div class="highlight">
+<pre><span></span>assert all(training.columns == predictions.columns)
+assert len(training) == len(testing)
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org9a710d6">
+<h3 id="org9a710d6">Setting Up the Testing and Training Sets</h3>
+<div class="outline-text-3" id="text-org9a710d6">
+<div class="highlight">
+<pre><span></span>x_train, x_test, y_train, y_test = train_test_split(training, testing, stratify=testing)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(x_train.shape)
+print(x_test.shape)
+</pre></div>
+<div class="highlight">
+<pre><span></span>seaborn.countplot(y_train)
+</pre></div>
+<div class="highlight">
+<pre><span></span>seaborn.countplot(y_test)
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org88f4562">
+<h3 id="org88f4562">Scaling the Data</h3>
+<div class="outline-text-3" id="text-org88f4562">
+<p>To enable the use of linear models I'm going to scale the data so the mean is 0 and the variance is 1.</p>
+<div class="highlight">
+<pre><span></span>scaler = StandardScaler()
+x_train = scaler.fit_transform(x_train)
+x_test = scaler.transform(x_test)
+
+x_train = pandas.DataFrame(x_train, columns=training.columns)
+x_test = pandas.DataFrame(x_test, columns=training.columns)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(x_train.describe())
+print(x_test.describe())
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org8223efe">
+<h3 id="org8223efe">Feature Selection</h3>
+<div class="outline-text-3" id="text-org8223efe">
+<p>To reduce the dimensionality I'm going to use recursive feature selection and model-based selection.</p>
+<div class="highlight">
+<pre><span></span>def pickle_it(thing, name):
+    """saves the thing as a pickle"""
+    with open(name, "wb") as writer:
+        pickle.dump(thing, writer)
+</pre></div>
+<div class="highlight">
+<pre><span></span>def unpickle_it(name):
+    """loads the object from the file-name
+
+    Args:
+     name (str): name of binary pickle file
+
+    Returns:
+     obj: unpickled object
+    """
+    with open(name, 'rb') as reader:
+        thing = pickle.load(reader)
+    return thing
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-org3f61885">
+<h4 id="org3f61885">RFECV with Logistic Regression</h4>
+<div class="outline-text-4" id="text-org3f61885">
+<div class="highlight">
+<pre><span></span>if os.path.isfile(Training.x_train_lr_rfs):
+    x_train_lr_rfs = unpickle_it(Training.x_train_lr_rfs)
+    x_test_lr_rfs = unpickle_it(Training.x_test_lr_rfs)
+else:
+    estimator = LogisticRegressionCV(n_jobs=-1)
+    selector = RFECV(estimator, scoring='roc_auc',
+                     n_jobs=-1,
+                     cv=StratifiedKFold(Futures.folds))
+    x_train_lr_rfs = selector.fit_transform(x_train, y_train)
+    x_test_lr_rfs = selector.transform(x_test)
+    pickle_it(x_train_lr_rfs, Training.x_train_lr_rfs)
+    pickle_it(x_test_lr_rfs, Training.x_test_lr_rfs)
+    print(selector.ranking_)
+</pre></div>
+<p>It looks like it only discarded preferential attachment.</p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgc921490">
+<h4 id="orgc921490">RFECV with Extra Trees</h4>
+<div class="outline-text-4" id="text-orgc921490">
+<div class="highlight">
+<pre><span></span>if os.path.isfile(Training.x_train_trees_rfs):
+    x_train_trees_rfs = unpickle_it(Training.x_train_trees_rfs)
+    x_test_trees_rfs = unpickle_it(Training.x_test_trees_rfs)
+else:
+    estimator = ExtraTreesClassifier()
+    selector = RFECV(estimator, scoring='roc_auc', n_jobs=-1, cv=StratifiedKFold(Futures.folds))
+    x_train_trees_rfs = selector.fit_transform(x_train, y_train)
+    x_test_trees_rfs = selector.transform(x_test)
+    pickle_it(x_train_trees_rfs, Training.x_train_trees_rfs)
+    pickle_it(x_test_trees_rfs, Training.x_test_trees_rfs)
+    print(selector.ranking_)
+</pre></div>
+<p>Strangely, the Extra Trees Classifier didn't remove any columns…</p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgec5dc38">
+<h4 id="orgec5dc38">Select Model Logistic Regression</h4>
+<div class="outline-text-4" id="text-orgec5dc38">
+<div class="highlight">
+<pre><span></span>if os.path.isfile(Training.x_train_lr_sfm):
+    x_train_lr_sfm = unpickle_it(Training.x_train_lr_sfm)
+    x_test_lr_sfm = unpickle_it(Training.x_test_lr_sfm)
+else:
+    estimator = LogisticRegressionCV(
+        n_jobs=-1, scoring='roc_auc',
+        cv=StratifiedKFold(Futures.folds)).fit(x_train,
+                                               y_train)
+    selector = SelectFromModel(estimator, prefit=True)
+    x_train_lr_sfm = selector.transform(x_train)
+    x_test_lr_sfm = selector.transform(x_test)
+    pickle_it(x_train_lr_sfm, Training.x_train_lr_sfm)
+    pickle_it(x_test_lr_sfm, Training.x_test_lr_sfm)
+    print(estimator.coef_)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(x_train_lr_sfm.shape)
+</pre></div>
+<p>This was more aggressive, cutting out half the features. It looks like it kept <b>Jaccard Coefficient</b> and <b>Adamic Adar</b> and got rid of <b>Resource Allocation</b> and <b>Preferential Attachment</b>.</p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orga5faba0">
+<h4 id="orga5faba0">Select Model Extra Trees</h4>
+<div class="outline-text-4" id="text-orga5faba0">
+<div class="highlight">
+<pre><span></span>if os.path.isfile(Training.x_train_trees_sfm):
+    x_train_trees_sfm = unpickle_it(Training.x_train_trees_sfm)
+    x_test_trees_sfm = unpickle_it(Training.x_test_trees_sfm)
+else:
+    estimator = ExtraTreesClassifier()
+    estimator.fit(x_train, y_train)
+    selector = SelectFromModel(estimator, prefit=True)
+    x_train_trees_sfm = selector.transform(x_train)
+    x_test_trees_sfm = selector.transform(x_test)
+    pickle_it(x_train_trees_sfm, Training.x_train_trees_sfm)
+    pickle_it(x_test_trees_sfm, Training.x_test_trees_sfm)
+    print(estimator.feature_importances_)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(x_train_trees_sfm.shape)
+</pre></div>
+<p>This is sometimes more aggressive, keeping only the <b>Adamic Adar</b> feature… But maybe that's all you need, we'll see. Then again, other times it isn't as aggressive, only trimming two columns, and this tiem it only trimmed one…</p>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org7df20bc">
+<h2 id="org7df20bc">Fitting the Models</h2>
+<div class="outline-text-2" id="text-org7df20bc"></div>
+<div class="outline-3" id="outline-container-org5efc44b">
+<h3 id="org5efc44b">Persistent Storage</h3>
+<div class="outline-text-3" id="text-org5efc44b">
+<p>The outcomes will be stored in a dictionary called <code>scores</code> with descriptions of the best model and feature-selection mapped to their testing-score.</p>
+<div class="highlight">
+<pre><span></span>if os.path.isfile(Files.future_model_selection):
+    with open(Files.future_model_selection, 'rb') as pkl:
+        scores = pickle.load(pkl)
+else:
+    scores = {}
+</pre></div>
+<div class="highlight">
+<pre><span></span>def fit_and_print(estimator, x_train, x_test):
+    """fits the estimator to the data
+
+    Args:
+     estimator: model to fit
+     x_train: scaled data to fit model to
+     x_test: data to test the model with
+
+    Returns:
+     tuple: model fit to the data, test score
+    """
+    model = estimator.fit(x_train, y_train)
+    test_score = model.score(x_test, y_test)
+    print("Mean Cross-Validation Score: {:.2f}".format(model.scores_[1].mean()))
+    print("Testing Score: {:.2f}".format(test_score))
+    return model, test_score
+</pre></div>
+<div class="highlight">
+<pre><span></span>data_sets = {("extra trees", 'select from model') : (x_train_trees_sfm, x_test_trees_sfm),
+             ("extra trees", 'recursive feature selection') : (x_train_trees_rfs, x_test_trees_rfs),
+             ('logistic regression', "recursive feature selection") : (x_train_lr_rfs, x_test_lr_rfs),
+             ('logistic regression', "select from model") : (x_train_lr_sfm, x_test_lr_sfm)}
+</pre></div>
+<div class="highlight">
+<pre><span></span>def key_by_value(source, search_value):
+    """Find the key in a dict that matches a value
+
+    Args:
+     source (dict): dictionary with value to search for
+     search_value: value to search for
+
+    Returns:
+     object: key in source that matched value
+    """
+    for key, value in source.items():
+        if value == search_value:
+            return key
+    return
+</pre></div>
+<div class="highlight">
+<pre><span></span>def fit_and_print_all(model, model_name):
+    """Fits the model against all data instances
+
+    Args:
+     model: model to fit to the data sets
+     model_name: identifier for the outcomes
+    """
+    for data_set, x in data_sets.items():
+        selector, method = data_set
+        train, test = x
+        key = ','.join([model_name, selector, method])
+        print("Training Shape: {}".format(train.shape))
+        if key not in scores:
+            print(key)
+            fitted, score = fit_and_print(model, train, test)
+            scores[key] = score
+        else:
+            score = scores[key]
+            print("{}: {:.3f}".format(key, score))
+        print()
+
+    best_score = max(scores.values())
+    best_key = key_by_value(scores, best_score)
+    print("Best Model So Far: {}, Score={:.2f}".format(
+        best_key,
+        best_score))
+    with open(Files.future_model_selection, 'wb') as writer:
+        pickle.dump(scores, writer)
+    return
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org6538dc8">
+<h3 id="org6538dc8">Logistic Regression</h3>
+<div class="outline-text-3" id="text-org6538dc8">
+<div class="highlight">
+<pre><span></span>logistic_model = LogisticRegressionCV(n_jobs=-1, scoring="roc_auc",
+                                      solver='liblinear',
+                                      cv=StratifiedKFold(Futures.folds))
+fit_and_print_all(logistic_model, "Logistic Regression")
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgb86926e">
+<h3 id="orgb86926e">Fit Grid Search</h3>
+<div class="outline-text-3" id="text-orgb86926e">
+<p>Since the Logistic Regression had its own cross-validation I didn't use a grid search, but for the forests I'll use one to figure out the best number of estimators. I'll have to look into what the other parameters do to figure out whether they're going to be useful.</p>
+<div class="highlight">
+<pre><span></span>def fit_grid_search(estimator, parameters, x_train, x_test):
+    """Fits the estimator using grid search
+
+    Args:
+     estimator: Model to fit
+     parameters (dict): hyper-parameters for the grid search
+     x_train (array): the training data input
+     x_test (array): data to evaluate the best model with
+
+    Returns: 
+     tuple: Best Model, best model score
+    """
+    search = GridSearchCV(estimator, parameters, n_jobs=-1, scoring='roc_auc',
+                          cv=StratifiedKFold(Futures.folds))
+    search.fit(x_train, y_train)
+    best_model = search.best_estimator_
+    test_score = best_model.score(x_test, y_test)
+    print("Mean of Mean Cross-Validation Scores: {:.2f}".format(
+        search.cv_results_["mean_train_score"].mean()))
+    print("Mean of Cross-Validation Score STDs: {:.2f}".format(
+        search.cv_results_["std_train_score"].mean()))
+    print("Testing Score: {:.2f}".format(test_score))
+    return best_model, test_score
+</pre></div>
+<div class="highlight">
+<pre><span></span>def fit_grid_searches(estimator, parameters, name, data_sets=data_sets):
+    """Fits the estimator against all the data-sets
+
+    Args:
+     estimator: instance of model to test
+     parameters: dict of grid-search parameters
+     name: identifier for the model
+    """
+    for data_set, x in data_sets.items():
+        selector, method = data_set
+        train, test = x
+        key = ",".join([name, selector, method])
+        if key not in scores:
+            print(key)
+            fitted, score = fit_grid_search(estimator, parameters, train, test)
+            scores[key] = score
+        else:
+            score = scores[key]
+            print("{}: {:.2f}".format(key, score))
+        print()
+    best = max(scores.values())
+    best_key = key_by_value(scores, best)
+    print("Best Model So Far: {}, Score={:.2f}".format(best_key, best))
+    with open(Files.future_model_selection, 'wb') as writer:
+        pickle.dump(scores, writer)
+    return
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgd9f102b">
+<h3 id="orgd9f102b">Random Forests</h3>
+<div class="outline-text-3" id="text-orgd9f102b">
+<div class="highlight">
+<pre><span></span>parameters = dict(n_estimators = list(range(10, 200, 10)))
+forest = RandomForestClassifier()
+fit_grid_searches(forest, parameters, "Random Forest")
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org64e3526">
+<h3 id="org64e3526">Extra Trees</h3>
+<div class="outline-text-3" id="text-org64e3526">
+<div class="highlight">
+<pre><span></span>scores = {k:v for k,v in scores.items() if not k.startswith('Extra Trees,extra trees')}
+parameters = dict(n_estimators = list(range(10, 200, 10)))
+trees = ExtraTreesClassifier()
+fit_grid_searches(trees, parameters, "Extra Trees")
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="../../../categories/networks/" rel="tag">networks</a></li>
+<li><a class="tag p-category" href="../../../categories/prediction/" rel="tag">prediction</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="../friends-and-politics/" rel="prev" title="Friends and Politics">Previous post</a></li>
+<li class="next"><a href="../selecting-the-e-mail-model/" rel="next" title="Selecting the E-Mail Model">Next post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="../../../assets/js/all-nocdn.js">
+</script>
+<script>
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script>
+</body>
+</html>

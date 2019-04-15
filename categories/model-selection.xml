@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data (Posts about model selection)</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description></description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/categories/model-selection.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2019 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Mon, 15 Apr 2019 17:37:52 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Selecting the E-Mail Model</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org865efa6"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#orgde06815"&gt;The Data&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org52ffacc"&gt;Department&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org90a3d48"&gt;Splitting the Data&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#orgaa50152"&gt;Standardizing the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org85f4993"&gt;Dummy Classifier&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org90135f8"&gt;Feature Selection&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#orgefdf2d0"&gt;Fit and Display&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#orgbcc56b7"&gt;Logistic Regression&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org345d726"&gt;L1 Penalty&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org084446e"&gt;Random Forests&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org1e39d10"&gt;K Nearest Neighbors&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org0d80ec5"&gt;Support Vector Classifier (SVC)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org865efa6" class="outline-2"&gt;
+&lt;h2 id="org865efa6"&gt;Imports&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org865efa6"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pypi
+from sklearn.ensemble import (
+    ExtraTreesClassifier,
+    RandomForestClassifier,
+    )
+from sklearn.feature_selection import (
+    RFECV,
+    SelectFromModel,
+)
+from sklearn.linear_model import LogisticRegressionCV
+from sklearn.model_selection import (
+    GridSearchCV,
+    StratifiedKFold,
+    train_test_split,
+    )
+
+from sklearn.dummy import DummyClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+import matplotlib.pyplot as pyplot
+import mglearn
+import numpy
+import pandas
+import seaborn
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;% matplotlib inline
+seaborn.set_style("whitegrid")
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgde06815" class="outline-2"&gt;
+&lt;h2 id="orgde06815"&gt;The Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgde06815"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;data = pandas.read_hdf("email_data.h5", "df")
+cleaned_data = data[pandas.notnull(data.management)]
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(cleaned_data.head())
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org52ffacc" class="outline-3"&gt;
+&lt;h3 id="org52ffacc"&gt;Department&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org52ffacc"&gt;
+&lt;p&gt;
+Even though I don't think it's going to prove useful, the &lt;code&gt;department&lt;/code&gt; feature is actually categorical, despite the use of integers so we'll have to add dummy variables for it.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cleaned_data = pandas.get_dummies(cleaned_data, columns=["department"])
+print(cleaned_data.head(1))
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org90a3d48" class="outline-3"&gt;
+&lt;h3 id="org90a3d48"&gt;Splitting the Data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org90a3d48"&gt;
+&lt;p&gt;
+For evaluation purposes I'll use the traditional train-test split.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;x_data = cleaned_data.loc[:, cleaned_data.columns != "management"]
+
+y_data = cleaned_data.management
+
+print(x_data.head())
+print(y_data.head())
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(y_data.value_counts())
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;seaborn.countplot(x='management', data=cleaned_data)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+It looks like the management data is unbalanced, so I'll do a stratified split.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, stratify=y_data)
+print(x_train.shape)
+print(y_test.shape)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;seaborn.countplot(y_train)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Looks close enough for government work.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgaa50152" class="outline-2"&gt;
+&lt;h2 id="orgaa50152"&gt;Standardizing the Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgaa50152"&gt;
+&lt;p&gt;
+The linear models expect the data to be standardized, so to make the comparisons fair I'll standardize the data first. First, a look at the data before scaling.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(x_train.describe())
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Now I'll scale it.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;scaler = StandardScaler()
+scaler.fit(x_train)
+x_train = pandas.DataFrame(scaler.transform(x_train), columns=x_train.columns)
+x_test = scaler.transform(x_test)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Now the means should be near 0 (very small) and the standard deviations should be around 1.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(x_train.describe())
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org85f4993" class="outline-2"&gt;
+&lt;h2 id="org85f4993"&gt;Dummy Classifier&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org85f4993"&gt;
+&lt;p&gt;
+As a baseline I'll use a &lt;a href="http://scikit-learn.org/stable/modules/model_evaluation.html#dummy-estimators"&gt;Dummy Classifier&lt;/a&gt; which uses a simple rule rather than the input data to make predictions.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;parameter_grid = dict(strategy=["stratified", 'most_frequent', 'prior', 'uniform'])
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Now we'll do a grid search.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grid_search = GridSearchCV(DummyClassifier(), parameter_grid,
+			   cv=StratifiedKFold(10), scoring="roc_auc")
+grid_search.fit(x_train, y_train)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;BASELINE = grid_search.score(x_test, y_test)
+print(grid_search.best_params_)
+print(BASELINE)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+It looks like it chose the &lt;b&gt;stratified&lt;/b&gt; strategy, which should predict that the instances are all non-managers. Our baseline AUC score is 0.5 (0.47 now?).
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;results = pandas.DataFrame(grid_search.cv_results_)
+print(results.head(1))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;figure = pyplot.figure()
+axe = figure.gca()
+strategies = parameter_grid["strategy"]
+x = pyplot.xticks(list(range(len(strategies))), strategies)
+axe.plot(range(len(strategies)), results.mean_test_score)
+axe.set_title("Dummy Classifier Strategy Vs AUC")
+axe.set_xlabel("strategy")
+axe.set_ylabel("AUC Score")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+So it looks like all the strategies except &lt;b&gt;stratified&lt;/b&gt; did the same - and even the stratified did basically the same if you round it off.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org90135f8" class="outline-2"&gt;
+&lt;h2 id="org90135f8"&gt;Feature Selection&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org90135f8"&gt;
+&lt;p&gt;
+I'm going to need to do some feature reduction, but figuring out what is important and what isn't is something I'm going to have to leave to the machine. I'm going to assume that the features thrown out by logistic regression with l1 penalization are unimportant. 
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;logistic_model = LogisticRegressionCV(penalty='l1',
+				      solver='liblinear', scoring="roc_auc")
+logistic_model.fit(x_train, y_train)
+model = SelectFromModel(logistic_model, prefit=True)
+
+x_train_positive = model.transform(x_train)
+x_test_positive = model.transform(x_test)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(logistic_model.score(x_test, y_test))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Logistic Regression with &lt;code&gt;L1&lt;/code&gt; penalty seems to do reasonably well even without feature selection.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;logistic_model.fit(x_train_positive, y_train)
+print(logistic_model.score(x_test_positive, y_test))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+It looks like feature selection didn't really help here.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(x_train.shape)
+print(x_train_positive.shape)
+print(model.ranking_)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+As a double-check I'll use a tree-based, recursive feature-elimination version.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;trees = ExtraTreesClassifier(n_estimators=10)
+eliminator = RFECV(estimator=trees, cv=StratifiedKFold(10), scoring="roc_auc")
+eliminator.fit(x_train, y_train)
+x_train_trees = eliminator.transform(x_train)
+x_test_trees = eliminator.transform(x_test)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(x_train_trees.shape)
+print(eliminator.ranking_)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+This eliminated many more columns than the Logistic Regression version did.
+&lt;/p&gt;
+
+&lt;p&gt;
+&lt;b&gt;warning&lt;/b&gt; this seem to change every time you run it - the randomness changes it. Only the elimination of the first column seems to do as well as not running it at all.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgefdf2d0" class="outline-2"&gt;
+&lt;h2 id="orgefdf2d0"&gt;Fit and Display&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgefdf2d0"&gt;
+&lt;p&gt;
+This is a convenience function so I can fit and display the scores for the models.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def fit_and_display(model, identifier):
+    """Fit and display the scores
+
+    Args:
+     model: The instantiated model to fit
+     identifier (str): something to output at the beginning
+    """
+    print(identifier)
+    print("=" * len(identifier))
+    model.fit(x_train, y_train)
+    print("\nX-train")
+    print("Score: {:.2f}".format(model.score(x_test, y_test)))
+    print("\nX-Train Positive")
+    model.fit(x_train_positive, y_train)
+    print("Score: {:.2f}".format(model.score(x_test_positive, y_test)))
+    print("\nX-Train Trees")
+    model.fit(x_train_trees, y_train)
+    print("Score: {:.2f}".format(model.score(x_test_trees, y_test)))
+    print("\nBest Training Score: {}".format(search.best_score_))
+    return
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgbcc56b7" class="outline-2"&gt;
+&lt;h2 id="orgbcc56b7"&gt;Logistic Regression&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgbcc56b7"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org345d726" class="outline-3"&gt;
+&lt;h3 id="org345d726"&gt;L1 Penalty&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org345d726"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;model = LogisticRegressionCV(penalty="l1", scoring="roc_auc", solver="liblinear")
+fit_and_display(model, "Logistic Regression L1")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+I've already run the Logistic Regression using a 'l1' but I'll try it again with 'l2' to see if it improved.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;model = LogisticRegressionCV(scoring="roc_auc", solver="liblinear")
+fit_and_display(model, "LogisticRegression")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+L1 seems to do better than L1 overall, although it doesn't do as well with the recursively data form some reason.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org084446e" class="outline-2"&gt;
+&lt;h2 id="org084446e"&gt;Random Forests&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org084446e"&gt;
+&lt;p&gt;
+I'll try a &lt;a href="http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html"&gt;Random Forest&lt;/a&gt; classifier next.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;parameter_grid = dict(n_estimators=range(10, 100, 10))
+search = GridSearchCV(RandomForestClassifier(), parameter_grid,
+		      cv=StratifiedKFold(10), scoring="roc_auc")
+fit_and_display(search, "Random Forest")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+This seems to have done much better than the logistic regression did. My logistic-regression feature reduction doesn't seem to help.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;class RandomForest(object):
+    """trains a random forest on the x-test-trees set
+
+    Args:
+     start (int): first n-estimators value to use
+     stop (int): last n-estimators value (minus step)
+     step (int): amount to increment estimators
+     folds (int): Cross-validation-folds to usen
+
+    Returns:
+     GridSearchCV: grid-search with the best estimator
+    """
+
+    def __init__(self, start, stop, step, folds=10):
+	self.start = start
+	self.stop = stop
+	self.step = step
+	self.folds = folds
+	self._search = None
+	self._parameter_grid = None
+	return
+
+    @property
+    def parameter_grid(self):
+	"""dict of the number of estimators to use"""
+	if self._parameter_grid is None:
+	    self._parameter_grid = dict(n_estimators=list(range(self.start,
+								self.stop,
+								self.step)))
+	return self._parameter_grid
+
+    @property
+    def search(self):
+	"""grid-search cv object"""
+	if self._search is None:
+	    self._search = GridSearchCV(RandomForestClassifier(),
+					self.parameter_grid,
+					cv=StratifiedKFold(self.folds),
+					scoring="roc_auc")
+	return self._search    
+
+    def fit(self):
+	"""fits the model to the tree-based reduced-feature data"""
+	self.search.fit(x_train_trees, y_train)
+	print(self.search.score(x_test_trees, y_test))
+	print(self.search.best_estimator_.feature_importances_)
+	print(self.search.best_params_)
+	return
+
+    def plot(self):
+	"""Plots estimators vs AUC scores"""
+	figure = pyplot.figure()
+	axe = figure.gca()
+	axe.plot(self.parameter_grid["n_estimators"],
+		 self.search.cv_results_["mean_test_score"])
+	axe.set_title("Estimator Count vs AUC")
+	axe.set_xlabel("Number of estimators (trees)")
+	axe.set_ylabel("Mean AUC Score")
+	return
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;search = RandomForest(10, 100, 10)
+search.fit()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Not a lot of variance in the importance of the features.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;search.plot()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Would things get better with more trees?
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;search = RandomForest(150, 250, 10)
+search.fit()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;search.plot()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+In this case the test-score was better, although the training scores don't look much better. I guess it's the randomness coming into play again. I'll try a long run instead.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;search = RandomForest(10, 500, 10)
+search.fit()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;search.plot()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+The test-score for the best estimator is actually a little worse than it was for the previous case, although it's qute a small difference.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org1e39d10" class="outline-2"&gt;
+&lt;h2 id="org1e39d10"&gt;K Nearest Neighbors&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org1e39d10"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;parameters = dict(n_neighbors=range(10, 20),
+		  weights=["uniform", "distance"],
+		  p=[1, 2],
+		  leaf_size=range(10, 50, 10))
+
+search = GridSearchCV(KNeighborsClassifier(), parameters, scoring="roc_auc")
+search.fit(x_train_trees, y_train)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(search.score(x_test_trees, y_test))
+print(search.best_params_)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+This doesn't seem to do so well, although I'm not as experienced at using it so I might be using bad parameters.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org0d80ec5" class="outline-2"&gt;
+&lt;h2 id="org0d80ec5"&gt;Support Vector Classifier (SVC)&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org0d80ec5"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;parameters = dict(C=numpy.arange(.1, 1, 0.1), gamma=range(1, 10, 1),
+		  kernel=["linear", 'rbf', 'sigmoid'])
+search = GridSearchCV(SVC(class_weight='balanced'), parameters, scoring='roc_auc')
+fit_and_display(search, "SVC")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(search.score(x_test_trees, y_test))
+print(search.best_params_)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Now that the data is scaled, the svc does much better, alhough still not as well as the random forest.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>model selection</category><category>networks</category><category>sklearn</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/</guid><pubDate>Sat, 13 Apr 2019 18:57:42 GMT</pubDate></item></channel></rss>

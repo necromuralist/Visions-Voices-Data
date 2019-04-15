@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="Looking at friendships and political blogs to find central nodes." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Friends and Politics | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
+</script>
+<meta content="Cloistered Monkey" name="author">
+<link href="../company-e-mail/" rel="prev" title="Company E-Mail" type="text/html">
+<link href="../future-e-mail/" rel="next" title="Future E-Mail" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Friends and Politics" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/" property="og:url">
+<meta content="Looking at friendships and political blogs to find central nodes." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2019-04-13T11:40:48-07:00" property="article:published_time">
+<meta content="centrality" property="article:tag">
+<meta content="networks" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="../../../archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="../../../pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"><input name="k8" type="hidden" value="#444444"><input name="k9" type="hidden" value="#D51920"><input name="kt" type="hidden" value="h"><input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"><input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href=".">Friends and Politics</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2019-04-13T11:40:48-07:00" itemprop="datePublished" title="2019-04-13 11:40">2019-04-13 11:40</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org98e6c3c">Part 1 - Friendships</a>
+<ul>
+<li><a href="#org018afc4">Imports</a></li>
+<li><a href="#org732ccfd">Friendships data</a></li>
+<li><a href="#orgf25f1e3">Degree, Closeness, and Normalized Betweenness Centrality</a></li>
+<li><a href="#org4768f6e">Most Connected Friend</a></li>
+<li><a href="#org30c7f27">Fewest Hops</a></li>
+<li><a href="#org8bd5234">Most Important Connection</a></li>
+</ul>
+</li>
+<li><a href="#orgdc438ba">Part 2 - Political Blogs</a>
+<ul>
+<li><a href="#org0ea3edb">Scaled Page Rank of <i>realclearpolitics.com</i></a></li>
+<li><a href="#org8bd71a4">Top Five Blogs by Page Rank</a></li>
+<li><a href="#org207f51f">HITS Score for Real Clear Politics</a></li>
+<li><a href="#orga5d2d87">Top 5 Blogs by Hub Score</a></li>
+<li><a href="#orga24c551">Top Five Blogs By Authority</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<p><a href="https://en.wikipedia.org/wiki/Centrality">Node Centrality</a> is a measure of the importance of a node to a network. This will explore measures of centrality using two networks, a friendship network, and a blog network.</p>
+<div class="outline-2" id="outline-container-org98e6c3c">
+<h2 id="org98e6c3c">Part 1 - Friendships</h2>
+<div class="outline-text-2" id="text-org98e6c3c">
+<p>This will look at a network of friendships at a university department. Each node corresponds to a person (identified by an integer node label), and an edge indicates friendship.</p>
+</div>
+<div class="outline-3" id="outline-container-org018afc4">
+<h3 id="org018afc4">Imports</h3>
+<div class="outline-text-3" id="text-org018afc4">
+<div class="highlight">
+<pre><span></span>import networkx
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org732ccfd">
+<h3 id="org732ccfd">Friendships data</h3>
+<div class="outline-text-3" id="text-org732ccfd">
+<div class="highlight">
+<pre><span></span>friendships = networkx.read_gml('friendships.gml')
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(len(friendships))
+print(networkx.is_connected(friendships))
+print(networkx.is_directed(friendships))
+</pre></div>
+<p>There are 1,133 people in the friendship network, which is a connected, undirected graph.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgf25f1e3">
+<h3 id="orgf25f1e3">Degree, Closeness, and Normalized Betweenness Centrality</h3>
+<div class="outline-text-3" id="text-orgf25f1e3">
+<p>Find the degree centrality, closeness centrality, and normalized betweenness centrality (excluding endpoints) of node 100.</p>
+<ul class="org-ul">
+<li><a href="https://en.wikipedia.org/wiki/Centrality#Degree_centrality">Degree Centrality</a> scores the nodes based on the number of links they have to other nose. The assumption is that a node with more connections should be more important.</li>
+<li><a href="https://en.wikipedia.org/wiki/Closeness_centrality">Closeness Centrality</a> uses the lengths of shortest paths to decide importance. The less distance there is between a node and the other nodes the more important it is.</li>
+<li><a href="https://en.wikipedia.org/wiki/Betweenness_centrality">Betweenness Centrality</a> counts the number of shortest paths between pairs of nodes that pass through a node.</li>
+</ul>
+<div class="highlight">
+<pre><span></span>DEGREE_CENTRALITY = networkx.degree_centrality(friendships)
+CLOSENESS_CENTRALITY = networkx.closeness_centrality(friendships)
+BETWEENNESS_CENTRALITY = networkx.betweenness_centrality(friendships)
+</pre></div>
+<div class="highlight">
+<pre><span></span>def node_centrality(node=100):
+    """gets measures of centrality for node
+
+    Args:
+     node (int): the number (key) for the node
+
+    Returns:
+     tuple: 
+      - float: degree centrality
+      - float: closeness centrality
+      - float: normalized betweeness centrality
+    """
+    return (DEGREE_CENTRALITY[node],
+            CLOSENESS_CENTRALITY[node], BETWEENNESS_CENTRALITY[node])
+</pre></div>
+<div class="highlight">
+<pre><span></span>print("Node 101:")
+degree, closeness, betweenness = node_centrality()
+print("Degree Centrality: {0:.4f}".format(degree))
+print("Closeness Centrality: {0:.2f}".format(closeness))
+print("Normalized Betweenness Centrality: {0:.6f}".format(betweenness))
+</pre></div>
+<div class="highlight">
+<pre><span></span>def largest_node(centrality):
+    """gets the node with the best (largest) score
+
+    Args:
+     centrality (dict): one of the centrality score dicts
+
+    Returns:
+     int: name of the node with the best score
+    """
+    return list(
+        reversed(sorted((value, node)
+                        for (node, value) in centrality.items())))[0][1]
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org4768f6e">
+<h3 id="org4768f6e">Most Connected Friend</h3>
+<div class="outline-text-3" id="text-org4768f6e">
+<p>We want to contact one person in our friendship network and have him or her contact all his or her immediate friends. To have the greatest impact, this person should have the most links in the network. Which node is this?</p>
+<div class="highlight">
+<pre><span></span>def most_connected_friend():
+    """returns the node with the best degree centrality"""
+    return largest_node(DEGREE_CENTRALITY)
+</pre></div>
+<div class="highlight">
+<pre><span></span>MOST_CONNECTED = most_connected_friend()
+print("Most Connected Friend: {}".format(MOST_CONNECTED))
+</pre></div>
+<div class="highlight">
+<pre><span></span>connected = networkx.Graph()
+friends = friendships[MOST_CONNECTED]
+for friend in friends:
+    connected.add_edge(MOST_CONNECTED, friend)
+positions = networkx.spring_layout(connected)
+networkx.draw(connected, positions, with_labels=False, node_color='b', node_size=50)
+networkx.draw(connected, positions, nodelist=[MOST_CONNECTED], node_color="r")
+</pre></div>
+<p>Node 105 does appear to be well connected.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org30c7f27">
+<h3 id="org30c7f27">Fewest Hops</h3>
+<div class="outline-text-3" id="text-org30c7f27">
+<p>We want to reach everyone in the network by having one person passing messages to his friends who can then pass it on and so forth (a six-degrees of separation type scenario) but we want the fewest number of transfers. <i>Which friend is closest to all the people in the friendship network?</i></p>
+<div class="highlight">
+<pre><span></span>def closest_friend():
+    """the node with the best closeness centrality
+
+    Returns:
+     int: Identifier for the node closest to all the other nodes
+    """
+    return largest_node(CLOSENESS_CENTRALITY)
+</pre></div>
+<div class="highlight">
+<pre><span></span>CLOSEST_FRIEND = closest_friend()
+print("Closest Friend: {}".format(CLOSEST_FRIEND))
+</pre></div>
+<div class="highlight">
+<pre><span></span>positions = networkx.spring_layout(friendships)
+networkx.draw(friendships, positions, node_size=1, alpha=0.25, node_color='b')
+networkx.draw_networkx_nodes(friendships, positions, nodelist=[CLOSEST_FRIEND],
+                             node_color='r', node_size=50)
+</pre></div>
+<p>Interesting to look at, if not the most informative.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org8bd5234">
+<h3 id="org8bd5234">Most Important Connection</h3>
+<div class="outline-text-3" id="text-org8bd5234">
+<p>Although the graph is connected, if you took out one persion from the network, which one would cause the most disruption (which person is in the path of the most shortest paths)?</p>
+<div class="highlight">
+<pre><span></span>def betweenness_centrality():
+    """the node with the highest betweenness centrality
+
+    Returns:
+     int: ID of the person who sits on the most shortest paths
+    """
+    return largest_node(BETWEENNESS_CENTRALITY)
+</pre></div>
+<div class="highlight">
+<pre><span></span>MOST_BETWEEN = betweenness_centrality()
+print("Most Between Friend: {}".format(MOST_BETWEEN))
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgdc438ba">
+<h2 id="orgdc438ba">Part 2 - Political Blogs</h2>
+<div class="outline-text-2" id="text-orgdc438ba">
+<p>Now we're going to use <a href="https://en.wikipedia.org/wiki/PageRank">PageRank</a> and <a href="https://en.wikipedia.org/wiki/HITS_algorithm">Hyperlink-Induced Topic Search (HITS)</a> to look at a directed network of political blogs, where nodes correspond to a blog and edges correspond to links between blogs.</p>
+<div class="highlight">
+<pre><span></span>blogs = networkx.read_gml('blogs.gml')
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(len(blogs))
+print(networkx.is_directed(blogs))
+</pre></div>
+<div class="highlight">
+<pre><span></span>networkx.draw(blogs, alpha=0.5, node_size=1, node_color='r')
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-org0ea3edb">
+<h3 id="org0ea3edb">Scaled Page Rank of <i>realclearpolitics.com</i></h3>
+<div class="outline-text-3" id="text-org0ea3edb">
+<p><i>PageRank</i> scores web-pages by the number of important nodes that link directly to them. It is possible for the algorithm to get stuck if there are no edges leading out from a directed subgraph, producing erroneous page-ranks so the <i>Scaled Page Rank</i> uses a random-restart do decide when to occasionally jump to a new node, an idea similar to the way Stochastic Gradient Descent avoids being stuck in local minima. The <a href="https://networkx.github.io/documentation/networkx-1.10/reference/generated/networkx.algorithms.link_analysis.pagerank_alg.pagerank.html">Networkx pagerank</a> uses a default of 0.85, which I will use, so it will do a random-restart about 15% of the time.</p>
+<div class="highlight">
+<pre><span></span>PAGE_RANK = networkx.pagerank(blogs)
+</pre></div>
+<div class="highlight">
+<pre><span></span>def real_clear_politics_page_rank():
+    """Page Rank of realclearpolitics.com
+
+    Returns:
+     float: The PageRank for the realclearpolitics blog.
+    """
+    return PAGE_RANK['realclearpolitics.com']
+</pre></div>
+<div class="highlight">
+<pre><span></span>print("Real Clear Politics Page Rank: {0:.4f}".format(real_clear_politics_page_rank()))
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org8bd71a4">
+<h3 id="org8bd71a4">Top Five Blogs by Page Rank</h3>
+<div class="outline-text-3" id="text-org8bd71a4">
+<p>This time the PageRank scores will be used to find what it thinks are the most important blogs.</p>
+<div class="highlight">
+<pre><span></span>def top_five(ranks, count=5):
+    """gets the top-five blogs by rank
+
+    Args:
+     count (int): number to return
+
+    Returns:
+     list [str]: names of the top blogs - most to least important
+    """
+    top = list(reversed(sorted((rank, node)
+                               for node, rank in ranks.items())))[:count]
+    return [node for rank, node in top]
+</pre></div>
+<div class="highlight">
+<pre><span></span>def top_five_page_rank():
+    """Top 5 nodes by page rank
+
+    Returns:
+     list [str]: top-five blogs by page-rank
+    """
+    return top_five(PAGE_RANK)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print("Top Five Blogs by PageRank")
+
+for blog in top_five_page_rank():
+    print("  - {}".format(blog))
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org207f51f">
+<h3 id="org207f51f">HITS Score for Real Clear Politics</h3>
+<div class="outline-text-3" id="text-org207f51f">
+<p>This uses the HITS algorithm to find the authority and hub scores for <i>realclearpolitics.com</i>. This algorithm tries to identify <code>hubs</code>, collections of links that directed users to important pages, and <code>authoratative</code> pages, pages that are deemed important because of their relevant content (as identified by the fact that they are linked to by <code>hubs</code>).</p>
+<div class="highlight">
+<pre><span></span>HUBS, AUTHORITIES = networkx.hits(blogs)
+</pre></div>
+<div class="highlight">
+<pre><span></span>def real_clear_politics_hits():
+    """HITS score for realclearpolitics.com
+
+    Returns:
+     tuple (float, float): hub score, authority score
+    """
+    return HUBS['realclearpolitics.com'], AUTHORITIES['realclearpolitics.com']
+</pre></div>
+<div class="highlight">
+<pre><span></span>hub, authority = real_clear_politics_hits()
+print("Real Clear Politics")
+print("Hub: {0:.5f}\nAuthority: {0:.5f}".format(hub, authority))
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orga5d2d87">
+<h3 id="orga5d2d87">Top 5 Blogs by Hub Score</h3>
+<div class="outline-text-3" id="text-orga5d2d87">
+<p>This will find the top five blogs based on their hub scores (meaning they are the ones who link to the most authoratative sites).</p>
+<div class="highlight">
+<pre><span></span>def top_five_hubs():
+    """Top five blogs by hub scores
+
+    Returns:
+     list (str): Names of top-five hub blogs
+    """
+    return top_five(HUBS)
+</pre></div>
+<div class="highlight">
+<pre><span></span>top_five_hub_blogs = top_five_hubs()
+print('Top Five Hub Blogs')
+for blog in top_five_hub_blogs:
+    print(" - {}".format(blog))
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orga24c551">
+<h3 id="orga24c551">Top Five Blogs By Authority</h3>
+<div class="outline-text-3" id="text-orga24c551">
+<p>This will find the top five political blogs based on how many of the hub-blogs link to them.</p>
+<div class="highlight">
+<pre><span></span>def top_five_authorities():
+    """the top 5 blogs by authorities score
+
+    Returns:
+     list (str): names of the most authoratative blogs
+    """
+    return top_five(AUTHORITIES)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print("Top Five Authoratative Blogs")
+authoratative_blogs = top_five_authorities()
+for blog in authoratative_blogs:
+    print(" - {}".format(blog))
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="../../../categories/centrality/" rel="tag">centrality</a></li>
+<li><a class="tag p-category" href="../../../categories/networks/" rel="tag">networks</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="../company-e-mail/" rel="prev" title="Company E-Mail">Previous post</a></li>
+<li class="next"><a href="../future-e-mail/" rel="next" title="Future E-Mail">Next post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="../../../assets/js/all-nocdn.js">
+</script>
+<script>
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script>
+</body>
+</html>

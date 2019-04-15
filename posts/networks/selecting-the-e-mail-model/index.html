@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="Selecting the model to predict future email." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Selecting the E-Mail Model | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
+</script>
+<meta content="Cloistered Monkey" name="author">
+<link href="../future-e-mail/" rel="prev" title="Future E-Mail" type="text/html">
+<link href="../looking-at-random-graphs/" rel="next" title="Looking at random graphs" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Selecting the E-Mail Model" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/" property="og:url">
+<meta content="Selecting the model to predict future email." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2019-04-13T11:57:42-07:00" property="article:published_time">
+<meta content="model selection" property="article:tag">
+<meta content="networks" property="article:tag">
+<meta content="sklearn" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="../../../archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="../../../rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="../../../pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"><input name="k8" type="hidden" value="#444444"><input name="k9" type="hidden" value="#D51920"><input name="kt" type="hidden" value="h"><input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"><input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href=".">Selecting the E-Mail Model</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2019-04-13T11:57:42-07:00" itemprop="datePublished" title="2019-04-13 11:57">2019-04-13 11:57</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org865efa6">Imports</a></li>
+<li><a href="#orgde06815">The Data</a>
+<ul>
+<li><a href="#org52ffacc">Department</a></li>
+<li><a href="#org90a3d48">Splitting the Data</a></li>
+</ul>
+</li>
+<li><a href="#orgaa50152">Standardizing the Data</a></li>
+<li><a href="#org85f4993">Dummy Classifier</a></li>
+<li><a href="#org90135f8">Feature Selection</a></li>
+<li><a href="#orgefdf2d0">Fit and Display</a></li>
+<li><a href="#orgbcc56b7">Logistic Regression</a>
+<ul>
+<li><a href="#org345d726">L1 Penalty</a></li>
+</ul>
+</li>
+<li><a href="#org084446e">Random Forests</a></li>
+<li><a href="#org1e39d10">K Nearest Neighbors</a></li>
+<li><a href="#org0d80ec5">Support Vector Classifier (SVC)</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org865efa6">
+<h2 id="org865efa6">Imports</h2>
+<div class="outline-text-2" id="text-org865efa6">
+<div class="highlight">
+<pre><span></span># pypi
+from sklearn.ensemble import (
+    ExtraTreesClassifier,
+    RandomForestClassifier,
+    )
+from sklearn.feature_selection import (
+    RFECV,
+    SelectFromModel,
+)
+from sklearn.linear_model import LogisticRegressionCV
+from sklearn.model_selection import (
+    GridSearchCV,
+    StratifiedKFold,
+    train_test_split,
+    )
+
+from sklearn.dummy import DummyClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+import matplotlib.pyplot as pyplot
+import mglearn
+import numpy
+import pandas
+import seaborn
+</pre></div>
+<div class="highlight">
+<pre><span></span>% matplotlib inline
+seaborn.set_style("whitegrid")
+</pre></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgde06815">
+<h2 id="orgde06815">The Data</h2>
+<div class="outline-text-2" id="text-orgde06815">
+<div class="highlight">
+<pre><span></span>data = pandas.read_hdf("email_data.h5", "df")
+cleaned_data = data[pandas.notnull(data.management)]
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(cleaned_data.head())
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-org52ffacc">
+<h3 id="org52ffacc">Department</h3>
+<div class="outline-text-3" id="text-org52ffacc">
+<p>Even though I don't think it's going to prove useful, the <code>department</code> feature is actually categorical, despite the use of integers so we'll have to add dummy variables for it.</p>
+<div class="highlight">
+<pre><span></span>cleaned_data = pandas.get_dummies(cleaned_data, columns=["department"])
+print(cleaned_data.head(1))
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org90a3d48">
+<h3 id="org90a3d48">Splitting the Data</h3>
+<div class="outline-text-3" id="text-org90a3d48">
+<p>For evaluation purposes I'll use the traditional train-test split.</p>
+<div class="highlight">
+<pre><span></span>x_data = cleaned_data.loc[:, cleaned_data.columns != "management"]
+
+y_data = cleaned_data.management
+
+print(x_data.head())
+print(y_data.head())
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(y_data.value_counts())
+</pre></div>
+<div class="highlight">
+<pre><span></span>seaborn.countplot(x='management', data=cleaned_data)
+</pre></div>
+<p>It looks like the management data is unbalanced, so I'll do a stratified split.</p>
+<div class="highlight">
+<pre><span></span>x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, stratify=y_data)
+print(x_train.shape)
+print(y_test.shape)
+</pre></div>
+<div class="highlight">
+<pre><span></span>seaborn.countplot(y_train)
+</pre></div>
+<p>Looks close enough for government work.</p>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgaa50152">
+<h2 id="orgaa50152">Standardizing the Data</h2>
+<div class="outline-text-2" id="text-orgaa50152">
+<p>The linear models expect the data to be standardized, so to make the comparisons fair I'll standardize the data first. First, a look at the data before scaling.</p>
+<div class="highlight">
+<pre><span></span>print(x_train.describe())
+</pre></div>
+<p>Now I'll scale it.</p>
+<div class="highlight">
+<pre><span></span>scaler = StandardScaler()
+scaler.fit(x_train)
+x_train = pandas.DataFrame(scaler.transform(x_train), columns=x_train.columns)
+x_test = scaler.transform(x_test)
+</pre></div>
+<p>Now the means should be near 0 (very small) and the standard deviations should be around 1.</p>
+<div class="highlight">
+<pre><span></span>print(x_train.describe())
+</pre></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org85f4993">
+<h2 id="org85f4993">Dummy Classifier</h2>
+<div class="outline-text-2" id="text-org85f4993">
+<p>As a baseline I'll use a <a href="http://scikit-learn.org/stable/modules/model_evaluation.html#dummy-estimators">Dummy Classifier</a> which uses a simple rule rather than the input data to make predictions.</p>
+<div class="highlight">
+<pre><span></span>parameter_grid = dict(strategy=["stratified", 'most_frequent', 'prior', 'uniform'])
+</pre></div>
+<p>Now we'll do a grid search.</p>
+<div class="highlight">
+<pre><span></span>grid_search = GridSearchCV(DummyClassifier(), parameter_grid,
+                           cv=StratifiedKFold(10), scoring="roc_auc")
+grid_search.fit(x_train, y_train)
+</pre></div>
+<div class="highlight">
+<pre><span></span>BASELINE = grid_search.score(x_test, y_test)
+print(grid_search.best_params_)
+print(BASELINE)
+</pre></div>
+<p>It looks like it chose the <b>stratified</b> strategy, which should predict that the instances are all non-managers. Our baseline AUC score is 0.5 (0.47 now?).</p>
+<div class="highlight">
+<pre><span></span>results = pandas.DataFrame(grid_search.cv_results_)
+print(results.head(1))
+</pre></div>
+<div class="highlight">
+<pre><span></span>figure = pyplot.figure()
+axe = figure.gca()
+strategies = parameter_grid["strategy"]
+x = pyplot.xticks(list(range(len(strategies))), strategies)
+axe.plot(range(len(strategies)), results.mean_test_score)
+axe.set_title("Dummy Classifier Strategy Vs AUC")
+axe.set_xlabel("strategy")
+axe.set_ylabel("AUC Score")
+</pre></div>
+<p>So it looks like all the strategies except <b>stratified</b> did the same - and even the stratified did basically the same if you round it off.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org90135f8">
+<h2 id="org90135f8">Feature Selection</h2>
+<div class="outline-text-2" id="text-org90135f8">
+<p>I'm going to need to do some feature reduction, but figuring out what is important and what isn't is something I'm going to have to leave to the machine. I'm going to assume that the features thrown out by logistic regression with l1 penalization are unimportant.</p>
+<div class="highlight">
+<pre><span></span>logistic_model = LogisticRegressionCV(penalty='l1',
+                                      solver='liblinear', scoring="roc_auc")
+logistic_model.fit(x_train, y_train)
+model = SelectFromModel(logistic_model, prefit=True)
+
+x_train_positive = model.transform(x_train)
+x_test_positive = model.transform(x_test)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(logistic_model.score(x_test, y_test))
+</pre></div>
+<p>Logistic Regression with <code>L1</code> penalty seems to do reasonably well even without feature selection.</p>
+<div class="highlight">
+<pre><span></span>logistic_model.fit(x_train_positive, y_train)
+print(logistic_model.score(x_test_positive, y_test))
+</pre></div>
+<p>It looks like feature selection didn't really help here.</p>
+<div class="highlight">
+<pre><span></span>print(x_train.shape)
+print(x_train_positive.shape)
+print(model.ranking_)
+</pre></div>
+<p>As a double-check I'll use a tree-based, recursive feature-elimination version.</p>
+<div class="highlight">
+<pre><span></span>trees = ExtraTreesClassifier(n_estimators=10)
+eliminator = RFECV(estimator=trees, cv=StratifiedKFold(10), scoring="roc_auc")
+eliminator.fit(x_train, y_train)
+x_train_trees = eliminator.transform(x_train)
+x_test_trees = eliminator.transform(x_test)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(x_train_trees.shape)
+print(eliminator.ranking_)
+</pre></div>
+<p>This eliminated many more columns than the Logistic Regression version did.</p>
+<p><b>warning</b> this seem to change every time you run it - the randomness changes it. Only the elimination of the first column seems to do as well as not running it at all.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgefdf2d0">
+<h2 id="orgefdf2d0">Fit and Display</h2>
+<div class="outline-text-2" id="text-orgefdf2d0">
+<p>This is a convenience function so I can fit and display the scores for the models.</p>
+<div class="highlight">
+<pre><span></span>def fit_and_display(model, identifier):
+    """Fit and display the scores
+
+    Args:
+     model: The instantiated model to fit
+     identifier (str): something to output at the beginning
+    """
+    print(identifier)
+    print("=" * len(identifier))
+    model.fit(x_train, y_train)
+    print("\nX-train")
+    print("Score: {:.2f}".format(model.score(x_test, y_test)))
+    print("\nX-Train Positive")
+    model.fit(x_train_positive, y_train)
+    print("Score: {:.2f}".format(model.score(x_test_positive, y_test)))
+    print("\nX-Train Trees")
+    model.fit(x_train_trees, y_train)
+    print("Score: {:.2f}".format(model.score(x_test_trees, y_test)))
+    print("\nBest Training Score: {}".format(search.best_score_))
+    return
+</pre></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgbcc56b7">
+<h2 id="orgbcc56b7">Logistic Regression</h2>
+<div class="outline-text-2" id="text-orgbcc56b7"></div>
+<div class="outline-3" id="outline-container-org345d726">
+<h3 id="org345d726">L1 Penalty</h3>
+<div class="outline-text-3" id="text-org345d726">
+<div class="highlight">
+<pre><span></span>model = LogisticRegressionCV(penalty="l1", scoring="roc_auc", solver="liblinear")
+fit_and_display(model, "Logistic Regression L1")
+</pre></div>
+<p>I've already run the Logistic Regression using a 'l1' but I'll try it again with 'l2' to see if it improved.</p>
+<div class="highlight">
+<pre><span></span>model = LogisticRegressionCV(scoring="roc_auc", solver="liblinear")
+fit_and_display(model, "LogisticRegression")
+</pre></div>
+<p>L1 seems to do better than L1 overall, although it doesn't do as well with the recursively data form some reason.</p>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org084446e">
+<h2 id="org084446e">Random Forests</h2>
+<div class="outline-text-2" id="text-org084446e">
+<p>I'll try a <a href="http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html">Random Forest</a> classifier next.</p>
+<div class="highlight">
+<pre><span></span>parameter_grid = dict(n_estimators=range(10, 100, 10))
+search = GridSearchCV(RandomForestClassifier(), parameter_grid,
+                      cv=StratifiedKFold(10), scoring="roc_auc")
+fit_and_display(search, "Random Forest")
+</pre></div>
+<p>This seems to have done much better than the logistic regression did. My logistic-regression feature reduction doesn't seem to help.</p>
+<div class="highlight">
+<pre><span></span>class RandomForest(object):
+    """trains a random forest on the x-test-trees set
+
+    Args:
+     start (int): first n-estimators value to use
+     stop (int): last n-estimators value (minus step)
+     step (int): amount to increment estimators
+     folds (int): Cross-validation-folds to usen
+
+    Returns:
+     GridSearchCV: grid-search with the best estimator
+    """
+
+    def __init__(self, start, stop, step, folds=10):
+        self.start = start
+        self.stop = stop
+        self.step = step
+        self.folds = folds
+        self._search = None
+        self._parameter_grid = None
+        return
+
+    @property
+    def parameter_grid(self):
+        """dict of the number of estimators to use"""
+        if self._parameter_grid is None:
+            self._parameter_grid = dict(n_estimators=list(range(self.start,
+                                                                self.stop,
+                                                                self.step)))
+        return self._parameter_grid
+
+    @property
+    def search(self):
+        """grid-search cv object"""
+        if self._search is None:
+            self._search = GridSearchCV(RandomForestClassifier(),
+                                        self.parameter_grid,
+                                        cv=StratifiedKFold(self.folds),
+                                        scoring="roc_auc")
+        return self._search    
+
+    def fit(self):
+        """fits the model to the tree-based reduced-feature data"""
+        self.search.fit(x_train_trees, y_train)
+        print(self.search.score(x_test_trees, y_test))
+        print(self.search.best_estimator_.feature_importances_)
+        print(self.search.best_params_)
+        return
+
+    def plot(self):
+        """Plots estimators vs AUC scores"""
+        figure = pyplot.figure()
+        axe = figure.gca()
+        axe.plot(self.parameter_grid["n_estimators"],
+                 self.search.cv_results_["mean_test_score"])
+        axe.set_title("Estimator Count vs AUC")
+        axe.set_xlabel("Number of estimators (trees)")
+        axe.set_ylabel("Mean AUC Score")
+        return
+</pre></div>
+<div class="highlight">
+<pre><span></span>search = RandomForest(10, 100, 10)
+search.fit()
+</pre></div>
+<p>Not a lot of variance in the importance of the features.</p>
+<div class="highlight">
+<pre><span></span>search.plot()
+</pre></div>
+<p>Would things get better with more trees?</p>
+<div class="highlight">
+<pre><span></span>search = RandomForest(150, 250, 10)
+search.fit()
+</pre></div>
+<div class="highlight">
+<pre><span></span>search.plot()
+</pre></div>
+<p>In this case the test-score was better, although the training scores don't look much better. I guess it's the randomness coming into play again. I'll try a long run instead.</p>
+<div class="highlight">
+<pre><span></span>search = RandomForest(10, 500, 10)
+search.fit()
+</pre></div>
+<div class="highlight">
+<pre><span></span>search.plot()
+</pre></div>
+<p>The test-score for the best estimator is actually a little worse than it was for the previous case, although it's qute a small difference.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org1e39d10">
+<h2 id="org1e39d10">K Nearest Neighbors</h2>
+<div class="outline-text-2" id="text-org1e39d10">
+<div class="highlight">
+<pre><span></span>parameters = dict(n_neighbors=range(10, 20),
+                  weights=["uniform", "distance"],
+                  p=[1, 2],
+                  leaf_size=range(10, 50, 10))
+
+search = GridSearchCV(KNeighborsClassifier(), parameters, scoring="roc_auc")
+search.fit(x_train_trees, y_train)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(search.score(x_test_trees, y_test))
+print(search.best_params_)
+</pre></div>
+<p>This doesn't seem to do so well, although I'm not as experienced at using it so I might be using bad parameters.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org0d80ec5">
+<h2 id="org0d80ec5">Support Vector Classifier (SVC)</h2>
+<div class="outline-text-2" id="text-org0d80ec5">
+<div class="highlight">
+<pre><span></span>parameters = dict(C=numpy.arange(.1, 1, 0.1), gamma=range(1, 10, 1),
+                  kernel=["linear", 'rbf', 'sigmoid'])
+search = GridSearchCV(SVC(class_weight='balanced'), parameters, scoring='roc_auc')
+fit_and_display(search, "SVC")
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(search.score(x_test_trees, y_test))
+print(search.best_params_)
+</pre></div>
+<p>Now that the data is scaled, the svc does much better, alhough still not as well as the random forest.</p>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="../../../categories/model-selection/" rel="tag">model selection</a></li>
+<li><a class="tag p-category" href="../../../categories/networks/" rel="tag">networks</a></li>
+<li><a class="tag p-category" href="../../../categories/sklearn/" rel="tag">sklearn</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="../future-e-mail/" rel="prev" title="Future E-Mail">Previous post</a></li>
+<li class="next"><a href="../looking-at-random-graphs/" rel="next" title="Looking at random graphs">Next post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="../../../assets/js/all-nocdn.js">
+</script>
+<script>
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script>
+</body>
+</html>
