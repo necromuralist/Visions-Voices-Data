@@ -9,15 +9,15 @@
 .. type: text
 .. status:
 .. updated: 
-
 #+END_COMMENT
 #+TOC: headlines 2
 #+OPTIONS: H:5
 * The Departure
-  This is a look at working with networks using [[https://networkx.github.io][networkx]]. Our scene - eight employees are trying to choose three movies to watch. We have two sources of data - the candidate movies and the /relationship/ between pairs of employees. The relationships are on a scale from -100 to 100, with -100 being the strongest of enemies and 100 meaning they are best of friends. Zero either means they have no relationship (don't interact) or are indifferent about the other person.
+  This is a look at working with networks using [[https://networkx.github.io][networkx]]. Our scene - eight employees are trying to choose three movies to watch for company movie nights. We have two sources of data - the /candidate movies/ and the /relationship/ between pairs of employees. The relationships are on a scale from -100 to 100, with -100 being the strongest of enemies and 100 meaning they are best of friends. Zero either means they have no relationship (don't interact) or are indifferent about the other person.
 ** Imports
 *** From Python
 #+BEGIN_SRC ipython :session movie-night :results none
+from argparse import Namespace
 from functools import partial
 from pathlib import Path
 import os
@@ -48,6 +48,14 @@ SLUG = 'company-movie-night'
 OUTPUT = Path("../../files/posts/networks/" + SLUG)
 Embed = partial(EmbedHoloview, folder_path=OUTPUT)
 holoviews.extension("bokeh")
+#+END_SRC
+
+#+BEGIN_SRC ipython :session movie-night :results none
+Plot = Namespace(
+    width=800,
+    height=800,
+    fontsize=18,
+)
 #+END_SRC
 * The Initiation
 ** The Data
@@ -80,7 +88,7 @@ print(employees)
 #+END_SRC
 
 #+RESULTS:
-: {'Claude', 'Pablo', 'Lee', 'Andy', 'Vincent', 'Joan', 'Frida', 'Georgia'}
+: {'Frida', 'Vincent', 'Georgia', 'Joan', 'Andy', 'Lee', 'Pablo', 'Claude'}
 
 
 #+BEGIN_SRC ipython :session movie-night :results output :exports both
@@ -112,7 +120,7 @@ print(len(employees) * (len(employees) - 1)/2)
 
 It looks like our relationships data creates a fully-connected network (unless there is a duplicate which would be an error).
 
-*** This Is the Movie Choices
+*** These Are the Movie Choices
 #+BEGIN_SRC ipython :session movie-night :results output :exports both
 employee_movies_path = Path(os.environ.get("EMPLOYEE_MOVIE_CHOICES"))
 movies_data = pandas.read_csv(
@@ -121,10 +129,12 @@ movies_data = pandas.read_csv(
     header=None,
     skiprows=1,
     names="employee movie".split())
+print(len(movies))
 print(movies_data.head())
 #+END_SRC
 
 #+RESULTS:
+: 11
 :   employee                            movie
 : 0     Andy                         Anaconda
 : 1     Andy                       Mean Girls
@@ -132,19 +142,51 @@ print(movies_data.head())
 : 3   Claude                         Anaconda
 : 4   Claude  Monty Python and the Holy Grail
 
-#+BEGIN_SRC ipython :session movie-night :results output
+#+BEGIN_SRC ipython :session movie-night :results output raw :exports both
 movies = set(movies_data.movie.unique())
-print(movies)
-print(len(movies))
+for movie in sorted(movies):
+    print(f" - {movie}")
 #+END_SRC
 
 #+RESULTS:
-: {'The Dark Knight', 'The Matrix', 'Monty Python and the Holy Grail', 'Anaconda', 'The Godfather', 'Snakes on a Plane', 'The Social Network', 'Mean Girls', 'Forrest Gump', 'Kung Fu Panda', 'The Shawshank Redemption'}
-: 11
+ - Anaconda
+ - Forrest Gump
+ - Kung Fu Panda
+ - Mean Girls
+ - Monty Python and the Holy Grail
+ - Snakes on a Plane
+ - The Dark Knight
+ - The Godfather
+ - The Matrix
+ - The Shawshank Redemption
+ - The Social Network
 
 The eight employees chose 11 movies between them.
+*** Converting the DataFrames to Graphs
+**** The Relationship Graph
+#+BEGIN_SRC ipython :session movie-night :results none
+relationship_graph = networkx.from_pandas_edgelist(relationships_data, 
+                                                   "employee_1", "employee_2", 
+                                                   edge_attr="relationship")
+for index, row in relationships_data.sample(5).iterrows():
+    assert relationship_graph[row["employee_1"]][row["employee_2"]]["relationship"] == row["relationship"]
+#+END_SRC
 
-** Plot Graph
+#+BEGIN_SRC ipython :session movie-night :results output :exports both
+expected_edges = len(relationships_data)
+expected_nodes = len(employees)
+print("Expected Edges: {}".format(expected_edges))
+print("Expected Nodes: {}".format(expected_nodes))
+assert expected_nodes == relationship_graph.nodes
+assert expected_edges == relationship_graph.edges
+#+END_SRC
+
+#+RESULTS:
+: Expected Edges: 28
+: Expected Nodes: 8
+
+
+** Plotting
 You can use the following function to plot graphs.
 
 #+BEGIN_SRC ipython :session movie-night :results none
@@ -171,32 +213,28 @@ def plot_graph(graph, file_name, plot_title, weight_name=None, directed=False):
     return
 #+END_SRC
 
-** The Employee Movie Choices Graph
-   The employee-movie network consists of employees and movies as nodes and the edges indicate an employee chose a movie. Not every movie is chosen by every employee, so it isn't a complete graph.
-#+BEGIN_SRC ipython :session movie-night :results output :exports both
-expected_edges = len(movies_data)
-expected_nodes = len(employees) + len(movies)
-print("Expected Edges: {}".format(expected_edges))
-print("Expected Nodes: {}".format(expected_nodes))
-#+END_SRC
+*** The Employee Relationship Graph
+   The employee relationship graph consists of employees as nodes and their relationshp-level as weights on the edges.
 
-#+RESULTS:
-: Expected Edges: 24
-: Expected Nodes: 19
 
 #+BEGIN_SRC ipython :session movie-night :results output raw :exports both
-plot = holoviews.Graph.from_networkx(friendship_graph,
+plot = holoviews.Graph.from_networkx(relationship_graph,
                                      networkx.circular_layout).opts(
-                                         node_color=dim("gender"), cmap="Set1",
-                                         tools=[hover],
+                                         cmap="Set1",
                                          fontsize=Plot.fontsize,
                                          width=800,
                                          height=800,
-                                         edge_line_color=Plot.edge_color,
-                                         title="Friendship Network by Gender",
-                                         xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="employee_movie_choices_plot")()
+                                         title="Company Relationship Graph",
+                                         xaxis=None, yaxis=None)
+Embed(plot=plot, file_name="employee_relationships")()
 #+END_SRC
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="employee_relationships.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
 
 #+BEGIN_SRC ipython :session movie-night :results none
 def answer_one():
