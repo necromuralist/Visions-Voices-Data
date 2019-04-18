@@ -1,6 +1,6 @@
 #+BEGIN_COMMENT
 .. title: Company Movie Night
-.. slug: company-moving-night
+.. slug: company-movie-night
 .. date: 2019-04-11 13:04:23 UTC-07:00
 .. tags: networks,networkx
 .. category: Networks
@@ -26,6 +26,7 @@ import os
 #+BEGIN_SRC ipython :session movie-night :results none
 from dotenv import load_dotenv
 from bokeh.models import HoverTool
+from bokeh.models.graphs import EdgesAndLinkedNodes
 import holoviews
 import hvplot.pandas
 import networkx
@@ -35,7 +36,7 @@ from networkx.algorithms import bipartite
 #+END_SRC
 *** My Stuff
 #+BEGIN_SRC ipython :session movie-night :results none
-from graeae.visualization import EmbedHoloview
+from graeae.visualization import EmbedBokeh, EmbedHoloview
 #+END_SRC
 ** Set Up
 *** Load Dotenv
@@ -44,9 +45,10 @@ load_dotenv(".env", override=True)
 #+END_SRC
 ** The Plotting
 #+BEGIN_SRC ipython :session movie-night :results none
-SLUG = 'company-movie-night'
+SLUG = 'company-movie-night/'
 OUTPUT = Path("../../files/posts/networks/" + SLUG)
 Embed = partial(EmbedHoloview, folder_path=OUTPUT)
+EmbedB = partial(EmbedBokeh, folder_path=OUTPUT)
 holoviews.extension("bokeh")
 #+END_SRC
 
@@ -55,6 +57,7 @@ Plot = Namespace(
     width=800,
     height=800,
     fontsize=18,
+    padding=dict(x=(-1, 1), y=(-1, 1))
 )
 #+END_SRC
 * The Initiation
@@ -71,7 +74,7 @@ relationships_data = pandas.read_csv(
 #+END_SRC
 
 #+BEGIN_SRC ipython :session movie-night :results output raw :exports both
-table = holoviews.Table(relationships_data)
+table = holoviews.Table(relationships_data).opts(height=Plot.height)
 Embed(plot=table, file_name="relationships_data")()
 #+END_SRC
 
@@ -215,7 +218,13 @@ def plot_graph(graph, file_name, plot_title, weight_name=None, directed=False):
 
 *** The Employee Relationship Graph
    The employee relationship graph consists of employees as nodes and their relationshp-level as weights on the edges.
-
+#+BEGIN_SRC ipython :session movie-night :results none
+storage = None
+def set_selection_policy(plot, element):
+    storage = plot.handles
+    storage["glyph_renderer"].selection_policy = EdgesAndLinkedNodes()
+    return
+#+END_SRC
 
 #+BEGIN_SRC ipython :session movie-night :results output raw :exports both
 plot = holoviews.Graph.from_networkx(relationship_graph,
@@ -225,15 +234,17 @@ plot = holoviews.Graph.from_networkx(relationship_graph,
                                          width=800,
                                          height=800,
                                          title="Company Relationship Graph",
-                                         xaxis=None, yaxis=None)
-Embed(plot=plot, file_name="employee_relationships")()
+                                         xaxis=None, yaxis=None).options(
+                                             edge_color_index="relationship", 
+                                             edge_cmap="Spectral").redim.range(**Plot.padding)
+renderer = holoviews.render(plot)
+renderer.renderers[-1].selection_policy = EdgesAndLinkedNodes()
+EmbedB(plot=renderer, file_name="employee_relationships")()
 #+END_SRC
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="employee_relationships.html" style="width:100%" height=800>
-  <p>Figure Missing</p>
-</object>
+<script src="employee_relationships" id="b59efb6f-30f2-4126-9b07-7e36c2a7effb"></script>
 #+end_export
 
 #+BEGIN_SRC ipython :session movie-night :results none
