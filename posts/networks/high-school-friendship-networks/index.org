@@ -32,7 +32,6 @@ import os
 from bokeh.models import HoverTool
 from dotenv import load_dotenv
 from holoviews import dim, opts
-from holoviews.operation.datashader import datashade, bundle_graph
 import holoviews
 import hvplot.pandas
 import networkx
@@ -149,9 +148,12 @@ grouped.columns = ["class_count", "gender_count"]
 grouped = grouped.reset_index()
 #+end_src
 
+#+begin_src ipython :session highschool :results none
+grouped.loc[:, "class"]= grouped["class"].astype(str)
+#+end_src
+
 #+begin_src ipython :session highschool :results output raw :exports both
-plot = grouped.hvplot.bar(title="Class Counts by Gender", 
-                          x="class", y="class_count", 
+plot = grouped.hvplot.bar("class", "class_count", title="Class Counts by Gender", 
                           stacked=True,
                           by="gender", height=Plot.height, 
                           width=Plot.width,
@@ -280,9 +282,9 @@ with TIMER:
 #+end_src
 
 #+RESULTS:
-: Started: 2019-04-10 15:15:14.469087
-: Ended: 2019-04-10 15:15:14.471246
-: Elapsed: 0:00:00.002159
+: Started: 2019-04-23 12:40:50.512175
+: Ended: 2019-04-23 12:40:50.514294
+: Elapsed: 0:00:00.002119
 #+begin_src ipython :session highschool :results none
 genders = dict(zip(meta_data.id, meta_data.gender))
 classes = dict(zip(meta_data.id, meta_data["class"]))
