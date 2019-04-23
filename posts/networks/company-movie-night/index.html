@@ -11,15 +11,14 @@
 <meta content="#5670d4" name="theme-color">
 <meta content="Nikola (getnikola.com)" name="generator">
 <link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
-<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-moving-night/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
-</script>
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script>
 <meta content="Cloistered Monkey" name="author">
 <link href="../../libraries/prophet/getting-started-with-prophet/" rel="prev" title="Getting Started With Prophet" type="text/html">
 <link href="../some-networkx-examples/" rel="next" title="Some Networkx Examples" type="text/html">
 <meta content="Visions, Voices, Data" property="og:site_name">
 <meta content="Company Movie Night" property="og:title">
-<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-moving-night/" property="og:url">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/" property="og:url">
 <meta content="An introductiton to creating and manipulating graphs in networkx." property="og:description">
 <meta content="article" property="og:type">
 <meta content="2019-04-11T13:04:23-07:00" property="article:published_time">
@@ -66,37 +65,38 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orge029ec1">The Departure</a>
+<li><a href="#org4d38620">The Departure</a>
 <ul>
-<li><a href="#orge2e13dd">Imports</a></li>
-<li><a href="#orgddc4f2a">Set Up</a></li>
-<li><a href="#org6a9f908">The Plotting</a></li>
+<li><a href="#orgce2b5b1">Imports</a></li>
+<li><a href="#org91dc999">Set Up</a></li>
+<li><a href="#org535c0f4">The Plotting</a></li>
 </ul>
 </li>
-<li><a href="#org994f793">The Initiation</a>
+<li><a href="#org8ed7464">The Initiation</a>
 <ul>
-<li><a href="#org3769bc7">The Data</a></li>
-<li><a href="#org1b6dbd0">Plotting</a></li>
-<li><a href="#org2c4ec8e">Question 2</a></li>
-<li><a href="#org443ec81">Question 3</a></li>
-<li><a href="#orgf050ee6">Question 4</a></li>
+<li><a href="#org5debdad">The Data</a></li>
+<li><a href="#org5335237">Plotting</a></li>
+<li><a href="#orged37fe1">Question One</a></li>
+<li><a href="#org078283e">Question 2</a></li>
+<li><a href="#org1389d9a">Question 3</a></li>
+<li><a href="#org716243c">Question 4</a></li>
 </ul>
 </li>
-<li><a href="#orgca8cf10">The Return</a></li>
+<li><a href="#org99f1482">The Return</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge029ec1">
-<h2 id="orge029ec1">The Departure</h2>
-<div class="outline-text-2" id="text-orge029ec1">
+<div class="outline-2" id="outline-container-org4d38620">
+<h2 id="org4d38620">The Departure</h2>
+<div class="outline-text-2" id="text-org4d38620">
 <p>This is a look at working with networks using <a href="https://networkx.github.io">networkx</a>. Our scene - eight employees are trying to choose three movies to watch for company movie nights. We have two sources of data - the <i>candidate movies</i> and the <i>relationship</i> between pairs of employees. The relationships are on a scale from -100 to 100, with -100 being the strongest of enemies and 100 meaning they are best of friends. Zero either means they have no relationship (don't interact) or are indifferent about the other person.</p>
 </div>
-<div class="outline-3" id="outline-container-orge2e13dd">
-<h3 id="orge2e13dd">Imports</h3>
-<div class="outline-text-3" id="text-orge2e13dd"></div>
-<div class="outline-4" id="outline-container-orged6c3bd">
-<h4 id="orged6c3bd">From Python</h4>
-<div class="outline-text-4" id="text-orged6c3bd">
+<div class="outline-3" id="outline-container-orgce2b5b1">
+<h3 id="orgce2b5b1">Imports</h3>
+<div class="outline-text-3" id="text-orgce2b5b1"></div>
+<div class="outline-4" id="outline-container-orgb68eb2c">
+<h4 id="orgb68eb2c">From Python</h4>
+<div class="outline-text-4" id="text-orgb68eb2c">
 <div class="highlight">
 <pre><span></span>from argparse import Namespace
 from functools import partial
@@ -105,12 +105,13 @@ import os
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org4662ff2">
-<h4 id="org4662ff2">From PyPi</h4>
-<div class="outline-text-4" id="text-org4662ff2">
+<div class="outline-4" id="outline-container-org4cf0013">
+<h4 id="org4cf0013">From PyPi</h4>
+<div class="outline-text-4" id="text-org4cf0013">
 <div class="highlight">
 <pre><span></span>from dotenv import load_dotenv
 from bokeh.models import HoverTool
+from bokeh.models.graphs import EdgesAndLinkedNodes
 import holoviews
 import hvplot.pandas
 import networkx
@@ -120,34 +121,35 @@ from networkx.algorithms import bipartite
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org6336b11">
-<h4 id="org6336b11">My Stuff</h4>
-<div class="outline-text-4" id="text-org6336b11">
+<div class="outline-4" id="outline-container-orga90c27e">
+<h4 id="orga90c27e">My Stuff</h4>
+<div class="outline-text-4" id="text-orga90c27e">
 <div class="highlight">
-<pre><span></span>from graeae.visualization import EmbedHoloview
+<pre><span></span>from graeae.visualization import EmbedBokeh, EmbedHoloview
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgddc4f2a">
-<h3 id="orgddc4f2a">Set Up</h3>
-<div class="outline-text-3" id="text-orgddc4f2a"></div>
-<div class="outline-4" id="outline-container-org4c25828">
-<h4 id="org4c25828">Load Dotenv</h4>
-<div class="outline-text-4" id="text-org4c25828">
+<div class="outline-3" id="outline-container-org91dc999">
+<h3 id="org91dc999">Set Up</h3>
+<div class="outline-text-3" id="text-org91dc999"></div>
+<div class="outline-4" id="outline-container-org7a06e30">
+<h4 id="org7a06e30">Load Dotenv</h4>
+<div class="outline-text-4" id="text-org7a06e30">
 <div class="highlight">
 <pre><span></span>load_dotenv(".env", override=True)
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org6a9f908">
-<h3 id="org6a9f908">The Plotting</h3>
-<div class="outline-text-3" id="text-org6a9f908">
+<div class="outline-3" id="outline-container-org535c0f4">
+<h3 id="org535c0f4">The Plotting</h3>
+<div class="outline-text-3" id="text-org535c0f4">
 <div class="highlight">
-<pre><span></span>SLUG = 'company-movie-night'
+<pre><span></span>SLUG = 'company-movie-night/'
 OUTPUT = Path("../../files/posts/networks/" + SLUG)
 Embed = partial(EmbedHoloview, folder_path=OUTPUT)
+EmbedB = partial(EmbedBokeh, folder_path=OUTPUT)
 holoviews.extension("bokeh")
 </pre></div>
 <div class="highlight">
@@ -155,20 +157,21 @@ holoviews.extension("bokeh")
     width=800,
     height=800,
     fontsize=18,
+    padding=dict(x=(-1, 1), y=(-1, 1))
 )
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org994f793">
-<h2 id="org994f793">The Initiation</h2>
-<div class="outline-text-2" id="text-org994f793"></div>
-<div class="outline-3" id="outline-container-org3769bc7">
-<h3 id="org3769bc7">The Data</h3>
-<div class="outline-text-3" id="text-org3769bc7"></div>
-<div class="outline-4" id="outline-container-org09ea23d">
-<h4 id="org09ea23d">This Is the Set Of Employee-Relationships</h4>
-<div class="outline-text-4" id="text-org09ea23d">
+<div class="outline-2" id="outline-container-org8ed7464">
+<h2 id="org8ed7464">The Initiation</h2>
+<div class="outline-text-2" id="text-org8ed7464"></div>
+<div class="outline-3" id="outline-container-org5debdad">
+<h3 id="org5debdad">The Data</h3>
+<div class="outline-text-3" id="text-org5debdad"></div>
+<div class="outline-4" id="outline-container-orgf49d930">
+<h4 id="orgf49d930">This Is the Set Of Employee-Relationships</h4>
+<div class="outline-text-4" id="text-orgf49d930">
 <div class="highlight">
 <pre><span></span>employee_relationships_path = Path(os.environ.get("EMPLOYEE_RELATIONSHIPS"))
 relationships_data = pandas.read_csv(
@@ -178,7 +181,7 @@ relationships_data = pandas.read_csv(
     names="employee_1 employee_2 relationship".split())
 </pre></div>
 <div class="highlight">
-<pre><span></span>table = holoviews.Table(relationships_data)
+<pre><span></span>table = holoviews.Table(relationships_data).opts(height=Plot.height)
 Embed(plot=table, file_name="relationships_data")()
 </pre></div>
 <object data="relationships_data.html" height="800" style="width:100%" type="text/html">
@@ -218,9 +221,9 @@ print(employees)
 <p>It looks like our relationships data creates a fully-connected network (unless there is a duplicate which would be an error).</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org0cea6c9">
-<h4 id="org0cea6c9">These Are the Movie Choices</h4>
-<div class="outline-text-4" id="text-org0cea6c9">
+<div class="outline-4" id="outline-container-orgd0d9a20">
+<h4 id="orgd0d9a20">These Are the Movie Choices</h4>
+<div class="outline-text-4" id="text-orgd0d9a20">
 <div class="highlight">
 <pre><span></span>employee_movies_path = Path(os.environ.get("EMPLOYEE_MOVIE_CHOICES"))
 movies_data = pandas.read_csv(
@@ -263,12 +266,12 @@ for movie in sorted(movies):
 <p>The eight employees chose 11 movies between them.</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org8007ed8">
-<h4 id="org8007ed8">Converting the DataFrames to Graphs</h4>
-<div class="outline-text-4" id="text-org8007ed8"></div>
-<div class="outline-5" id="outline-container-org0d74c36">
-<h5 id="org0d74c36">The Relationship Graph</h5>
-<div class="outline-text-5" id="text-org0d74c36">
+<div class="outline-4" id="outline-container-orgeb06898">
+<h4 id="orgeb06898">Converting the DataFrames to Graphs</h4>
+<div class="outline-text-4" id="text-orgeb06898"></div>
+<div class="outline-5" id="outline-container-org3a8304c">
+<h5 id="org3a8304c">The Relationship Graph</h5>
+<div class="outline-text-5" id="text-org3a8304c">
 <div class="highlight">
 <pre><span></span>relationship_graph = networkx.from_pandas_edgelist(relationships_data, 
                                                    "employee_1", "employee_2", 
@@ -292,9 +295,9 @@ Expected Nodes: 8
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org1b6dbd0">
-<h3 id="org1b6dbd0">Plotting</h3>
-<div class="outline-text-3" id="text-org1b6dbd0">
+<div class="outline-3" id="outline-container-org5335237">
+<h3 id="org5335237">Plotting</h3>
+<div class="outline-text-3" id="text-org5335237">
 <p>You can use the following function to plot graphs.</p>
 <div class="highlight">
 <pre><span></span>def plot_graph(graph, file_name, plot_title, weight_name=None, directed=False):
@@ -320,10 +323,17 @@ Expected Nodes: 8
     return
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-orga75369b">
-<h4 id="orga75369b">The Employee Relationship Graph</h4>
-<div class="outline-text-4" id="text-orga75369b">
+<div class="outline-4" id="outline-container-org5864651">
+<h4 id="org5864651">The Employee Relationship Graph</h4>
+<div class="outline-text-4" id="text-org5864651">
 <p>The employee relationship graph consists of employees as nodes and their relationshp-level as weights on the edges.</p>
+<div class="highlight">
+<pre><span></span>storage = None
+def set_selection_policy(plot, element):
+    storage = plot.handles
+    storage["glyph_renderer"].selection_policy = EdgesAndLinkedNodes()
+    return
+</pre></div>
 <div class="highlight">
 <pre><span></span>plot = holoviews.Graph.from_networkx(relationship_graph,
                                      networkx.circular_layout).opts(
@@ -332,12 +342,19 @@ Expected Nodes: 8
                                          width=800,
                                          height=800,
                                          title="Company Relationship Graph",
-                                         xaxis=None, yaxis=None)
-Embed(plot=plot, file_name="employee_relationships")()
+                                         xaxis=None, yaxis=None).options(
+                                             edge_color_index="relationship", 
+                                             edge_cmap="Spectral").redim.range(**Plot.padding)
+renderer = holoviews.render(plot)
+renderer.renderers[-1].selection_policy = EdgesAndLinkedNodes()
+EmbedB(plot=renderer, file_name="employee_relationships")()
 </pre></div>
-<object data="employee_relationships.html" height="800" style="width:100%" type="text/html">
-<p>Figure Missing</p>
-</object>
+<script id="b59efb6f-30f2-4126-9b07-7e36c2a7effb" src="employee_relationships"></script></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orged37fe1">
+<h3 id="orged37fe1">Question One</h3>
+<div class="outline-text-3" id="text-orged37fe1">
 <div class="highlight">
 <pre><span></span>def answer_one():
     """Loads the Employee Movie Choices
@@ -361,10 +378,9 @@ networkx.draw_networkx(movie_choices, positions, edges=edges)
 </pre></div>
 </div>
 </div>
-</div>
-<div class="outline-3" id="outline-container-org2c4ec8e">
-<h3 id="org2c4ec8e">Question 2</h3>
-<div class="outline-text-3" id="text-org2c4ec8e">
+<div class="outline-3" id="outline-container-org078283e">
+<h3 id="org078283e">Question 2</h3>
+<div class="outline-text-3" id="text-org078283e">
 <p>Using the graph from the previous question, add nodes attributes named `'type'` where movies have the value `'movie'` and employees have the value `'employee'` and return that graph.</p>
 <p><b>This function should return a networkx graph with node attributes `{'type': 'movie'}` or `{'type': 'employee'}`</b></p>
 <div class="highlight">
@@ -393,9 +409,9 @@ two.nodes(data=True)
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org443ec81">
-<h3 id="org443ec81">Question 3</h3>
-<div class="outline-text-3" id="text-org443ec81">
+<div class="outline-3" id="outline-container-org1389d9a">
+<h3 id="org1389d9a">Question 3</h3>
+<div class="outline-text-3" id="text-org1389d9a">
 <p>Find a weighted projection of the graph from `answer<sub>two</sub>` which tells us how many movies different pairs of employees have in common.</p>
 <p><b>This function should return a weighted projected graph.</b></p>
 <div class="highlight">
@@ -410,9 +426,9 @@ plot_graph(three)
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgf050ee6">
-<h3 id="orgf050ee6">Question 4</h3>
-<div class="outline-text-3" id="text-orgf050ee6">
+<div class="outline-3" id="outline-container-org716243c">
+<h3 id="org716243c">Question 4</h3>
+<div class="outline-text-3" id="text-org716243c">
 <p>Suppose you'd like to find out if people that have a high relationship score also like the same types of movies.</p>
 <p>Find the Pearson correlation ( using `DataFrame.corr()` ) between employee relationship scores and the number of movies they have in common. If two employees have no movies in common it should be treated as a 0, not a missing value, and should be included in the correlation calculation.</p>
 <p><b>This function should return a float.</b></p>
@@ -455,8 +471,8 @@ plot_graph(three)
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgca8cf10">
-<h2 id="orgca8cf10">The Return</h2>
+<div class="outline-2" id="outline-container-org99f1482">
+<h2 id="org99f1482">The Return</h2>
 </div>
 </div>
 <aside class="postpromonav">
@@ -476,13 +492,9 @@ plot_graph(three)
 <footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
 </div>
 </div>
-<script src="../../../assets/js/all-nocdn.js">
-</script><!-- fancy dates -->
+<script src="../../../assets/js/all-nocdn.js"></script>
 <script>
-    moment.locale("en");
-    fancydates(0, "YYYY-MM-DD HH:mm");
-</script><!-- end fancy dates -->
-<script>
+
     baguetteBox.run('div#content', {
         ignoreClass: 'islink',
         captions: function(element) {
