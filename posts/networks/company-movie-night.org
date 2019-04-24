@@ -44,6 +44,7 @@ from bokeh.models.graphs import (from_networkx,
 from bokeh.palettes import RdBu, Spectral4
 from bokeh.transform import linear_cmap
 import holoviews
+from holoviews import dim
 import hvplot.pandas
 import networkx
 import pandas
@@ -111,7 +112,7 @@ print(employees)
 #+END_SRC
 
 #+RESULTS:
-: {'Joan', 'Vincent', 'Claude', 'Pablo', 'Frida', 'Lee', 'Georgia', 'Andy'}
+: {'Pablo', 'Georgia', 'Andy', 'Claude', 'Vincent', 'Joan', 'Lee', 'Frida'}
 
 
 #+BEGIN_SRC ipython :session movie-night :results output :exports both
@@ -208,17 +209,20 @@ assert expected_edges == len(relationship_graph.edges)
 : Expected Edges: 28
 : Expected Nodes: 8
 
-Add some edge-color-data.
-
-#+BEGIN_SRC ipython :session movie-night :results none
-edge_attributes = {}
-for start, end in relationship_graph.edges(data=True):
-    
-#+END_SRC
-
 **** The Movie Graph
 #+BEGIN_SRC ipython :session movie-night :results none
 movie_graph = networkx.from_pandas_edgelist(movies_data, "employee", "movie")
+#+END_SRC
+
+#+BEGIN_SRC ipython :session movie-night :results none
+for index, row in movies_data.iterrows():
+    movie_graph[row.employee][row.movie]["employee"] = row.employee
+    movie_graph[row.employee][row.movie]["movie"] = row.movie
+    
+for employee in movies_data.employee:    
+    movie_graph.nodes[employee]["type"] = "employee"
+for movie in movies_data.movie:
+    movie_graph.nodes[movie]["type"] = "movie"
 #+END_SRC
 ** Plotting
 #+BEGIN_SRC ipython :session movie-night :results none
@@ -273,7 +277,7 @@ def graph_plot(graph: networkx.Graph,
 #+END_SRC
 
 #+BEGIN_SRC ipython :session movie-night :results none
-class GraphPlot:
+class RelationshipGraphPlot:
     """Plots a graph and keeps the parts so you can inspect them
 
     Args:
@@ -306,7 +310,7 @@ class GraphPlot:
         return
     
     @property
-    def tap_tool(self): -> TapTool:
+    def tap_tool(self) -> TapTool:
         if self._tap_tool is None:
             self._tap_tool = TapTool()
         return self._tap_tool
@@ -359,7 +363,7 @@ class GraphPlot:
     @property
     def renderer(self):
         if self._renderer is None:
-            self._renderer = from_networkx(self.graph, layout, 
+            self._renderer = from_networkx(self.graph, self.layout, 
                                           scale=1, center=(0,0))
             self._renderer.node_renderer.glyph = Circle(
                 size=Plot.node_size, 
@@ -383,11 +387,11 @@ class GraphPlot:
                 line_width=Plot.edge_width)
             self._renderer.selection_policy = NodesAndLinkedEdges()
             self._renderer.inspection_policy = EdgesAndLinkedNodes()
-        return self.renderer
+        return self._renderer
     
     def __call__(self) -> None:
         EmbedB(plot=self.plot, file_name=self.file_name)()
-    return
+        return
 #+END_SRC
 *** The Employee Relationship Plot
 **** HoloViews
@@ -411,7 +415,7 @@ EmbedB(plot=renderer, file_name="employee_relationships")()
 
 #+RESULTS:
 #+begin_export html
-<script src="employee_relationships" id="8a1cb9c3-0239-4605-8524-d9e3f9a1a727"></script>
+<script src="employee_relationships" id="620da89f-412b-4c15-b555-58f0dd1c4fd8"></script>
 #+end_export
 
 **** Bokeh
@@ -516,7 +520,7 @@ EmbedB(plot=plot, file_name="company_relationships_bokeh")()
 
 #+RESULTS:
 #+begin_export html
-<script src="company_relationships_bokeh" id="1908afa2-a453-4720-8845-2b7dbc73864d"></script>
+<script src="company_relationships_bokeh" id="b871a597-f39e-4ca0-9303-dffb029b90ec"></script>
 #+end_export
 
 It looks like Andy might have some kind of personality problem (maybe he's the boss), while Georgia and Claude are unusually close.
@@ -524,16 +528,24 @@ It looks like Andy might have some kind of personality problem (maybe he's the b
 Bokeh raises an error if you try to re-use the hover-tool for some reason so I had to make a copy.
 
 #+BEGIN_SRC ipython :session movie-night :results output raw :exports both
+hover = HoverTool(
+    tooltips=[
+        ("Employee", "@start"),
+        ("Employee", "@end"),
+        ("Relationship", "@relationship"),
+    ]
+)
+
 graph_plot(relationship_graph, 
            "Company Relationships", 
            "company_relationships_spring", 
-           copy.copy(hover),
+           hover,
            networkx.spring_layout)
 #+END_SRC
 
 #+RESULTS:
 #+begin_export html
-<script src="company_relationships_spring" id="efa44db7-f685-43f5-8abf-33499714f590"></script>
+<script src="company_relationships_spring" id="b9aee303-a400-4bef-a454-729bba29b2b5"></script>
 #+end_export
 
 *** The Movie Plot
@@ -543,14 +555,28 @@ movie_hover = HoverTool(
         ("Employee", "@employee"),
         ("Movie", "@movie"),
     ]
+
 )
-graph_plot(movie_graph, "Employee Movie Choices", "employee_movie_choices", 
-           movie_hover)
+plot = holoviews.Graph.from_networkx(movie_graph,
+                                     networkx.circular_layout).opts(
+                                         node_color=dim("type"),
+                                         cmap="Set1",
+                                         fontsize=Plot.fontsize,
+                                         width=Plot.width,
+                                         height=Plot.height,
+                                         tools=[movie_hover],
+                                         title="Company Movies Graph",
+                                         xaxis=None, yaxis=None).options(
+                                             inspection_policy="edges",
+                                             edge_cmap="Spectral").redim.range(**Plot.padding)
+Embed(plot=plot, file_name="company_movies_circle")()
 #+END_SRC
 
 #+RESULTS:
 #+begin_export html
-<script src="employee_movie_choices" id="52b980b9-82ab-41b3-8504-3bb238f4ebc8"></script>
+<object type="text/html" data="company_movies_circle.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
 #+end_export
 
 ** Question 2
