@@ -11,6 +11,7 @@
 .. updated: 
 #+END_COMMENT
 #+TOC: headlines 2
+#+OPTIONS: ^:nil
 #+OPTIONS: H:5
 * The Departure
   This is a look at working with networks using [[https://networkx.github.io][networkx]]. Our scene - eight employees are trying to choose three movies to watch for company movie nights. We have two sources of data - the /candidate movies/ and the /relationship/ between pairs of employees. The relationships are on a scale from -100 to 100, with -100 being the strongest of enemies and 100 meaning they are best of friends. Zero either means they have no relationship (don't interact) or are indifferent about the other person.
@@ -20,14 +21,30 @@
 from argparse import Namespace
 from functools import partial
 from pathlib import Path
+import copy
 import os
 #+END_SRC
 *** From PyPi
 #+BEGIN_SRC ipython :session movie-night :results none
 from dotenv import load_dotenv
-from bokeh.models import HoverTool
-from bokeh.models.graphs import EdgesAndLinkedNodes
+from bokeh.models import (
+    BoxSelectTool,
+    Circle,
+    HoverTool, 
+    MultiLine,
+    PanTool,
+    Range1d,
+    TapTool,
+    WheelZoomTool,
+)
+from bokeh.models import Plot as BokehPlot
+from bokeh.models.graphs import (from_networkx, 
+                                 EdgesAndLinkedNodes, 
+                                 NodesAndLinkedEdges)
+from bokeh.palettes import RdBu, Spectral4
+from bokeh.transform import linear_cmap
 import holoviews
+from holoviews import dim
 import hvplot.pandas
 import networkx
 import pandas
@@ -54,6 +71,10 @@ holoviews.extension("bokeh")
 
 #+BEGIN_SRC ipython :session movie-night :results none
 Plot = Namespace(
+    node_size=15,
+    edge_alpha=0.8,
+    edge_color="#CCCCCC",
+    edge_width=5,
     width=800,
     height=800,
     fontsize=18,
@@ -91,7 +112,7 @@ print(employees)
 #+END_SRC
 
 #+RESULTS:
-: {'Frida', 'Vincent', 'Georgia', 'Joan', 'Andy', 'Lee', 'Pablo', 'Claude'}
+: {'Pablo', 'Georgia', 'Andy', 'Claude', 'Vincent', 'Joan', 'Lee', 'Frida'}
 
 
 #+BEGIN_SRC ipython :session movie-night :results output :exports both
@@ -132,12 +153,12 @@ movies_data = pandas.read_csv(
     header=None,
     skiprows=1,
     names="employee movie".split())
-print(len(movies))
+print(f"Employee To Movie Edges: {len(movies_data)}")
 print(movies_data.head())
 #+END_SRC
 
 #+RESULTS:
-: 11
+: Employee To Movie Edges: 24
 :   employee                            movie
 : 0     Andy                         Anaconda
 : 1     Andy                       Mean Girls
@@ -180,50 +201,203 @@ expected_edges = len(relationships_data)
 expected_nodes = len(employees)
 print("Expected Edges: {}".format(expected_edges))
 print("Expected Nodes: {}".format(expected_nodes))
-assert expected_nodes == relationship_graph.nodes
-assert expected_edges == relationship_graph.edges
+assert expected_nodes == len(relationship_graph.nodes)
+assert expected_edges == len(relationship_graph.edges)
 #+END_SRC
 
 #+RESULTS:
 : Expected Edges: 28
 : Expected Nodes: 8
 
-** Plotting
-You can use the following function to plot graphs.
+
+**** The Movie Graph
+#+BEGIN_SRC ipython :session movie-night :results none
+movie_graph = networkx.from_pandas_edgelist(movies_data, "employee", "movie")
+#+END_SRC
 
 #+BEGIN_SRC ipython :session movie-night :results none
-def plot_graph(graph, file_name, plot_title, weight_name=None, directed=False):
-    """Plots an interactive graph using the spring-layout
+for index, row in movies_data.iterrows():
+    movie_graph[row.employee][row.movie]["employee"] = row.employee
+    movie_graph[row.employee][row.movie]["movie"] = row.movie
+    
+for employee in movies_data.employee:    
+    movie_graph.nodes[employee]["type"] = "employee"
+for movie in movies_data.movie:
+    movie_graph.nodes[movie]["type"] = "movie"
+#+END_SRC
+
+** Plotting
+#+BEGIN_SRC ipython :session movie-night :results none
+def graph_plot(graph: networkx.Graph, 
+               title:str,
+               file_name: str,
+               hover: HoverTool,
+               layout=networkx.circular_layout) -> None:
+    """Plot the graph in bokeh
 
     Args:
-     graph: a networkx graph
-     file_name: name to store the plot (without extension)
-     plot_title: name to give the plot
-     weight_name: name of the attribute for plotting edge weights (if G is weighted)
-     directed: whether it is a directed graph
+     graph: the graph to plot
+     layout: function to layout the plot
+     title: title for the plot
+     hover: defined hover tool
+     file_name: name to save the bokeh file (without extension)
     """
-    plot = holoviews.Graph.from_networkx(graph,
-                                         networkx.spring_layout).opts(
-                                             cmap="Set1",                                             
-                                             fontsize=Plot.fontsize,
-                                             width=Plot.width,
-                                             height=Plot.height,
-                                             edge_line_color=Plot.edge_color,
-                                             title=plot_title,
-                                             xaxis=None, yaxis=None, directed=directed)
-    Embed(plot=plot, file_name=file_name)()
+    plot = BokehPlot(plot_width=Plot.width,
+                     plot_height=Plot.height,
+                     x_range=Range1d(-1, 1),
+                     y_range=Range1d(-1, 1)
+    )
+
+    plot.title.text = title
+    plot.title.text_font_size = f"{Plot.fontsize}pt"
+    plot.add_tools(hover, TapTool(), BoxSelectTool(), PanTool(), WheelZoomTool())
+
+    renderer = from_networkx(relationship_graph, layout, 
+                             scale=1, center=(0,0))
+    renderer.node_renderer.glyph = Circle(size=Plot.node_size, 
+                                          fill_color=Spectral4[0])
+    renderer.node_renderer.selection_glyph = Circle(size=Plot.node_size, 
+                                                    fill_color=Spectral4[2])
+    renderer.node_renderer.hover_glyph = Circle(size=Plot.node_size, 
+                                                fill_color=Spectral4[1])
+
+    color_map = linear_cmap(field_name="relationship", 
+                            palette=RdBu[11], 
+                            low=100, high=-100)
+    renderer.edge_renderer.glyph = MultiLine(line_color=color_map, 
+                                             line_alpha=0.5,
+                                             line_width=3)
+    renderer.edge_renderer.selection_glyph = MultiLine(line_color=color_map, 
+                                                       line_width=Plot.edge_width)
+    renderer.edge_renderer.hover_glyph = MultiLine(line_color=color_map, 
+                                                   line_width=Plot.edge_width)
+    renderer.selection_policy = NodesAndLinkedEdges()
+    renderer.inspection_policy = EdgesAndLinkedNodes()
+    plot.renderers.append(renderer)
+    EmbedB(plot=plot, file_name=file_name)()
     return
 #+END_SRC
 
-*** The Employee Relationship Graph
-   The employee relationship graph consists of employees as nodes and their relationshp-level as weights on the edges.
 #+BEGIN_SRC ipython :session movie-night :results none
-storage = None
-def set_selection_policy(plot, element):
-    storage = plot.handles
-    storage["glyph_renderer"].selection_policy = EdgesAndLinkedNodes()
-    return
+class RelationshipGraphPlot:
+    """Plots a graph and keeps the parts so you can inspect them
+
+    Args:
+     graph: the graph to plot
+     layout: function to layout the plot
+     title: title for the plot
+     hover: defined hover tool
+     settings: namespace with the plot settings
+     file_name: name to save the bokeh file (without extension)
+    """
+    def __init__(self, graph: networkx.Graph, 
+                 title:str,
+                 file_name: str,
+                 hover: HoverTool,
+                 settings: Namespace=Plot,
+                 layout=networkx.circular_layout) -> None:
+        self.graph = graph
+        self.title = title
+        self.file_name = file_name
+        self.hover = hover
+        self.settings = settings
+        self.layout = layout
+        self._tap_tool = None
+        self._box_select_tool = None
+        self._pan_tool = None
+        self._wheel_zoom_tool = None
+        self._plot = None
+        self._renderer = None
+        self._color_map = None
+        return
+    
+    @property
+    def tap_tool(self) -> TapTool:
+        if self._tap_tool is None:
+            self._tap_tool = TapTool()
+        return self._tap_tool
+    
+    @property
+    def box_select_tool(self) -> BoxSelectTool:
+        if self._box_select_tool is None:
+            self._box_select_tool = BoxSelectTool()
+        return self._box_select_tool
+    
+    @property
+    def pan_tool(self) -> PanTool:
+        if self._pan_tool is None:
+            self._pan_tool = PanTool()
+        return self._pan_tool
+    
+    @property
+    def wheel_zoom_tool(self) -> WheelZoomTool:
+        if self._wheel_zoom_tool is None:
+            self._wheel_zoom_tool = WheelZoomTool()
+        return self._wheel_zoom_tool
+    
+    @property
+    def plot(self) -> BokehPlot:
+        if self._plot is None:
+            self._plot = BokehPlot(plot_width=self.settings.width,
+                                   plot_height=self.settings.height,
+                                   x_range=Range1d(-1, 1),
+                                   y_range=Range1d(-1, 1)
+            )
+
+            self._plot.title.text = self.title
+            self._plot.title.text_font_size = f"{Plot.fontsize}pt"
+            self._plot.add_tools(self.hover, 
+                                 self.tap_tool, 
+                                 self.box_select_tool, 
+                                 self.pan_tool,
+                                 self.wheel_zoom_tool)
+            self._plot.renderers.append(self.renderer)
+        return self._plot
+
+    @property
+    def color_map(self):
+        if self._color_map is None:
+            self._color_map = linear_cmap(field_name="relationship", 
+                                          palette=RdBu[11], 
+                                          low=100, high=-100)
+        return self._color_map
+
+    @property
+    def renderer(self):
+        if self._renderer is None:
+            self._renderer = from_networkx(self.graph, self.layout, 
+                                          scale=1, center=(0,0))
+            self._renderer.node_renderer.glyph = Circle(
+                size=Plot.node_size, 
+                fill_color=Spectral4[0])
+            self._renderer.node_renderer.selection_glyph = Circle(
+                size=Plot.node_size, 
+                fill_color=Spectral4[2])
+            self._renderer.node_renderer.hover_glyph = Circle(
+                size=Plot.node_size, 
+                fill_color=Spectral4[1])
+
+            self._renderer.edge_renderer.glyph = MultiLine(
+                line_color=self.color_map, 
+                line_alpha=0.5,
+                line_width=3)
+            self._renderer.edge_renderer.selection_glyph = MultiLine(
+                line_color=self.color_map, 
+                line_width=Plot.edge_width)
+            self._renderer.edge_renderer.hover_glyph = MultiLine(
+                line_color=self._color_map,
+                line_width=Plot.edge_width)
+            self._renderer.selection_policy = NodesAndLinkedEdges()
+            self._renderer.inspection_policy = EdgesAndLinkedNodes()
+        return self._renderer
+    
+    def __call__(self) -> None:
+        EmbedB(plot=self.plot, file_name=self.file_name)()
+        return
 #+END_SRC
+*** The Employee Relationship Plot
+**** HoloViews
+   The employee relationship graph consists of employees as nodes and their relationshp-level as weights on the edges.
 
 #+BEGIN_SRC ipython :session movie-night :results output raw :exports both
 plot = holoviews.Graph.from_networkx(relationship_graph,
@@ -243,34 +417,173 @@ EmbedB(plot=renderer, file_name="employee_relationships")()
 
 #+RESULTS:
 #+begin_export html
-<script src="employee_relationships" id="b59efb6f-30f2-4126-9b07-7e36c2a7effb"></script>
+<script src="employee_relationships" id="620da89f-412b-4c15-b555-58f0dd1c4fd8"></script>
 #+end_export
-** Question One
-#+BEGIN_SRC ipython :session movie-night :results none
-def answer_one():
-    """Loads the Employee Movie Choices
 
-    Returns:
-     Graph: graph with movie and employees as nodes
-    """
-    movie_choices = pandas.read_table('Employee_Movie_Choices.txt')
-    movie_choices = networkx.from_pandas_dataframe(movie_choices, "#Employee", "Movie")
-    return movie_choices
+**** Bokeh
+     This is the same plot using [[https://bokeh.pydata.org/en/latest/][bokeh]] directly instead of holoviews. I wanted both the nodes and edges to trigger the =HoverTool= but HoloViews doesn't support this. There might be a way to add it later, but their documentation is so opaque that I decided it wasn't worth it to keep trying to figure it out, since bokeh isn't that hard to use (although their documentation isn't the best either).
+
+Since bokeh is so verbose I'm going to step through this instead of putting it into one block.
+***** Hover Tool
+      When the =EdgesAndLinkedNodes= class is used only the edge data is available to the hovertool (or at least I couldn't figure out how to make the Node attributes work). So these have to be available to it. You can see what's available once you've created the graph renderer (the output of =from_networkx=) by looking at one of the data attributes 
+
+#+begin_example
+renderer.edge_renderer.data_source.data.keys()
+#+end_example
+
+Which in this case returned this.
+
+#+begin_example
+dict_keys(['relationship', 'start', 'end'])
+#+end_example
+
+=relationship= was a data-attribute I added through =networkx=, something else (presumably bokeh) created the start and end.
+
+#+BEGIN_SRC ipython :session movie-night :results none
+hover = HoverTool(
+    tooltips=[
+        ("Employee", "@start"),
+        ("Employee", "@end"),
+        ("Relationship", "@relationship"),
+    ]
+)
+#+END_SRC
+***** The Plot
+      This is the bokeh plot (I don't know how it differs from a figure). It's normally called =Plot= but I already used that name for my settings object so I called it =BokehPlot=.
+
+#+BEGIN_SRC ipython :session movie-night :results none
+plot = BokehPlot(plot_width=Plot.width,
+                 plot_height=Plot.height,
+                 x_range=Range1d(-1, 1),
+                 y_range=Range1d(-1, 1)
+)
+
+plot.title.text = "Company Relationships"
+plot.title.text_font_size = f"{Plot.fontsize}pt"
+plot.add_tools(hover, TapTool(), BoxSelectTool(), PanTool(), WheelZoomTool())
+#+END_SRC
+***** The Graph Renderer
+      This part converts the networkx Graph into a bokeh Graph. This is what I was referring to earlier when I talked about inspecting the =renderer= to look at the available edge attributes.
+
+#+BEGIN_SRC ipython :session movie-night :results none
+renderer = from_networkx(relationship_graph, networkx.circular_layout, 
+                         scale=1, center=(0,0))
 #+END_SRC
 
-#+BEGIN_SRC ipython :session movie-night :file /tmp/employee_movie_choices.png
-movie_choices = answer_one()
-edges = movie_choices.edges()
-assert len(edges) == 24
-assert len(movie_choices.nodes()) == 19
-assert networkx.is_bipartite(movie_choices)
-positions = networkx.spring_layout(movie_choices)
+***** Nodes
+      You have to set up the shapes for the nodes - I think - there might be defaults but the few examples I found set it up. It's probably not a bad idea in any case. The =Spectral4= object is a list of four hex-colors. Here's the ones I used.
 
-networkx.draw_networkx(movie_choices, positions, edges=edges)
+| Object          | Index | Color        |
+|-----------------+-------+--------------|
+| glyph           |     0 | Medium Blue  |
+| selection_glyph |     2 | Orange       |
+| hover_glyph     |     1 | Pastel Green |
+
+#+BEGIN_SRC ipython :session movie-night :results none
+renderer.node_renderer.glyph = Circle(size=Plot.node_size, fill_color=Spectral4[0])
+renderer.node_renderer.selection_glyph = Circle(size=Plot.node_size, fill_color=Spectral4[2])
+renderer.node_renderer.hover_glyph = Circle(size=Plot.node_size, fill_color=Spectral4[1])
+#+END_SRC
+***** Color Map
+      The =linear_cmap= maps a range of values to a palette of colors. In this case I'm mapping the relationship values to the red-blue palette (=RdBu=). Two things to note:
+
+ - I chose a red-blue palette with 11 values because the odd-number puts white at the center (it goes from blue to white to red)
+ - Althouh the name suggests a palette form red to blue it goes from blue to red so I had to make -100 the 'high' value so red would be a bad relationship.
+
+#+BEGIN_SRC ipython :session movie-night :results none
+color_map = linear_cmap(field_name="relationship", palette=RdBu[11], low=100, high=-100)
+#+END_SRC
+
+***** The Edges
+      Like the nodes you define the edges for the plot. This is where we get to use the color-map to make the edges match the relationship between the employees.
+#+BEGIN_SRC ipython :session movie-night :results none
+renderer.edge_renderer.glyph = MultiLine(line_color=color_map, 
+                                         line_alpha=0.5,
+                                         line_width=3)
+renderer.edge_renderer.selection_glyph = MultiLine(line_color=color_map, 
+                                                   line_width=Plot.edge_width)
+renderer.edge_renderer.hover_glyph = MultiLine(line_color=color_map, 
+                                               line_width=Plot.edge_width)
+#+END_SRC
+***** The Selection and Inspection Policies
+      This was the reason for doing it in bokeh in the first place. Adding these two lines makes both the edge and attached notes highlight when selected or hovered over.
+
+#+BEGIN_SRC ipython :session movie-night :results none
+renderer.selection_policy = NodesAndLinkedEdges()
+renderer.inspection_policy = EdgesAndLinkedNodes()
+#+END_SRC
+
+***** Put It All Together
+      Now we just add the graph-renderer to the plot and have bokeh convert it to JavaScript and HTML.
+#+BEGIN_SRC ipython :session movie-night :results output raw :exports both
+plot.renderers.append(renderer)
+EmbedB(plot=plot, file_name="company_relationships_bokeh")()
 #+END_SRC
 
 #+RESULTS:
-[[file:/tmp/employee_movie_choices.png]]
+#+begin_export html
+<script src="company_relationships_bokeh" id="b871a597-f39e-4ca0-9303-dffb029b90ec"></script>
+#+end_export
+
+It looks like Andy might have some kind of personality problem (maybe he's the boss), while Georgia and Claude are unusually close.
+**** Spring loaded
+Bokeh raises an error if you try to re-use the hover-tool for some reason so I had to make a copy.
+
+#+BEGIN_SRC ipython :session movie-night :results output raw :exports both
+hover = HoverTool(
+    tooltips=[
+        ("Employee", "@start"),
+        ("Employee", "@end"),
+        ("Relationship", "@relationship"),
+    ]
+)
+
+graph_plot(relationship_graph, 
+           "Company Relationships", 
+           "company_relationships_spring", 
+           hover,
+           networkx.spring_layout)
+#+END_SRC
+
+#+RESULTS:
+#+begin_export html
+<script src="company_relationships_spring" id="b9aee303-a400-4bef-a454-729bba29b2b5"></script>
+#+end_export
+
+This didn't produce as interesting a result as I thought.
+
+*** The Movie Plot
+#+BEGIN_SRC ipython :session movie-night :results output raw :exports both
+movie_hover = HoverTool(
+    tooltips = [
+        ("Employee", "@employee"),
+        ("Movie", "@movie"),
+    ]
+
+)
+plot = holoviews.Graph.from_networkx(movie_graph,
+                                     networkx.circular_layout).opts(
+                                         node_color=dim("type"),
+                                         cmap="Set1",
+                                         fontsize=Plot.fontsize,
+                                         width=Plot.width,
+                                         height=Plot.height,
+                                         tools=[movie_hover, TapTool()],
+                                         title="Company Movies Graph",
+                                         xaxis=None, yaxis=None).options(
+                                             inspection_policy="edges",
+                                             edge_cmap="Spectral").redim.range(**Plot.padding)
+Embed(plot=plot, file_name="company_movies_circle")()
+#+END_SRC
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="company_movies_circle.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+The Blue nodes are employees and the red nodes are movies.
 
 ** Question 2
 
