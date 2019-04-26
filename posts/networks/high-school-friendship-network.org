@@ -22,6 +22,7 @@
 *** Imports
 **** From Python
 #+begin_src ipython :session highschool :results none
+from argparse import Namespace
 from collections import Counter
 from functools import partial
 from pathlib import Path
@@ -29,7 +30,7 @@ import os
 #+end_src
 **** From PyPi
 #+begin_src ipython :session highschool :results none
-from bokeh.models import HoverTool
+from bokeh.models import HoverTool, TapTool
 from dotenv import load_dotenv
 from holoviews import dim, opts
 import holoviews
@@ -60,12 +61,16 @@ Embed = partial(EmbedHoloview, folder_path=output)
 #+end_src
 
 #+begin_src ipython :session highschool :results none
-class Plot:
-    """Constants for plotting"""
-    width = 1000
-    height = 800
-    fontsize = 18
-    edge_color = "LightSteelBlue"
+Plot = Namespace(
+    width = 1000,
+    height = 800,
+    graph_width = 800,
+    graph_height = 800,
+    fontsize = 18,
+    edge_color = "LightSteelBlue",
+    padding = dict(x=(-1.1, 1.1),
+                   y=(-1.1, 1.1)),
+)
 #+end_src
 * The Initiation
 ** Meta-Data
@@ -307,15 +312,17 @@ hover = HoverTool(
 )
 
 plot = holoviews.Graph.from_networkx(friendship_graph,
-                                     networkx.circular_layout).opts(
+                                     networkx.circular_layout).redim.range(**Plot.padding).opts(
                                          node_color=dim("gender"), cmap="Set1",
-                                         tools=[hover],
+                                         tools=[hover, TapTool()],
                                          fontsize=Plot.fontsize,
-                                         width=800,
-                                         height=800,
+                                         width=Plot.graph_width,
+                                         height=Plot.graph_height,
                                          edge_line_color=Plot.edge_color,
                                          title="Friendship Network by Gender",
-                                         xaxis=None, yaxis=None, directed=True)
+                                         xaxis=None,
+                                         yaxis=None,
+                                         directed=True)
 Embed(plot=plot, file_name="friendship_network_circular")()
 #+end_src
 
@@ -326,7 +333,7 @@ Embed(plot=plot, file_name="friendship_network_circular")()
 </object>
 #+end_export
 
-It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others.
+It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others. The red nodes are male, the green nodes are female, and the blue is "unknown".
 **** By Class
 #+begin_src ipython :session highschool :results output raw :exports both
 hover = HoverTool(
@@ -345,7 +352,7 @@ plot = holoviews.Graph.from_networkx(friendship_graph,
                                          height=800,
                                          edge_line_color=Plot.edge_color,
                                          title="Friendship Network by Class",
-                                         xaxis=None, yaxis=None, directed=True)
+                                         xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_circular_class")()
 #+end_src
 
@@ -369,7 +376,7 @@ plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, )
     title="Friendship Network By Class",
     xaxis=None, yaxis=None, directed=True,
     legend_position="right"
-)
+).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=810)()
 #+end_src
 
@@ -393,7 +400,7 @@ plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, )
                                          height=800,
                                          edge_line_color=Plot.edge_color,
                                          title="Friendship Network By Gender",
-                                         xaxis=None, yaxis=None, directed=True)
+                                         xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=810)()
 #+end_src
 
@@ -406,7 +413,60 @@ Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=
 
 [[file:friendship_network_gender_spring.html][Link to Plot]]
 
+
 Interestingly, this view seems to show that there is also some segregation by gender.
+*** Kawada Kawai Layout
+**** Class
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
+    node_color=dim("class"), cmap="Set1",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_line_color=Plot.edge_color,
+    title="Friendship Network By Class",
+    xaxis=None, yaxis=None, directed=True,
+    legend_position="right"
+).redim.range(**Plot.padding)
+Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_class_spring.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+[[file:friendship_network_class_spring.html][Link to Plot]]
+
+Unlike the circular plot, this plot shows that there are disconnected neighborhoods within the network and there seems to be a clustering by class.
+
+**** Gender
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
+                                         node_color=dim("gender"), cmap="Set1",
+                                         tools=["hover"],
+                                         width=800,
+                                         height=800,
+                                         edge_line_color=Plot.edge_color,
+                                         title="Friendship Network By Gender",
+                                         xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
+Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_gender_spring.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+[[file:friendship_network_gender_spring.html][Link to Plot]]
+
+
+Interestingly, this view seems to show that there is also some segregation by gender.
+
 ** Degree Distribution
 *** Total Degrees
 #+begin_src ipython :session highschool :results none
