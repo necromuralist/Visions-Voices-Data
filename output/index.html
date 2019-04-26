@@ -2673,54 +2673,69 @@ print(win_count.head())
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/networks/company-movie-night/#org55426a5">The Departure</a>
+<li><a href="posts/networks/company-movie-night/#org7a2ee65">The Departure</a>
 <ul>
-<li><a href="posts/networks/company-movie-night/#org1b34045">Imports</a></li>
-<li><a href="posts/networks/company-movie-night/#org15205ed">Set Up</a></li>
-<li><a href="posts/networks/company-movie-night/#org01555e7">The Plotting</a></li>
+<li><a href="posts/networks/company-movie-night/#org4a2dc7b">Imports</a></li>
+<li><a href="posts/networks/company-movie-night/#org40a59f9">Set Up</a></li>
+<li><a href="posts/networks/company-movie-night/#org417b0b6">The Plotting</a></li>
 </ul>
 </li>
-<li><a href="posts/networks/company-movie-night/#org626600f">The Initiation</a>
+<li><a href="posts/networks/company-movie-night/#orgd1f0c41">The Initiation</a>
 <ul>
-<li><a href="posts/networks/company-movie-night/#orgffb2850">The Data</a></li>
-<li><a href="posts/networks/company-movie-night/#org8a9d403">Plotting</a></li>
-<li><a href="posts/networks/company-movie-night/#org36edf94">Question One</a></li>
-<li><a href="posts/networks/company-movie-night/#org208ce34">Question 2</a></li>
-<li><a href="posts/networks/company-movie-night/#org343d401">Question 3</a></li>
-<li><a href="posts/networks/company-movie-night/#orge77f0a7">Question 4</a></li>
+<li><a href="posts/networks/company-movie-night/#org2146ef1">The Data</a></li>
+<li><a href="posts/networks/company-movie-night/#org7d75fec">Plotting</a></li>
+<li><a href="posts/networks/company-movie-night/#org99c6a5d">Question 2</a></li>
+<li><a href="posts/networks/company-movie-night/#orgfb6444d">Question 3</a></li>
+<li><a href="posts/networks/company-movie-night/#orgfb5a9c0">Question 4</a></li>
 </ul>
 </li>
-<li><a href="posts/networks/company-movie-night/#org652956a">The Return</a></li>
+<li><a href="posts/networks/company-movie-night/#org89551da">The Return</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org55426a5">
-<h2 id="org55426a5">The Departure</h2>
-<div class="outline-text-2" id="text-org55426a5">
+<div class="outline-2" id="outline-container-org7a2ee65">
+<h2 id="org7a2ee65">The Departure</h2>
+<div class="outline-text-2" id="text-org7a2ee65">
 <p>This is a look at working with networks using <a href="https://networkx.github.io">networkx</a>. Our scene - eight employees are trying to choose three movies to watch for company movie nights. We have two sources of data - the <i>candidate movies</i> and the <i>relationship</i> between pairs of employees. The relationships are on a scale from -100 to 100, with -100 being the strongest of enemies and 100 meaning they are best of friends. Zero either means they have no relationship (don't interact) or are indifferent about the other person.</p>
 </div>
-<div class="outline-3" id="outline-container-org1b34045">
-<h3 id="org1b34045">Imports</h3>
-<div class="outline-text-3" id="text-org1b34045"></div>
-<div class="outline-4" id="outline-container-org1adbc79">
-<h4 id="org1adbc79">From Python</h4>
-<div class="outline-text-4" id="text-org1adbc79">
+<div class="outline-3" id="outline-container-org4a2dc7b">
+<h3 id="org4a2dc7b">Imports</h3>
+<div class="outline-text-3" id="text-org4a2dc7b"></div>
+<div class="outline-4" id="outline-container-org04c33ca">
+<h4 id="org04c33ca">From Python</h4>
+<div class="outline-text-4" id="text-org04c33ca">
 <div class="highlight">
 <pre><span></span>from argparse import Namespace
 from functools import partial
 from pathlib import Path
+import copy
 import os
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org2a514e1">
-<h4 id="org2a514e1">From PyPi</h4>
-<div class="outline-text-4" id="text-org2a514e1">
+<div class="outline-4" id="outline-container-orgb462b4c">
+<h4 id="orgb462b4c">From PyPi</h4>
+<div class="outline-text-4" id="text-orgb462b4c">
 <div class="highlight">
 <pre><span></span>from dotenv import load_dotenv
-from bokeh.models import HoverTool
-from bokeh.models.graphs import EdgesAndLinkedNodes
+from bokeh.models import (
+    BoxSelectTool,
+    Circle,
+    HoverTool, 
+    MultiLine,
+    PanTool,
+    Range1d,
+    TapTool,
+    WheelZoomTool,
+)
+from bokeh.models import Plot as BokehPlot
+from bokeh.models.graphs import (from_networkx, 
+                                 EdgesAndLinkedNodes, 
+                                 NodesAndLinkedEdges)
+from bokeh.palettes import RdBu, Spectral4
+from bokeh.transform import linear_cmap
 import holoviews
+from holoviews import dim
 import hvplot.pandas
 import networkx
 import pandas
@@ -2729,30 +2744,30 @@ from networkx.algorithms import bipartite
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org89ecce5">
-<h4 id="org89ecce5">My Stuff</h4>
-<div class="outline-text-4" id="text-org89ecce5">
+<div class="outline-4" id="outline-container-org81d5064">
+<h4 id="org81d5064">My Stuff</h4>
+<div class="outline-text-4" id="text-org81d5064">
 <div class="highlight">
 <pre><span></span>from graeae.visualization import EmbedBokeh, EmbedHoloview
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org15205ed">
-<h3 id="org15205ed">Set Up</h3>
-<div class="outline-text-3" id="text-org15205ed"></div>
-<div class="outline-4" id="outline-container-orga4b5c5a">
-<h4 id="orga4b5c5a">Load Dotenv</h4>
-<div class="outline-text-4" id="text-orga4b5c5a">
+<div class="outline-3" id="outline-container-org40a59f9">
+<h3 id="org40a59f9">Set Up</h3>
+<div class="outline-text-3" id="text-org40a59f9"></div>
+<div class="outline-4" id="outline-container-org5717df7">
+<h4 id="org5717df7">Load Dotenv</h4>
+<div class="outline-text-4" id="text-org5717df7">
 <div class="highlight">
 <pre><span></span>load_dotenv(".env", override=True)
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org01555e7">
-<h3 id="org01555e7">The Plotting</h3>
-<div class="outline-text-3" id="text-org01555e7">
+<div class="outline-3" id="outline-container-org417b0b6">
+<h3 id="org417b0b6">The Plotting</h3>
+<div class="outline-text-3" id="text-org417b0b6">
 <div class="highlight">
 <pre><span></span>SLUG = 'company-movie-night/'
 OUTPUT = Path("../../files/posts/networks/" + SLUG)
@@ -2762,6 +2777,10 @@ holoviews.extension("bokeh")
 </pre></div>
 <div class="highlight">
 <pre><span></span>Plot = Namespace(
+    node_size=15,
+    edge_alpha=0.8,
+    edge_color="#CCCCCC",
+    edge_width=5,
     width=800,
     height=800,
     fontsize=18,
@@ -2771,15 +2790,15 @@ holoviews.extension("bokeh")
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org626600f">
-<h2 id="org626600f">The Initiation</h2>
-<div class="outline-text-2" id="text-org626600f"></div>
-<div class="outline-3" id="outline-container-orgffb2850">
-<h3 id="orgffb2850">The Data</h3>
-<div class="outline-text-3" id="text-orgffb2850"></div>
-<div class="outline-4" id="outline-container-orgf138136">
-<h4 id="orgf138136">This Is the Set Of Employee-Relationships</h4>
-<div class="outline-text-4" id="text-orgf138136">
+<div class="outline-2" id="outline-container-orgd1f0c41">
+<h2 id="orgd1f0c41">The Initiation</h2>
+<div class="outline-text-2" id="text-orgd1f0c41"></div>
+<div class="outline-3" id="outline-container-org2146ef1">
+<h3 id="org2146ef1">The Data</h3>
+<div class="outline-text-3" id="text-org2146ef1"></div>
+<div class="outline-4" id="outline-container-orgfb6331c">
+<h4 id="orgfb6331c">This Is the Set Of Employee-Relationships</h4>
+<div class="outline-text-4" id="text-orgfb6331c">
 <div class="highlight">
 <pre><span></span>employee_relationships_path = Path(os.environ.get("EMPLOYEE_RELATIONSHIPS"))
 relationships_data = pandas.read_csv(
@@ -2800,7 +2819,7 @@ Embed(plot=table, file_name="relationships_data")()
 print(employees)
 </pre></div>
 <pre class="example">
-{'Frida', 'Vincent', 'Georgia', 'Joan', 'Andy', 'Lee', 'Pablo', 'Claude'}
+{'Pablo', 'Georgia', 'Andy', 'Claude', 'Vincent', 'Joan', 'Lee', 'Frida'}
 
 </pre>
 <div class="highlight">
@@ -2829,9 +2848,9 @@ print(employees)
 <p>It looks like our relationships data creates a fully-connected network (unless there is a duplicate which would be an error).</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org5541fcd">
-<h4 id="org5541fcd">These Are the Movie Choices</h4>
-<div class="outline-text-4" id="text-org5541fcd">
+<div class="outline-4" id="outline-container-org497717f">
+<h4 id="org497717f">These Are the Movie Choices</h4>
+<div class="outline-text-4" id="text-org497717f">
 <div class="highlight">
 <pre><span></span>employee_movies_path = Path(os.environ.get("EMPLOYEE_MOVIE_CHOICES"))
 movies_data = pandas.read_csv(
@@ -2840,11 +2859,11 @@ movies_data = pandas.read_csv(
     header=None,
     skiprows=1,
     names="employee movie".split())
-print(len(movies))
+print(f"Employee To Movie Edges: {len(movies_data)}")
 print(movies_data.head())
 </pre></div>
 <pre class="example">
-11
+Employee To Movie Edges: 24
   employee                            movie
 0     Andy                         Anaconda
 1     Andy                       Mean Girls
@@ -2874,12 +2893,12 @@ for movie in sorted(movies):
 <p>The eight employees chose 11 movies between them.</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org84084e2">
-<h4 id="org84084e2">Converting the DataFrames to Graphs</h4>
-<div class="outline-text-4" id="text-org84084e2"></div>
-<div class="outline-5" id="outline-container-orgb7b09ce">
-<h5 id="orgb7b09ce">The Relationship Graph</h5>
-<div class="outline-text-5" id="text-orgb7b09ce">
+<div class="outline-4" id="outline-container-org37e00b3">
+<h4 id="org37e00b3">Converting the DataFrames to Graphs</h4>
+<div class="outline-text-4" id="text-org37e00b3"></div>
+<div class="outline-5" id="outline-container-orgbacc1e8">
+<h5 id="orgbacc1e8">The Relationship Graph</h5>
+<div class="outline-text-5" id="text-orgbacc1e8">
 <div class="highlight">
 <pre><span></span>relationship_graph = networkx.from_pandas_edgelist(relationships_data, 
                                                    "employee_1", "employee_2", 
@@ -2892,8 +2911,8 @@ for index, row in relationships_data.sample(5).iterrows():
 expected_nodes = len(employees)
 print("Expected Edges: {}".format(expected_edges))
 print("Expected Nodes: {}".format(expected_nodes))
-assert expected_nodes == relationship_graph.nodes
-assert expected_edges == relationship_graph.edges
+assert expected_nodes == len(relationship_graph.nodes)
+assert expected_edges == len(relationship_graph.edges)
 </pre></div>
 <pre class="example">
 Expected Edges: 28
@@ -2901,47 +2920,204 @@ Expected Nodes: 8
 
 </pre></div>
 </div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org8a9d403">
-<h3 id="org8a9d403">Plotting</h3>
-<div class="outline-text-3" id="text-org8a9d403">
-<p>You can use the following function to plot graphs.</p>
+<div class="outline-5" id="outline-container-org19bbcc6">
+<h5 id="org19bbcc6">The Movie Graph</h5>
+<div class="outline-text-5" id="text-org19bbcc6">
 <div class="highlight">
-<pre><span></span>def plot_graph(graph, file_name, plot_title, weight_name=None, directed=False):
-    """Plots an interactive graph using the spring-layout
+<pre><span></span>movie_graph = networkx.from_pandas_edgelist(movies_data, "employee", "movie")
+</pre></div>
+<div class="highlight">
+<pre><span></span>for index, row in movies_data.iterrows():
+    movie_graph[row.employee][row.movie]["employee"] = row.employee
+    movie_graph[row.employee][row.movie]["movie"] = row.movie
+
+for employee in movies_data.employee:    
+    movie_graph.nodes[employee]["type"] = "employee"
+for movie in movies_data.movie:
+    movie_graph.nodes[movie]["type"] = "movie"
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org7d75fec">
+<h3 id="org7d75fec">Plotting</h3>
+<div class="outline-text-3" id="text-org7d75fec">
+<div class="highlight">
+<pre><span></span>def graph_plot(graph: networkx.Graph, 
+               title:str,
+               file_name: str,
+               hover: HoverTool,
+               layout=networkx.circular_layout) -&gt; None:
+    """Plot the graph in bokeh
 
     Args:
-     graph: a networkx graph
-     file_name: name to store the plot (without extension)
-     plot_title: name to give the plot
-     weight_name: name of the attribute for plotting edge weights (if G is weighted)
-     directed: whether it is a directed graph
+     graph: the graph to plot
+     layout: function to layout the plot
+     title: title for the plot
+     hover: defined hover tool
+     file_name: name to save the bokeh file (without extension)
     """
-    plot = holoviews.Graph.from_networkx(graph,
-                                         networkx.spring_layout).opts(
-                                             cmap="Set1",                                             
-                                             fontsize=Plot.fontsize,
-                                             width=Plot.width,
-                                             height=Plot.height,
-                                             edge_line_color=Plot.edge_color,
-                                             title=plot_title,
-                                             xaxis=None, yaxis=None, directed=directed)
-    Embed(plot=plot, file_name=file_name)()
+    plot = BokehPlot(plot_width=Plot.width,
+                     plot_height=Plot.height,
+                     x_range=Range1d(-1, 1),
+                     y_range=Range1d(-1, 1)
+    )
+
+    plot.title.text = title
+    plot.title.text_font_size = f"{Plot.fontsize}pt"
+    plot.add_tools(hover, TapTool(), BoxSelectTool(), PanTool(), WheelZoomTool())
+
+    renderer = from_networkx(relationship_graph, layout, 
+                             scale=1, center=(0,0))
+    renderer.node_renderer.glyph = Circle(size=Plot.node_size, 
+                                          fill_color=Spectral4[0])
+    renderer.node_renderer.selection_glyph = Circle(size=Plot.node_size, 
+                                                    fill_color=Spectral4[2])
+    renderer.node_renderer.hover_glyph = Circle(size=Plot.node_size, 
+                                                fill_color=Spectral4[1])
+
+    color_map = linear_cmap(field_name="relationship", 
+                            palette=RdBu[11], 
+                            low=100, high=-100)
+    renderer.edge_renderer.glyph = MultiLine(line_color=color_map, 
+                                             line_alpha=0.5,
+                                             line_width=3)
+    renderer.edge_renderer.selection_glyph = MultiLine(line_color=color_map, 
+                                                       line_width=Plot.edge_width)
+    renderer.edge_renderer.hover_glyph = MultiLine(line_color=color_map, 
+                                                   line_width=Plot.edge_width)
+    renderer.selection_policy = NodesAndLinkedEdges()
+    renderer.inspection_policy = EdgesAndLinkedNodes()
+    plot.renderers.append(renderer)
+    EmbedB(plot=plot, file_name=file_name)()
     return
+</pre></div>
+<div class="highlight">
+<pre><span></span>class RelationshipGraphPlot:
+    """Plots a graph and keeps the parts so you can inspect them
+
+    Args:
+     graph: the graph to plot
+     layout: function to layout the plot
+     title: title for the plot
+     hover: defined hover tool
+     settings: namespace with the plot settings
+     file_name: name to save the bokeh file (without extension)
+    """
+    def __init__(self, graph: networkx.Graph, 
+                 title:str,
+                 file_name: str,
+                 hover: HoverTool,
+                 settings: Namespace=Plot,
+                 layout=networkx.circular_layout) -&gt; None:
+        self.graph = graph
+        self.title = title
+        self.file_name = file_name
+        self.hover = hover
+        self.settings = settings
+        self.layout = layout
+        self._tap_tool = None
+        self._box_select_tool = None
+        self._pan_tool = None
+        self._wheel_zoom_tool = None
+        self._plot = None
+        self._renderer = None
+        self._color_map = None
+        return
+
+    @property
+    def tap_tool(self) -&gt; TapTool:
+        if self._tap_tool is None:
+            self._tap_tool = TapTool()
+        return self._tap_tool
+
+    @property
+    def box_select_tool(self) -&gt; BoxSelectTool:
+        if self._box_select_tool is None:
+            self._box_select_tool = BoxSelectTool()
+        return self._box_select_tool
+
+    @property
+    def pan_tool(self) -&gt; PanTool:
+        if self._pan_tool is None:
+            self._pan_tool = PanTool()
+        return self._pan_tool
+
+    @property
+    def wheel_zoom_tool(self) -&gt; WheelZoomTool:
+        if self._wheel_zoom_tool is None:
+            self._wheel_zoom_tool = WheelZoomTool()
+        return self._wheel_zoom_tool
+
+    @property
+    def plot(self) -&gt; BokehPlot:
+        if self._plot is None:
+            self._plot = BokehPlot(plot_width=self.settings.width,
+                                   plot_height=self.settings.height,
+                                   x_range=Range1d(-1, 1),
+                                   y_range=Range1d(-1, 1)
+            )
+
+            self._plot.title.text = self.title
+            self._plot.title.text_font_size = f"{Plot.fontsize}pt"
+            self._plot.add_tools(self.hover, 
+                                 self.tap_tool, 
+                                 self.box_select_tool, 
+                                 self.pan_tool,
+                                 self.wheel_zoom_tool)
+            self._plot.renderers.append(self.renderer)
+        return self._plot
+
+    @property
+    def color_map(self):
+        if self._color_map is None:
+            self._color_map = linear_cmap(field_name="relationship", 
+                                          palette=RdBu[11], 
+                                          low=100, high=-100)
+        return self._color_map
+
+    @property
+    def renderer(self):
+        if self._renderer is None:
+            self._renderer = from_networkx(self.graph, self.layout, 
+                                          scale=1, center=(0,0))
+            self._renderer.node_renderer.glyph = Circle(
+                size=Plot.node_size, 
+                fill_color=Spectral4[0])
+            self._renderer.node_renderer.selection_glyph = Circle(
+                size=Plot.node_size, 
+                fill_color=Spectral4[2])
+            self._renderer.node_renderer.hover_glyph = Circle(
+                size=Plot.node_size, 
+                fill_color=Spectral4[1])
+
+            self._renderer.edge_renderer.glyph = MultiLine(
+                line_color=self.color_map, 
+                line_alpha=0.5,
+                line_width=3)
+            self._renderer.edge_renderer.selection_glyph = MultiLine(
+                line_color=self.color_map, 
+                line_width=Plot.edge_width)
+            self._renderer.edge_renderer.hover_glyph = MultiLine(
+                line_color=self._color_map,
+                line_width=Plot.edge_width)
+            self._renderer.selection_policy = NodesAndLinkedEdges()
+            self._renderer.inspection_policy = EdgesAndLinkedNodes()
+        return self._renderer
+
+    def __call__(self) -&gt; None:
+        EmbedB(plot=self.plot, file_name=self.file_name)()
+        return
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-orgadf5025">
-<h4 id="orgadf5025">The Employee Relationship Graph</h4>
-<div class="outline-text-4" id="text-orgadf5025">
+<div class="outline-4" id="outline-container-orgf8f1ad6">
+<h4 id="orgf8f1ad6">The Employee Relationship Plot</h4>
+<div class="outline-text-4" id="text-orgf8f1ad6"></div>
+<div class="outline-5" id="outline-container-orga444fca">
+<h5 id="orga444fca">HoloViews</h5>
+<div class="outline-text-5" id="text-orga444fca">
 <p>The employee relationship graph consists of employees as nodes and their relationshp-level as weights on the edges.</p>
-<div class="highlight">
-<pre><span></span>storage = None
-def set_selection_policy(plot, element):
-    storage = plot.handles
-    storage["glyph_renderer"].selection_policy = EdgesAndLinkedNodes()
-    return
-</pre></div>
 <div class="highlight">
 <pre><span></span>plot = holoviews.Graph.from_networkx(relationship_graph,
                                      networkx.circular_layout).opts(
@@ -2957,38 +3133,215 @@ renderer = holoviews.render(plot)
 renderer.renderers[-1].selection_policy = EdgesAndLinkedNodes()
 EmbedB(plot=renderer, file_name="employee_relationships")()
 </pre></div>
-<script id="b59efb6f-30f2-4126-9b07-7e36c2a7effb" src="posts/networks/company-movie-night/employee_relationships"></script></div>
+<script id="620da89f-412b-4c15-b555-58f0dd1c4fd8" src="posts/networks/company-movie-night/employee_relationships"></script></div>
 </div>
+<div class="outline-5" id="outline-container-orga813678">
+<h5 id="orga813678">Bokeh</h5>
+<div class="outline-text-5" id="text-orga813678">
+<p>This is the same plot using <a href="https://bokeh.pydata.org/en/latest/">bokeh</a> directly instead of holoviews. I wanted both the nodes and edges to trigger the <code>HoverTool</code> but HoloViews doesn't support this. There might be a way to add it later, but their documentation is so opaque that I decided it wasn't worth it to keep trying to figure it out, since bokeh isn't that hard to use (although their documentation isn't the best either).</p>
+<p>Since bokeh is so verbose I'm going to step through this instead of putting it into one block.</p>
 </div>
-<div class="outline-3" id="outline-container-org36edf94">
-<h3 id="org36edf94">Question One</h3>
-<div class="outline-text-3" id="text-org36edf94">
+<div class="outline-6" id="outline-container-org95bf9b7">
+<h6 id="org95bf9b7">Hover Tool</h6>
+<div class="outline-text-6" id="text-org95bf9b7">
+<p>When the <code>EdgesAndLinkedNodes</code> class is used only the edge data is available to the hovertool (or at least I couldn't figure out how to make the Node attributes work). So these have to be available to it. You can see what's available once you've created the graph renderer (the output of <code>from_networkx</code>) by looking at one of the data attributes</p>
+<pre class="example">
+renderer.edge_renderer.data_source.data.keys()
+</pre>
+<p>Which in this case returned this.</p>
+<pre class="example">
+dict_keys(['relationship', 'start', 'end'])
+</pre>
+<p><code>relationship</code> was a data-attribute I added through <code>networkx</code>, something else (presumably bokeh) created the start and end.</p>
 <div class="highlight">
-<pre><span></span>def answer_one():
-    """Loads the Employee Movie Choices
-
-    Returns:
-     Graph: graph with movie and employees as nodes
-    """
-    movie_choices = pandas.read_table('Employee_Movie_Choices.txt')
-    movie_choices = networkx.from_pandas_dataframe(movie_choices, "#Employee", "Movie")
-    return movie_choices
+<pre><span></span>hover = HoverTool(
+    tooltips=[
+        ("Employee", "@start"),
+        ("Employee", "@end"),
+        ("Relationship", "@relationship"),
+    ]
+)
 </pre></div>
+</div>
+</div>
+<div class="outline-6" id="outline-container-org5349ee4">
+<h6 id="org5349ee4">The Plot</h6>
+<div class="outline-text-6" id="text-org5349ee4">
+<p>This is the bokeh plot (I don't know how it differs from a figure). It's normally called <code>Plot</code> but I already used that name for my settings object so I called it <code>BokehPlot</code>.</p>
 <div class="highlight">
-<pre><span></span>movie_choices = answer_one()
-edges = movie_choices.edges()
-assert len(edges) == 24
-assert len(movie_choices.nodes()) == 19
-assert networkx.is_bipartite(movie_choices)
-positions = networkx.spring_layout(movie_choices)
+<pre><span></span>plot = BokehPlot(plot_width=Plot.width,
+                 plot_height=Plot.height,
+                 x_range=Range1d(-1, 1),
+                 y_range=Range1d(-1, 1)
+)
 
-networkx.draw_networkx(movie_choices, positions, edges=edges)
+plot.title.text = "Company Relationships"
+plot.title.text_font_size = f"{Plot.fontsize}pt"
+plot.add_tools(hover, TapTool(), BoxSelectTool(), PanTool(), WheelZoomTool())
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org208ce34">
-<h3 id="org208ce34">Question 2</h3>
-<div class="outline-text-3" id="text-org208ce34">
+<div class="outline-6" id="outline-container-org8030358">
+<h6 id="org8030358">The Graph Renderer</h6>
+<div class="outline-text-6" id="text-org8030358">
+<p>This part converts the networkx Graph into a bokeh Graph. This is what I was referring to earlier when I talked about inspecting the <code>renderer</code> to look at the available edge attributes.</p>
+<div class="highlight">
+<pre><span></span>renderer = from_networkx(relationship_graph, networkx.circular_layout, 
+                         scale=1, center=(0,0))
+</pre></div>
+</div>
+</div>
+<div class="outline-6" id="outline-container-orgb54bfe1">
+<h6 id="orgb54bfe1">Nodes</h6>
+<div class="outline-text-6" id="text-orgb54bfe1">
+<p>You have to set up the shapes for the nodes - I think - there might be defaults but the few examples I found set it up. It's probably not a bad idea in any case. The <code>Spectral4</code> object is a list of four hex-colors. Here's the ones I used.</p>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Object</th>
+<th class="org-right" scope="col">Index</th>
+<th class="org-left" scope="col">Color</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">glyph</td>
+<td class="org-right">0</td>
+<td class="org-left">Medium Blue</td>
+</tr>
+<tr>
+<td class="org-left">selection_glyph</td>
+<td class="org-right">2</td>
+<td class="org-left">Orange</td>
+</tr>
+<tr>
+<td class="org-left">hover_glyph</td>
+<td class="org-right">1</td>
+<td class="org-left">Pastel Green</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span>renderer.node_renderer.glyph = Circle(size=Plot.node_size, fill_color=Spectral4[0])
+renderer.node_renderer.selection_glyph = Circle(size=Plot.node_size, fill_color=Spectral4[2])
+renderer.node_renderer.hover_glyph = Circle(size=Plot.node_size, fill_color=Spectral4[1])
+</pre></div>
+</div>
+</div>
+<div class="outline-6" id="outline-container-org0d8693a">
+<h6 id="org0d8693a">Color Map</h6>
+<div class="outline-text-6" id="text-org0d8693a">
+<p>The <code>linear_cmap</code> maps a range of values to a palette of colors. In this case I'm mapping the relationship values to the red-blue palette (<code>RdBu</code>). Two things to note:</p>
+<ul class="org-ul">
+<li>I chose a red-blue palette with 11 values because the odd-number puts white at the center (it goes from blue to white to red)</li>
+<li>Althouh the name suggests a palette form red to blue it goes from blue to red so I had to make -100 the 'high' value so red would be a bad relationship.</li>
+</ul>
+<div class="highlight">
+<pre><span></span>color_map = linear_cmap(field_name="relationship", palette=RdBu[11], low=100, high=-100)
+</pre></div>
+</div>
+</div>
+<div class="outline-6" id="outline-container-orgef7d5cf">
+<h6 id="orgef7d5cf">The Edges</h6>
+<div class="outline-text-6" id="text-orgef7d5cf">
+<p>Like the nodes you define the edges for the plot. This is where we get to use the color-map to make the edges match the relationship between the employees.</p>
+<div class="highlight">
+<pre><span></span>renderer.edge_renderer.glyph = MultiLine(line_color=color_map, 
+                                         line_alpha=0.5,
+                                         line_width=3)
+renderer.edge_renderer.selection_glyph = MultiLine(line_color=color_map, 
+                                                   line_width=Plot.edge_width)
+renderer.edge_renderer.hover_glyph = MultiLine(line_color=color_map, 
+                                               line_width=Plot.edge_width)
+</pre></div>
+</div>
+</div>
+<div class="outline-6" id="outline-container-org2c5a41f">
+<h6 id="org2c5a41f">The Selection and Inspection Policies</h6>
+<div class="outline-text-6" id="text-org2c5a41f">
+<p>This was the reason for doing it in bokeh in the first place. Adding these two lines makes both the edge and attached notes highlight when selected or hovered over.</p>
+<div class="highlight">
+<pre><span></span>renderer.selection_policy = NodesAndLinkedEdges()
+renderer.inspection_policy = EdgesAndLinkedNodes()
+</pre></div>
+</div>
+</div>
+<div class="outline-6" id="outline-container-org90e3641">
+<h6 id="org90e3641">Put It All Together</h6>
+<div class="outline-text-6" id="text-org90e3641">
+<p>Now we just add the graph-renderer to the plot and have bokeh convert it to JavaScript and HTML.</p>
+<div class="highlight">
+<pre><span></span>plot.renderers.append(renderer)
+EmbedB(plot=plot, file_name="company_relationships_bokeh")()
+</pre></div>
+<script id="b871a597-f39e-4ca0-9303-dffb029b90ec" src="posts/networks/company-movie-night/company_relationships_bokeh"></script>
+<p>It looks like Andy might have some kind of personality problem (maybe he's the boss), while Georgia and Claude are unusually close.</p>
+</div>
+</div>
+</div>
+<div class="outline-5" id="outline-container-orgb88265a">
+<h5 id="orgb88265a">Spring loaded</h5>
+<div class="outline-text-5" id="text-orgb88265a">
+<p>Bokeh raises an error if you try to re-use the hover-tool for some reason so I had to make a copy.</p>
+<div class="highlight">
+<pre><span></span>hover = HoverTool(
+    tooltips=[
+        ("Employee", "@start"),
+        ("Employee", "@end"),
+        ("Relationship", "@relationship"),
+    ]
+)
+
+graph_plot(relationship_graph, 
+           "Company Relationships", 
+           "company_relationships_spring", 
+           hover,
+           networkx.spring_layout)
+</pre></div>
+<script id="b9aee303-a400-4bef-a454-729bba29b2b5" src="posts/networks/company-movie-night/company_relationships_spring"></script>
+<p>This didn't produce as interesting a result as I thought.</p>
+</div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org2dc0c64">
+<h4 id="org2dc0c64">The Movie Plot</h4>
+<div class="outline-text-4" id="text-org2dc0c64">
+<div class="highlight">
+<pre><span></span>movie_hover = HoverTool(
+    tooltips = [
+        ("Employee", "@employee"),
+        ("Movie", "@movie"),
+    ]
+
+)
+plot = holoviews.Graph.from_networkx(movie_graph,
+                                     networkx.circular_layout).opts(
+                                         node_color=dim("type"),
+                                         cmap="Set1",
+                                         fontsize=Plot.fontsize,
+                                         width=Plot.width,
+                                         height=Plot.height,
+                                         tools=[movie_hover, TapTool()],
+                                         title="Company Movies Graph",
+                                         xaxis=None, yaxis=None).options(
+                                             inspection_policy="edges",
+                                             edge_cmap="Spectral").redim.range(**Plot.padding)
+Embed(plot=plot, file_name="company_movies_circle")()
+</pre></div>
+<object data="posts/networks/company-movie-night/company_movies_circle.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>The Blue nodes are employees and the red nodes are movies.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org99c6a5d">
+<h3 id="org99c6a5d">Question 2</h3>
+<div class="outline-text-3" id="text-org99c6a5d">
 <p>Using the graph from the previous question, add nodes attributes named `'type'` where movies have the value `'movie'` and employees have the value `'employee'` and return that graph.</p>
 <p><b>This function should return a networkx graph with node attributes `{'type': 'movie'}` or `{'type': 'employee'}`</b></p>
 <div class="highlight">
@@ -3017,10 +3370,10 @@ two.nodes(data=True)
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org343d401">
-<h3 id="org343d401">Question 3</h3>
-<div class="outline-text-3" id="text-org343d401">
-<p>Find a weighted projection of the graph from `answer<sub>two</sub>` which tells us how many movies different pairs of employees have in common.</p>
+<div class="outline-3" id="outline-container-orgfb6444d">
+<h3 id="orgfb6444d">Question 3</h3>
+<div class="outline-text-3" id="text-orgfb6444d">
+<p>Find a weighted projection of the graph from `answer_two` which tells us how many movies different pairs of employees have in common.</p>
 <p><b>This function should return a weighted projected graph.</b></p>
 <div class="highlight">
 <pre><span></span>def answer_three():
@@ -3034,9 +3387,9 @@ plot_graph(three)
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orge77f0a7">
-<h3 id="orge77f0a7">Question 4</h3>
-<div class="outline-text-3" id="text-orge77f0a7">
+<div class="outline-3" id="outline-container-orgfb5a9c0">
+<h3 id="orgfb5a9c0">Question 4</h3>
+<div class="outline-text-3" id="text-orgfb5a9c0">
 <p>Suppose you'd like to find out if people that have a high relationship score also like the same types of movies.</p>
 <p>Find the Pearson correlation ( using `DataFrame.corr()` ) between employee relationship scores and the number of movies they have in common. If two employees have no movies in common it should be treated as a 0, not a missing value, and should be included in the correlation calculation.</p>
 <p><b>This function should return a float.</b></p>
@@ -3079,8 +3432,8 @@ plot_graph(three)
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org652956a">
-<h2 id="org652956a">The Return</h2>
+<div class="outline-2" id="outline-container-org89551da">
+<h2 id="org89551da">The Return</h2>
 </div>
 </div>
 </article>
