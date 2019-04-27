@@ -414,58 +414,56 @@ Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=
 [[file:friendship_network_gender_spring.html][Link to Plot]]
 
 
-Interestingly, this view seems to show that there is also some segregation by gender.
+Interestingly, this view seems to show that there is also some clustering by gender.
 *** Kawada Kamai Layout
 **** Class
 #+begin_src ipython :session highschool :results output raw :exports both
-plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout, ).opts(
     node_color=dim("class"), cmap="Set1",
-    tools=["hover"],
-    width=800,
-    height=800,
+    tools=["hover", TapTool()],
+    width=Plot.graph_width,
+    height=Plot.graph_height,
     edge_line_color=Plot.edge_color,
-    title="Friendship Network By Class",
+    title="Friendship Network By Class (Kamada-Kawai)",
     xaxis=None, yaxis=None, directed=True,
     legend_position="right"
 ).redim.range(**Plot.padding)
-Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=810)()
+Embed(plot=plot, file_name="friendship_network_class_kawada_kamai", height_in_pixels=810)()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="friendship_network_class_spring.html" style="width:100%" height=810>
+<object type="text/html" data="friendship_network_class_kawada_kamai.html" style="width:100%" height=810>
   <p>Figure Missing</p>
 </object>
 #+end_export
 
 [[file:friendship_network_class_spring.html][Link to Plot]]
 
-Unlike the circular plot, this plot shows that there are disconnected neighborhoods within the network and there seems to be a clustering by class.
+This has more space between the nodes so it's a little easier to see the groups.
 
 **** Gender
 #+begin_src ipython :session highschool :results output raw :exports both
-plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout, ).opts(
                                          node_color=dim("gender"), cmap="Set1",
                                          tools=["hover"],
                                          width=800,
                                          height=800,
                                          edge_line_color=Plot.edge_color,
-                                         title="Friendship Network By Gender",
+                                         title="Friendship Network By Gender (Kamada Kawai)",
                                          xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
-Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=810)()
+Embed(plot=plot, file_name="friendship_network_gender_kamada_kawai", height_in_pixels=810)()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="friendship_network_gender_spring.html" style="width:100%" height=810>
+<object type="text/html" data="friendship_network_gender_kamada_kawai.html" style="width:100%" height=810>
   <p>Figure Missing</p>
 </object>
 #+end_export
 
 [[file:friendship_network_gender_spring.html][Link to Plot]]
 
-
-Interestingly, this view seems to show that there is also some segregation by gender.
 
 ** Degree Distribution
 *** Total Degrees
@@ -577,6 +575,13 @@ for node in friendship_graph.nodes:
     friendship_graph.nodes[node]["Out-Degree"] = friendship_graph.out_degree[node]
     friendship_graph.nodes[node]["In-Out"] = friendship_graph.in_degree[node] - friendship_graph.out_degree[node]
 #+end_src
+
+#+BEGIN_SRC ipython :session highschool :results none
+for start, end in friendship_graph.edges:
+    friendship_graph[start][end]["in_weight"] = friendship_graph.in_degree[end]
+    friendship_graph[start][end]["out_weight"] = friendship_graph.out_degree[start]
+    friendship_graph[start][end]["weight"] = friendship_graph.in_degree[end]
+#+END_SRC
 *** Popularity
 #+begin_src ipython :session highschool :results output raw :exports both
 plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout)
