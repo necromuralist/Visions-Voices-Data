@@ -65,52 +65,53 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgc5b2b29">The Departure</a>
+<li><a href="#org5e8d7d5">The Departure</a>
 <ul>
-<li><a href="#org795e6f0">Setup The Plotting</a></li>
+<li><a href="#org6e6eca7">Setup The Plotting</a></li>
 </ul>
 </li>
-<li><a href="#org6153078">The Initiation</a>
+<li><a href="#orgaf8615d">The Initiation</a>
 <ul>
-<li><a href="#org349bc61">Meta-Data</a></li>
-<li><a href="#org6048b8e">The Friendship Network</a></li>
-<li><a href="#orge6ecf4e">Looking at the Friendship Network</a></li>
-<li><a href="#orgffacb36">Plotting</a></li>
-<li><a href="#org87eeba5">Degree Distribution</a></li>
+<li><a href="#orga5d0c91">Meta-Data</a></li>
+<li><a href="#orgdf31652">The Friendship Network</a></li>
+<li><a href="#org887f73a">Looking at the Friendship Network</a></li>
+<li><a href="#org0a42f52">Plotting</a></li>
+<li><a href="#orgb1ca791">Degree Distribution</a></li>
 </ul>
 </li>
-<li><a href="#orga75a28f">The Return</a>
+<li><a href="#orga620152">The Return</a>
 <ul>
-<li><a href="#org4129406">Citations</a></li>
+<li><a href="#org524e762">Citations</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc5b2b29">
-<h2 id="orgc5b2b29">The Departure</h2>
-<div class="outline-text-2" id="text-orgc5b2b29">
+<div class="outline-2" id="outline-container-org5e8d7d5">
+<h2 id="org5e8d7d5">The Departure</h2>
+<div class="outline-text-2" id="text-org5e8d7d5">
 <p>This looks at data provided by <a href="http://www.sociopatterns.org">SocioPatterns</a> that looks a the interactions between students at a High School in Marseilles, France, in December of 2013. In particular, I'm going to look at the <i>Friendship Networks</i> data - wherein the students reported who they were friends with.</p>
 </div>
-<div class="outline-4" id="outline-container-org381c920">
-<h4 id="org381c920">Imports</h4>
-<div class="outline-text-4" id="text-org381c920"></div>
-<div class="outline-5" id="outline-container-org5e7137f">
-<h5 id="org5e7137f">From Python</h5>
-<div class="outline-text-5" id="text-org5e7137f">
+<div class="outline-4" id="outline-container-org7c873b0">
+<h4 id="org7c873b0">Imports</h4>
+<div class="outline-text-4" id="text-org7c873b0"></div>
+<div class="outline-5" id="outline-container-orgec38fec">
+<h5 id="orgec38fec">From Python</h5>
+<div class="outline-text-5" id="text-orgec38fec">
 <div class="highlight">
-<pre><span></span>from collections import Counter
+<pre><span></span>from argparse import Namespace
+from collections import Counter
 from functools import partial
 from pathlib import Path
 import os
 </pre></div>
 </div>
 </div>
-<div class="outline-5" id="outline-container-org3985ee5">
-<h5 id="org3985ee5">From PyPi</h5>
-<div class="outline-text-5" id="text-org3985ee5">
+<div class="outline-5" id="outline-container-org2cc6fe5">
+<h5 id="org2cc6fe5">From PyPi</h5>
+<div class="outline-text-5" id="text-org2cc6fe5">
 <div class="highlight">
-<pre><span></span>from bokeh.models import HoverTool
+<pre><span></span>from bokeh.models import HoverTool, TapTool
 from dotenv import load_dotenv
 from holoviews import dim, opts
 import holoviews
@@ -120,9 +121,9 @@ import pandas as pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-5" id="outline-container-org188ac0a">
-<h5 id="org188ac0a">My Stuff</h5>
-<div class="outline-text-5" id="text-org188ac0a">
+<div class="outline-5" id="outline-container-org25d8702">
+<h5 id="org25d8702">My Stuff</h5>
+<div class="outline-text-5" id="text-org25d8702">
 <div class="highlight">
 <pre><span></span>from graeae.timers import Timer
 from graeae.tables import CountPercentage
@@ -131,25 +132,25 @@ from graeae.visualization import EmbedHoloview
 </div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgc383ed4">
-<h4 id="orgc383ed4">Load the Dotenv</h4>
-<div class="outline-text-4" id="text-orgc383ed4">
+<div class="outline-4" id="outline-container-org6cd8f9e">
+<h4 id="org6cd8f9e">Load the Dotenv</h4>
+<div class="outline-text-4" id="text-org6cd8f9e">
 <div class="highlight">
 <pre><span></span>load_dotenv(".env")
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org1cac4f2">
-<h4 id="org1cac4f2">Build the Timer</h4>
-<div class="outline-text-4" id="text-org1cac4f2">
+<div class="outline-4" id="outline-container-orgf075ec8">
+<h4 id="orgf075ec8">Build the Timer</h4>
+<div class="outline-text-4" id="text-orgf075ec8">
 <div class="highlight">
 <pre><span></span>TIMER = Timer()
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org795e6f0">
-<h3 id="org795e6f0">Setup The Plotting</h3>
-<div class="outline-text-3" id="text-org795e6f0">
+<div class="outline-3" id="outline-container-org6e6eca7">
+<h3 id="org6e6eca7">Setup The Plotting</h3>
+<div class="outline-text-3" id="text-org6e6eca7">
 <div class="highlight">
 <pre><span></span>holoviews.extension("bokeh")
 SLUG = "high-school-friendship-networks/"
@@ -157,22 +158,26 @@ output = Path("../../files/posts/networks/" + SLUG)
 Embed = partial(EmbedHoloview, folder_path=output)
 </pre></div>
 <div class="highlight">
-<pre><span></span>class Plot:
-    """Constants for plotting"""
-    width = 1000
-    height = 800
-    fontsize = 18
-    edge_color = "LightSteelBlue"
+<pre><span></span>Plot = Namespace(
+    width = 1000,
+    height = 800,
+    graph_width = 800,
+    graph_height = 800,
+    fontsize = 18,
+    edge_color = "LightSteelBlue",
+    padding = dict(x=(-1.1, 1.1),
+                   y=(-1.1, 1.1)),
+)
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org6153078">
-<h2 id="org6153078">The Initiation</h2>
-<div class="outline-text-2" id="text-org6153078"></div>
-<div class="outline-3" id="outline-container-org349bc61">
-<h3 id="org349bc61">Meta-Data</h3>
-<div class="outline-text-3" id="text-org349bc61">
+<div class="outline-2" id="outline-container-orgaf8615d">
+<h2 id="orgaf8615d">The Initiation</h2>
+<div class="outline-text-2" id="text-orgaf8615d"></div>
+<div class="outline-3" id="outline-container-orga5d0c91">
+<h3 id="orga5d0c91">Meta-Data</h3>
+<div class="outline-text-3" id="text-orga5d0c91">
 <p>Let's take a look at the meta-data before loading it into pandas.</p>
 <div class="highlight">
 <pre><span></span>HIGH_SCHOOL = Path(os.environ.get("HIGH_SCHOOL")).expanduser()
@@ -219,9 +224,9 @@ print(len(meta_data.id.unique()))
 </pre>
 <p>So there's one entry for each student, meaning the student's can't belong to more than one class.</p>
 </div>
-<div class="outline-4" id="outline-container-orgf07b3a0">
-<h4 id="orgf07b3a0">Classes</h4>
-<div class="outline-text-4" id="text-orgf07b3a0">
+<div class="outline-4" id="outline-container-org00fa91e">
+<h4 id="org00fa91e">Classes</h4>
+<div class="outline-text-4" id="text-org00fa91e">
 <p>First a table of the counts.</p>
 <div class="highlight">
 <pre><span></span>table = CountPercentage(meta_data["class"]).holoviews_table.opts(
@@ -278,9 +283,9 @@ Embed(plot=plot, file_name="gender_counts", height_in_pixels=Plot.height)()
 <p>Strangely, the classes that start with <code>2BIO</code> are more female while the others are more male.</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org1680541">
-<h4 id="org1680541">Gender</h4>
-<div class="outline-text-4" id="text-org1680541">
+<div class="outline-4" id="outline-container-org81481ed">
+<h4 id="org81481ed">Gender</h4>
+<div class="outline-text-4" id="text-org81481ed">
 <p>A stacked bar plot to get a sense of not just the distribution among genders but among classes.</p>
 <div class="highlight">
 <pre><span></span>plot = grouped.hvplot.bar(title="Gender Counts", x="gender", y="gender_count",
@@ -320,9 +325,9 @@ Embed(plot=plot, file_name="class_counts", height_in_pixels=Plot.height)()
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org6048b8e">
-<h3 id="org6048b8e">The Friendship Network</h3>
-<div class="outline-text-3" id="text-org6048b8e">
+<div class="outline-3" id="outline-container-orgdf31652">
+<h3 id="orgdf31652">The Friendship Network</h3>
+<div class="outline-text-3" id="text-orgdf31652">
 <p>This is a dataset that shows whether a student identified another student as their friend.</p>
 <div class="highlight">
 <pre><span></span>friendship_path = HIGH_SCHOOL.joinpath(Files.friendship)
@@ -347,9 +352,9 @@ friendship_data = friendship_data.dropna()
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orge6ecf4e">
-<h3 id="orge6ecf4e">Looking at the Friendship Network</h3>
-<div class="outline-text-3" id="text-orge6ecf4e">
+<div class="outline-3" id="outline-container-org887f73a">
+<h3 id="org887f73a">Looking at the Friendship Network</h3>
+<div class="outline-text-3" id="text-org887f73a">
 <div class="highlight">
 <pre><span></span>with TIMER:
     friendship_graph = networkx.convert_matrix.from_pandas_edgelist(
@@ -373,15 +378,15 @@ classes = dict(zip(meta_data.id, meta_data["class"]))
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgffacb36">
-<h3 id="orgffacb36">Plotting</h3>
-<div class="outline-text-3" id="text-orgffacb36"></div>
-<div class="outline-4" id="outline-container-org3eeeb3f">
-<h4 id="org3eeeb3f">Friendship Network Circular</h4>
-<div class="outline-text-4" id="text-org3eeeb3f"></div>
-<div class="outline-5" id="outline-container-org4f4029c">
-<h5 id="org4f4029c">By Gender</h5>
-<div class="outline-text-5" id="text-org4f4029c">
+<div class="outline-3" id="outline-container-org0a42f52">
+<h3 id="org0a42f52">Plotting</h3>
+<div class="outline-text-3" id="text-org0a42f52"></div>
+<div class="outline-4" id="outline-container-orgb70cb3b">
+<h4 id="orgb70cb3b">Friendship Network Circular</h4>
+<div class="outline-text-4" id="text-orgb70cb3b"></div>
+<div class="outline-5" id="outline-container-org8173486">
+<h5 id="org8173486">By Gender</h5>
+<div class="outline-text-5" id="text-org8173486">
 <div class="highlight">
 <pre><span></span>hover = HoverTool(
     tooltips = [
@@ -391,26 +396,28 @@ classes = dict(zip(meta_data.id, meta_data["class"]))
 )
 
 plot = holoviews.Graph.from_networkx(friendship_graph,
-                                     networkx.circular_layout).opts(
+                                     networkx.circular_layout).redim.range(**Plot.padding).opts(
                                          node_color=dim("gender"), cmap="Set1",
-                                         tools=[hover],
+                                         tools=[hover, TapTool()],
                                          fontsize=Plot.fontsize,
-                                         width=800,
-                                         height=800,
+                                         width=Plot.graph_width,
+                                         height=Plot.graph_height,
                                          edge_line_color=Plot.edge_color,
                                          title="Friendship Network by Gender",
-                                         xaxis=None, yaxis=None, directed=True)
+                                         xaxis=None,
+                                         yaxis=None,
+                                         directed=True)
 Embed(plot=plot, file_name="friendship_network_circular")()
 </pre></div>
 <object data="friendship_network_circular.html" height="800" style="width:100%" type="text/html">
 <p>Figure Missing</p>
 </object>
-<p>It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others.</p>
+<p>It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others. The red nodes are male, the green nodes are female, and the blue is "unknown".</p>
 </div>
 </div>
-<div class="outline-5" id="outline-container-orgc35ae47">
-<h5 id="orgc35ae47">By Class</h5>
-<div class="outline-text-5" id="text-orgc35ae47">
+<div class="outline-5" id="outline-container-org4b3e5d4">
+<h5 id="org4b3e5d4">By Class</h5>
+<div class="outline-text-5" id="text-org4b3e5d4">
 <div class="highlight">
 <pre><span></span>hover = HoverTool(
     tooltips = [
@@ -428,7 +435,7 @@ plot = holoviews.Graph.from_networkx(friendship_graph,
                                          height=800,
                                          edge_line_color=Plot.edge_color,
                                          title="Friendship Network by Class",
-                                         xaxis=None, yaxis=None, directed=True)
+                                         xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_circular_class")()
 </pre></div>
 <object data="friendship_network_circular_class.html" height="800" style="width:100%" type="text/html">
@@ -438,12 +445,12 @@ Embed(plot=plot, file_name="friendship_network_circular_class")()
 </div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgfde5078">
-<h4 id="orgfde5078">Spring Layout</h4>
-<div class="outline-text-4" id="text-orgfde5078"></div>
-<div class="outline-5" id="outline-container-org9535be2">
-<h5 id="org9535be2">Class</h5>
-<div class="outline-text-5" id="text-org9535be2">
+<div class="outline-4" id="outline-container-org7039f8c">
+<h4 id="org7039f8c">Spring Layout</h4>
+<div class="outline-text-4" id="text-org7039f8c"></div>
+<div class="outline-5" id="outline-container-org2ab8a28">
+<h5 id="org2ab8a28">Class</h5>
+<div class="outline-text-5" id="text-org2ab8a28">
 <div class="highlight">
 <pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
     node_color=dim("class"), cmap="Set1",
@@ -454,7 +461,7 @@ Embed(plot=plot, file_name="friendship_network_circular_class")()
     title="Friendship Network By Class",
     xaxis=None, yaxis=None, directed=True,
     legend_position="right"
-)
+).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=810)()
 </pre></div>
 <object data="friendship_network_class_spring.html" height="810" style="width:100%" type="text/html">
@@ -464,9 +471,9 @@ Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=8
 <p>Unlike the circular plot, this plot shows that there are disconnected neighborhoods within the network and there seems to be a clustering by class.</p>
 </div>
 </div>
-<div class="outline-5" id="outline-container-org281d655">
-<h5 id="org281d655">Gender</h5>
-<div class="outline-text-5" id="text-org281d655">
+<div class="outline-5" id="outline-container-orgfa5d2c4">
+<h5 id="orgfa5d2c4">Gender</h5>
+<div class="outline-text-5" id="text-orgfa5d2c4">
 <div class="highlight">
 <pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, ).opts(
                                          node_color=dim("gender"), cmap="Set1",
@@ -475,24 +482,71 @@ Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=8
                                          height=800,
                                          edge_line_color=Plot.edge_color,
                                          title="Friendship Network By Gender",
-                                         xaxis=None, yaxis=None, directed=True)
+                                         xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=810)()
 </pre></div>
 <object data="friendship_network_gender_spring.html" height="810" style="width:100%" type="text/html">
 <p>Figure Missing</p>
 </object>
 <p><a href="friendship_network_gender_spring.html">Link to Plot</a></p>
-<p>Interestingly, this view seems to show that there is also some segregation by gender.</p>
+<p>Interestingly, this view seems to show that there is also some clustering by gender.</p>
+</div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgb8f3126">
+<h4 id="orgb8f3126">Kawada Kamai Layout</h4>
+<div class="outline-text-4" id="text-orgb8f3126"></div>
+<div class="outline-5" id="outline-container-org0a02c5a">
+<h5 id="org0a02c5a">Class</h5>
+<div class="outline-text-5" id="text-org0a02c5a">
+<div class="highlight">
+<pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout, ).opts(
+    node_color=dim("class"), cmap="Set1",
+    tools=["hover", TapTool()],
+    width=Plot.graph_width,
+    height=Plot.graph_height,
+    edge_line_color=Plot.edge_color,
+    title="Friendship Network By Class (Kamada-Kawai)",
+    xaxis=None, yaxis=None, directed=True,
+    legend_position="right"
+).redim.range(**Plot.padding)
+Embed(plot=plot, file_name="friendship_network_class_kawada_kamai", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_class_kawada_kamai.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p><a href="friendship_network_class_spring.html">Link to Plot</a></p>
+<p>This has more space between the nodes so it's a little easier to see the groups.</p>
+</div>
+</div>
+<div class="outline-5" id="outline-container-orgf47f67f">
+<h5 id="orgf47f67f">Gender</h5>
+<div class="outline-text-5" id="text-orgf47f67f">
+<div class="highlight">
+<pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout, ).opts(
+                                         node_color=dim("gender"), cmap="Set1",
+                                         tools=["hover"],
+                                         width=800,
+                                         height=800,
+                                         edge_line_color=Plot.edge_color,
+                                         title="Friendship Network By Gender (Kamada Kawai)",
+                                         xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
+Embed(plot=plot, file_name="friendship_network_gender_kamada_kawai", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_gender_kamada_kawai.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p><a href="friendship_network_gender_spring.html">Link to Plot</a></p>
 </div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org87eeba5">
-<h3 id="org87eeba5">Degree Distribution</h3>
-<div class="outline-text-3" id="text-org87eeba5"></div>
-<div class="outline-4" id="outline-container-org8ea3e65">
-<h4 id="org8ea3e65">Total Degrees</h4>
-<div class="outline-text-4" id="text-org8ea3e65">
+<div class="outline-3" id="outline-container-orgb1ca791">
+<h3 id="orgb1ca791">Degree Distribution</h3>
+<div class="outline-text-3" id="text-orgb1ca791"></div>
+<div class="outline-4" id="outline-container-org3130072">
+<h4 id="org3130072">Total Degrees</h4>
+<div class="outline-text-4" id="text-org3130072">
 <div class="highlight">
 <pre><span></span>degree_sequence = sorted((degree for node, degree in friendship_graph.degree()))
 degree_counts = Counter(degree_sequence)
@@ -513,9 +567,9 @@ Embed(plot=plot, file_name="degree_distribution")()
 <p>Figure Missing</p>
 </object></div>
 </div>
-<div class="outline-4" id="outline-container-org0e6a84b">
-<h4 id="org0e6a84b">In-Degree Distribution</h4>
-<div class="outline-text-4" id="text-org0e6a84b">
+<div class="outline-4" id="outline-container-orgefbe67c">
+<h4 id="orgefbe67c">In-Degree Distribution</h4>
+<div class="outline-text-4" id="text-orgefbe67c">
 <div class="highlight">
 <pre><span></span>in_degree_sequence = sorted((degree for node, degree in friendship_graph.in_degree))
 in_degree_counts = Counter(in_degree_sequence)
@@ -539,9 +593,9 @@ Embed(plot=plot, file_name="in_degree_distribution")()
 <p>The in-degree represents the number of times a student (the node) was identified by someone else as a friend. Three people weren't identified as friends at all and the most common count was 2, although someone was identified 15 times.</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org0dff7e7">
-<h4 id="org0dff7e7">Out-Degree Distribution</h4>
-<div class="outline-text-4" id="text-org0dff7e7">
+<div class="outline-4" id="outline-container-org676d66f">
+<h4 id="org676d66f">Out-Degree Distribution</h4>
+<div class="outline-text-4" id="text-org676d66f">
 <div class="highlight">
 <pre><span></span>out_degree_sequence = sorted((degree for node, degree in friendship_graph.out_degree))
 out_degree_counts = Counter(out_degree_sequence)
@@ -565,9 +619,9 @@ Embed(plot=plot, file_name="out_degree_distribution")()
 <p>The out-degree is the number of other students a student identified as a friend.</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org045df04">
-<h4 id="org045df04">In-and-Out Degree</h4>
-<div class="outline-text-4" id="text-org045df04">
+<div class="outline-4" id="outline-container-org85efb30">
+<h4 id="org85efb30">In and Out Degrees</h4>
+<div class="outline-text-4" id="text-org85efb30">
 <div class="highlight">
 <pre><span></span>in_out = pandas.concat([in_data, 
                         out_data]).sort_values(by="Degrees")
@@ -587,33 +641,250 @@ Embed(plot=plot, file_name="in_and_out_degree_distribution")()
 <pre><span></span>for node in friendship_graph.nodes:
     friendship_graph.nodes[node]["In-Degree"] = friendship_graph.in_degree[node]
     friendship_graph.nodes[node]["Out-Degree"] = friendship_graph.out_degree[node]
+    friendship_graph.nodes[node]["In-Out"] = friendship_graph.in_degree[node] - friendship_graph.out_degree[node]
 </pre></div>
+<div class="highlight">
+<pre><span></span>for start, end in friendship_graph.edges:
+    friendship_graph[start][end]["in_weight"] = friendship_graph.in_degree[end]
+    friendship_graph[start][end]["out_weight"] = friendship_graph.out_degree[start]
+    friendship_graph[start][end]["weight"] = friendship_graph.in_degree[end]
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org68befed">
+<h4 id="org68befed">Popularity</h4>
+<div class="outline-text-4" id="text-org68befed">
 <div class="highlight">
 <pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout)
 plot = plot.opts(
-    node_color=dim("gender"), cmap="Set1",
+    node_color=dim("In-Degree"), cmap="Plasma",
     tools=["hover"],
     width=800,
     height=800,
-#    edge_line_color="In-Degree",
-    edge_cmap="viridis",
-#    edge_line_width=holoviews.dim("In-Degree"),
-    title="Friendship Network In-Degrees By Gender",
+    edge_color_index="In-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In-Degree",
     xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="friendship_network_in_degree_gender_spring", height_in_pixels=810)()
+Embed(plot=plot, file_name="friendship_network_in_degree_spring", height_in_pixels=810)()
 </pre></div>
-<object data="friendship_network_in_degree_gender_spring.html" height="810" style="width:100%" type="text/html">
+<object data="friendship_network_in_degree_spring.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>The color of the nodes is related to the number of in-degrees it has (which represents the number of other students that stated a node was their friend). If it is dark purple than there are fewer in-degrees. If it is yellow than there are many in-degrees. So the yellow nodes are popular and the dark purple nodes not so much.</p>
+<div class="highlight">
+<pre><span></span>plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout))
+plot = plot.opts(
+    node_color=dim("In-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="In-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_degree_bundled_spring", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_in_degree_bundled_spring.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.circular_layout)
+plot = plot.opts(
+    node_color=dim("In-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="In-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_degree_circular", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_in_degree_circular.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span>plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.circular_layout))
+plot = plot.opts(
+    node_color=dim("In-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="In-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_degree_bundled_circular", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_in_degree_bundled_circular.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span>plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout))
+plot = plot.opts(
+    node_color=dim("In-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="In-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In-Degree (Kamada-Kawai)",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_degree_bundled_kamada_kawai", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_in_degree_bundled_kamada_kawai.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-4" id="outline-container-orged20787">
+<h4 id="orged20787">Gregariousness</h4>
+<div class="outline-text-4" id="text-orged20787">
+<p>The out-degree is the number of times a student identified other students as friends. I'll interpret this as gregariousness (or maybe neediness).</p>
+<div class="highlight">
+<pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout)
+plot = plot.opts(
+    node_color=dim("Out-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network Out-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_out_degree_spring", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_out_degree_spring.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>The color of the nodes is related to the number of out-degrees it has (which represents the number of students that a stated node identified as their friend). If it is dark purple than there are fewer out-degrees (loners?). If it is yellow than there are many out-degrees (the consider many to be their friends).</p>
+<div class="highlight">
+<pre><span></span>plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout))
+plot = plot.opts(
+    node_color=dim("Out-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network Out-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_out_degree_bundled_spring", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_out_degree_bundled_spring.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.circular_layout)
+plot = plot.opts(
+    node_color=dim("Out-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_alpha=0.25,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network Out-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_out_degree_circular", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_out_degree_circular.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span>plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.circular_layout))
+plot = plot.opts(
+    node_color=dim("Out-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network Out-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_out_degree_bundled_circular", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_out_degree_bundled_circular.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span>plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout))
+plot = plot.opts(
+    node_color=dim("Out-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network Out-Degree (Kamada-Kawai)",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_out_degree_bundled_kamada_kawai", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_out_degree_bundled_kamada_kawai.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout)
+plot = plot.opts(
+    node_color=dim("Out-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network Out-Degree (Kamada-Kawai)",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_out_degree_unbundled_kamada_kawai", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_out_degree_unbundled_kamada_kawai.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-4" id="outline-container-org28398eb">
+<h4 id="org28398eb">Perception</h4>
+<div class="outline-text-4" id="text-org28398eb">
+<p>The <i>In Degree - Out Degree</i> tells us how a student's perception of how many friends she has compares to how many people really think she's their friend. If it's negative than she thinks she has more friends than she has (delusional? optimistic?) and if it's positive than she has more friends than she thinks she does (modest? low self-esteem?).</p>
+<div class="highlight">
+<pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout)
+plot = plot.opts(
+    node_color=dim("In-Out"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In Degree - Out Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_minus_out_spring", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_in_minus_out_spring.html" height="810" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>The dark-purple nodes have the most out-degrees compared to their in-degrees and the yellow-nodes have the most in-degrees compared to out-degrees.</p>
+<div class="highlight">
+<pre><span></span>plot = holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout)
+plot = plot.opts(
+    node_color=dim("In-Out"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In Minus Out (Kamada-Kawai)",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_minus_out_kamada_kawac", height_in_pixels=810)()
+</pre></div>
+<object data="friendship_network_in_minus_out_kamada_kawac.html" height="810" style="width:100%" type="text/html">
 <p>Figure Missing</p>
 </object></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orga75a28f">
-<h2 id="orga75a28f">The Return</h2>
-<div class="outline-text-2" id="text-orga75a28f"></div>
-<div class="outline-3" id="outline-container-org4129406">
-<h3 id="org4129406">Citations</h3>
-<div class="outline-text-3" id="text-org4129406">
+<div class="outline-2" id="outline-container-orga620152">
+<h2 id="orga620152">The Return</h2>
+<div class="outline-text-2" id="text-orga620152"></div>
+<div class="outline-3" id="outline-container-org524e762">
+<h3 id="org524e762">Citations</h3>
+<div class="outline-text-3" id="text-org524e762">
 <ul class="org-ul">
 <li>R. Mastrandrea, J. Fournet, A. Barrat,</li>
 </ul>

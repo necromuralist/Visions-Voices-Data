@@ -22,6 +22,7 @@
 *** Imports
 **** From Python
 #+begin_src ipython :session highschool :results none
+from argparse import Namespace
 from collections import Counter
 from functools import partial
 from pathlib import Path
@@ -29,7 +30,7 @@ import os
 #+end_src
 **** From PyPi
 #+begin_src ipython :session highschool :results none
-from bokeh.models import HoverTool
+from bokeh.models import HoverTool, TapTool
 from dotenv import load_dotenv
 from holoviews import dim, opts
 import holoviews
@@ -60,12 +61,16 @@ Embed = partial(EmbedHoloview, folder_path=output)
 #+end_src
 
 #+begin_src ipython :session highschool :results none
-class Plot:
-    """Constants for plotting"""
-    width = 1000
-    height = 800
-    fontsize = 18
-    edge_color = "LightSteelBlue"
+Plot = Namespace(
+    width = 1000,
+    height = 800,
+    graph_width = 800,
+    graph_height = 800,
+    fontsize = 18,
+    edge_color = "LightSteelBlue",
+    padding = dict(x=(-1.1, 1.1),
+                   y=(-1.1, 1.1)),
+)
 #+end_src
 * The Initiation
 ** Meta-Data
@@ -307,15 +312,17 @@ hover = HoverTool(
 )
 
 plot = holoviews.Graph.from_networkx(friendship_graph,
-                                     networkx.circular_layout).opts(
+                                     networkx.circular_layout).redim.range(**Plot.padding).opts(
                                          node_color=dim("gender"), cmap="Set1",
-                                         tools=[hover],
+                                         tools=[hover, TapTool()],
                                          fontsize=Plot.fontsize,
-                                         width=800,
-                                         height=800,
+                                         width=Plot.graph_width,
+                                         height=Plot.graph_height,
                                          edge_line_color=Plot.edge_color,
                                          title="Friendship Network by Gender",
-                                         xaxis=None, yaxis=None, directed=True)
+                                         xaxis=None,
+                                         yaxis=None,
+                                         directed=True)
 Embed(plot=plot, file_name="friendship_network_circular")()
 #+end_src
 
@@ -326,7 +333,7 @@ Embed(plot=plot, file_name="friendship_network_circular")()
 </object>
 #+end_export
 
-It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others.
+It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others. The red nodes are male, the green nodes are female, and the blue is "unknown".
 **** By Class
 #+begin_src ipython :session highschool :results output raw :exports both
 hover = HoverTool(
@@ -345,7 +352,7 @@ plot = holoviews.Graph.from_networkx(friendship_graph,
                                          height=800,
                                          edge_line_color=Plot.edge_color,
                                          title="Friendship Network by Class",
-                                         xaxis=None, yaxis=None, directed=True)
+                                         xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_circular_class")()
 #+end_src
 
@@ -369,7 +376,7 @@ plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, )
     title="Friendship Network By Class",
     xaxis=None, yaxis=None, directed=True,
     legend_position="right"
-)
+).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_class_spring", height_in_pixels=810)()
 #+end_src
 
@@ -393,7 +400,7 @@ plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout, )
                                          height=800,
                                          edge_line_color=Plot.edge_color,
                                          title="Friendship Network By Gender",
-                                         xaxis=None, yaxis=None, directed=True)
+                                         xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=810)()
 #+end_src
 
@@ -406,7 +413,58 @@ Embed(plot=plot, file_name="friendship_network_gender_spring", height_in_pixels=
 
 [[file:friendship_network_gender_spring.html][Link to Plot]]
 
-Interestingly, this view seems to show that there is also some segregation by gender.
+
+Interestingly, this view seems to show that there is also some clustering by gender.
+*** Kawada Kamai Layout
+**** Class
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout, ).opts(
+    node_color=dim("class"), cmap="Set1",
+    tools=["hover", TapTool()],
+    width=Plot.graph_width,
+    height=Plot.graph_height,
+    edge_line_color=Plot.edge_color,
+    title="Friendship Network By Class (Kamada-Kawai)",
+    xaxis=None, yaxis=None, directed=True,
+    legend_position="right"
+).redim.range(**Plot.padding)
+Embed(plot=plot, file_name="friendship_network_class_kawada_kamai", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_class_kawada_kamai.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+[[file:friendship_network_class_spring.html][Link to Plot]]
+
+This has more space between the nodes so it's a little easier to see the groups.
+
+**** Gender
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout, ).opts(
+                                         node_color=dim("gender"), cmap="Set1",
+                                         tools=["hover"],
+                                         width=800,
+                                         height=800,
+                                         edge_line_color=Plot.edge_color,
+                                         title="Friendship Network By Gender (Kamada Kawai)",
+                                         xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
+Embed(plot=plot, file_name="friendship_network_gender_kamada_kawai", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_gender_kamada_kawai.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+[[file:friendship_network_gender_spring.html][Link to Plot]]
+
+
 ** Degree Distribution
 *** Total Degrees
 #+begin_src ipython :session highschool :results none
@@ -489,7 +547,7 @@ Embed(plot=plot, file_name="out_degree_distribution")()
 
 The out-degree is the number of other students a student identified as a friend.
 
-*** In-and-Out Degree
+*** In and Out Degrees
 
 #+begin_src ipython :session highschool :results output raw :exports both
 in_out = pandas.concat([in_data, 
@@ -515,29 +573,303 @@ Embed(plot=plot, file_name="in_and_out_degree_distribution")()
 for node in friendship_graph.nodes:
     friendship_graph.nodes[node]["In-Degree"] = friendship_graph.in_degree[node]
     friendship_graph.nodes[node]["Out-Degree"] = friendship_graph.out_degree[node]
+    friendship_graph.nodes[node]["In-Out"] = friendship_graph.in_degree[node] - friendship_graph.out_degree[node]
 #+end_src
 
+#+BEGIN_SRC ipython :session highschool :results none
+for start, end in friendship_graph.edges:
+    friendship_graph[start][end]["in_weight"] = friendship_graph.in_degree[end]
+    friendship_graph[start][end]["out_weight"] = friendship_graph.out_degree[start]
+    friendship_graph[start][end]["weight"] = friendship_graph.in_degree[end]
+#+END_SRC
+*** Popularity
 #+begin_src ipython :session highschool :results output raw :exports both
 plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout)
 plot = plot.opts(
-    node_color=dim("gender"), cmap="Set1",
+    node_color=dim("In-Degree"), cmap="Plasma",
     tools=["hover"],
     width=800,
     height=800,
-#    edge_line_color="In-Degree",
-    edge_cmap="viridis",
-#    edge_line_width=holoviews.dim("In-Degree"),
-    title="Friendship Network In-Degrees By Gender",
+    edge_color_index="In-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In-Degree",
     xaxis=None, yaxis=None, directed=True)
-Embed(plot=plot, file_name="friendship_network_in_degree_gender_spring", height_in_pixels=810)()
+Embed(plot=plot, file_name="friendship_network_in_degree_spring", height_in_pixels=810)()
 #+end_src
 
 #+RESULTS:
 #+begin_export html
-<object type="text/html" data="friendship_network_in_degree_gender_spring.html" style="width:100%" height=810>
+<object type="text/html" data="friendship_network_in_degree_spring.html" style="width:100%" height=810>
   <p>Figure Missing</p>
 </object>
 #+end_export
+
+The color of the nodes is related to the number of in-degrees it has (which represents the number of other students that stated a node was their friend). If it is dark purple than there are fewer in-degrees. If it is yellow than there are many in-degrees. So the yellow nodes are popular and the dark purple nodes not so much.
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout))
+plot = plot.opts(
+    node_color=dim("In-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="In-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_degree_bundled_spring", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_in_degree_bundled_spring.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.circular_layout)
+plot = plot.opts(
+    node_color=dim("In-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="In-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_degree_circular", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_in_degree_circular.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.circular_layout))
+plot = plot.opts(
+    node_color=dim("In-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="In-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_degree_bundled_circular", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_in_degree_bundled_circular.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout))
+plot = plot.opts(
+    node_color=dim("In-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="In-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In-Degree (Kamada-Kawai)",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_degree_bundled_kamada_kawai", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_in_degree_bundled_kamada_kawai.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+*** Gregariousness
+    The out-degree is the number of times a student identified other students as friends. I'll interpret this as gregariousness (or maybe neediness).
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout)
+plot = plot.opts(
+    node_color=dim("Out-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network Out-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_out_degree_spring", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_out_degree_spring.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+The color of the nodes is related to the number of out-degrees it has (which represents the number of students that a stated node identified as their friend). If it is dark purple than there are fewer out-degrees (loners?). If it is yellow than there are many out-degrees (the consider many to be their friends).
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout))
+plot = plot.opts(
+    node_color=dim("Out-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network Out-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_out_degree_bundled_spring", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_out_degree_bundled_spring.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.circular_layout)
+plot = plot.opts(
+    node_color=dim("Out-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_alpha=0.25,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network Out-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_out_degree_circular", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_out_degree_circular.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.circular_layout))
+plot = plot.opts(
+    node_color=dim("Out-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network Out-Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_out_degree_bundled_circular", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_out_degree_bundled_circular.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout))
+plot = plot.opts(
+    node_color=dim("Out-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network Out-Degree (Kamada-Kawai)",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_out_degree_bundled_kamada_kawai", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_out_degree_bundled_kamada_kawai.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout)
+plot = plot.opts(
+    node_color=dim("Out-Degree"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network Out-Degree (Kamada-Kawai)",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_out_degree_unbundled_kamada_kawai", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_out_degree_unbundled_kamada_kawai.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+*** Perception
+    The /In Degree - Out Degree/ tells us how a student's perception of how many friends she has compares to how many people really think she's their friend. If it's negative than she thinks she has more friends than she has (delusional? optimistic?) and if it's positive than she has more friends than she thinks she does (modest? low self-esteem?).
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout)
+plot = plot.opts(
+    node_color=dim("In-Out"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In Degree - Out Degree",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_minus_out_spring", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_in_minus_out_spring.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+The dark-purple nodes have the most out-degrees compared to their in-degrees and the yellow-nodes have the most in-degrees compared to out-degrees.
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout)
+plot = plot.opts(
+    node_color=dim("In-Out"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    edge_color_index="Out-Degree",
+    edge_cmap="Spectral",
+    title="Friendship Network In Minus Out (Kamada-Kawai)",
+    xaxis=None, yaxis=None, directed=True)
+Embed(plot=plot, file_name="friendship_network_in_minus_out_kamada_kawac", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_in_minus_out_kamada_kawac.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+
 
 * The Return
 ** Citations
