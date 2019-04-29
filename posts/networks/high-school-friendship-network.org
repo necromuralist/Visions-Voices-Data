@@ -33,6 +33,7 @@ import os
 from bokeh.models import HoverTool, TapTool
 from dotenv import load_dotenv
 from holoviews import dim, opts
+from holoviews.operation.datashader import bundle_graph
 import holoviews
 import hvplot.pandas
 import networkx
@@ -104,7 +105,7 @@ with metadata_path.open() as reader:
 : 857	2BIO1	F
 : 487	2BIO1	F
 
-This file has the meta-data for the students. The three columns are the student's ID, class, and gender. I don't know what /class/ refers to here.
+This file has the meta-data for the students. The three columns are the student's ID, class, and gender. I don't know what /class/ refers to here. From an American perspective this could mean a particular subject, e.g. /Biology 101/, or it could mean the number of years that the student has been in attendance, e.g. /Freshman/. The names suggest that they are subject related, but I don't know this for certain.
 
 #+begin_src ipython :session highschool :results none
 meta_data = pandas.read_csv(metadata_path, sep="\t", 
@@ -287,9 +288,9 @@ with TIMER:
 #+end_src
 
 #+RESULTS:
-: Started: 2019-04-23 12:40:50.512175
-: Ended: 2019-04-23 12:40:50.514294
-: Elapsed: 0:00:00.002119
+: Started: 2019-04-27 14:54:08.806495
+: Ended: 2019-04-27 14:54:08.807767
+: Elapsed: 0:00:00.001272
 #+begin_src ipython :session highschool :results none
 genders = dict(zip(meta_data.id, meta_data.gender))
 classes = dict(zip(meta_data.id, meta_data["class"]))
@@ -306,13 +307,14 @@ for node in friendship_graph.nodes:
 #+begin_src ipython :session highschool :results output raw :exports both
 hover = HoverTool(
     tooltips = [
-         ("Gender", "@gender"),
-         ("Class", "@class"),
+        ("Student Number", "@index"),
+        ("Gender", "@gender"),
+        ("Class", "@class"),
     ],
 )
 
 plot = holoviews.Graph.from_networkx(friendship_graph,
-                                     networkx.circular_layout).redim.range(**Plot.padding).opts(
+                                     networkx.circular_layout).redim.range(**Plot.padding).options(
                                          node_color=dim("gender"), cmap="Set1",
                                          tools=[hover, TapTool()],
                                          fontsize=Plot.fontsize,
@@ -333,7 +335,24 @@ Embed(plot=plot, file_name="friendship_network_circular")()
 </object>
 #+end_export
 
-It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others. The red nodes are male, the green nodes are female, and the blue is "unknown".
+It's a little hard to see what's going on here, other than to note that you can see some people are more popular than others. The red nodes are male, the green nodes are female, and the blue is "unknown". Strangely, when I did the distributions earlier there were seven "unknown" but there's only one here...
+
+#+begin_src ipython :session highschool :results output :exports both
+print(meta_data[meta_data.gender=="Unknown"])
+#+end_src
+
+#+RESULTS:
+:       id  class   gender
+: 320   34     MP  Unknown
+: 321   41     MP  Unknown
+: 322  243     MP  Unknown
+: 323  420     MP  Unknown
+: 324   58    PC*  Unknown
+: 325  209    PC*  Unknown
+: 326  979  2BIO2  Unknown
+
+There are seven id's, so there are really are seven unknowns, but for some reason the circle graph doesn't expose any other than the first (student 34).
+
 **** By Class
 #+begin_src ipython :session highschool :results output raw :exports both
 hover = HoverTool(
@@ -364,6 +383,8 @@ Embed(plot=plot, file_name="friendship_network_circular_class")()
 #+end_export
 
 [[file:friendship_network_circular_class.html][Link to Plot]]
+
+Unfortunately there's a [[https://github.com/pyviz/holoviews/issues/3509][bug]] in HoloViews so I can't show a legend with Graphs, but I suppose since I don't know what the classes are, that doesn't really mean anything here.
 *** Spring Layout
 **** Class
 #+begin_src ipython :session highschool :results output raw :exports both
@@ -440,7 +461,7 @@ Embed(plot=plot, file_name="friendship_network_class_kawada_kamai", height_in_pi
 
 [[file:friendship_network_class_spring.html][Link to Plot]]
 
-This has more space between the nodes so it's a little easier to see the groups.
+This has more space between the nodes so it's a little easier to see the groups. Strangely, there's no isolated neighborhoods the way there is with the spring layout.
 
 **** Gender
 #+begin_src ipython :session highschool :results output raw :exports both
@@ -593,7 +614,7 @@ plot = plot.opts(
     edge_color_index="In-Degree",
     edge_cmap="Spectral",
     title="Friendship Network In-Degree",
-    xaxis=None, yaxis=None, directed=True)
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_in_degree_spring", height_in_pixels=810)()
 #+end_src
 
@@ -604,7 +625,7 @@ Embed(plot=plot, file_name="friendship_network_in_degree_spring", height_in_pixe
 </object>
 #+end_export
 
-The color of the nodes is related to the number of in-degrees it has (which represents the number of other students that stated a node was their friend). If it is dark purple than there are fewer in-degrees. If it is yellow than there are many in-degrees. So the yellow nodes are popular and the dark purple nodes not so much.
+The color of the nodes is related to the number of in-degrees it has (which represents the number of other students that stated a node was their friend). If it is dark purple then there are fewer in-degrees. If it is yellow than there are many in-degrees. So the yellow nodes are popular and the dark purple nodes not so much.
 
 #+begin_src ipython :session highschool :results output raw :exports both
 plot = bundle_graph(holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout))
@@ -616,7 +637,7 @@ plot = plot.opts(
     edge_color_index="In-Degree",
     edge_cmap="Spectral",
     title="Friendship Network In-Degree",
-    xaxis=None, yaxis=None, directed=True)
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_in_degree_bundled_spring", height_in_pixels=810)()
 #+end_src
 
@@ -638,7 +659,7 @@ plot = plot.opts(
     edge_color_index="In-Degree",
     edge_cmap="Spectral",
     title="Friendship Network In-Degree",
-    xaxis=None, yaxis=None, directed=True)
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_in_degree_circular", height_in_pixels=810)()
 #+end_src
 
@@ -659,7 +680,7 @@ plot = plot.opts(
     edge_color_index="In-Degree",
     edge_cmap="Spectral",
     title="Friendship Network In-Degree",
-    xaxis=None, yaxis=None, directed=True)
+    directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_in_degree_bundled_circular", height_in_pixels=810)()
 #+end_src
 
@@ -868,8 +889,6 @@ Embed(plot=plot, file_name="friendship_network_in_minus_out_kamada_kawac", heigh
   <p>Figure Missing</p>
 </object>
 #+end_export
-
-
 
 * The Return
 ** Citations
