@@ -18,7 +18,7 @@
 %autoreload 2
 #+END_SRC
 * The Departure
-  This looks at data provided by [[http://www.sociopatterns.org][SocioPatterns]] that looks a the interactions between students at a High School in Marseilles, France, in December of 2013. In particular, I'm going to look at the /Friendship Networks/ data - wherein the students reported who they were friends with.
+  This looks at data provided by [[http://www.sociopatterns.org][SocioPatterns]] that looks a the interactions between students at a High School in Marseilles, France, during the month of December in 2013. In particular, I'm going to look at the /Friendship Networks/ data - wherein the students reported who they were friends with.
 *** Imports
 **** From Python
 #+begin_src ipython :session highschool :results none
@@ -277,7 +277,6 @@ friendship_data = pandas.read_csv(friendship_path, delimiter=" ",
                                   names=["reporter", "friend"])
 friendship_data = friendship_data.dropna()
 #+end_src
-
 ** Looking at the Friendship Network
 
 #+begin_src ipython :session highschool :results output :exports both
@@ -288,9 +287,9 @@ with TIMER:
 #+end_src
 
 #+RESULTS:
-: Started: 2019-04-27 14:54:08.806495
-: Ended: 2019-04-27 14:54:08.807767
-: Elapsed: 0:00:00.001272
+: Started: 2019-04-29 12:04:26.556414
+: Ended: 2019-04-29 12:04:26.558285
+: Elapsed: 0:00:00.001871
 #+begin_src ipython :session highschool :results none
 genders = dict(zip(meta_data.id, meta_data.gender))
 classes = dict(zip(meta_data.id, meta_data["class"]))
@@ -351,8 +350,29 @@ print(meta_data[meta_data.gender=="Unknown"])
 : 325  209    PC*  Unknown
 : 326  979  2BIO2  Unknown
 
-There are seven id's, so there are really are seven unknowns, but for some reason the circle graph doesn't expose any other than the first (student 34).
+There are seven id's, so there are really are seven unknowns, but for some reason the circle graph doesn't expose any other than the first (student 34). Maybe not all the students are in the data?
+#+begin_src ipython :session highschool :results output :exports both
+students = set(meta_data.id.unique())
+reporters = set(friendship_data.reporter.unique())
+print(f"Number of students in the meta-data: {len(students)}")
+print(f"Number of students who reported who their friends were: {len(reporters)}")
+#+end_src
 
+#+RESULTS:
+: Number of students in the meta-data: 329
+: Number of students who reported who their friends were: 133
+
+So, it looks like not everyone took part in the survey.
+
+#+begin_src ipython :session highschool :results output :exports both
+reported = set(friendship_data.friend.unique())
+print(f"Students not in graph: {len(students - (reporters & reported))}")
+#+end_src
+
+#+RESULTS:
+: Students not in graph: 199
+
+Okay, so not all the students are part of the study.
 **** By Class
 #+begin_src ipython :session highschool :results output raw :exports both
 hover = HoverTool(
@@ -485,7 +505,6 @@ Embed(plot=plot, file_name="friendship_network_gender_kamada_kawai", height_in_p
 
 [[file:friendship_network_gender_spring.html][Link to Plot]]
 
-
 ** Degree Distribution
 *** Total Degrees
 #+begin_src ipython :session highschool :results none
@@ -512,6 +531,8 @@ Embed(plot=plot, file_name="degree_distribution")()
   <p>Figure Missing</p>
 </object>
 #+end_export
+
+The /Total Degrees/ for a node is the number of edges attached to it (either coming in or going out).
 *** In-Degree Distribution
 #+begin_src ipython :session highschool :results output raw :exports both
 in_degree_sequence = sorted((degree for node, degree in friendship_graph.in_degree))
@@ -590,12 +611,16 @@ Embed(plot=plot, file_name="in_and_out_degree_distribution")()
 </object>
 #+end_export
 
+Despite the fact that I sorted the data by degrees, the actual plot seems to have also sort it by degrees but treating them as strings instead of integers. I'm going to add the in-degree, out-degree and in-degree - out-degree (in minus out) as data for the nodes so that they'll be available in the plots.
+
 #+begin_src ipython :session highschool :results none
 for node in friendship_graph.nodes:
     friendship_graph.nodes[node]["In-Degree"] = friendship_graph.in_degree[node]
     friendship_graph.nodes[node]["Out-Degree"] = friendship_graph.out_degree[node]
     friendship_graph.nodes[node]["In-Out"] = friendship_graph.in_degree[node] - friendship_graph.out_degree[node]
 #+end_src
+
+Bokeh seemed to indicate that you could set the thickness of the edges using weights, but this doesn't seem to work, HoloViews appears to have changed something and I couldn't figure out how to make it work.
 
 #+BEGIN_SRC ipython :session highschool :results none
 for start, end in friendship_graph.edges:
