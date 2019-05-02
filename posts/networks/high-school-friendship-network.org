@@ -323,7 +323,7 @@ plot = holoviews.Graph.from_networkx(friendship_graph,
                                          title="Friendship Network by Gender",
                                          xaxis=None,
                                          yaxis=None,
-                                         directed=True)
+                                         directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_circular")()
 #+end_src
 
@@ -726,7 +726,7 @@ plot = plot.opts(
     edge_color_index="In-Degree",
     edge_cmap="Spectral",
     title="Friendship Network In-Degree (Kamada-Kawai)",
-    xaxis=None, yaxis=None, directed=True)
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_in_degree_bundled_kamada_kawai", height_in_pixels=810)()
 #+end_src
 
@@ -749,7 +749,7 @@ plot = plot.opts(
     edge_color_index="Out-Degree",
     edge_cmap="Spectral",
     title="Friendship Network Out-Degree",
-    xaxis=None, yaxis=None, directed=True)
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_out_degree_spring", height_in_pixels=810)()
 #+end_src
 
@@ -772,7 +772,7 @@ plot = plot.opts(
     edge_color_index="Out-Degree",
     edge_cmap="Spectral",
     title="Friendship Network Out-Degree",
-    xaxis=None, yaxis=None, directed=True)
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_out_degree_bundled_spring", height_in_pixels=810)()
 #+end_src
 
@@ -794,7 +794,7 @@ plot = plot.opts(
     edge_color_index="Out-Degree",
     edge_cmap="Spectral",
     title="Friendship Network Out-Degree",
-    xaxis=None, yaxis=None, directed=True)
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_out_degree_circular", height_in_pixels=810)()
 #+end_src
 
@@ -815,7 +815,7 @@ plot = plot.opts(
     edge_color_index="Out-Degree",
     edge_cmap="Spectral",
     title="Friendship Network Out-Degree",
-    xaxis=None, yaxis=None, directed=True)
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_out_degree_bundled_circular", height_in_pixels=810)()
 #+end_src
 
@@ -836,7 +836,7 @@ plot = plot.opts(
     edge_color_index="Out-Degree",
     edge_cmap="Spectral",
     title="Friendship Network Out-Degree (Kamada-Kawai)",
-    xaxis=None, yaxis=None, directed=True)
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_out_degree_bundled_kamada_kawai", height_in_pixels=810)()
 #+end_src
 
@@ -857,7 +857,7 @@ plot = plot.opts(
     edge_color_index="Out-Degree",
     edge_cmap="Spectral",
     title="Friendship Network Out-Degree (Kamada-Kawai)",
-    xaxis=None, yaxis=None, directed=True)
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_out_degree_unbundled_kamada_kawai", height_in_pixels=810)()
 #+end_src
 
@@ -881,7 +881,7 @@ plot = plot.opts(
     edge_color_index="Out-Degree",
     edge_cmap="Spectral",
     title="Friendship Network In Degree - Out Degree",
-    xaxis=None, yaxis=None, directed=True)
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_in_minus_out_spring", height_in_pixels=810)()
 #+end_src
 
@@ -904,7 +904,7 @@ plot = plot.opts(
     edge_color_index="Out-Degree",
     edge_cmap="Spectral",
     title="Friendship Network In Minus Out (Kamada-Kawai)",
-    xaxis=None, yaxis=None, directed=True)
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
 Embed(plot=plot, file_name="friendship_network_in_minus_out_kamada_kawac", height_in_pixels=810)()
 #+end_src
 
@@ -914,6 +914,58 @@ Embed(plot=plot, file_name="friendship_network_in_minus_out_kamada_kawac", heigh
   <p>Figure Missing</p>
 </object>
 #+end_export
+*** In and Out Groups
+    I'll add another synthetic metric - this time I'm going to color the nodes based on the total degree plus the in-degree minus the out-degree. If a student says they have more friends than was indicated by the other students this will reduce the degree and if they say they have fewer then this will make the degree higher.
+
+#+begin_src ipython :session highschool :results none
+for node in friendship_graph.nodes:
+    friendship_graph.nodes[node]["In+Out"] = (
+        friendship_graph.degree[node] + (
+            friendship_graph.in_degree[node] 
+            - friendship_graph.out_degree[node]))
+#+end_src
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.kamada_kawai_layout)
+plot = plot.opts(
+    node_color=dim("In+Out"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    title="Friendship Network Degrees + (In - Out) (Kamada-Kawai)",
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
+Embed(plot=plot, file_name="friendship_network_degrees_plus_in_minus_out_kamada_kawai", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_degrees_plus_in_minus_out_kamada_kawai.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+
+The more yellow a node is, the higher the total degree (minus the over-counting of friends), indicating a larger friendship network, and the bluer the node is, the lower the total degree indicating fewer friends.
+
+#+begin_src ipython :session highschool :results output raw :exports both
+plot = holoviews.Graph.from_networkx(friendship_graph, networkx.spring_layout)
+plot = plot.opts(
+    node_color=dim("In+Out"), cmap="Plasma",
+    tools=["hover"],
+    width=800,
+    height=800,
+    title="Friendship Network Degrees + (In - Out) (Spring Layout)",
+    xaxis=None, yaxis=None, directed=True).redim.range(**Plot.padding)
+Embed(plot=plot, file_name="friendship_network_degrees_plus_in_minus_out_spring", height_in_pixels=810)()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="friendship_network_degrees_plus_in_minus_out_spring.html" style="width:100%" height=810>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
 
 * The Return
 ** Citations
