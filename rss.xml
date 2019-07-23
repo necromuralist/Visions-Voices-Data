@@ -1,26 +1,274 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2019 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Mon, 13 May 2019 09:07:18 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>The Origin of Bayes Theorem</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2019 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Mon, 22 Jul 2019 21:30:33 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>A Mouse Follower</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-mouse-follower/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/#org2ffff4c"&gt;A Brief Sketch of The Timelines to Bayes' Theorem&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/#org37313d1"&gt;The Equations&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-mouse-follower/#org1b9f699"&gt;Beginning&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-mouse-follower/#org779be40"&gt;Middle&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-mouse-follower/#orgd863619"&gt;End&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org1b9f699" class="outline-2"&gt;
+&lt;h2 id="org1b9f699"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org1b9f699"&gt;
+&lt;p&gt;
+Instead of a random walker this walker will be attracted (somewhat) to the mouse cursor.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org779be40" class="outline-2"&gt;
+&lt;h2 id="org779be40"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org779be40"&gt;
+&lt;script language="javascript" type="text/javascript" src="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-mouse-follower/follower.js"&gt;&lt;/script&gt;
+&lt;div id="mouse-follower"&gt;
+&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;let parent_div_id = "mouse-follower";
+
+let mouse_follower_sketch = function(p) {
+    p.setup = function() {
+	this.canvas = p.createCanvas($("#" + parent_div_id).outerWidth(true), 800);
+	p.walker = new MouseWalker(p);
+    }
+
+    p.draw = function() {
+	p.background(255);
+	p.walker.walk();
+	p.walker.display();
+    }
+};
+
+function MouseWalker(p) {
+    this.position = p.createVector(p.width/2, p.height/2);
+    this.velocity = p.createVector(0, 0)
+
+    this.walk = function() {
+	mouse = p.createVector(p.mouseX, p.mouseY);
+	// calling sub on the vectors does an in-place update
+	// using p5.Vector.sub creates a new vector
+	// This is a static method so we use the module (p5) not the instance (p)
+	acceleration = mouse.sub(this.position);
+
+	// setMag always produces the same magnitude (but the orientation stays the same)
+	acceleration.setMag(0.1);
+	this.velocity = this.velocity.add(acceleration)
+	this.position = this.position.add(this.velocity)
+  }
+
+  this.display = function() {
+      p.stroke(0);
+      p.noFill();
+      p.background(255, 255, 255, 25);
+      p.ellipse(this.position.x, this.position.y, 48, 48);
+  }
+}
+
+sketch_container = new p5(mouse_follower_sketch, parent_div_id);
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgd863619" class="outline-2"&gt;
+&lt;h2 id="orgd863619"&gt;End&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgd863619"&gt;
+&lt;ol class="org-ol"&gt;
+&lt;li&gt;Shiffman D. &lt;a href="https://natureofcode.com/"&gt;The nature of code&lt;/a&gt;: simulating natural systems with processing. Version 1.0, generated December 6, 2012. s.l.: Selbstverl.; 2012. 498 p.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>p5.js</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-mouse-follower/</guid><pubDate>Sun, 21 Jul 2019 23:03:37 GMT</pubDate></item><item><title>A Random Accelerator</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-accelerator/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/#org10aff08"&gt;Bayes' Formulation&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/#orgee6afa6"&gt;Laplace's First Version&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/#org19fb7e8"&gt;Laplace's Final Version&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-accelerator/#org345f6ab"&gt;Beginning&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-accelerator/#org48ab9b2"&gt;Middle&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-accelerator/#org1c3623a"&gt;End&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org345f6ab" class="outline-2"&gt;
+&lt;h2 id="org345f6ab"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org345f6ab"&gt;
+&lt;p&gt;
+This is an extension of the random walker with acceleration added.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org48ab9b2" class="outline-2"&gt;
+&lt;h2 id="org48ab9b2"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org48ab9b2"&gt;
+&lt;script language="javascript" type="text/javascript" src="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-accelerator/walker.js"&gt;&lt;/script&gt;
+&lt;div id="random-accelerator"&gt;
+&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;let random_accelerator_sketch = function(p) {
+    p.setup = function() {
+	let parent_div_id = "random-accelerator";
+	this.canvas = p.createCanvas($("#" + parent_div_id).outerWidth(true), 800);
+	this.canvas.parent(parent_div_id);
+	p.walker = new Walker(p);
+    }
+
+    p.draw = function() {
+	p.background(255);
+	p.walker.walk();
+	p.walker.display();
+    }
+};
+
+function Walker(p) {
+    this.position = p.createVector(p.width/2, p.height/2);
+    this.velocity = p.createVector(0, 0)
+
+    this.walk = function() {
+	acceleration = p.createVector(p.random(-1, 1), p.random(-1, 1));
+	acceleration = acceleration.mult(0.1)
+	this.velocity = this.velocity.add(acceleration)
+	this.position = this.position.add(this.velocity)
+  }
+
+  this.display = function() {
+      p.stroke(0);
+      p.noFill();
+      p.background(255, 255, 255, 25);
+      p.ellipse(this.position.x, this.position.y, 48, 48);
+  }
+}
+
+sketch_container = new p5(random_accelerator_sketch, 'random-accelerator');
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org1c3623a" class="outline-2"&gt;
+&lt;h2 id="org1c3623a"&gt;End&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org1c3623a"&gt;
+&lt;p&gt;
+This was a very rudimentary walker, the main point of it was that at this point we have the basic kinematic elements to make something following the rules of classical physics (more or less).
+&lt;/p&gt;
+
+&lt;ol class="org-ol"&gt;
+&lt;li&gt;Shiffman D. &lt;a href="https://natureofcode.com/"&gt;The nature of code&lt;/a&gt;: simulating natural systems with processing. Version 1.0, generated December 6, 2012. s.l.: Selbstverl.; 2012. 498 p.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>p5.js</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-accelerator/</guid><pubDate>Sun, 21 Jul 2019 22:14:42 GMT</pubDate></item><item><title>A Random Walk(er)</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-walker/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-walker/#org0e33bfe"&gt;Beginning&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-walker/#org782c2b1"&gt;Middle&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-walker/#org8821ffb"&gt;A Div to Locate the Sketch&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-walker/#org7d5d788"&gt;The Javascript&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/#org9ca7d49"&gt;Sources&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-walker/#orgc096d32"&gt;End&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org0e33bfe" class="outline-2"&gt;
+&lt;h2 id="org0e33bfe"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org0e33bfe"&gt;
+&lt;p&gt;
+This is another post to see if I understand how to get &lt;a href="https://p5js.org/"&gt;p5.js&lt;/a&gt; working in nikola. It's been a while since I tried and I just want to see if I remember how. This uses the random walk example from Daniel Schiffman's book &lt;i&gt;the Nature of Code&lt;/i&gt;.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org782c2b1" class="outline-2"&gt;
+&lt;h2 id="org782c2b1"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org782c2b1"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org8821ffb" class="outline-3"&gt;
+&lt;h3 id="org8821ffb"&gt;A Div to Locate the Sketch&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org8821ffb"&gt;
+&lt;p&gt;
+The id of this div is set in the &lt;code&gt;p5.js&lt;/code&gt; &lt;code&gt;setup&lt;/code&gt; function as the parent of the sketch.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;lt;script language="javascript" type="text/javascript" src="walker.js"&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;div id="random-walk-container"&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;script language="javascript" type="text/javascript" src="https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-walker/walker.js"&gt;&lt;/script&gt;
+&lt;div id="random-walk-container"&gt;
+&lt;/div&gt;
+
+&lt;p&gt;
+&lt;b&gt;Note:&lt;/b&gt; Originally this wasn't working, because I had the line to include the javascript inside the &lt;code&gt;div&lt;/code&gt; to hold the canvas. Make sure that &lt;code&gt;div&lt;/code&gt; is always empty.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org7d5d788" class="outline-3"&gt;
+&lt;h3 id="org7d5d788"&gt;The Javascript&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org7d5d788"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;let sketch = function(p) {
+    p.setup = function() {
+	let parent_div_id = "random-walk-container";
+	this.canvas = p.createCanvas($("#" + parent_div_id).outerWidth(true), 300);
+	this.canvas.parent();
+	p.walker = new Walker(p);
+    }
+
+    p.draw = function() {
+	p.background(255);
+	p.walker.walk();
+	p.walker.display();
+    }
+};
+
+function Walker(p) {
+  this.x = p.width/2;
+  this.y = p.height/2;
+
+  this.walk = function() {
+    this.x = this.x + p.random(-1, 1) * 10;
+    this.y = this.y + p.random(-1, 1) * 10;
+  }
+
+  this.display = function() {
+    p.fill(0);
+    p.ellipse(this.x, this.y, 48, 48);
+  }
+}
+
+//let node = document.getElementById("random-walk")
+//window.document.getElementsByTagName("body")[0].appendChild(node);
+sketch_container = new p5(sketch, 'random-walk-container');
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgc096d32" class="outline-2"&gt;
+&lt;h2 id="orgc096d32"&gt;End&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgc096d32"&gt;
+&lt;p&gt;
+As always, this was way harder than it should have been.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>javascript</category><category>p5.js</category><category>processing</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/nature-of-code/a-random-walker/</guid><pubDate>Sun, 21 Jul 2019 19:29:09 GMT</pubDate></item><item><title>The Origin of Bayes Theorem</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/#org3510a30"&gt;A Brief Sketch of The Timelines to Bayes' Theorem&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/#org9b573cc"&gt;The Equations&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/#orgc8a5c0e"&gt;Bayes' Formulation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/#org6d661d8"&gt;Laplace's First Version&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/#org5ed47bd"&gt;Laplace's Final Version&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/notes/the-origin-of-bayes-theorem/#org457e64d"&gt;Sources&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;p&gt;
 I'm reading "The theory that would not die" and these are notes I took from them. The book didn't really give me a clear idea about what Price's argument was so I also read a &lt;a href="https://qz.com/1315731/the-most-important-formula-in-data-science-was-first-used-to-prove-the-existence-of-god/"&gt;Quartz&lt;/a&gt; article about that part of the story and, of course, Wikipedia came into it at some points.
 &lt;/p&gt;
-&lt;div id="outline-container-org2ffff4c" class="outline-2"&gt;
-&lt;h2 id="org2ffff4c"&gt;A Brief Sketch of The Timelines to Bayes' Theorem&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org2ffff4c"&gt;
+&lt;div id="outline-container-org3510a30" class="outline-2"&gt;
+&lt;h2 id="org3510a30"&gt;A Brief Sketch of The Timelines to Bayes' Theorem&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org3510a30"&gt;
 &lt;ul class="org-ul"&gt;
 &lt;li&gt;1718: &lt;a href="https://www.wikiwand.com/en/Abraham_de_Moivre"&gt;Abraham de Moivre&lt;/a&gt; publishes &lt;a href="https://www.wikiwand.com/en/The_Doctrine_of_Chances"&gt;The Doctrine of Chances&lt;/a&gt;, the first textbook on probability.&lt;/li&gt;
 &lt;li&gt;1746-1749: Somewhere in this period &lt;a href="https://www.wikiwand.com/en/Thomas_Bayes"&gt;Thomas Bayes&lt;/a&gt; comes writes &lt;a href="https://www.wikiwand.com/en/An_Essay_towards_solving_a_Problem_in_the_Doctrine_of_Chances"&gt;An Essay towards solving a Problem in the Doctrine of the Chances&lt;/a&gt; which describes elements of Inverse Probability, in which the probability of a cause is calculated based on observed effects, stated as a thought experiment in which a person turned away from a table estimates the position of a ball based on being told whether subsequent balls randomly dropped on the same table are to the left or the right of it.&lt;/li&gt;
@@ -35,16 +283,16 @@ I'm reading "The theory that would not die" and these are notes I took from them
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org37313d1" class="outline-2"&gt;
-&lt;h2 id="org37313d1"&gt;The Equations&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org37313d1"&gt;
+&lt;div id="outline-container-org9b573cc" class="outline-2"&gt;
+&lt;h2 id="org9b573cc"&gt;The Equations&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org9b573cc"&gt;
 &lt;p&gt;
 Since it's hard to write out the equations in bullet points I'm going to write some simple versions here.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org10aff08" class="outline-3"&gt;
-&lt;h3 id="org10aff08"&gt;Bayes' Formulation&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org10aff08"&gt;
+&lt;div id="outline-container-orgc8a5c0e" class="outline-3"&gt;
+&lt;h3 id="orgc8a5c0e"&gt;Bayes' Formulation&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgc8a5c0e"&gt;
 &lt;p&gt;
 "The theory that would not die" notes that Bayes' didn't write out an equation, but it can be written out something like this.
 \[
@@ -53,9 +301,9 @@ P(\textit{cause}|\textit{effect}) = \frac{P(\textit{effect}|\textit{cause}) P(\t
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgee6afa6" class="outline-3"&gt;
-&lt;h3 id="orgee6afa6"&gt;Laplace's First Version&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgee6afa6"&gt;
+&lt;div id="outline-container-org6d661d8" class="outline-3"&gt;
+&lt;h3 id="org6d661d8"&gt;Laplace's First Version&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org6d661d8"&gt;
 &lt;p&gt;
 Originally Laplace didn't have the prior's in his equation (I'll substitute &lt;i&gt;C&lt;/i&gt; for &lt;i&gt;cause&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt; for &lt;i&gt;effect&lt;/i&gt; and &lt;i&gt;C'&lt;/i&gt; for not our theorized cause).
 \[
@@ -64,9 +312,9 @@ P(C|E) = \frac{P(E|C)}{\sum P(E|C')}
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org19fb7e8" class="outline-3"&gt;
-&lt;h3 id="org19fb7e8"&gt;Laplace's Final Version&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org19fb7e8"&gt;
+&lt;div id="outline-container-org5ed47bd" class="outline-3"&gt;
+&lt;h3 id="org5ed47bd"&gt;Laplace's Final Version&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org5ed47bd"&gt;
 &lt;p&gt;
 \[
 P(C|E) = \frac{P(E|C)P_{\textit{prior}}(C)}{\sum P(E|C') P_{\textit{prior}} (C')}
@@ -75,9 +323,9 @@ P(C|E) = \frac{P(E|C)P_{\textit{prior}}(C)}{\sum P(E|C') P_{\textit{prior}} (C')
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org9ca7d49" class="outline-2"&gt;
-&lt;h2 id="org9ca7d49"&gt;Sources&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org9ca7d49"&gt;
+&lt;div id="outline-container-org457e64d" class="outline-2"&gt;
+&lt;h2 id="org457e64d"&gt;Sources&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org457e64d"&gt;
 &lt;ol class="org-ol"&gt;
 &lt;li&gt;McGrayne SB. The theory that would not die: how Bayes’ rule cracked the enigma code, hunted down Russian submarines, and emerged triumphant from two centuries of controversy. paperback ed. New Haven, Conn.: Yale University Press; 2011. 336 p.&lt;/li&gt;
 
@@ -88,29 +336,29 @@ P(C|E) = \frac{P(E|C)P_{\textit{prior}}(C)}{\sum P(E|C') P_{\textit{prior}} (C')
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org1b898cf"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org74a2156"&gt;Part 1 - Random Graph Identification&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org33dbd99"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#orgdff7cf6"&gt;Part 1 - Random Graph Identification&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#orgc3de31c"&gt;Load the data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#orged95f0b"&gt;Graph Identification&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org643548a"&gt;Load the data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org0f77442"&gt;Graph Identification&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#orgc875065"&gt;Part 2 - Company Emails&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org3883dcc"&gt;Part 2 - Company Emails&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org6e75e0f"&gt;Part 2A - Salary Prediction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org55cad8d"&gt;Part 2B - New Connections Prediction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#orgb3ef176"&gt;Separate the Target and Training Sets&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#orgad08b9a"&gt;Scaling the Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org8ac5901"&gt;Feature Selection&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org7e40ad3"&gt;Part 2A - Salary Prediction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org759157e"&gt;Part 2B - New Connections Prediction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org974d867"&gt;Separate the Target and Training Sets&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#org61bd2bb"&gt;Scaling the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/looking-at-random-graphs/#orgb71a6eb"&gt;Feature Selection&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org1b898cf" class="outline-2"&gt;
-&lt;h2 id="org1b898cf"&gt;Imports&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org1b898cf"&gt;
+&lt;div id="outline-container-org33dbd99" class="outline-2"&gt;
+&lt;h2 id="org33dbd99"&gt;Imports&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org33dbd99"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# python standard library
 import os
 import pickle
@@ -142,17 +390,17 @@ from sklearn.model_selection import (
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org74a2156" class="outline-2"&gt;
-&lt;h2 id="org74a2156"&gt;Part 1 - Random Graph Identification&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org74a2156"&gt;
+&lt;div id="outline-container-orgdff7cf6" class="outline-2"&gt;
+&lt;h2 id="orgdff7cf6"&gt;Part 1 - Random Graph Identification&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgdff7cf6"&gt;
 &lt;p&gt;
 For the first part of this assignment you will analyze randomly generated graphs and determine which algorithm created them.
 &lt;/p&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgc3de31c" class="outline-3"&gt;
-&lt;h3 id="orgc3de31c"&gt;Load the data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgc3de31c"&gt;
+&lt;div id="outline-container-org643548a" class="outline-3"&gt;
+&lt;h3 id="org643548a"&gt;Load the data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org643548a"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;part_one_graphs = pickle.load(open('A4_graphs','rb'))
 print(len(part_one_graphs))
 print(type(part_one_graphs[0]))
@@ -178,9 +426,9 @@ Analyze each of the 5 graphs and determine which of the three algorithms generat
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orged95f0b" class="outline-3"&gt;
-&lt;h3 id="orged95f0b"&gt;Graph Identification&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orged95f0b"&gt;
+&lt;div id="outline-container-org0f77442" class="outline-3"&gt;
+&lt;h3 id="org0f77442"&gt;Graph Identification&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org0f77442"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def graph_identification():
     """Identifies the type of graph each of the graphs is
 
@@ -211,9 +459,9 @@ This was marked wrong by the grader.
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgc875065" class="outline-2"&gt;
-&lt;h2 id="orgc875065"&gt;Part 2 - Company Emails&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgc875065"&gt;
+&lt;div id="outline-container-org3883dcc" class="outline-2"&gt;
+&lt;h2 id="org3883dcc"&gt;Part 2 - Company Emails&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org3883dcc"&gt;
 &lt;p&gt;
 For the second part of this assignment you will be working with a company's email network where each node corresponds to a person at the company, and each edge indicates that at least one email has been sent between two people.
 &lt;/p&gt;
@@ -231,9 +479,9 @@ print(networkx.info(email))
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org6e75e0f" class="outline-3"&gt;
-&lt;h3 id="org6e75e0f"&gt;Part 2A - Salary Prediction&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org6e75e0f"&gt;
+&lt;div id="outline-container-org7e40ad3" class="outline-3"&gt;
+&lt;h3 id="org7e40ad3"&gt;Part 2A - Salary Prediction&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org7e40ad3"&gt;
 &lt;p&gt;
 Using network `email`, identify the people in the network with missing values for the node attribute `ManagementSalary` and predict whether or not these individuals are receiving a managment position salary.
 &lt;/p&gt;
@@ -271,9 +519,9 @@ Length: 252, dtype: float64
 &lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org233ab2e" class="outline-4"&gt;
-&lt;h4 id="org233ab2e"&gt;The Data Frame&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org233ab2e"&gt;
+&lt;div id="outline-container-orge5159b4" class="outline-4"&gt;
+&lt;h4 id="orge5159b4"&gt;The Data Frame&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orge5159b4"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;if not os.path.isfile("email_data.h5"):
     data = pandas.DataFrame(index=email.nodes())
     data["department"] = pandas.Series(networkx.get_node_attributes(email, "Department"))
@@ -298,9 +546,9 @@ print(data.department.unique())
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org4e3aa18" class="outline-4"&gt;
-&lt;h4 id="org4e3aa18"&gt;Department Dummy Variables&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org4e3aa18"&gt;
+&lt;div id="outline-container-orga644ae1" class="outline-4"&gt;
+&lt;h4 id="orga644ae1"&gt;Department Dummy Variables&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orga644ae1"&gt;
 &lt;p&gt;
 Even though I don't think it's going to prove useful, the &lt;code&gt;department&lt;/code&gt; feature is actually categorical, despite the use of integers so we'll have to use One-Hot-Encoding to add dummy variables for it.
 &lt;/p&gt;
@@ -311,9 +559,9 @@ print(dummies_data.head(1))
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org62645a2" class="outline-4"&gt;
-&lt;h4 id="org62645a2"&gt;Separating the Training and Prediction Sets&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org62645a2"&gt;
+&lt;div id="outline-container-orgb540acb" class="outline-4"&gt;
+&lt;h4 id="orgb540acb"&gt;Separating the Training and Prediction Sets&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgb540acb"&gt;
 &lt;p&gt;
 We're going to use the model to predict what the missing &lt;code&gt;management&lt;/code&gt; values are so I'm going to separate the missing and non-missing sets. 
 &lt;/p&gt;
@@ -333,9 +581,9 @@ The problem description tells us that the answer should have 252 entries so this
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org8500437" class="outline-4"&gt;
-&lt;h4 id="org8500437"&gt;Training and Target Data&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org8500437"&gt;
+&lt;div id="outline-container-orgd47b865" class="outline-4"&gt;
+&lt;h4 id="orgd47b865"&gt;Training and Target Data&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd47b865"&gt;
 &lt;p&gt;
 To train the model we'll need to separate out the &lt;code&gt;management&lt;/code&gt; column (and remove it entirely from the &lt;code&gt;prediction&lt;/code&gt; set).
 &lt;/p&gt;
@@ -348,9 +596,9 @@ x_predict = prediction_data[non_management]
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org68cbaf5" class="outline-4"&gt;
-&lt;h4 id="org68cbaf5"&gt;Scaling&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org68cbaf5"&gt;
+&lt;div id="outline-container-org958c1f2" class="outline-4"&gt;
+&lt;h4 id="org958c1f2"&gt;Scaling&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org958c1f2"&gt;
 &lt;p&gt;
 I don't think the Random Forest model that I'm going to use needs it, but I'm going to standardize the data.
 &lt;/p&gt;
@@ -362,9 +610,9 @@ x_predict = pandas.DataFrame(scaler.transform(x_predict), index=x_predict.index)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org1a136ba" class="outline-4"&gt;
-&lt;h4 id="org1a136ba"&gt;Feature Selection&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org1a136ba"&gt;
+&lt;div id="outline-container-org3cc1309" class="outline-4"&gt;
+&lt;h4 id="org3cc1309"&gt;Feature Selection&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org3cc1309"&gt;
 &lt;p&gt;
 Since we now have so many features, I'm going to do some feature selection.
 &lt;/p&gt;
@@ -386,9 +634,9 @@ When I used the train-test-split training model it left 17 columns. I wonder if 
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org671a17a" class="outline-4"&gt;
-&lt;h4 id="org671a17a"&gt;Logistic Regression&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org671a17a"&gt;
+&lt;div id="outline-container-org0408205" class="outline-4"&gt;
+&lt;h4 id="org0408205"&gt;Logistic Regression&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org0408205"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;model = LogisticRegressionCV(penalty="l1", scoring="roc_auc",
 			     solver="liblinear", cv=StratifiedKFold(10))
 model.fit(x_train_reduced, y_train)
@@ -402,9 +650,9 @@ It seems to be doing much worse than when I used the train-test split.
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgf4a25a4" class="outline-4"&gt;
-&lt;h4 id="orgf4a25a4"&gt;Random Forests&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgf4a25a4"&gt;
+&lt;div id="outline-container-org3630724" class="outline-4"&gt;
+&lt;h4 id="org3630724"&gt;Random Forests&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org3630724"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;parameter_grid = dict(n_estimators=range(10, 100, 10))
 search = GridSearchCV(RandomForestClassifier(), parameter_grid,
 		      cv=StratifiedKFold(10), scoring="roc_auc")
@@ -466,9 +714,9 @@ print(search.best_score_)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org139c2a7" class="outline-4"&gt;
-&lt;h4 id="org139c2a7"&gt;Data Loader&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org139c2a7"&gt;
+&lt;div id="outline-container-org9d9e129" class="outline-4"&gt;
+&lt;h4 id="org9d9e129"&gt;Data Loader&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org9d9e129"&gt;
 &lt;p&gt;
 Since having all these org-babel things around makes things kind of hard I'm going to make a class to bundle everything together.
 &lt;/p&gt;
@@ -632,9 +880,9 @@ Since having all these org-babel things around makes things kind of hard I'm goi
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org05e74ea" class="outline-4"&gt;
-&lt;h4 id="org05e74ea"&gt;Submission&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org05e74ea"&gt;
+&lt;div id="outline-container-org82af0de" class="outline-4"&gt;
+&lt;h4 id="org82af0de"&gt;Submission&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org82af0de"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def salary_predictions():
     """Prediction that employee is management
 
@@ -663,9 +911,9 @@ assert len(output) == 252
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org55cad8d" class="outline-3"&gt;
-&lt;h3 id="org55cad8d"&gt;Part 2B - New Connections Prediction&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org55cad8d"&gt;
+&lt;div id="outline-container-org759157e" class="outline-3"&gt;
+&lt;h3 id="org759157e"&gt;Part 2B - New Connections Prediction&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org759157e"&gt;
 &lt;p&gt;
 For the last part of this assignment, you will predict future connections between employees of the network. The future connections information has been loaded into the variable `future&lt;sub&gt;connections&lt;/sub&gt;`. The index is a tuple indicating a pair of nodes that currently do not have a connection, and the `Future Connection` column indicates if an edge between those two nodes will exist in the future, where a value of 1.0 indicates a future connection.
 &lt;/p&gt;
@@ -716,9 +964,9 @@ Using your trained classifier, return a series of length 122112 with the data be
 Length: 122112, dtype: float64
 &lt;/pre&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgdefe904" class="outline-4"&gt;
-&lt;h4 id="orgdefe904"&gt;Add Network Features&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgdefe904"&gt;
+&lt;div id="outline-container-orgb76cec6" class="outline-4"&gt;
+&lt;h4 id="orgb76cec6"&gt;Add Network Features&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgb76cec6"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;class Futures(object):
     target = "Future Connection"
     data_file = "Future_Connections.csv"
@@ -757,9 +1005,9 @@ Length: 122112, dtype: float64
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgc4ca998" class="outline-5"&gt;
-&lt;h5 id="orgc4ca998"&gt;Adding A Resource Allocation Index&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-orgc4ca998"&gt;
+&lt;div id="outline-container-orgf8f486f" class="outline-5"&gt;
+&lt;h5 id="orgf8f486f"&gt;Adding A Resource Allocation Index&lt;/h5&gt;
+&lt;div class="outline-text-5" id="text-orgf8f486f"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;add_networkx_data(networkx.resource_allocation_index,
 		  DataNames.resource_allocation)
 &lt;/pre&gt;&lt;/div&gt;
@@ -769,9 +1017,9 @@ Length: 122112, dtype: float64
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org58f379f" class="outline-5"&gt;
-&lt;h5 id="org58f379f"&gt;Adding the Jaccard Coefficient&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-org58f379f"&gt;
+&lt;div id="outline-container-orgd96111a" class="outline-5"&gt;
+&lt;h5 id="orgd96111a"&gt;Adding the Jaccard Coefficient&lt;/h5&gt;
+&lt;div class="outline-text-5" id="text-orgd96111a"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;add_networkx_data(networkx.jaccard_coefficient, DataNames.jaccard)
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -780,9 +1028,9 @@ Length: 122112, dtype: float64
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org92d86da" class="outline-5"&gt;
-&lt;h5 id="org92d86da"&gt;Adamic Adar&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-org92d86da"&gt;
+&lt;div id="outline-container-org651bbdb" class="outline-5"&gt;
+&lt;h5 id="org651bbdb"&gt;Adamic Adar&lt;/h5&gt;
+&lt;div class="outline-text-5" id="text-org651bbdb"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;add_networkx_data(networkx.adamic_adar_index, DataNames.adamic)
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -791,9 +1039,9 @@ Length: 122112, dtype: float64
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org3e4025c" class="outline-5"&gt;
-&lt;h5 id="org3e4025c"&gt;Preferential Attachment&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-org3e4025c"&gt;
+&lt;div id="outline-container-orgbb70ec8" class="outline-5"&gt;
+&lt;h5 id="orgbb70ec8"&gt;Preferential Attachment&lt;/h5&gt;
+&lt;div class="outline-text-5" id="text-orgbb70ec8"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;add_networkx_data(networkx.preferential_attachment, DataNames.preferential)
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -803,13 +1051,13 @@ Length: 122112, dtype: float64
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgc16d60b" class="outline-4"&gt;
-&lt;h4 id="orgc16d60b"&gt;Setup the Training and Testing Data&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgc16d60b"&gt;
+&lt;div id="outline-container-orgfcee2ed" class="outline-4"&gt;
+&lt;h4 id="orgfcee2ed"&gt;Setup the Training and Testing Data&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgfcee2ed"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org1c3a250" class="outline-5"&gt;
-&lt;h5 id="org1c3a250"&gt;Separating the Edges Without 'Future Connection' Values&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-org1c3a250"&gt;
+&lt;div id="outline-container-org3fb7468" class="outline-5"&gt;
+&lt;h5 id="org3fb7468"&gt;Separating the Edges Without 'Future Connection' Values&lt;/h5&gt;
+&lt;div class="outline-text-5" id="text-org3fb7468"&gt;
 &lt;p&gt;
 We are going to train on the values in the data with predictions and then make predictions for those that don't.
 &lt;/p&gt;
@@ -827,9 +1075,9 @@ assert len(prediction_set) + len(training_set) == len(future_connections)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgb3ef176" class="outline-3"&gt;
-&lt;h3 id="orgb3ef176"&gt;Separate the Target and Training Sets&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgb3ef176"&gt;
+&lt;div id="outline-container-org974d867" class="outline-3"&gt;
+&lt;h3 id="org974d867"&gt;Separate the Target and Training Sets&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org974d867"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;non_target = [column for column in future_connections.columns
 	      if column != Futures.target]
 x_train = training_set[non_target]
@@ -843,9 +1091,9 @@ assert len(x_train) == len(x_test)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgad08b9a" class="outline-3"&gt;
-&lt;h3 id="orgad08b9a"&gt;Scaling the Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgad08b9a"&gt;
+&lt;div id="outline-container-org61bd2bb" class="outline-3"&gt;
+&lt;h3 id="org61bd2bb"&gt;Scaling the Data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org61bd2bb"&gt;
 &lt;p&gt;
 To enable the use of linear models I'm going to scale the data so the mean is 0 and the variance is 1.
 &lt;/p&gt;
@@ -863,9 +1111,9 @@ print(predictions.describe())
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8ac5901" class="outline-3"&gt;
-&lt;h3 id="org8ac5901"&gt;Feature Selection&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org8ac5901"&gt;
+&lt;div id="outline-container-orgb71a6eb" class="outline-3"&gt;
+&lt;h3 id="orgb71a6eb"&gt;Feature Selection&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgb71a6eb"&gt;
 &lt;p&gt;
 To reduce the dimensionality I'm going to use model-based selection with Extra Trees.
 &lt;/p&gt;
@@ -882,9 +1130,9 @@ print(estimator.feature_importances_)
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org46db689" class="outline-4"&gt;
-&lt;h4 id="org46db689"&gt;Missing Future Connections&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org46db689"&gt;
+&lt;div id="outline-container-org39fc4fa" class="outline-4"&gt;
+&lt;h4 id="org39fc4fa"&gt;Missing Future Connections&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org39fc4fa"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;model = LogisticRegressionCV(n_jobs=-1, scoring='roc_auc', solver='liblinear',
 			     cv=StratifiedKFold())
 model.fit(x_train_trees_sfm, y_train)
@@ -913,32 +1161,32 @@ print(outcome.head())
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#orgcdd8d54"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#orgf09d04e"&gt;The Data&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org3b21de6"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org70c949c"&gt;The Data&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org88f1e4e"&gt;Department&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org1bd3f86"&gt;Splitting the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org64b87d3"&gt;Department&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org8322b55"&gt;Splitting the Data&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org18d22e8"&gt;Standardizing the Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org84a74ef"&gt;Dummy Classifier&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org81344d2"&gt;Feature Selection&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org19ffe46"&gt;Fit and Display&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#orgd6ee56a"&gt;Logistic Regression&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org2766c1d"&gt;Standardizing the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#orgb1d2229"&gt;Dummy Classifier&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org1dee0de"&gt;Feature Selection&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org8655983"&gt;Fit and Display&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#orgf60b7de"&gt;Logistic Regression&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org200e4fd"&gt;L1 Penalty&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#orgde23cbb"&gt;L1 Penalty&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org78c87a6"&gt;Random Forests&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#orgb2e286f"&gt;K Nearest Neighbors&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#orgf78b53b"&gt;Support Vector Classifier (SVC)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org8d37d18"&gt;Random Forests&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org33ee064"&gt;K Nearest Neighbors&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/selecting-the-e-mail-model/#org6adf812"&gt;Support Vector Classifier (SVC)&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgcdd8d54" class="outline-2"&gt;
-&lt;h2 id="orgcdd8d54"&gt;Imports&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgcdd8d54"&gt;
+&lt;div id="outline-container-org3b21de6" class="outline-2"&gt;
+&lt;h2 id="org3b21de6"&gt;Imports&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org3b21de6"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pypi
 from sklearn.ensemble import (
     ExtraTreesClassifier,
@@ -972,9 +1220,9 @@ seaborn.set_style("whitegrid")
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgf09d04e" class="outline-2"&gt;
-&lt;h2 id="orgf09d04e"&gt;The Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgf09d04e"&gt;
+&lt;div id="outline-container-org70c949c" class="outline-2"&gt;
+&lt;h2 id="org70c949c"&gt;The Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org70c949c"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;data = pandas.read_hdf("email_data.h5", "df")
 cleaned_data = data[pandas.notnull(data.management)]
 &lt;/pre&gt;&lt;/div&gt;
@@ -983,9 +1231,9 @@ cleaned_data = data[pandas.notnull(data.management)]
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org88f1e4e" class="outline-3"&gt;
-&lt;h3 id="org88f1e4e"&gt;Department&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org88f1e4e"&gt;
+&lt;div id="outline-container-org64b87d3" class="outline-3"&gt;
+&lt;h3 id="org64b87d3"&gt;Department&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org64b87d3"&gt;
 &lt;p&gt;
 Even though I don't think it's going to prove useful, the &lt;code&gt;department&lt;/code&gt; feature is actually categorical, despite the use of integers so we'll have to add dummy variables for it.
 &lt;/p&gt;
@@ -996,9 +1244,9 @@ print(cleaned_data.head(1))
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org1bd3f86" class="outline-3"&gt;
-&lt;h3 id="org1bd3f86"&gt;Splitting the Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org1bd3f86"&gt;
+&lt;div id="outline-container-org8322b55" class="outline-3"&gt;
+&lt;h3 id="org8322b55"&gt;Splitting the Data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org8322b55"&gt;
 &lt;p&gt;
 For evaluation purposes I'll use the traditional train-test split.
 &lt;/p&gt;
@@ -1036,9 +1284,9 @@ Looks close enough for government work.
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org18d22e8" class="outline-2"&gt;
-&lt;h2 id="org18d22e8"&gt;Standardizing the Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org18d22e8"&gt;
+&lt;div id="outline-container-org2766c1d" class="outline-2"&gt;
+&lt;h2 id="org2766c1d"&gt;Standardizing the Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org2766c1d"&gt;
 &lt;p&gt;
 The linear models expect the data to be standardized, so to make the comparisons fair I'll standardize the data first. First, a look at the data before scaling.
 &lt;/p&gt;
@@ -1065,9 +1313,9 @@ Now the means should be near 0 (very small) and the standard deviations should b
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org84a74ef" class="outline-2"&gt;
-&lt;h2 id="org84a74ef"&gt;Dummy Classifier&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org84a74ef"&gt;
+&lt;div id="outline-container-orgb1d2229" class="outline-2"&gt;
+&lt;h2 id="orgb1d2229"&gt;Dummy Classifier&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgb1d2229"&gt;
 &lt;p&gt;
 As a baseline I'll use a &lt;a href="http://scikit-learn.org/stable/modules/model_evaluation.html#dummy-estimators"&gt;Dummy Classifier&lt;/a&gt; which uses a simple rule rather than the input data to make predictions.
 &lt;/p&gt;
@@ -1113,9 +1361,9 @@ So it looks like all the strategies except &lt;b&gt;stratified&lt;/b&gt; did the
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org81344d2" class="outline-2"&gt;
-&lt;h2 id="org81344d2"&gt;Feature Selection&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org81344d2"&gt;
+&lt;div id="outline-container-org1dee0de" class="outline-2"&gt;
+&lt;h2 id="org1dee0de"&gt;Feature Selection&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org1dee0de"&gt;
 &lt;p&gt;
 I'm going to need to do some feature reduction, but figuring out what is important and what isn't is something I'm going to have to leave to the machine. I'm going to assume that the features thrown out by logistic regression with l1 penalization are unimportant. 
 &lt;/p&gt;
@@ -1174,9 +1422,9 @@ This eliminated many more columns than the Logistic Regression version did.
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org19ffe46" class="outline-2"&gt;
-&lt;h2 id="org19ffe46"&gt;Fit and Display&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org19ffe46"&gt;
+&lt;div id="outline-container-org8655983" class="outline-2"&gt;
+&lt;h2 id="org8655983"&gt;Fit and Display&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org8655983"&gt;
 &lt;p&gt;
 This is a convenience function so I can fit and display the scores for the models.
 &lt;/p&gt;
@@ -1205,13 +1453,13 @@ This is a convenience function so I can fit and display the scores for the model
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgd6ee56a" class="outline-2"&gt;
-&lt;h2 id="orgd6ee56a"&gt;Logistic Regression&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgd6ee56a"&gt;
+&lt;div id="outline-container-orgf60b7de" class="outline-2"&gt;
+&lt;h2 id="orgf60b7de"&gt;Logistic Regression&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgf60b7de"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org200e4fd" class="outline-3"&gt;
-&lt;h3 id="org200e4fd"&gt;L1 Penalty&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org200e4fd"&gt;
+&lt;div id="outline-container-orgde23cbb" class="outline-3"&gt;
+&lt;h3 id="orgde23cbb"&gt;L1 Penalty&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgde23cbb"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;model = LogisticRegressionCV(penalty="l1", scoring="roc_auc", solver="liblinear")
 fit_and_display(model, "Logistic Regression L1")
 &lt;/pre&gt;&lt;/div&gt;
@@ -1231,9 +1479,9 @@ L1 seems to do better than L1 overall, although it doesn't do as well with the r
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org78c87a6" class="outline-2"&gt;
-&lt;h2 id="org78c87a6"&gt;Random Forests&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org78c87a6"&gt;
+&lt;div id="outline-container-org8d37d18" class="outline-2"&gt;
+&lt;h2 id="org8d37d18"&gt;Random Forests&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org8d37d18"&gt;
 &lt;p&gt;
 I'll try a &lt;a href="http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html"&gt;Random Forest&lt;/a&gt; classifier next.
 &lt;/p&gt;
@@ -1348,9 +1596,9 @@ The test-score for the best estimator is actually a little worse than it was for
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgb2e286f" class="outline-2"&gt;
-&lt;h2 id="orgb2e286f"&gt;K Nearest Neighbors&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgb2e286f"&gt;
+&lt;div id="outline-container-org33ee064" class="outline-2"&gt;
+&lt;h2 id="org33ee064"&gt;K Nearest Neighbors&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org33ee064"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;parameters = dict(n_neighbors=range(10, 20),
 		  weights=["uniform", "distance"],
 		  p=[1, 2],
@@ -1370,9 +1618,9 @@ This doesn't seem to do so well, although I'm not as experienced at using it so 
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgf78b53b" class="outline-2"&gt;
-&lt;h2 id="orgf78b53b"&gt;Support Vector Classifier (SVC)&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgf78b53b"&gt;
+&lt;div id="outline-container-org6adf812" class="outline-2"&gt;
+&lt;h2 id="org6adf812"&gt;Support Vector Classifier (SVC)&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org6adf812"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;parameters = dict(C=numpy.arange(.1, 1, 0.1), gamma=range(1, 10, 1),
 		  kernel=["linear", 'rbf', 'sigmoid'])
 search = GridSearchCV(SVC(class_weight='balanced'), parameters, scoring='roc_auc')
@@ -1391,42 +1639,42 @@ Now that the data is scaled, the svc does much better, alhough still not as well
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org0bd1730"&gt;Tangle&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org81fb40a"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org3804397"&gt;Constants&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org2a792c2"&gt;The Email-Graph&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org8ea422d"&gt;The Data&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org1e2ee87"&gt;Tangle&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org16e4ad0"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#orgdbbb4c7"&gt;Constants&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org0ed5ded"&gt;The Email-Graph&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#orga604a9b"&gt;The Data&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org4dbe7da"&gt;The Given Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org7776d75"&gt;The Given Data&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org35cf448"&gt;Adding networkx features&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#orgea7793c"&gt;Adding networkx features&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org611230b"&gt;Add Networkx Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org3d753a0"&gt;Adding A Resource Allocation Index&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org2dee0ca"&gt;Adding the Jaccard Coefficient&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org56bc368"&gt;Adamic Adar&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org7d6a96f"&gt;Preferential Attachment&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org07c8429"&gt;Community-Based Link Prediction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org0495260"&gt;Saving the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org5b46c3c"&gt;Add Networkx Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org316a568"&gt;Adding A Resource Allocation Index&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org050df12"&gt;Adding the Jaccard Coefficient&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org6e6f821"&gt;Adamic Adar&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#orgcb047c1"&gt;Preferential Attachment&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org63f57bc"&gt;Community-Based Link Prediction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org41a3ff8"&gt;Saving the Data&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#orgc9bc8f5"&gt;Setup the Training and Testing Data&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org6dde7ba"&gt;Setup the Training and Testing Data&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#orgfead0d3"&gt;Separating the Edges Without 'Future Connection' Values&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#orgaa6c514"&gt;Separate the Target and Training Sets&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org9f0a896"&gt;Setting Up the Testing and Training Sets&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org906bc5a"&gt;Scaling the Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org1fc0434"&gt;Feature Selection&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#orgf8f95de"&gt;Separating the Edges Without 'Future Connection' Values&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org41fa513"&gt;Separate the Target and Training Sets&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org9be0bf5"&gt;Setting Up the Testing and Training Sets&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org7f976ac"&gt;Scaling the Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org0ce286f"&gt;Feature Selection&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org108e511"&gt;Fitting the Models&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org3c88f4f"&gt;Fitting the Models&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org98c5a48"&gt;Persistent Storage&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org1d95d09"&gt;Logistic Regression&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#orgb165931"&gt;Fit Grid Search&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org0f1b6c4"&gt;Random Forests&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#orgcf84a9f"&gt;Extra Trees&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#orga16bdfc"&gt;Persistent Storage&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org9f4b4d9"&gt;Logistic Regression&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org71794d0"&gt;Fit Grid Search&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#orgc4da334"&gt;Random Forests&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/future-e-mail/#org12fd641"&gt;Extra Trees&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
@@ -1435,9 +1683,9 @@ Now that the data is scaled, the svc does much better, alhough still not as well
 &lt;p&gt;
 This will select a model to predict whether an edge in the email-network that currently doesn't have an edge will have one in the future.
 &lt;/p&gt;
-&lt;div id="outline-container-org0bd1730" class="outline-2"&gt;
-&lt;h2 id="org0bd1730"&gt;Tangle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org0bd1730"&gt;
+&lt;div id="outline-container-org1e2ee87" class="outline-2"&gt;
+&lt;h2 id="org1e2ee87"&gt;Tangle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org1e2ee87"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;imports&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&lt;/span&gt;
 
 &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;futures&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&lt;/span&gt;
@@ -1507,9 +1755,9 @@ This will select a model to predict whether an edge in the email-network that cu
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org81fb40a" class="outline-2"&gt;
-&lt;h2 id="org81fb40a"&gt;Imports&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org81fb40a"&gt;
+&lt;div id="outline-container-org16e4ad0" class="outline-2"&gt;
+&lt;h2 id="org16e4ad0"&gt;Imports&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org16e4ad0"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# python standard library
 import os
 import pickle
@@ -1544,9 +1792,9 @@ seaborn.set_style("whitegrid")
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org3804397" class="outline-2"&gt;
-&lt;h2 id="org3804397"&gt;Constants&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org3804397"&gt;
+&lt;div id="outline-container-orgdbbb4c7" class="outline-2"&gt;
+&lt;h2 id="orgdbbb4c7"&gt;Constants&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgdbbb4c7"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;class Futures(object):
     target = "Future Connection"
     data_file = "Future_Connections.csv"
@@ -1583,9 +1831,9 @@ seaborn.set_style("whitegrid")
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org2a792c2" class="outline-2"&gt;
-&lt;h2 id="org2a792c2"&gt;The Email-Graph&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org2a792c2"&gt;
+&lt;div id="outline-container-org0ed5ded" class="outline-2"&gt;
+&lt;h2 id="org0ed5ded"&gt;The Email-Graph&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org0ed5ded"&gt;
 &lt;p&gt;
 To get the features for the models we'll need to use the email-graph.
 &lt;/p&gt;
@@ -1595,13 +1843,13 @@ To get the features for the models we'll need to use the email-graph.
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org8ea422d" class="outline-2"&gt;
-&lt;h2 id="org8ea422d"&gt;The Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org8ea422d"&gt;
+&lt;div id="outline-container-orga604a9b" class="outline-2"&gt;
+&lt;h2 id="orga604a9b"&gt;The Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orga604a9b"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org4dbe7da" class="outline-3"&gt;
-&lt;h3 id="org4dbe7da"&gt;The Given Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org4dbe7da"&gt;
+&lt;div id="outline-container-org7776d75" class="outline-3"&gt;
+&lt;h3 id="org7776d75"&gt;The Given Data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org7776d75"&gt;
 &lt;p&gt;
 We're given a csv file with the training and prediction data in it ('Future&lt;sub&gt;Connections.csv&lt;/sub&gt;').
 &lt;/p&gt;
@@ -1645,17 +1893,17 @@ This is a fairly big (and lopsided) data-set.
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org35cf448" class="outline-2"&gt;
-&lt;h2 id="org35cf448"&gt;Adding networkx features&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org35cf448"&gt;
+&lt;div id="outline-container-orgea7793c" class="outline-2"&gt;
+&lt;h2 id="orgea7793c"&gt;Adding networkx features&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgea7793c"&gt;
 &lt;p&gt;
 To create features to train the model and make predictions, I'm going to use the networkx &lt;a href="https://networkx.github.io/documentation/networkx-1.10/reference/algorithms.link_prediction.html"&gt;link prediction&lt;/a&gt; algorithms.
 &lt;/p&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org611230b" class="outline-3"&gt;
-&lt;h3 id="org611230b"&gt;Add Networkx Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org611230b"&gt;
+&lt;div id="outline-container-org5b46c3c" class="outline-3"&gt;
+&lt;h3 id="org5b46c3c"&gt;Add Networkx Data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org5b46c3c"&gt;
 &lt;p&gt;
 This is a function to get networkx data and add it to the data-frame. It won't work for the community-based algorithms.
 &lt;/p&gt;
@@ -1683,9 +1931,9 @@ This is a function to get networkx data and add it to the data-frame. It won't w
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org3d753a0" class="outline-3"&gt;
-&lt;h3 id="org3d753a0"&gt;Adding A Resource Allocation Index&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org3d753a0"&gt;
+&lt;div id="outline-container-org316a568" class="outline-3"&gt;
+&lt;h3 id="org316a568"&gt;Adding A Resource Allocation Index&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org316a568"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;if not future_connections_pre_loaded:
     add_networkx_data(networkx.resource_allocation_index,
 		      DataNames.resource_allocation)
@@ -1696,9 +1944,9 @@ This is a function to get networkx data and add it to the data-frame. It won't w
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org2dee0ca" class="outline-3"&gt;
-&lt;h3 id="org2dee0ca"&gt;Adding the Jaccard Coefficient&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org2dee0ca"&gt;
+&lt;div id="outline-container-org050df12" class="outline-3"&gt;
+&lt;h3 id="org050df12"&gt;Adding the Jaccard Coefficient&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org050df12"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;if not future_connections_pre_loaded:
     add_networkx_data(networkx.jaccard_coefficient, DataNames.jaccard)
 &lt;/pre&gt;&lt;/div&gt;
@@ -1708,9 +1956,9 @@ This is a function to get networkx data and add it to the data-frame. It won't w
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org56bc368" class="outline-3"&gt;
-&lt;h3 id="org56bc368"&gt;Adamic Adar&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org56bc368"&gt;
+&lt;div id="outline-container-org6e6f821" class="outline-3"&gt;
+&lt;h3 id="org6e6f821"&gt;Adamic Adar&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org6e6f821"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;if not future_connections_pre_loaded:
     add_networkx_data(networkx.adamic_adar_index, DataNames.adamic)
 &lt;/pre&gt;&lt;/div&gt;
@@ -1720,9 +1968,9 @@ This is a function to get networkx data and add it to the data-frame. It won't w
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org7d6a96f" class="outline-3"&gt;
-&lt;h3 id="org7d6a96f"&gt;Preferential Attachment&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org7d6a96f"&gt;
+&lt;div id="outline-container-orgcb047c1" class="outline-3"&gt;
+&lt;h3 id="orgcb047c1"&gt;Preferential Attachment&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgcb047c1"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;if not future_connections_pre_loaded:
     add_networkx_data(networkx.preferential_attachment, DataNames.preferential)
 &lt;/pre&gt;&lt;/div&gt;
@@ -1732,9 +1980,9 @@ This is a function to get networkx data and add it to the data-frame. It won't w
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org07c8429" class="outline-3"&gt;
-&lt;h3 id="org07c8429"&gt;Community-Based Link Prediction&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org07c8429"&gt;
+&lt;div id="outline-container-org63f57bc" class="outline-3"&gt;
+&lt;h3 id="org63f57bc"&gt;Community-Based Link Prediction&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org63f57bc"&gt;
 &lt;p&gt;
 This requires identifying 'communities' first, so I'll defer it for now.
 &lt;/p&gt;
@@ -1752,22 +2000,22 @@ These three all require communities for them to work (so I'm skipping them):
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org0495260" class="outline-3"&gt;
-&lt;h3 id="org0495260"&gt;Saving the Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org0495260"&gt;
+&lt;div id="outline-container-org41a3ff8" class="outline-3"&gt;
+&lt;h3 id="org41a3ff8"&gt;Saving the Data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org41a3ff8"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;future_connections.to_csv(Files.future_training_data)
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgc9bc8f5" class="outline-2"&gt;
-&lt;h2 id="orgc9bc8f5"&gt;Setup the Training and Testing Data&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgc9bc8f5"&gt;
+&lt;div id="outline-container-org6dde7ba" class="outline-2"&gt;
+&lt;h2 id="org6dde7ba"&gt;Setup the Training and Testing Data&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org6dde7ba"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgfead0d3" class="outline-3"&gt;
-&lt;h3 id="orgfead0d3"&gt;Separating the Edges Without 'Future Connection' Values&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgfead0d3"&gt;
+&lt;div id="outline-container-orgf8f95de" class="outline-3"&gt;
+&lt;h3 id="orgf8f95de"&gt;Separating the Edges Without 'Future Connection' Values&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgf8f95de"&gt;
 &lt;p&gt;
 We are going to train on the values in the data with predictions and then make predictions for those that don't. For model selection we don't need the set missing predictions, but I'll separate it out anyway to be complete.
 &lt;/p&gt;
@@ -1783,9 +2031,9 @@ assert len(prediction_set) + len(training_set) == len(future_connections)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgaa6c514" class="outline-3"&gt;
-&lt;h3 id="orgaa6c514"&gt;Separate the Target and Training Sets&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgaa6c514"&gt;
+&lt;div id="outline-container-org41fa513" class="outline-3"&gt;
+&lt;h3 id="org41fa513"&gt;Separate the Target and Training Sets&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org41fa513"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;non_target = [column for column in future_connections.columns
 	      if column != Futures.target]
 training = training_set[non_target]
@@ -1799,9 +2047,9 @@ assert len(training) == len(testing)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org9f0a896" class="outline-3"&gt;
-&lt;h3 id="org9f0a896"&gt;Setting Up the Testing and Training Sets&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org9f0a896"&gt;
+&lt;div id="outline-container-org9be0bf5" class="outline-3"&gt;
+&lt;h3 id="org9be0bf5"&gt;Setting Up the Testing and Training Sets&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org9be0bf5"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;x_train, x_test, y_train, y_test = train_test_split(training, testing, stratify=testing)
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -1817,9 +2065,9 @@ print(x_test.shape)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org906bc5a" class="outline-3"&gt;
-&lt;h3 id="org906bc5a"&gt;Scaling the Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org906bc5a"&gt;
+&lt;div id="outline-container-org7f976ac" class="outline-3"&gt;
+&lt;h3 id="org7f976ac"&gt;Scaling the Data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org7f976ac"&gt;
 &lt;p&gt;
 To enable the use of linear models I'm going to scale the data so the mean is 0 and the variance is 1.
 &lt;/p&gt;
@@ -1837,9 +2085,9 @@ print(x_test.describe())
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org1fc0434" class="outline-3"&gt;
-&lt;h3 id="org1fc0434"&gt;Feature Selection&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org1fc0434"&gt;
+&lt;div id="outline-container-org0ce286f" class="outline-3"&gt;
+&lt;h3 id="org0ce286f"&gt;Feature Selection&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org0ce286f"&gt;
 &lt;p&gt;
 To reduce the dimensionality I'm going to use recursive feature selection and model-based selection.
 &lt;/p&gt;
@@ -1865,9 +2113,9 @@ To reduce the dimensionality I'm going to use recursive feature selection and mo
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org8b140d9" class="outline-4"&gt;
-&lt;h4 id="org8b140d9"&gt;RFECV with Logistic Regression&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org8b140d9"&gt;
+&lt;div id="outline-container-orgd64a1ca" class="outline-4"&gt;
+&lt;h4 id="orgd64a1ca"&gt;RFECV with Logistic Regression&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd64a1ca"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;if os.path.isfile(Training.x_train_lr_rfs):
     x_train_lr_rfs = unpickle_it(Training.x_train_lr_rfs)
     x_test_lr_rfs = unpickle_it(Training.x_test_lr_rfs)
@@ -1889,9 +2137,9 @@ It looks like it only discarded preferential attachment.
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org26492c4" class="outline-4"&gt;
-&lt;h4 id="org26492c4"&gt;RFECV with Extra Trees&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org26492c4"&gt;
+&lt;div id="outline-container-org39ea1b4" class="outline-4"&gt;
+&lt;h4 id="org39ea1b4"&gt;RFECV with Extra Trees&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org39ea1b4"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;if os.path.isfile(Training.x_train_trees_rfs):
     x_train_trees_rfs = unpickle_it(Training.x_train_trees_rfs)
     x_test_trees_rfs = unpickle_it(Training.x_test_trees_rfs)
@@ -1910,9 +2158,9 @@ Strangely, the Extra Trees Classifier didn't remove any columns…
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org1e35886" class="outline-4"&gt;
-&lt;h4 id="org1e35886"&gt;Select Model Logistic Regression&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org1e35886"&gt;
+&lt;div id="outline-container-org3330d0a" class="outline-4"&gt;
+&lt;h4 id="org3330d0a"&gt;Select Model Logistic Regression&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org3330d0a"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;if os.path.isfile(Training.x_train_lr_sfm):
     x_train_lr_sfm = unpickle_it(Training.x_train_lr_sfm)
     x_test_lr_sfm = unpickle_it(Training.x_test_lr_sfm)
@@ -1938,9 +2186,9 @@ This was more aggressive, cutting out half the features. It looks like it kept &
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org0af64f3" class="outline-4"&gt;
-&lt;h4 id="org0af64f3"&gt;Select Model Extra Trees&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org0af64f3"&gt;
+&lt;div id="outline-container-orgf4d974b" class="outline-4"&gt;
+&lt;h4 id="orgf4d974b"&gt;Select Model Extra Trees&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgf4d974b"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;if os.path.isfile(Training.x_train_trees_sfm):
     x_train_trees_sfm = unpickle_it(Training.x_train_trees_sfm)
     x_test_trees_sfm = unpickle_it(Training.x_test_trees_sfm)
@@ -1966,13 +2214,13 @@ This is sometimes more aggressive, keeping only the &lt;b&gt;Adamic Adar&lt;/b&g
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org108e511" class="outline-2"&gt;
-&lt;h2 id="org108e511"&gt;Fitting the Models&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org108e511"&gt;
+&lt;div id="outline-container-org3c88f4f" class="outline-2"&gt;
+&lt;h2 id="org3c88f4f"&gt;Fitting the Models&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org3c88f4f"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org98c5a48" class="outline-3"&gt;
-&lt;h3 id="org98c5a48"&gt;Persistent Storage&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org98c5a48"&gt;
+&lt;div id="outline-container-orga16bdfc" class="outline-3"&gt;
+&lt;h3 id="orga16bdfc"&gt;Persistent Storage&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orga16bdfc"&gt;
 &lt;p&gt;
 The outcomes will be stored in a dictionary called &lt;code&gt;scores&lt;/code&gt; with descriptions of the best model and feature-selection mapped to their testing-score.
 &lt;/p&gt;
@@ -2056,9 +2304,9 @@ else:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org1d95d09" class="outline-3"&gt;
-&lt;h3 id="org1d95d09"&gt;Logistic Regression&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org1d95d09"&gt;
+&lt;div id="outline-container-org9f4b4d9" class="outline-3"&gt;
+&lt;h3 id="org9f4b4d9"&gt;Logistic Regression&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org9f4b4d9"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;logistic_model = LogisticRegressionCV(n_jobs=-1, scoring="roc_auc",
 				      solver='liblinear',
 				      cv=StratifiedKFold(Futures.folds))
@@ -2067,9 +2315,9 @@ fit_and_print_all(logistic_model, "Logistic Regression")
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgb165931" class="outline-3"&gt;
-&lt;h3 id="orgb165931"&gt;Fit Grid Search&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgb165931"&gt;
+&lt;div id="outline-container-org71794d0" class="outline-3"&gt;
+&lt;h3 id="org71794d0"&gt;Fit Grid Search&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org71794d0"&gt;
 &lt;p&gt;
 Since the Logistic Regression had its own cross-validation I didn't use a grid search, but for the forests I'll use one to figure out the best number of estimators. I'll have to look into what the other parameters do to figure out whether they're going to be useful.
 &lt;/p&gt;
@@ -2129,9 +2377,9 @@ Since the Logistic Regression had its own cross-validation I didn't use a grid s
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org0f1b6c4" class="outline-3"&gt;
-&lt;h3 id="org0f1b6c4"&gt;Random Forests&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org0f1b6c4"&gt;
+&lt;div id="outline-container-orgc4da334" class="outline-3"&gt;
+&lt;h3 id="orgc4da334"&gt;Random Forests&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgc4da334"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;parameters = dict(n_estimators = list(range(10, 200, 10)))
 forest = RandomForestClassifier()
 fit_grid_searches(forest, parameters, "Random Forest")
@@ -2139,9 +2387,9 @@ fit_grid_searches(forest, parameters, "Random Forest")
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgcf84a9f" class="outline-3"&gt;
-&lt;h3 id="orgcf84a9f"&gt;Extra Trees&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgcf84a9f"&gt;
+&lt;div id="outline-container-org12fd641" class="outline-3"&gt;
+&lt;h3 id="org12fd641"&gt;Extra Trees&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org12fd641"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;scores = {k:v for k,v in scores.items() if not k.startswith('Extra Trees,extra trees')}
 parameters = dict(n_estimators = list(range(10, 200, 10)))
 trees = ExtraTreesClassifier()
@@ -2153,23 +2401,23 @@ fit_grid_searches(trees, parameters, "Extra Trees")
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org7a76091"&gt;Part 1 - Friendships&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orga245960"&gt;Part 1 - Friendships&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org288e01a"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org9ce45d4"&gt;Friendships data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org82ad0cd"&gt;Degree, Closeness, and Normalized Betweenness Centrality&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orgd89fc6f"&gt;Most Connected Friend&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org0f1de56"&gt;Fewest Hops&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orgebc9d2e"&gt;Most Important Connection&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org9c9f86a"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orgd82df7f"&gt;Friendships data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orgf5dfb4a"&gt;Degree, Closeness, and Normalized Betweenness Centrality&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org4dcf6ed"&gt;Most Connected Friend&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orgd2a7953"&gt;Fewest Hops&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orge0b792f"&gt;Most Important Connection&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orgd9024c8"&gt;Part 2 - Political Blogs&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orgea68c32"&gt;Part 2 - Political Blogs&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orga7f2347"&gt;Scaled Page Rank of &lt;i&gt;realclearpolitics.com&lt;/i&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org745bcbb"&gt;Top Five Blogs by Page Rank&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org1d929b7"&gt;HITS Score for Real Clear Politics&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orgac6b1f8"&gt;Top 5 Blogs by Hub Score&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org6377615"&gt;Top Five Blogs By Authority&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org5e610fd"&gt;Scaled Page Rank of &lt;i&gt;realclearpolitics.com&lt;/i&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orgace4645"&gt;Top Five Blogs by Page Rank&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org8ef4c97"&gt;HITS Score for Real Clear Politics&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#orgd37ed95"&gt;Top 5 Blogs by Hub Score&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/friends-and-politics/#org120bfe2"&gt;Top Five Blogs By Authority&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
@@ -2179,25 +2427,25 @@ fit_grid_searches(trees, parameters, "Extra Trees")
 &lt;a href="https://en.wikipedia.org/wiki/Centrality"&gt;Node Centrality&lt;/a&gt; is a measure of the importance of a node to a network. This will explore measures of centrality using two networks, a friendship network, and a blog network.
 &lt;/p&gt;
 
-&lt;div id="outline-container-org7a76091" class="outline-2"&gt;
-&lt;h2 id="org7a76091"&gt;Part 1 - Friendships&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org7a76091"&gt;
+&lt;div id="outline-container-orga245960" class="outline-2"&gt;
+&lt;h2 id="orga245960"&gt;Part 1 - Friendships&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orga245960"&gt;
 &lt;p&gt;
 This will look at a network of friendships at a university department. Each node corresponds to a person (identified by an integer node label), and an edge indicates friendship. 
 &lt;/p&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org288e01a" class="outline-3"&gt;
-&lt;h3 id="org288e01a"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org288e01a"&gt;
+&lt;div id="outline-container-org9c9f86a" class="outline-3"&gt;
+&lt;h3 id="org9c9f86a"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org9c9f86a"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;import networkx
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org9ce45d4" class="outline-3"&gt;
-&lt;h3 id="org9ce45d4"&gt;Friendships data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org9ce45d4"&gt;
+&lt;div id="outline-container-orgd82df7f" class="outline-3"&gt;
+&lt;h3 id="orgd82df7f"&gt;Friendships data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgd82df7f"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;friendships = networkx.read_gml('friendships.gml')
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -2212,9 +2460,9 @@ There are 1,133 people in the friendship network, which is a connected, undirect
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org82ad0cd" class="outline-3"&gt;
-&lt;h3 id="org82ad0cd"&gt;Degree, Closeness, and Normalized Betweenness Centrality&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org82ad0cd"&gt;
+&lt;div id="outline-container-orgf5dfb4a" class="outline-3"&gt;
+&lt;h3 id="orgf5dfb4a"&gt;Degree, Closeness, and Normalized Betweenness Centrality&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgf5dfb4a"&gt;
 &lt;p&gt;
 Find the degree centrality, closeness centrality, and normalized betweenness centrality (excluding endpoints) of node 100.
 &lt;/p&gt;
@@ -2270,9 +2518,9 @@ print("Normalized Betweenness Centrality: {0:.6f}".format(betweenness))
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgd89fc6f" class="outline-3"&gt;
-&lt;h3 id="orgd89fc6f"&gt;Most Connected Friend&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgd89fc6f"&gt;
+&lt;div id="outline-container-org4dcf6ed" class="outline-3"&gt;
+&lt;h3 id="org4dcf6ed"&gt;Most Connected Friend&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org4dcf6ed"&gt;
 &lt;p&gt;
 We want to contact one person in our friendship network and have him or her contact all his or her immediate friends. To have the greatest impact, this person should have the most links in the network. Which node is this?
 &lt;/p&gt;
@@ -2301,9 +2549,9 @@ Node 105 does appear to be well connected.
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org0f1de56" class="outline-3"&gt;
-&lt;h3 id="org0f1de56"&gt;Fewest Hops&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org0f1de56"&gt;
+&lt;div id="outline-container-orgd2a7953" class="outline-3"&gt;
+&lt;h3 id="orgd2a7953"&gt;Fewest Hops&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgd2a7953"&gt;
 &lt;p&gt;
 We want to reach everyone in the network by having one person passing messages to his friends who can then pass it on and so forth (a six-degrees of separation type scenario) but we want the fewest number of transfers. &lt;i&gt;Which friend is closest to all the people in the friendship network?&lt;/i&gt;
 &lt;/p&gt;
@@ -2331,9 +2579,9 @@ Interesting to look at, if not the most informative.
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgebc9d2e" class="outline-3"&gt;
-&lt;h3 id="orgebc9d2e"&gt;Most Important Connection&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgebc9d2e"&gt;
+&lt;div id="outline-container-orge0b792f" class="outline-3"&gt;
+&lt;h3 id="orge0b792f"&gt;Most Important Connection&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orge0b792f"&gt;
 &lt;p&gt;
 Although the graph is connected, if you took out one persion from the network, which one would cause the most disruption (which person is in the path of the most shortest paths)?
 &lt;/p&gt;
@@ -2354,9 +2602,9 @@ print("Most Between Friend: {}".format(MOST_BETWEEN))
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgd9024c8" class="outline-2"&gt;
-&lt;h2 id="orgd9024c8"&gt;Part 2 - Political Blogs&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgd9024c8"&gt;
+&lt;div id="outline-container-orgea68c32" class="outline-2"&gt;
+&lt;h2 id="orgea68c32"&gt;Part 2 - Political Blogs&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgea68c32"&gt;
 &lt;p&gt;
 Now we're going to use &lt;a href="https://en.wikipedia.org/wiki/PageRank"&gt;PageRank&lt;/a&gt; and &lt;a href="https://en.wikipedia.org/wiki/HITS_algorithm"&gt;Hyperlink-Induced Topic Search (HITS)&lt;/a&gt;  to look at a directed network of political blogs, where nodes correspond to a blog and edges correspond to links between blogs.
 &lt;/p&gt;
@@ -2372,9 +2620,9 @@ print(networkx.is_directed(blogs))
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orga7f2347" class="outline-3"&gt;
-&lt;h3 id="orga7f2347"&gt;Scaled Page Rank of &lt;i&gt;realclearpolitics.com&lt;/i&gt;&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orga7f2347"&gt;
+&lt;div id="outline-container-org5e610fd" class="outline-3"&gt;
+&lt;h3 id="org5e610fd"&gt;Scaled Page Rank of &lt;i&gt;realclearpolitics.com&lt;/i&gt;&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org5e610fd"&gt;
 &lt;p&gt;
 &lt;i&gt;PageRank&lt;/i&gt; scores web-pages by the number of important nodes that link directly to them. It is possible for the algorithm to get stuck if there are no edges leading out from a directed subgraph, producing erroneous page-ranks so the &lt;i&gt;Scaled Page Rank&lt;/i&gt; uses a random-restart do decide when to occasionally jump to a new node, an idea similar to the way Stochastic Gradient Descent avoids being stuck in local minima. The &lt;a href="https://networkx.github.io/documentation/networkx-1.10/reference/generated/networkx.algorithms.link_analysis.pagerank_alg.pagerank.html"&gt;Networkx pagerank&lt;/a&gt; uses a default of 0.85, which I will use, so it will do a random-restart about 15% of the time.
 &lt;/p&gt;
@@ -2396,9 +2644,9 @@ print(networkx.is_directed(blogs))
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org745bcbb" class="outline-3"&gt;
-&lt;h3 id="org745bcbb"&gt;Top Five Blogs by Page Rank&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org745bcbb"&gt;
+&lt;div id="outline-container-orgace4645" class="outline-3"&gt;
+&lt;h3 id="orgace4645"&gt;Top Five Blogs by Page Rank&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgace4645"&gt;
 &lt;p&gt;
 This time the PageRank scores will be used to find what it thinks are the most important blogs.
 &lt;/p&gt;
@@ -2434,9 +2682,9 @@ for blog in top_five_page_rank():
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org1d929b7" class="outline-3"&gt;
-&lt;h3 id="org1d929b7"&gt;HITS Score for Real Clear Politics&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org1d929b7"&gt;
+&lt;div id="outline-container-org8ef4c97" class="outline-3"&gt;
+&lt;h3 id="org8ef4c97"&gt;HITS Score for Real Clear Politics&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org8ef4c97"&gt;
 &lt;p&gt;
 This uses the HITS algorithm to find the authority and hub scores for &lt;i&gt;realclearpolitics.com&lt;/i&gt;. This algorithm tries to identify &lt;code&gt;hubs&lt;/code&gt;, collections of links that directed users to important pages, and &lt;code&gt;authoratative&lt;/code&gt; pages, pages that are deemed important because of their relevant content (as identified by the fact that they are linked to by &lt;code&gt;hubs&lt;/code&gt;).
 &lt;/p&gt;
@@ -2460,9 +2708,9 @@ print("Hub: {0:.5f}\nAuthority: {0:.5f}".format(hub, authority))
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgac6b1f8" class="outline-3"&gt;
-&lt;h3 id="orgac6b1f8"&gt;Top 5 Blogs by Hub Score&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgac6b1f8"&gt;
+&lt;div id="outline-container-orgd37ed95" class="outline-3"&gt;
+&lt;h3 id="orgd37ed95"&gt;Top 5 Blogs by Hub Score&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgd37ed95"&gt;
 &lt;p&gt;
 This will find the top five blogs based on their hub scores (meaning they are the ones who link to the most authoratative sites).
 &lt;/p&gt;
@@ -2484,9 +2732,9 @@ for blog in top_five_hub_blogs:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org6377615" class="outline-3"&gt;
-&lt;h3 id="org6377615"&gt;Top Five Blogs By Authority&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org6377615"&gt;
+&lt;div id="outline-container-org120bfe2" class="outline-3"&gt;
+&lt;h3 id="org120bfe2"&gt;Top Five Blogs By Authority&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org120bfe2"&gt;
 &lt;p&gt;
 This will find the top five political blogs based on how many of the hub-blogs link to them.
 &lt;/p&gt;
@@ -2511,17 +2759,17 @@ for blog in authoratative_blogs:
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#org3e96556"&gt;Tangle&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#org2772b96"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#org1e39d1f"&gt;1 - Load the Directed Multigraph&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#org97151f0"&gt;Number of employees and emails&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#org876440e"&gt;Information Routes&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#orgea9a174"&gt;Tangle&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#org65be22a"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#org4d601f7"&gt;1 - Load the Directed Multigraph&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#org18ba0de"&gt;Number of employees and emails&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#orgaf3d6a0"&gt;Information Routes&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#org12fbf94"&gt;Part 1. Assume that information in this company can only be exchanged through email.&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#orgc3860e5"&gt;Part 2. Now assume that a communication channel established by an email allows information to be exchanged both ways.&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#orgcdffb7c"&gt;Part 1. Assume that information in this company can only be exchanged through email.&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#org0a6f264"&gt;Part 2. Now assume that a communication channel established by an email allows information to be exchanged both ways.&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#orge396f15"&gt;Largest Weakly Connected Component&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-e-mail/#org6c723d4"&gt;Largest Weakly Connected Component&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
@@ -2535,9 +2783,9 @@ Each node represents an employee and each directed edge between two nodes repres
 +------+      +--------+
 &lt;/pre&gt;&lt;/div&gt;
 
-&lt;div id="outline-container-org3e96556" class="outline-2"&gt;
-&lt;h2 id="org3e96556"&gt;Tangle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org3e96556"&gt;
+&lt;div id="outline-container-orgea9a174" class="outline-2"&gt;
+&lt;h2 id="orgea9a174"&gt;Tangle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgea9a174"&gt;
 &lt;p&gt;
 This is for troubleshooting.
 &lt;/p&gt;
@@ -2550,9 +2798,9 @@ This is for troubleshooting.
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org2772b96" class="outline-2"&gt;
-&lt;h2 id="org2772b96"&gt;Imports&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org2772b96"&gt;
+&lt;div id="outline-container-org65be22a" class="outline-2"&gt;
+&lt;h2 id="org65be22a"&gt;Imports&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org65be22a"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;import networkx
 import pandas
 import seaborn
@@ -2572,9 +2820,9 @@ print(email_network.head())
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org1e39d1f" class="outline-2"&gt;
-&lt;h2 id="org1e39d1f"&gt;1 - Load the Directed Multigraph&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org1e39d1f"&gt;
+&lt;div id="outline-container-org4d601f7" class="outline-2"&gt;
+&lt;h2 id="org4d601f7"&gt;1 - Load the Directed Multigraph&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org4d601f7"&gt;
 &lt;p&gt;
 Using networkx, load up the directed multigraph from `email&lt;sub&gt;network.txt&lt;/sub&gt;`. Make sure the node names are strings.
 &lt;/p&gt;
@@ -2604,9 +2852,9 @@ networkx.draw_networkx(one)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org97151f0" class="outline-2"&gt;
-&lt;h2 id="org97151f0"&gt;Number of employees and emails&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org97151f0"&gt;
+&lt;div id="outline-container-org18ba0de" class="outline-2"&gt;
+&lt;h2 id="org18ba0de"&gt;Number of employees and emails&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org18ba0de"&gt;
 &lt;p&gt;
 How many employees and emails are represented in the graph from Question 1?
 &lt;/p&gt;
@@ -2630,13 +2878,13 @@ How many employees and emails are represented in the graph from Question 1?
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org876440e" class="outline-2"&gt;
-&lt;h2 id="org876440e"&gt;Information Routes&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org876440e"&gt;
+&lt;div id="outline-container-orgaf3d6a0" class="outline-2"&gt;
+&lt;h2 id="orgaf3d6a0"&gt;Information Routes&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgaf3d6a0"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org12fbf94" class="outline-3"&gt;
-&lt;h3 id="org12fbf94"&gt;Part 1. Assume that information in this company can only be exchanged through email.&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org12fbf94"&gt;
+&lt;div id="outline-container-orgcdffb7c" class="outline-3"&gt;
+&lt;h3 id="orgcdffb7c"&gt;Part 1. Assume that information in this company can only be exchanged through email.&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgcdffb7c"&gt;
 &lt;p&gt;
 When an employee sends an email to another employee, a communication channel has been created, allowing the sender to provide information to the receiver, but not vice versa. 
 &lt;/p&gt;
@@ -2647,9 +2895,9 @@ Based on the emails sent in the data, is it possible for information to go from 
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgc3860e5" class="outline-3"&gt;
-&lt;h3 id="orgc3860e5"&gt;Part 2. Now assume that a communication channel established by an email allows information to be exchanged both ways.&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgc3860e5"&gt;
+&lt;div id="outline-container-org0a6f264" class="outline-3"&gt;
+&lt;h3 id="org0a6f264"&gt;Part 2. Now assume that a communication channel established by an email allows information to be exchanged both ways.&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org0a6f264"&gt;
 &lt;p&gt;
 Based on the emails sent in the data, is it possible for information to go from every employee to every other employee?
 &lt;/p&gt;
@@ -2692,9 +2940,9 @@ Based on the emails sent in the data, is it possible for information to go from 
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orge396f15" class="outline-2"&gt;
-&lt;h2 id="orge396f15"&gt;Largest Weakly Connected Component&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orge396f15"&gt;
+&lt;div id="outline-container-org6c723d4" class="outline-2"&gt;
+&lt;h2 id="org6c723d4"&gt;Largest Weakly Connected Component&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org6c723d4"&gt;
 &lt;p&gt;
 How many nodes are in the largest (in terms of nodes) weakly connected component?
 &lt;/p&gt;
@@ -2812,45 +3060,45 @@ return # Your Answer Here
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#orged758a5"&gt;The Departure&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#org655365f"&gt;The Departure&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#org4800d47"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#org845608c"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#orgbda8c92"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#org42127b5"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#org53f13d6"&gt;The Initiation&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#orgf719c5b"&gt;The Initiation&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#org13348e1"&gt;Different Ways to Create Network Graphs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#org903e76a"&gt;A Chess Example&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#org813fd2f"&gt;Different Ways to Create Network Graphs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#org0a0aa7b"&gt;A Chess Example&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#org5271631"&gt;The Return&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/#orgb187ad2"&gt;The Return&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orged758a5" class="outline-2"&gt;
-&lt;h2 id="orged758a5"&gt;The Departure&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orged758a5"&gt;
+&lt;div id="outline-container-org655365f" class="outline-2"&gt;
+&lt;h2 id="org655365f"&gt;The Departure&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org655365f"&gt;
 &lt;p&gt;
 This is a look at different ways of creating and manipulating graphs using &lt;a href="https://networkx.github.io"&gt;NetworkX&lt;/a&gt;.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org4800d47" class="outline-3"&gt;
-&lt;h3 id="org4800d47"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org4800d47"&gt;
+&lt;div id="outline-container-orgbda8c92" class="outline-3"&gt;
+&lt;h3 id="orgbda8c92"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgbda8c92"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgc4d9b4a" class="outline-4"&gt;
-&lt;h4 id="orgc4d9b4a"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgc4d9b4a"&gt;
+&lt;div id="outline-container-org2eb1683" class="outline-4"&gt;
+&lt;h4 id="org2eb1683"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2eb1683"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from functools import partial
 from pathlib import Path
 import os
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org0f7b0a2" class="outline-4"&gt;
-&lt;h4 id="org0f7b0a2"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org0f7b0a2"&gt;
+&lt;div id="outline-container-orgd524745" class="outline-4"&gt;
+&lt;h4 id="orgd524745"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd524745"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from bokeh.models import HoverTool
 import holoviews
 import hvplot.pandas
@@ -2860,17 +3108,17 @@ import pandas
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgf4999e2" class="outline-4"&gt;
-&lt;h4 id="orgf4999e2"&gt;My Stuff&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgf4999e2"&gt;
+&lt;div id="outline-container-org37771fe" class="outline-4"&gt;
+&lt;h4 id="org37771fe"&gt;My Stuff&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org37771fe"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from graeae.visualization import EmbedHoloview
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org845608c" class="outline-3"&gt;
-&lt;h3 id="org845608c"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org845608c"&gt;
+&lt;div id="outline-container-org42127b5" class="outline-3"&gt;
+&lt;h3 id="org42127b5"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org42127b5"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;SLUG = "some-networkx-examples"
 OUTPUT_PATH = Path("../../files/posts/networks/" + SLUG)
 Embed = partial(EmbedHoloview, folder_path=OUTPUT_PATH)
@@ -2879,20 +3127,20 @@ Embed = partial(EmbedHoloview, folder_path=OUTPUT_PATH)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org53f13d6" class="outline-2"&gt;
-&lt;h2 id="org53f13d6"&gt;The Initiation&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org53f13d6"&gt;
+&lt;div id="outline-container-orgf719c5b" class="outline-2"&gt;
+&lt;h2 id="orgf719c5b"&gt;The Initiation&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgf719c5b"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org13348e1" class="outline-3"&gt;
-&lt;h3 id="org13348e1"&gt;Different Ways to Create Network Graphs&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org13348e1"&gt;
+&lt;div id="outline-container-org813fd2f" class="outline-3"&gt;
+&lt;h3 id="org813fd2f"&gt;Different Ways to Create Network Graphs&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org813fd2f"&gt;
 &lt;p&gt;
 &lt;b&gt;NetworkX&lt;/b&gt; has a few different ways to create graphs, some more flexible than others. This is a non-exhaustive showing of some of them.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org2164a72" class="outline-4"&gt;
-&lt;h4 id="org2164a72"&gt;Adding Edges To An Existing Graph&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org2164a72"&gt;
+&lt;div id="outline-container-org860d460" class="outline-4"&gt;
+&lt;h4 id="org860d460"&gt;Adding Edges To An Existing Graph&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org860d460"&gt;
 &lt;p&gt;
 You can create a graph using the graph constructors. This is an example of an undirected &lt;a href="https://networkx.github.io/documentation/stable/reference/classes/graph.html"&gt;Graph&lt;/a&gt;.
 &lt;/p&gt;
@@ -2922,9 +3170,9 @@ networkx.draw_networkx(G1)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgb4da3bf" class="outline-4"&gt;
-&lt;h4 id="orgb4da3bf"&gt;Adjacency List&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgb4da3bf"&gt;
+&lt;div id="outline-container-org8baf85a" class="outline-4"&gt;
+&lt;h4 id="org8baf85a"&gt;Adjacency List&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org8baf85a"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;with open("G_adjlist.txt") as reader:
     print(reader.read())
 &lt;/pre&gt;&lt;/div&gt;
@@ -2935,9 +3183,9 @@ G2.edges()
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org1601b06" class="outline-4"&gt;
-&lt;h4 id="org1601b06"&gt;Adjacency Matrix&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org1601b06"&gt;
+&lt;div id="outline-container-orgced4ac0" class="outline-4"&gt;
+&lt;h4 id="orgced4ac0"&gt;Adjacency Matrix&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgced4ac0"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;G_mat = numpy.array([[0, 1, 1, 1, 0, 1, 0, 0, 0, 0],
 		     [1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
 		     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -2957,9 +3205,9 @@ G3.edges()
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org9031ed3" class="outline-4"&gt;
-&lt;h4 id="org9031ed3"&gt;Edgelist&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org9031ed3"&gt;
+&lt;div id="outline-container-org98f8245" class="outline-4"&gt;
+&lt;h4 id="org98f8245"&gt;Edgelist&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org98f8245"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;with open('G_edgelist.txt') as reader:
     print(reader.read())
 &lt;/pre&gt;&lt;/div&gt;
@@ -2971,9 +3219,9 @@ G4.edges(data=True)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org2294228" class="outline-4"&gt;
-&lt;h4 id="org2294228"&gt;Pandas DataFrame&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org2294228"&gt;
+&lt;div id="outline-container-org1e609e0" class="outline-4"&gt;
+&lt;h4 id="org1e609e0"&gt;Pandas DataFrame&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1e609e0"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;G_df = pandas.read_csv('G_edgelist.txt', delim_whitespace=True, 
 		       header=None, names=['n1', 'n2', 'weight'])
 G_df
@@ -2987,9 +3235,9 @@ G5.edges(data=True)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org903e76a" class="outline-3"&gt;
-&lt;h3 id="org903e76a"&gt;A Chess Example&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org903e76a"&gt;
+&lt;div id="outline-container-org0a0aa7b" class="outline-3"&gt;
+&lt;h3 id="org0a0aa7b"&gt;A Chess Example&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org0a0aa7b"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;with open('chess_graph.txt') as reader:
     count = 0
     for line in reader:
@@ -3041,1335 +3289,6 @@ print(win_count.head())
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org5271631" class="outline-2"&gt;
-&lt;h2 id="org5271631"&gt;The Return&lt;/h2&gt;
-&lt;/div&gt;</description><category>networks</category><category>networkx</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/</guid><pubDate>Fri, 12 Apr 2019 20:12:58 GMT</pubDate></item><item><title>Company Movie Night</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
-&lt;h2&gt;Table of Contents&lt;/h2&gt;
-&lt;div id="text-table-of-contents"&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/#org99a20f6"&gt;The Departure&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/#orgaf7f3e2"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/#org426d791"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/#orga0e97b9"&gt;The Plotting&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/#orgf59196d"&gt;The Initiation&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/#org48f1a04"&gt;The Data&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/#org1376772"&gt;Plotting&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/#org83ea551"&gt;Question 2&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/#orgd3d890c"&gt;Question 3&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/#org31ba528"&gt;Question 4&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/#org7823d62"&gt;The Return&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org99a20f6" class="outline-2"&gt;
-&lt;h2 id="org99a20f6"&gt;The Departure&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org99a20f6"&gt;
-&lt;p&gt;
-This is a look at working with networks using &lt;a href="https://networkx.github.io"&gt;networkx&lt;/a&gt;. Our scene - eight employees are trying to choose three movies to watch for company movie nights. We have two sources of data - the &lt;i&gt;candidate movies&lt;/i&gt; and the &lt;i&gt;relationship&lt;/i&gt; between pairs of employees. The relationships are on a scale from -100 to 100, with -100 being the strongest of enemies and 100 meaning they are best of friends. Zero either means they have no relationship (don't interact) or are indifferent about the other person.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgaf7f3e2" class="outline-3"&gt;
-&lt;h3 id="orgaf7f3e2"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgaf7f3e2"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org942b39f" class="outline-4"&gt;
-&lt;h4 id="org942b39f"&gt;From Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org942b39f"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from argparse import Namespace
-from functools import partial
-from pathlib import Path
-import copy
-import os
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org72bb6fe" class="outline-4"&gt;
-&lt;h4 id="org72bb6fe"&gt;From PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org72bb6fe"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from dotenv import load_dotenv
-from bokeh.models import (
-    BoxSelectTool,
-    Circle,
-    HoverTool, 
-    MultiLine,
-    PanTool,
-    Range1d,
-    TapTool,
-    WheelZoomTool,
-)
-from bokeh.models import Plot as BokehPlot
-from bokeh.models.graphs import (from_networkx, 
-				 EdgesAndLinkedNodes, 
-				 NodesAndLinkedEdges)
-from bokeh.palettes import RdBu, Spectral4
-from bokeh.transform import linear_cmap
-import holoviews
-from holoviews import dim
-import hvplot.pandas
-import networkx
-import pandas
-import numpy
-from networkx.algorithms import bipartite
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org90bb230" class="outline-4"&gt;
-&lt;h4 id="org90bb230"&gt;My Stuff&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org90bb230"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from graeae.visualization import EmbedBokeh, EmbedHoloview
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org426d791" class="outline-3"&gt;
-&lt;h3 id="org426d791"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org426d791"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgf80f638" class="outline-4"&gt;
-&lt;h4 id="orgf80f638"&gt;Load Dotenv&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgf80f638"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;load_dotenv(".env", override=True)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orga0e97b9" class="outline-3"&gt;
-&lt;h3 id="orga0e97b9"&gt;The Plotting&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orga0e97b9"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;SLUG = 'company-movie-night/'
-OUTPUT = Path("../../files/posts/networks/" + SLUG)
-Embed = partial(EmbedHoloview, folder_path=OUTPUT)
-EmbedB = partial(EmbedBokeh, folder_path=OUTPUT)
-holoviews.extension("bokeh")
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Plot = Namespace(
-    node_size=15,
-    edge_alpha=0.8,
-    edge_color="#CCCCCC",
-    edge_width=5,
-    width=800,
-    height=800,
-    fontsize=18,
-    padding=dict(x=(-1, 1), y=(-1, 1))
-)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgf59196d" class="outline-2"&gt;
-&lt;h2 id="orgf59196d"&gt;The Initiation&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgf59196d"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org48f1a04" class="outline-3"&gt;
-&lt;h3 id="org48f1a04"&gt;The Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org48f1a04"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgcedf2a8" class="outline-4"&gt;
-&lt;h4 id="orgcedf2a8"&gt;This Is the Set Of Employee-Relationships&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgcedf2a8"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;employee_relationships_path = Path(os.environ.get("EMPLOYEE_RELATIONSHIPS"))
-relationships_data = pandas.read_csv(
-    employee_relationships_path, 
-    delimiter="\t", 
-    header=None,
-    names="employee_1 employee_2 relationship".split())
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;table = holoviews.Table(relationships_data).opts(height=Plot.height)
-Embed(plot=table, file_name="relationships_data")()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/relationships_data.html" style="width:100%" height="800"&gt;
-  &lt;p&gt;Figure Missing&lt;/p&gt;
-&lt;/object&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;employees = set(relationships_data.employee_1.unique()) | set(relationships_data.employee_2.unique())
-print(employees)
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-{'Pablo', 'Georgia', 'Andy', 'Claude', 'Vincent', 'Joan', 'Lee', 'Frida'}
-
-&lt;/pre&gt;
-
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(len(employees))
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-8
-
-&lt;/pre&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(len(relationships_data))
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-28
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-We have eight employees and twenty-eight links. Is this a fully connected graph? The handshake problem says that the amount of links in a fully-connected network is:
-&lt;/p&gt;
-
-&lt;p&gt;
-\[
- links = \frac{n(n-1)}{2}
-\]
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(len(employees) * (len(employees) - 1)/2)
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-28.0
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-It looks like our relationships data creates a fully-connected network (unless there is a duplicate which would be an error).
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org2bc557e" class="outline-4"&gt;
-&lt;h4 id="org2bc557e"&gt;These Are the Movie Choices&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org2bc557e"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;employee_movies_path = Path(os.environ.get("EMPLOYEE_MOVIE_CHOICES"))
-movies_data = pandas.read_csv(
-    employee_movies_path, 
-    delimiter="\t", 
-    header=None,
-    skiprows=1,
-    names="employee movie".split())
-print(f"Employee To Movie Edges: {len(movies_data)}")
-print(movies_data.head())
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Employee To Movie Edges: 24
-  employee                            movie
-0     Andy                         Anaconda
-1     Andy                       Mean Girls
-2     Andy                       The Matrix
-3   Claude                         Anaconda
-4   Claude  Monty Python and the Holy Grail
-
-&lt;/pre&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;movies = set(movies_data.movie.unique())
-for movie in sorted(movies):
-    print(f" - {movie}")
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;ul class="org-ul"&gt;
-&lt;li&gt;Anaconda&lt;/li&gt;
-&lt;li&gt;Forrest Gump&lt;/li&gt;
-&lt;li&gt;Kung Fu Panda&lt;/li&gt;
-&lt;li&gt;Mean Girls&lt;/li&gt;
-&lt;li&gt;Monty Python and the Holy Grail&lt;/li&gt;
-&lt;li&gt;Snakes on a Plane&lt;/li&gt;
-&lt;li&gt;The Dark Knight&lt;/li&gt;
-&lt;li&gt;The Godfather&lt;/li&gt;
-&lt;li&gt;The Matrix&lt;/li&gt;
-&lt;li&gt;The Shawshank Redemption&lt;/li&gt;
-&lt;li&gt;The Social Network&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;
-The eight employees chose 11 movies between them.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgfb28a42" class="outline-4"&gt;
-&lt;h4 id="orgfb28a42"&gt;Converting the DataFrames to Graphs&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgfb28a42"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org636bf40" class="outline-5"&gt;
-&lt;h5 id="org636bf40"&gt;The Relationship Graph&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-org636bf40"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;relationship_graph = networkx.from_pandas_edgelist(relationships_data, 
-						   "employee_1", "employee_2", 
-						   edge_attr="relationship")
-for index, row in relationships_data.sample(5).iterrows():
-    assert relationship_graph[row["employee_1"]][row["employee_2"]]["relationship"] == row["relationship"]
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;expected_edges = len(relationships_data)
-expected_nodes = len(employees)
-print("Expected Edges: {}".format(expected_edges))
-print("Expected Nodes: {}".format(expected_nodes))
-assert expected_nodes == len(relationship_graph.nodes)
-assert expected_edges == len(relationship_graph.edges)
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Expected Edges: 28
-Expected Nodes: 8
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-
-&lt;div id="outline-container-orgbdbe808" class="outline-5"&gt;
-&lt;h5 id="orgbdbe808"&gt;The Movie Graph&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-orgbdbe808"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;movie_graph = networkx.from_pandas_edgelist(movies_data, "employee", "movie")
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;for index, row in movies_data.iterrows():
-    movie_graph[row.employee][row.movie]["employee"] = row.employee
-    movie_graph[row.employee][row.movie]["movie"] = row.movie
-
-for employee in movies_data.employee:    
-    movie_graph.nodes[employee]["type"] = "employee"
-for movie in movies_data.movie:
-    movie_graph.nodes[movie]["type"] = "movie"
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org1376772" class="outline-3"&gt;
-&lt;h3 id="org1376772"&gt;Plotting&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org1376772"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def graph_plot(graph: networkx.Graph, 
-	       title:str,
-	       file_name: str,
-	       hover: HoverTool,
-	       layout=networkx.circular_layout) -&amp;gt; None:
-    """Plot the graph in bokeh
-
-    Args:
-     graph: the graph to plot
-     layout: function to layout the plot
-     title: title for the plot
-     hover: defined hover tool
-     file_name: name to save the bokeh file (without extension)
-    """
-    plot = BokehPlot(plot_width=Plot.width,
-		     plot_height=Plot.height,
-		     x_range=Range1d(-1, 1),
-		     y_range=Range1d(-1, 1)
-    )
-
-    plot.title.text = title
-    plot.title.text_font_size = f"{Plot.fontsize}pt"
-    plot.add_tools(hover, TapTool(), BoxSelectTool(), PanTool(), WheelZoomTool())
-
-    renderer = from_networkx(relationship_graph, layout, 
-			     scale=1, center=(0,0))
-    renderer.node_renderer.glyph = Circle(size=Plot.node_size, 
-					  fill_color=Spectral4[0])
-    renderer.node_renderer.selection_glyph = Circle(size=Plot.node_size, 
-						    fill_color=Spectral4[2])
-    renderer.node_renderer.hover_glyph = Circle(size=Plot.node_size, 
-						fill_color=Spectral4[1])
-
-    color_map = linear_cmap(field_name="relationship", 
-			    palette=RdBu[11], 
-			    low=100, high=-100)
-    renderer.edge_renderer.glyph = MultiLine(line_color=color_map, 
-					     line_alpha=0.5,
-					     line_width=3)
-    renderer.edge_renderer.selection_glyph = MultiLine(line_color=color_map, 
-						       line_width=Plot.edge_width)
-    renderer.edge_renderer.hover_glyph = MultiLine(line_color=color_map, 
-						   line_width=Plot.edge_width)
-    renderer.selection_policy = NodesAndLinkedEdges()
-    renderer.inspection_policy = EdgesAndLinkedNodes()
-    plot.renderers.append(renderer)
-    EmbedB(plot=plot, file_name=file_name)()
-    return
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;class RelationshipGraphPlot:
-    """Plots a graph and keeps the parts so you can inspect them
-
-    Args:
-     graph: the graph to plot
-     layout: function to layout the plot
-     title: title for the plot
-     hover: defined hover tool
-     settings: namespace with the plot settings
-     file_name: name to save the bokeh file (without extension)
-    """
-    def __init__(self, graph: networkx.Graph, 
-		 title:str,
-		 file_name: str,
-		 hover: HoverTool,
-		 settings: Namespace=Plot,
-		 layout=networkx.circular_layout) -&amp;gt; None:
-	self.graph = graph
-	self.title = title
-	self.file_name = file_name
-	self.hover = hover
-	self.settings = settings
-	self.layout = layout
-	self._tap_tool = None
-	self._box_select_tool = None
-	self._pan_tool = None
-	self._wheel_zoom_tool = None
-	self._plot = None
-	self._renderer = None
-	self._color_map = None
-	return
-
-    @property
-    def tap_tool(self) -&amp;gt; TapTool:
-	if self._tap_tool is None:
-	    self._tap_tool = TapTool()
-	return self._tap_tool
-
-    @property
-    def box_select_tool(self) -&amp;gt; BoxSelectTool:
-	if self._box_select_tool is None:
-	    self._box_select_tool = BoxSelectTool()
-	return self._box_select_tool
-
-    @property
-    def pan_tool(self) -&amp;gt; PanTool:
-	if self._pan_tool is None:
-	    self._pan_tool = PanTool()
-	return self._pan_tool
-
-    @property
-    def wheel_zoom_tool(self) -&amp;gt; WheelZoomTool:
-	if self._wheel_zoom_tool is None:
-	    self._wheel_zoom_tool = WheelZoomTool()
-	return self._wheel_zoom_tool
-
-    @property
-    def plot(self) -&amp;gt; BokehPlot:
-	if self._plot is None:
-	    self._plot = BokehPlot(plot_width=self.settings.width,
-				   plot_height=self.settings.height,
-				   x_range=Range1d(-1, 1),
-				   y_range=Range1d(-1, 1)
-	    )
-
-	    self._plot.title.text = self.title
-	    self._plot.title.text_font_size = f"{Plot.fontsize}pt"
-	    self._plot.add_tools(self.hover, 
-				 self.tap_tool, 
-				 self.box_select_tool, 
-				 self.pan_tool,
-				 self.wheel_zoom_tool)
-	    self._plot.renderers.append(self.renderer)
-	return self._plot
-
-    @property
-    def color_map(self):
-	if self._color_map is None:
-	    self._color_map = linear_cmap(field_name="relationship", 
-					  palette=RdBu[11], 
-					  low=100, high=-100)
-	return self._color_map
-
-    @property
-    def renderer(self):
-	if self._renderer is None:
-	    self._renderer = from_networkx(self.graph, self.layout, 
-					  scale=1, center=(0,0))
-	    self._renderer.node_renderer.glyph = Circle(
-		size=Plot.node_size, 
-		fill_color=Spectral4[0])
-	    self._renderer.node_renderer.selection_glyph = Circle(
-		size=Plot.node_size, 
-		fill_color=Spectral4[2])
-	    self._renderer.node_renderer.hover_glyph = Circle(
-		size=Plot.node_size, 
-		fill_color=Spectral4[1])
-
-	    self._renderer.edge_renderer.glyph = MultiLine(
-		line_color=self.color_map, 
-		line_alpha=0.5,
-		line_width=3)
-	    self._renderer.edge_renderer.selection_glyph = MultiLine(
-		line_color=self.color_map, 
-		line_width=Plot.edge_width)
-	    self._renderer.edge_renderer.hover_glyph = MultiLine(
-		line_color=self._color_map,
-		line_width=Plot.edge_width)
-	    self._renderer.selection_policy = NodesAndLinkedEdges()
-	    self._renderer.inspection_policy = EdgesAndLinkedNodes()
-	return self._renderer
-
-    def __call__(self) -&amp;gt; None:
-	EmbedB(plot=self.plot, file_name=self.file_name)()
-	return
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgfd0e75f" class="outline-4"&gt;
-&lt;h4 id="orgfd0e75f"&gt;The Employee Relationship Plot&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgfd0e75f"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org7b472fc" class="outline-5"&gt;
-&lt;h5 id="org7b472fc"&gt;HoloViews&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-org7b472fc"&gt;
-&lt;p&gt;
-The employee relationship graph consists of employees as nodes and their relationshp-level as weights on the edges.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;plot = holoviews.Graph.from_networkx(relationship_graph,
-				     networkx.circular_layout).opts(
-					 cmap="Set1",
-					 fontsize=Plot.fontsize,
-					 width=800,
-					 height=800,
-					 title="Company Relationship Graph",
-					 xaxis=None, yaxis=None).options(
-					     edge_color_index="relationship", 
-					     edge_cmap="Spectral").redim.range(**Plot.padding)
-renderer = holoviews.render(plot)
-renderer.renderers[-1].selection_policy = EdgesAndLinkedNodes()
-EmbedB(plot=renderer, file_name="employee_relationships")()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/employee_relationships" id="620da89f-412b-4c15-b555-58f0dd1c4fd8"&gt;&lt;/script&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org263bd91" class="outline-5"&gt;
-&lt;h5 id="org263bd91"&gt;Bokeh&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-org263bd91"&gt;
-&lt;p&gt;
-This is the same plot using &lt;a href="https://bokeh.pydata.org/en/latest/"&gt;bokeh&lt;/a&gt; directly instead of holoviews. I wanted both the nodes and edges to trigger the &lt;code&gt;HoverTool&lt;/code&gt; but HoloViews doesn't support this. There might be a way to add it later, but their documentation is so opaque that I decided it wasn't worth it to keep trying to figure it out, since bokeh isn't that hard to use (although their documentation isn't the best either).
-&lt;/p&gt;
-
-&lt;p&gt;
-Since bokeh is so verbose I'm going to step through this instead of putting it into one block.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org2e1e8c9" class="outline-6"&gt;
-&lt;h6 id="org2e1e8c9"&gt;Hover Tool&lt;/h6&gt;
-&lt;div class="outline-text-6" id="text-org2e1e8c9"&gt;
-&lt;p&gt;
-When the &lt;code&gt;EdgesAndLinkedNodes&lt;/code&gt; class is used only the edge data is available to the hovertool (or at least I couldn't figure out how to make the Node attributes work). So these have to be available to it. You can see what's available once you've created the graph renderer (the output of &lt;code&gt;from_networkx&lt;/code&gt;) by looking at one of the data attributes 
-&lt;/p&gt;
-
-&lt;pre class="example"&gt;
-renderer.edge_renderer.data_source.data.keys()
-&lt;/pre&gt;
-
-&lt;p&gt;
-Which in this case returned this.
-&lt;/p&gt;
-
-&lt;pre class="example"&gt;
-dict_keys(['relationship', 'start', 'end'])
-&lt;/pre&gt;
-
-&lt;p&gt;
-&lt;code&gt;relationship&lt;/code&gt; was a data-attribute I added through &lt;code&gt;networkx&lt;/code&gt;, something else (presumably bokeh) created the start and end.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;hover = HoverTool(
-    tooltips=[
-	("Employee", "@start"),
-	("Employee", "@end"),
-	("Relationship", "@relationship"),
-    ]
-)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org5ebde46" class="outline-6"&gt;
-&lt;h6 id="org5ebde46"&gt;The Plot&lt;/h6&gt;
-&lt;div class="outline-text-6" id="text-org5ebde46"&gt;
-&lt;p&gt;
-This is the bokeh plot (I don't know how it differs from a figure). It's normally called &lt;code&gt;Plot&lt;/code&gt; but I already used that name for my settings object so I called it &lt;code&gt;BokehPlot&lt;/code&gt;.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;plot = BokehPlot(plot_width=Plot.width,
-		 plot_height=Plot.height,
-		 x_range=Range1d(-1, 1),
-		 y_range=Range1d(-1, 1)
-)
-
-plot.title.text = "Company Relationships"
-plot.title.text_font_size = f"{Plot.fontsize}pt"
-plot.add_tools(hover, TapTool(), BoxSelectTool(), PanTool(), WheelZoomTool())
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org3abf6ea" class="outline-6"&gt;
-&lt;h6 id="org3abf6ea"&gt;The Graph Renderer&lt;/h6&gt;
-&lt;div class="outline-text-6" id="text-org3abf6ea"&gt;
-&lt;p&gt;
-This part converts the networkx Graph into a bokeh Graph. This is what I was referring to earlier when I talked about inspecting the &lt;code&gt;renderer&lt;/code&gt; to look at the available edge attributes.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;renderer = from_networkx(relationship_graph, networkx.circular_layout, 
-			 scale=1, center=(0,0))
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org95fa8dc" class="outline-6"&gt;
-&lt;h6 id="org95fa8dc"&gt;Nodes&lt;/h6&gt;
-&lt;div class="outline-text-6" id="text-org95fa8dc"&gt;
-&lt;p&gt;
-You have to set up the shapes for the nodes - I think - there might be defaults but the few examples I found set it up. It's probably not a bad idea in any case. The &lt;code&gt;Spectral4&lt;/code&gt; object is a list of four hex-colors. Here's the ones I used.
-&lt;/p&gt;
-
-&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
-
-
-&lt;colgroup&gt;
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-left"&gt;
-&lt;/colgroup&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th scope="col" class="org-left"&gt;Object&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;Index&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;Color&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td class="org-left"&gt;glyph&lt;/td&gt;
-&lt;td class="org-right"&gt;0&lt;/td&gt;
-&lt;td class="org-left"&gt;Medium Blue&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;selection_glyph&lt;/td&gt;
-&lt;td class="org-right"&gt;2&lt;/td&gt;
-&lt;td class="org-left"&gt;Orange&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-left"&gt;hover_glyph&lt;/td&gt;
-&lt;td class="org-right"&gt;1&lt;/td&gt;
-&lt;td class="org-left"&gt;Pastel Green&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;renderer.node_renderer.glyph = Circle(size=Plot.node_size, fill_color=Spectral4[0])
-renderer.node_renderer.selection_glyph = Circle(size=Plot.node_size, fill_color=Spectral4[2])
-renderer.node_renderer.hover_glyph = Circle(size=Plot.node_size, fill_color=Spectral4[1])
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orge1f8d20" class="outline-6"&gt;
-&lt;h6 id="orge1f8d20"&gt;Color Map&lt;/h6&gt;
-&lt;div class="outline-text-6" id="text-orge1f8d20"&gt;
-&lt;p&gt;
-The &lt;code&gt;linear_cmap&lt;/code&gt; maps a range of values to a palette of colors. In this case I'm mapping the relationship values to the red-blue palette (&lt;code&gt;RdBu&lt;/code&gt;). Two things to note:
-&lt;/p&gt;
-
-&lt;ul class="org-ul"&gt;
-&lt;li&gt;I chose a red-blue palette with 11 values because the odd-number puts white at the center (it goes from blue to white to red)&lt;/li&gt;
-&lt;li&gt;Althouh the name suggests a palette form red to blue it goes from blue to red so I had to make -100 the 'high' value so red would be a bad relationship.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;color_map = linear_cmap(field_name="relationship", palette=RdBu[11], low=100, high=-100)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgd3f4b6a" class="outline-6"&gt;
-&lt;h6 id="orgd3f4b6a"&gt;The Edges&lt;/h6&gt;
-&lt;div class="outline-text-6" id="text-orgd3f4b6a"&gt;
-&lt;p&gt;
-Like the nodes you define the edges for the plot. This is where we get to use the color-map to make the edges match the relationship between the employees.
-&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;renderer.edge_renderer.glyph = MultiLine(line_color=color_map, 
-					 line_alpha=0.5,
-					 line_width=3)
-renderer.edge_renderer.selection_glyph = MultiLine(line_color=color_map, 
-						   line_width=Plot.edge_width)
-renderer.edge_renderer.hover_glyph = MultiLine(line_color=color_map, 
-					       line_width=Plot.edge_width)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orga29a18a" class="outline-6"&gt;
-&lt;h6 id="orga29a18a"&gt;The Selection and Inspection Policies&lt;/h6&gt;
-&lt;div class="outline-text-6" id="text-orga29a18a"&gt;
-&lt;p&gt;
-This was the reason for doing it in bokeh in the first place. Adding these two lines makes both the edge and attached notes highlight when selected or hovered over.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;renderer.selection_policy = NodesAndLinkedEdges()
-renderer.inspection_policy = EdgesAndLinkedNodes()
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgb10f0e2" class="outline-6"&gt;
-&lt;h6 id="orgb10f0e2"&gt;Put It All Together&lt;/h6&gt;
-&lt;div class="outline-text-6" id="text-orgb10f0e2"&gt;
-&lt;p&gt;
-Now we just add the graph-renderer to the plot and have bokeh convert it to JavaScript and HTML.
-&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;plot.renderers.append(renderer)
-EmbedB(plot=plot, file_name="company_relationships_bokeh")()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/company_relationships_bokeh" id="b871a597-f39e-4ca0-9303-dffb029b90ec"&gt;&lt;/script&gt;
-
-&lt;p&gt;
-It looks like Andy might have some kind of personality problem (maybe he's the boss), while Georgia and Claude are unusually close.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org457c72e" class="outline-5"&gt;
-&lt;h5 id="org457c72e"&gt;Spring loaded&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-org457c72e"&gt;
-&lt;p&gt;
-Bokeh raises an error if you try to re-use the hover-tool for some reason so I had to make a copy.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;hover = HoverTool(
-    tooltips=[
-	("Employee", "@start"),
-	("Employee", "@end"),
-	("Relationship", "@relationship"),
-    ]
-)
-
-graph_plot(relationship_graph, 
-	   "Company Relationships", 
-	   "company_relationships_spring", 
-	   hover,
-	   networkx.spring_layout)
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;script src="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/company_relationships_spring" id="b9aee303-a400-4bef-a454-729bba29b2b5"&gt;&lt;/script&gt;
-
-&lt;p&gt;
-This didn't produce as interesting a result as I thought.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org52f0114" class="outline-4"&gt;
-&lt;h4 id="org52f0114"&gt;The Movie Plot&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org52f0114"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;movie_hover = HoverTool(
-    tooltips = [
-	("Employee", "@employee"),
-	("Movie", "@movie"),
-    ]
-
-)
-plot = holoviews.Graph.from_networkx(movie_graph,
-				     networkx.circular_layout).opts(
-					 node_color=dim("type"),
-					 cmap="Set1",
-					 fontsize=Plot.fontsize,
-					 width=Plot.width,
-					 height=Plot.height,
-					 tools=[movie_hover, TapTool()],
-					 title="Company Movies Graph",
-					 xaxis=None, yaxis=None).options(
-					     inspection_policy="edges",
-					     edge_cmap="Spectral").redim.range(**Plot.padding)
-Embed(plot=plot, file_name="company_movies_circle")()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/company_movies_circle.html" style="width:100%" height="800"&gt;
-  &lt;p&gt;Figure Missing&lt;/p&gt;
-&lt;/object&gt;
-
-&lt;p&gt;
-The Blue nodes are employees and the red nodes are movies.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org83ea551" class="outline-3"&gt;
-&lt;h3 id="org83ea551"&gt;Question 2&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org83ea551"&gt;
-&lt;p&gt;
-Using the graph from the previous question, add nodes attributes named `'type'` where movies have the value `'movie'` and employees have the value `'employee'` and return that graph.
-&lt;/p&gt;
-
-&lt;p&gt;
-&lt;b&gt;This function should return a networkx graph with node attributes `{'type': 'movie'}` or `{'type': 'employee'}`&lt;/b&gt;
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def answer_two():
-    """Adds 'type' to nodes from movie-graph
-
-    Returns:
-     Graph: answer_one with 'type' attribute added (employee or movie)
-    """
-    graph = answer_one()
-    new_graph = networkx.Graph()
-    nodes = graph.nodes()
-    employee_nodes = [node for node in nodes if node in employees]
-    movie_nodes = [node for node in nodes if node in movies]
-    new_graph.add_nodes_from(employee_nodes, bipartite=0, type='employee')
-    new_graph.add_nodes_from(movie_nodes, bipartite=1, type="movie")
-    new_graph.add_edges_from(graph.edges())
-    return new_graph
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;two = answer_two()
-two.nodes(data=True)
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;plot_graph(two)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgd3d890c" class="outline-3"&gt;
-&lt;h3 id="orgd3d890c"&gt;Question 3&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgd3d890c"&gt;
-&lt;p&gt;
-Find a weighted projection of the graph from `answer_two` which tells us how many movies different pairs of employees have in common.
-&lt;/p&gt;
-
-&lt;p&gt;
-&lt;b&gt;This function should return a weighted projected graph.&lt;/b&gt;
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def answer_three():
-    graph = answer_two()
-    assert networkx.is_bipartite(graph)
-    return bipartite.weighted_projected_graph(graph, employees)
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;three = answer_three()
-plot_graph(three)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org31ba528" class="outline-3"&gt;
-&lt;h3 id="org31ba528"&gt;Question 4&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org31ba528"&gt;
-&lt;p&gt;
-Suppose you'd like to find out if people that have a high relationship score also like the same types of movies.
-&lt;/p&gt;
-
-&lt;p&gt;
-Find the Pearson correlation ( using `DataFrame.corr()` ) between employee relationship scores and the number of movies they have in common. If two employees have no movies in common it should be treated as a 0, not a missing value, and should be included in the correlation calculation.
-&lt;/p&gt;
-
-&lt;p&gt;
-&lt;b&gt;This function should return a float.&lt;/b&gt;
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def answer_four():
-    """calculates the pearson correlation for data
-
-    Returns:
-     float: Pearson correlation for weight and relationship_score
-    """
-    three = answer_three()
-    relationships = pandas.read_table(
-	"Employee_Relationships.txt",
-	names="employee_left employee_right relationship_score".split())
-    relationships["employees"] = relationships.apply(
-	lambda row: tuple(sorted((row["employee_left"],
-				  row['employee_right']))), axis=1)
-
-    weights = pandas.DataFrame(
-	three.edges(data=True),
-	columns="employee_left employee_right weight".split())
-    weights["weight"] = weights.weight.map(lambda row: row["weight"])
-    weights["employees"] = weights.apply(lambda row: tuple(sorted(
-	(row["employee_left"],
-	 row["employee_right"]))),
-					 axis=1)
-
-    joined = pandas.merge(relationships, weights, how="outer", 
-			  on=['employees'])
-    assert len(joined) == len(relationships)
-    joined['weight'] = joined["weight"].fillna(0)
-
-    data = joined[["relationship_score", "weight"]]
-    correlation = data.corr()
-    return correlation.relationship_score.weight
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(answer_four())
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org7823d62" class="outline-2"&gt;
-&lt;h2 id="org7823d62"&gt;The Return&lt;/h2&gt;
-&lt;/div&gt;</description><category>networks</category><category>networkx</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/networks/company-movie-night/</guid><pubDate>Thu, 11 Apr 2019 20:04:23 GMT</pubDate></item><item><title>Getting Started With Prophet</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/prophet/getting-started-with-prophet/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
-&lt;h2&gt;Table of Contents&lt;/h2&gt;
-&lt;div id="text-table-of-contents"&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/prophet/getting-started-with-prophet/#orgca1c877"&gt;The Departure&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/prophet/getting-started-with-prophet/#org652ed9a"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/prophet/getting-started-with-prophet/#orgb03646c"&gt;Setup&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/prophet/getting-started-with-prophet/#org0b8664a"&gt;The Initiation&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/prophet/getting-started-with-prophet/#org8fbcf12"&gt;Load The Data&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgca1c877" class="outline-2"&gt;
-&lt;h2 id="orgca1c877"&gt;The Departure&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgca1c877"&gt;
-&lt;p&gt;
-This is a first look at &lt;a href="https://facebook.github.io/prophet/"&gt;Prophet&lt;/a&gt; a time-series forecasting library. It depends on &lt;code&gt;pystan&lt;/code&gt;, a Bayesian modelling platform, which in turn depends on &lt;code&gt;numpy&lt;/code&gt; and &lt;code&gt;cython&lt;/code&gt;.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org652ed9a" class="outline-3"&gt;
-&lt;h3 id="org652ed9a"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org652ed9a"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org82c935f" class="outline-4"&gt;
-&lt;h4 id="org82c935f"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org82c935f"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from pathlib import Path
-import os
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org0a17928" class="outline-4"&gt;
-&lt;h4 id="org0a17928"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org0a17928"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from dotenv import load_dotenv
-import modin.pandas as pandas
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org1cdcb3e" class="outline-4"&gt;
-&lt;h4 id="org1cdcb3e"&gt;My Stuff&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org1cdcb3e"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from graeae.timers import Timer
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgb03646c" class="outline-3"&gt;
-&lt;h3 id="orgb03646c"&gt;Setup&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgb03646c"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org800574b" class="outline-4"&gt;
-&lt;h4 id="org800574b"&gt;The Paths&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org800574b"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;load_dotenv(".env", override=True)
-DATA = Path(os.environ.get("PEYTON_MANNING_WIKIPEDIA_VIEWS")).expanduser()
-assert DATA.is_file()
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgc768a21" class="outline-4"&gt;
-&lt;h4 id="orgc768a21"&gt;The Timer&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgc768a21"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;TIMER = Timer()
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org0b8664a" class="outline-2"&gt;
-&lt;h2 id="org0b8664a"&gt;The Initiation&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org0b8664a"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org8fbcf12" class="outline-3"&gt;
-&lt;h3 id="org8fbcf12"&gt;Load The Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org8fbcf12"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;with TIMER:
-    data = pandas.read_csv(DATA)
-print(data.shape)
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-WARNING: Falling back to serializing objects of type &amp;lt;class 'pathlib.PosixPath'&amp;gt; by using pickle. This may be inefficient.
-Started: 2019-04-05 15:23:56.038686
-Ended: 2019-04-05 15:23:56.236422
-Elapsed: 0:00:00.197736
-(2905, 2)
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;</description><category>prophet</category><category>timeseries</category><category>tutorial</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/prophet/getting-started-with-prophet/</guid><pubDate>Fri, 05 Apr 2019 21:53:40 GMT</pubDate></item><item><title>High School Contact Networks</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
-&lt;h2&gt;Table of Contents&lt;/h2&gt;
-&lt;div id="text-table-of-contents"&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/#org36be5f3"&gt;The Departure&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/#org18937e6"&gt;Setup The Plotting&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/#orgb197d36"&gt;Load The Data&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/#org46708c4"&gt;The Descent&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/#orgda05c30"&gt;End&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/#org06839b0"&gt;Citations&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org36be5f3" class="outline-2"&gt;
-&lt;h2 id="org36be5f3"&gt;The Departure&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org36be5f3"&gt;
-&lt;p&gt;
-This looks at data provided by &lt;a href="http://www.sociopatterns.org"&gt;SocioPatterns&lt;/a&gt; that looks a the interactions between students at a High School in Marseilles, France, in December of 2013.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgaa36493" class="outline-4"&gt;
-&lt;h4 id="orgaa36493"&gt;Imports&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgaa36493"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org74f5a32" class="outline-5"&gt;
-&lt;h5 id="org74f5a32"&gt;From Python&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-org74f5a32"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from collections import Counter
-from functools import partial
-from pathlib import Path
-import os
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orge0f2beb" class="outline-5"&gt;
-&lt;h5 id="orge0f2beb"&gt;From PyPi&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-orge0f2beb"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from bokeh.models import HoverTool
-from dotenv import load_dotenv
-from holoviews import dim, opts
-from holoviews.operation.datashader import datashade, bundle_graph
-import holoviews
-import hvplot.pandas
-import networkx
-import pandas as pandas
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgafabdfd" class="outline-5"&gt;
-&lt;h5 id="orgafabdfd"&gt;My Stuff&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-orgafabdfd"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from graeae.timers import Timer
-from graeae.visualization import EmbedHoloview
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orga187748" class="outline-4"&gt;
-&lt;h4 id="orga187748"&gt;Load the Dotenv&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orga187748"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;load_dotenv(".env")
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgda84400" class="outline-4"&gt;
-&lt;h4 id="orgda84400"&gt;Build the Timer&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgda84400"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;TIMER = Timer()
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org18937e6" class="outline-3"&gt;
-&lt;h3 id="org18937e6"&gt;Setup The Plotting&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org18937e6"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;holoviews.extension("bokeh")
-SLUG = "high-school-contact-networks/"
-output = Path("../../files/posts/networks/" + SLUG)
-Embed = partial(EmbedHoloview, folder_path=output)
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;class Plot:
-    """Constants for plotting"""
-    width = 1000
-    height = 800
-    fontsize = 18
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgb197d36" class="outline-3"&gt;
-&lt;h3 id="orgb197d36"&gt;Load The Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgb197d36"&gt;
-&lt;p&gt;
-Let's take a look at the data before loading it into pandas.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;HIGH_SCHOOL = Path(os.environ.get("HIGH_SCHOOL")).expanduser()
-assert HIGH_SCHOOL.is_dir()
-
-#+begin_src ipython :session highschool :results none
-class Files:
-    metadata = "metadata_2013.txt"
-    contact_diaries = "Contact-diaries-network_data_2013.csv"
-    facebook = "Facebook-known-pairs_data_2013.csv"
-    friendship = "Friendship-network_data_2013.csv"
-    high_school = "High-School_data_2013.csv"
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org7df7f26" class="outline-4"&gt;
-&lt;h4 id="org7df7f26"&gt;MetaData&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org7df7f26"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;metadata_path = HIGH_SCHOOL.joinpath(Files.metadata)
-assert metadata_path.is_file()
-with metadata_path.open() as reader:
-    for line in range(5):
-	print(reader.readline(), end="")
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-650	2BIO1	F
-498	2BIO1	F
-627	2BIO1	F
-857	2BIO1	F
-487	2BIO1	F
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-This first file has the meta-data for the students. The three columns are the student's ID, class, and gender.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;meta_data = pandas.read_csv(metadata_path, sep="\t", 
-			    names=["id", "class", "gender"])
-meta_data.loc[:, "class"] = meta_data["class"].astype("category")
-meta_data.loc[:, "gender"] = meta_data.gender.astype("category")
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org8b55f3a" class="outline-5"&gt;
-&lt;h5 id="org8b55f3a"&gt;Classes&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-org8b55f3a"&gt;
-&lt;p&gt;
-First a bar-plot to look at how the classes are distributed.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grouped = meta_data.groupby(["class", "gender"]).agg(
-    {"class": "count", "gender": "count"})
-grouped.columns = ["class_count", "gender_count"]
-grouped = grouped.reset_index()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;plot = grouped.hvplot.bar(title="Class Counts by Gender", 
-			  x="class", y="class_count", 
-			  stacked=True,
-			  by="gender", height=Plot.height, 
-			  width=Plot.width,
-			  ylabel="Count",
-			  xlabel="Class",
-			  tools=["hover"],
-			  fontsize=Plot.fontsize).opts(xrotation=90)
-Embed(plot=plot, file_name="gender_counts_stacked", height_in_pixels=Plot.height)()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/gender_counts_stacked.html" style="width:100%" height="800"&gt;
-  &lt;p&gt;Figure Missing&lt;/p&gt;
-&lt;/object&gt;
-
-&lt;p&gt;
-&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/gender_counts_stacked.html"&gt;Link to Plot&lt;/a&gt;
-&lt;/p&gt;
-
-&lt;p&gt;
-This is a look at the same thing except not stacked.
-&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;plot = grouped.hvplot.bar(title="Class Counts by Gender", x="class", 
-			  y="class_count",
-			  xlabel="Class",
-			  ylabel="Count",
-			  by="gender", height=Plot.height, width=Plot.width, 
-			  tools=["hover"],
-			  fontsize=Plot.fontsize).opts(xrotation=90)
-Embed(plot=plot, file_name="gender_counts", height_in_pixels=Plot.height)()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/gender_counts.html" style="width:100%" height="800"&gt;
-  &lt;p&gt;Figure Missing&lt;/p&gt;
-&lt;/object&gt;
-
-&lt;p&gt;
-&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/gender_counts.html"&gt;Link to Plot&lt;/a&gt;
-&lt;/p&gt;
-
-&lt;p&gt;
-Strangely, the classes that start with &lt;code&gt;2BIO&lt;/code&gt; are more female while the others are more male.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org158c9e3" class="outline-5"&gt;
-&lt;h5 id="org158c9e3"&gt;Gender&lt;/h5&gt;
-&lt;div class="outline-text-5" id="text-org158c9e3"&gt;
-&lt;p&gt;
-A stacked bar plot to get a sense of not just the distribution among genders but among classes.
-&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;plot = grouped.hvplot.bar(title="Gender Counts", x="gender", y="gender_count",
-			  stacked=True,
-			  by="class", 
-			  xlabel="Count",
-			  ylabel="Gender",
-			  fontsize=Plot.fontsize,
-			  width=Plot.width,
-			  height=Plot.height).opts(
-			      xrotation=90, 
-			      xlabel="Gender and Class")
-Embed(plot=plot, file_name="class_counts_stacked", height_in_pixels=Plot.height)()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/class_counts_stacked.html" style="width:100%" height="800"&gt;
-  &lt;p&gt;Figure Missing&lt;/p&gt;
-&lt;/object&gt;
-
-&lt;p&gt;
-&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/class_counts_stacked.html"&gt;Link to Plot&lt;/a&gt;
-&lt;/p&gt;
-
-&lt;p&gt;
-A non-stacked bar plot to get a better sense of how the genders fill the different classes.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;plot = grouped.hvplot.bar(title="Gender Counts", x="gender", y="gender_count",
-			  xlabel="Gender",
-			  ylabel="Count",
-			  by="class", 
-			  height=Plot.height,
-			  width=Plot.width,
-			  fontsize=Plot.fontsize).opts(
-			      xrotation=90, xlabel="Gender and Class")
-Embed(plot=plot, file_name="class_counts", height_in_pixels=Plot.height)()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/class_counts.html" style="width:100%" height="800"&gt;
-  &lt;p&gt;Figure Missing&lt;/p&gt;
-&lt;/object&gt;
-
-&lt;p&gt;
-&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/class_counts.html"&gt;Link to Plot&lt;/a&gt;
-&lt;/p&gt;
-
-&lt;p&gt;
-It looks like there were a little more males than females, but not a whole lot more.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org46708c4" class="outline-2"&gt;
-&lt;h2 id="org46708c4"&gt;The Descent&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org46708c4"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org0bde5e0" class="outline-4"&gt;
-&lt;h4 id="org0bde5e0"&gt;The Contact Network&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org0bde5e0"&gt;
-&lt;p&gt;
-This is a dataset that shows whether a student logged contact with another student.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;contact_path = HIGH_SCHOOL.joinpath(Files.contact_diaries)
-assert contact_path.is_file()
-with contact_path.open() as reader:
-    for line in range(5):
-	print(reader.readline(), end="")
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-3 28 2
-3 106 1
-3 147 4
-3 177 1
-3 295 4
-
-&lt;/pre&gt;
-
-&lt;p&gt;
-The columns are the person who was making the report, the person that was identified as a contact, and the time spent ecoded into one of four values.
-&lt;/p&gt;
-
-&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
-
-
-&lt;colgroup&gt;
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-right"&gt;
-&lt;/colgroup&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th scope="col" class="org-right"&gt;Code&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;Lower Limit (minutes)&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;Upper Limit (minutes)&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td class="org-right"&gt;1&lt;/td&gt;
-&lt;td class="org-right"&gt;0&lt;/td&gt;
-&lt;td class="org-right"&gt;5&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-right"&gt;2&lt;/td&gt;
-&lt;td class="org-right"&gt;5&lt;/td&gt;
-&lt;td class="org-right"&gt;15&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-right"&gt;3&lt;/td&gt;
-&lt;td class="org-right"&gt;15&lt;/td&gt;
-&lt;td class="org-right"&gt;60&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-right"&gt;4&lt;/td&gt;
-&lt;td class="org-right"&gt;60&lt;/td&gt;
-&lt;td class="org-right"&gt;infinity&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;contact_data = pandas.read_csv(contact_path, delimiter=" ", 
-				  names=["reporter", "contact", "time"])
-contact_data = contact_data.dropna()
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgda05c30" class="outline-2"&gt;
-&lt;h2 id="orgda05c30"&gt;End&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgda05c30"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org06839b0" class="outline-3"&gt;
-&lt;h3 id="org06839b0"&gt;Citations&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org06839b0"&gt;
-&lt;ul class="org-ul"&gt;
-&lt;li&gt;R. Mastrandrea, J. Fournet, A. Barrat,&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;
-Contact patterns in a high school: a comparison between data collected using wearable sensors, contact diaries and friendship surveys.
-PLoS ONE 10(9): e0136497 (2015)
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;</description><category>exploration</category><category>networks</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/networks/high-school-contact-networks/</guid><pubDate>Thu, 28 Mar 2019 00:38:17 GMT</pubDate></item></channel></rss>
+&lt;div id="outline-container-orgb187ad2" class="outline-2"&gt;
+&lt;h2 id="orgb187ad2"&gt;The Return&lt;/h2&gt;
+&lt;/div&gt;</description><category>networks</category><category>networkx</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/networks/some-networkx-examples/</guid><pubDate>Fri, 12 Apr 2019 20:12:58 GMT</pubDate></item></channel></rss>
