@@ -44,6 +44,242 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/networks/some-networkx-examples/">Some Networkx Examples</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/networks/some-networkx-examples/" rel="bookmark"><time class="published dt-published" datetime="2019-04-12T13:12:58-07:00" itemprop="datePublished" title="2019-04-12 13:12">2019-04-12 13:12</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/networks/some-networkx-examples/#org655365f">The Departure</a>
+<ul>
+<li><a href="/posts/networks/some-networkx-examples/#orgbda8c92">Imports</a></li>
+<li><a href="/posts/networks/some-networkx-examples/#org42127b5">Set Up</a></li>
+</ul>
+</li>
+<li><a href="/posts/networks/some-networkx-examples/#orgf719c5b">The Initiation</a>
+<ul>
+<li><a href="/posts/networks/some-networkx-examples/#org813fd2f">Different Ways to Create Network Graphs</a></li>
+<li><a href="/posts/networks/some-networkx-examples/#org0a0aa7b">A Chess Example</a></li>
+</ul>
+</li>
+<li><a href="/posts/networks/some-networkx-examples/#orgb187ad2">The Return</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org655365f">
+<h2 id="org655365f">The Departure</h2>
+<div class="outline-text-2" id="text-org655365f">
+<p>This is a look at different ways of creating and manipulating graphs using <a href="https://networkx.github.io">NetworkX</a>.</p>
+</div>
+<div class="outline-3" id="outline-container-orgbda8c92">
+<h3 id="orgbda8c92">Imports</h3>
+<div class="outline-text-3" id="text-orgbda8c92"></div>
+<div class="outline-4" id="outline-container-org2eb1683">
+<h4 id="org2eb1683">Python</h4>
+<div class="outline-text-4" id="text-org2eb1683">
+<div class="highlight">
+<pre><span></span>from functools import partial
+from pathlib import Path
+import os
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgd524745">
+<h4 id="orgd524745">PyPi</h4>
+<div class="outline-text-4" id="text-orgd524745">
+<div class="highlight">
+<pre><span></span>from bokeh.models import HoverTool
+import holoviews
+import hvplot.pandas
+import networkx
+import numpy
+import pandas
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org37771fe">
+<h4 id="org37771fe">My Stuff</h4>
+<div class="outline-text-4" id="text-org37771fe">
+<div class="highlight">
+<pre><span></span>from graeae.visualization import EmbedHoloview
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org42127b5">
+<h3 id="org42127b5">Set Up</h3>
+<div class="outline-text-3" id="text-org42127b5">
+<div class="highlight">
+<pre><span></span>SLUG = "some-networkx-examples"
+OUTPUT_PATH = Path("../../files/posts/networks/" + SLUG)
+Embed = partial(EmbedHoloview, folder_path=OUTPUT_PATH)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgf719c5b">
+<h2 id="orgf719c5b">The Initiation</h2>
+<div class="outline-text-2" id="text-orgf719c5b"></div>
+<div class="outline-3" id="outline-container-org813fd2f">
+<h3 id="org813fd2f">Different Ways to Create Network Graphs</h3>
+<div class="outline-text-3" id="text-org813fd2f">
+<p><b>NetworkX</b> has a few different ways to create graphs, some more flexible than others. This is a non-exhaustive showing of some of them.</p>
+</div>
+<div class="outline-4" id="outline-container-org860d460">
+<h4 id="org860d460">Adding Edges To An Existing Graph</h4>
+<div class="outline-text-4" id="text-org860d460">
+<p>You can create a graph using the graph constructors. This is an example of an undirected <a href="https://networkx.github.io/documentation/stable/reference/classes/graph.html">Graph</a>.</p>
+<div class="highlight">
+<pre><span></span>graph_1 = networkx.Graph()
+</pre></div>
+<div class="highlight">
+<pre><span></span>G1.add_edges_from([(0, 1),
+                   (0, 2),
+                   (0, 3),
+                   (0, 5),
+                   (1, 3),
+                   (1, 6),
+                   (3, 4),
+                   (4, 5),
+                   (4, 7),
+                   (5, 8),
+                   (8, 9)])
+
+networkx.draw_networkx(G1)
+</pre></div>
+<div class="figure">
+<p><img alt="graph_one.png" src="file:///tmp/graph_one.png"></p>
+</div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org8baf85a">
+<h4 id="org8baf85a">Adjacency List</h4>
+<div class="outline-text-4" id="text-org8baf85a">
+<div class="highlight">
+<pre><span></span>with open("G_adjlist.txt") as reader:
+    print(reader.read())
+</pre></div>
+<div class="highlight">
+<pre><span></span>G2 = networkx.read_adjlist('G_adjlist.txt', nodetype=int)
+G2.edges()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgced4ac0">
+<h4 id="orgced4ac0">Adjacency Matrix</h4>
+<div class="outline-text-4" id="text-orgced4ac0">
+<div class="highlight">
+<pre><span></span>G_mat = numpy.array([[0, 1, 1, 1, 0, 1, 0, 0, 0, 0],
+                     [1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+                     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                     [1, 1, 0, 0, 1, 0, 0, 0, 0, 0],
+                     [0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+                     [1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+                     [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                     [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                     [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+                     [0, 0, 0, 0, 0, 0, 0, 0, 1, 0]])
+G_mat
+</pre></div>
+<div class="highlight">
+<pre><span></span>G3 = networkx.Graph(G_mat)
+G3.edges()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org98f8245">
+<h4 id="org98f8245">Edgelist</h4>
+<div class="outline-text-4" id="text-org98f8245">
+<div class="highlight">
+<pre><span></span>with open('G_edgelist.txt') as reader:
+    print(reader.read())
+</pre></div>
+<div class="highlight">
+<pre><span></span>G4 = networkx.read_edgelist('G_edgelist.txt', data=[('Weight', int)])
+
+G4.edges(data=True)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org1e609e0">
+<h4 id="org1e609e0">Pandas DataFrame</h4>
+<div class="outline-text-4" id="text-org1e609e0">
+<div class="highlight">
+<pre><span></span>G_df = pandas.read_csv('G_edgelist.txt', delim_whitespace=True, 
+                       header=None, names=['n1', 'n2', 'weight'])
+G_df
+</pre></div>
+<div class="highlight">
+<pre><span></span>G5 = networkx.from_pandas_dataframe(G_df, 'n1', 'n2', edge_attr='weight')
+G5.edges(data=True)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org0a0aa7b">
+<h3 id="org0a0aa7b">A Chess Example</h3>
+<div class="outline-text-3" id="text-org0a0aa7b">
+<div class="highlight">
+<pre><span></span>with open('chess_graph.txt') as reader:
+    count = 0
+    for line in reader:
+        print(line.strip())
+        count += 1
+        if count == 5:
+            break
+</pre></div>
+<div class="highlight">
+<pre><span></span>chess = networkx.read_edgelist('chess_graph.txt', data=[('outcome', int), ('timestamp', float)], 
+                         create_using=networkx.MultiDiGraph())
+</pre></div>
+<div class="highlight">
+<pre><span></span>chess.is_directed(), chess.is_multigraph()
+</pre></div>
+<div class="highlight">
+<pre><span></span>chess.edges(data=True)[:5]
+</pre></div>
+<div class="highlight">
+<pre><span></span>games_played = chess.degree()
+games_played
+</pre></div>
+<div class="highlight">
+<pre><span></span>max_value = max(games_played.values())
+max_key, = [i for i in games_played.keys() if games_played[i] == max_value]
+
+print('player {}\n{} games'.format(max_key, max_value))
+</pre></div>
+<div class="highlight">
+<pre><span></span>df = pd.DataFrame(chess.edges(data=True), columns=['white', 'black', 'outcome'])
+df.head()
+</pre></div>
+<div class="highlight">
+<pre><span></span>df['outcome'] = df['outcome'].map(lambda x: x['outcome'])
+df.head()
+</pre></div>
+<div class="highlight">
+<pre><span></span>won_as_white = df[df['outcome']==1].groupby('white').sum()
+won_as_black = df[df['outcome']==-1].groupby('black').sum()
+win_count = won_as_white.add(won_as_black, fill_value=0)
+print(win_count.head())
+</pre></div>
+<div class="highlight">
+<pre><span></span>win_count.nlargest(5, 'outcome')
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgb187ad2">
+<h2 id="orgb187ad2">The Return</h2>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/networks/company-movie-night/">Company Movie Night</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>

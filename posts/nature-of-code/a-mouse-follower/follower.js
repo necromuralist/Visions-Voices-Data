@@ -26,7 +26,7 @@ function MouseWalker(p) {
        
         // setMag always produces the same magnitude (but the orientation stays the same)
         acceleration.setMag(0.1);
-        this.velocity = this.velocity.add(acceleration)
+        this.velocity = this.velocity.add(acceleration);
         this.position = this.position.add(this.velocity)
   }
   
