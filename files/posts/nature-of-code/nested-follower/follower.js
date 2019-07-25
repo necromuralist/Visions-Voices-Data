@@ -4,7 +4,7 @@ let nested_follower_sketch = function(p) {
     p.setup = function() {
         this.canvas = p.createCanvas($("#" + nested_parent_div_id).outerWidth(true), 800);
         p.parent = new MouseFollower(p);
-        p.followers = [new Follower(p, p.parent), new Follower(p, p.parent)];
+        p.followers = [new Follower(p, p.parent), new Follower(p, p.parent), new Follower(p, p.parent)];
     }
 
     p.draw = function() {
@@ -17,15 +17,10 @@ let nested_follower_sketch = function(p) {
 };
 
 function MouseFollower(p) {
-    quarter_width = p.width/4;
-    quarter_height = p.height/4;
-    this.left_wall = 0;
-    this.right_wall = p.width;
-    this.top_wall = 0;
-    this.bottom_wall = p.height;
-    
     this.position = p.createVector(p.width/2, p.height/2);
     this.velocity = p.createVector(0, 0);
+    this.weight = p.round(p.random(5, 10));
+    this.magnitude = 1
 
     this.walk = function() {
         mouse = p.createVector(p.mouseX,
@@ -36,17 +31,27 @@ function MouseFollower(p) {
         acceleration = mouse.sub(this.position);
        
         // setMag always produces the same magnitude (but the orientation stays the same)
-        acceleration.setMag(0.9);
+        acceleration.setMag(this.magnitude);
+        console.log(acceleration);
         this.velocity = this.velocity.add(acceleration);
         this.position = this.position.add(this.velocity);
-        // this.position_x = p.constrain(this.position.x, this.left_wall, this.right_wall);
-        // this.position_y = p.constrain(this.position.y, this.top_wall, this.bottom_wall);
+
+        // keep it within the window
+        if (this.position.x < 0)
+            this.position.x = p.width;
+        else if (this.position.x > p.width)
+            this.position.x = 0;
+        if (this.position.y < 0)
+            this.position.y = p.height
+        else if (this.position.y > p.height)
+            this.position.y = 0
   }
   
-  this.display = function() {
+    this.display = function() {
+        p.strokeWeight(this.weight);
       p.stroke(0);
       p.noFill();
-      p.background(255, 255, 255, 25);
+      p.background(255, 255, 255, 10);
       p.circle(this.position.x, this.position.y, 48);
   }
 
@@ -62,6 +67,12 @@ function Follower(p, parent) {
     this.velocity = p.createVector(0, 0);
     this.magnitude = p.random(0.05, 0.09);
 
+    this.red = [63, 123, 191, 191, 191];
+    this.green = [63, 63, 63, 63, 63];
+    this.blue = [191, 191, 191, 127, 63];
+    this.colors = this.red.length;
+    this.color = p.round(p.random(this.colors));
+
     this.walk = function() {
         acceleration = this.parent.position.sub(this.position);
        
@@ -72,9 +83,10 @@ function Follower(p, parent) {
     }
   
     this.display = function() {
-        p.stroke(0);
+        p.strokeWeight(p.random(5, 10));
+        p.stroke(this.red[this.color], this.green[0], this.blue[0]);
+        this.color = (this.color + 1) % this.colors;
         p.noFill();
-        p.background(255, 255, 255, 25);
         p.ellipse(this.position.x, this.position.y, p.random(10, 45), p.random(10, 45));
     }
 
