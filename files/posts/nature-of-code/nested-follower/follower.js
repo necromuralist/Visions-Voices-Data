@@ -1,30 +1,59 @@
+/**
+ * Random Walker
+ *
+ * This is an implementation of the Random Walker based on the example given in
+ * "The Nature of Code"
+ */
+
+// This is the div where the canvas will be placed
 let nested_parent_div_id = "nested-follower";
 
+/**
+ * The sketch creator
+ * 
+ * @param {P5} p
+ */
 let nested_follower_sketch = function(p) {
+    /**
+     * Setup the canvas
+     *
+     * - Attaches the canvas to the div
+     * - Creates the walker objects
+     */
     p.setup = function() {
         this.canvas = p.createCanvas($("#" + nested_parent_div_id).outerWidth(true), 800);
-        p.parent = new MouseFollower(p);
+        p.parent = new NoiseWalker(p);
         p.followers = [new Follower(p, p.parent), new Follower(p, p.parent), new Follower(p, p.parent)];
-    }
+    };
 
+    /**
+     * Refresh the objects by calling their update functions
+     *
+     * This also clears the background.
+     */
     p.draw = function() {
         p.background(255);
         p.parent.update();
         p.followers.forEach(function(follower) {
             follower.update();
-        })
-    }
+        });
+    };
 };
 
-function MouseFollower(p) {
+/**
+ * The main walker (with perlin noise)
+ *
+ * @param {P5} p
+ */
+function NoiseWalker(p) {
     this.position = p.createVector(p.width/2, p.height/2);
     this.velocity = p.createVector(0, 0);
     this.weight = p.round(p.random(5, 10));
-    this.magnitude = 1
 
+    /**
+     * Updates the walker's position
+     */
     this.walk = function() {
-        mouse = p.createVector(p.mouseX,
-                               p.mouseY);
         // calling sub on the vectors does an in-place update
         // using p5.Vector.sub creates a new vector
         // This is a static method so we use the module (p5) not the instance (p)
