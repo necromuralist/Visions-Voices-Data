@@ -1370,7 +1370,13 @@ EXTRA_HEAD_DATA = """
 <script type="text/javascript" async
   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
 </script>
+
+<!--
 <script type="text/javascript" async
   src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script type="text/javascript" async
+  src="../../../assets/javascript/p5.min.js"
 </script>
 """
