@@ -13,8 +13,12 @@
 <link href="rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
 <link href="https://necromuralist.github.io/Visions-Voices-Data/" rel="canonical">
 <link href="index-3.html" rel="next" type="text/html"><!--[if lt IE 9]><script src="assets/js/html5.js"></script><![endif]-->
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script>
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js" type="text/javascript"></script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="javascript/p5.min.js" type="text/javascript"></script>
 <link href="/posts/nature-of-code/nested-follower/" rel="prefetch" type="text/html">
 </head>
 <body>
@@ -55,65 +59,179 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/nature-of-code/nested-follower/#orgc3eb70d">Beginning</a></li>
-<li><a href="/posts/nature-of-code/nested-follower/#org3497655">Middle</a></li>
-<li><a href="/posts/nature-of-code/nested-follower/#org34cdbb2">End</a></li>
+<li><a href="/posts/nature-of-code/nested-follower/#org3f5ef15">Beginning</a>
+<ul>
+<li><a href="/posts/nature-of-code/nested-follower/#org887d280">Create A Walker</a></li>
+<li><a href="/posts/nature-of-code/nested-follower/#org286e2fd">Specifications</a></li>
+</ul>
+</li>
+<li><a href="/posts/nature-of-code/nested-follower/#orgf36a7c1">Middle</a></li>
+<li><a href="/posts/nature-of-code/nested-follower/#orga2503bf">End</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc3eb70d">
-<h2 id="orgc3eb70d">Beginning</h2>
+<div class="outline-2" id="outline-container-org3f5ef15">
+<h2 id="org3f5ef15">Beginning</h2>
+<div class="outline-text-2" id="text-org3f5ef15">
+<p>This is assignment 1 from the Nature of Code course on Kadenze. I was originally going to make it a mouse-follower but I re-read the instructions and it seems like it's better to make it a random-walker. These are the requirements:</p>
 </div>
-<div class="outline-2" id="outline-container-org3497655">
-<h2 id="org3497655">Middle</h2>
-<div class="outline-text-2" id="text-org3497655">
+<div class="outline-3" id="outline-container-org887d280">
+<h3 id="org887d280">Create A Walker</h3>
+<div class="outline-text-3" id="text-org887d280">
+<ul class="org-ul">
+<li>Create an object that moves around the screen</li>
+<li>Incorporate randomness or perlin noise</li>
+</ul>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org286e2fd">
+<h3 id="org286e2fd">Specifications</h3>
+<div class="outline-text-3" id="text-org286e2fd">
+<ul class="org-ul">
+<li>Needs to be visually different from the Nature of Code examples</li>
+<li>Use comments</li>
+<li>Only use <code>p5.js</code> libraries</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgf36a7c1">
+<h2 id="orgf36a7c1">Middle</h2>
+<div class="outline-text-2" id="text-orgf36a7c1">
 <script language="javascript" src="/posts/nature-of-code/nested-follower/follower.js" type="text/javascript"></script>
 <div id="nested-follower"></div>
 <div class="highlight">
-<pre><span></span>let parent_div_id = "nested-follower";
+<pre><span></span>/**
+ * Random Walker
+ *
+ * This is an implementation of the Random Walker based on the example given in
+ * "The Nature of Code"
+ */
 
+// This is the div where the canvas will be placed
+let nested_parent_div_id = "nested-follower";
+
+/**
+ * The sketch creator
+ * 
+ * @param {P5} p
+ */
 let nested_follower_sketch = function(p) {
+    /**
+     * Setup the canvas
+     *
+     * - Attaches the canvas to the div
+     * - Creates the walker objects
+     */
     p.setup = function() {
-        this.canvas = p.createCanvas($("#" + parent_div_id).outerWidth(true), 800);
-        p.walker = new NestedFollower(p);
-    }
+        this.canvas = p.createCanvas($("#" + nested_parent_div_id).outerWidth(true), 800);
+        p.parent = new NoiseWalker(p);
+        p.followers = [new Follower(p, p.parent), new Follower(p, p.parent), new Follower(p, p.parent)];
+    };
 
+    /**
+     * Refresh the objects by calling their update functions
+     *
+     * This also clears the background.
+     */
     p.draw = function() {
         p.background(255);
-        p.walker.walk();
-        p.walker.display();
-    }
+        p.parent.update();
+        p.followers.forEach(function(follower) {
+            follower.update();
+        });
+    };
 };
 
-function NestedFollower(p) {
+/**
+ * The main walker (with perlin noise)
+ *
+ * @param {P5} p
+ */
+function NoiseWalker(p) {
     this.position = p.createVector(p.width/2, p.height/2);
-    this.velocity = p.createVector(0, 0)
+    this.velocity = p.createVector(0, 0);
+    this.weight = p.round(p.random(5, 10));
 
+    /**
+     * Updates the walker's position
+     */
     this.walk = function() {
-        mouse = p.createVector(p.mouseX, p.mouseY);
         // calling sub on the vectors does an in-place update
         // using p5.Vector.sub creates a new vector
         // This is a static method so we use the module (p5) not the instance (p)
         acceleration = mouse.sub(this.position);
 
         // setMag always produces the same magnitude (but the orientation stays the same)
-        acceleration.setMag(0.1);
+        acceleration.setMag(this.magnitude);
+        console.log(acceleration);
         this.velocity = this.velocity.add(acceleration);
-        this.position = this.position.add(this.velocity)
+        this.position = this.position.add(this.velocity);
+
+        // keep it within the window
+        if (this.position.x &lt; 0)
+            this.position.x = p.width;
+        else if (this.position.x &gt; p.width)
+            this.position.x = 0;
+        if (this.position.y &lt; 0)
+            this.position.y = p.height
+        else if (this.position.y &gt; p.height)
+            this.position.y = 0
   }
 
-  this.display = function() {
+    this.display = function() {
+        p.strokeWeight(this.weight);
       p.stroke(0);
       p.noFill();
-      p.background(255, 255, 255, 25);
-      p.ellipse(this.position.x, this.position.y, 48, 48);
+      p.background(255, 255, 255, 10);
+      p.circle(this.position.x, this.position.y, 48);
   }
+
+    this.update = function() {
+        this.walk();
+        this.display()
+    }
 }
 
-sketch_container = new p5(mouse_follower_sketch, parent_div_id);
+function Follower(p, parent) {
+    this.parent = parent;
+    this.position = p.createVector(p.random(p.width), p.random(p.height));
+    this.velocity = p.createVector(0, 0);
+    this.magnitude = p.random(0.05, 0.09);
+
+    this.red = [63, 123, 191, 191, 191];
+    this.green = [63, 63, 63, 63, 63];
+    this.blue = [191, 191, 191, 127, 63];
+    this.colors = this.red.length;
+    this.color = p.round(p.random(this.colors));
+
+    this.walk = function() {
+        acceleration = this.parent.position.sub(this.position);
+
+        // setMag always produces the same magnitude (but the orientation stays the same)
+        acceleration.setMag(this.magnitude);
+        this.velocity = this.velocity.add(acceleration);
+        this.position = this.position.add(this.velocity)
+    }
+
+    this.display = function() {
+        p.strokeWeight(p.random(5, 10));
+        p.stroke(this.red[this.color], this.green[0], this.blue[0]);
+        this.color = (this.color + 1) % this.colors;
+        p.noFill();
+        p.ellipse(this.position.x, this.position.y, p.random(10, 45), p.random(10, 45));
+    }
+
+    this.update = function() {
+        this.walk();
+        this.display();
+    }
+}
+
+new p5(nested_follower_sketch, nested_parent_div_id);
 </pre></div>
-<div class="outline-2" id="outline-container-org34cdbb2">
-<h2 id="org34cdbb2">End</h2>
+<div class="outline-2" id="outline-container-orga2503bf">
+<h2 id="orga2503bf">End</h2>
 </div>
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
