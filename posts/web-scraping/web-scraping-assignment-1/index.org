@@ -1,0 +1,131 @@
+#+BEGIN_COMMENT
+.. title: Web Scraping Assignment 1
+.. slug: web-scraping-assignment-1
+.. date: 2019-08-03 12:07:56 UTC-07:00
+.. tags: web-scraping
+.. category: web-scraping
+.. link: 
+.. description: Grabbing values from tags.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+* Beginning
+  The goal of this exercise is to find all the =<span>= tags on a page and sum the numbers they contain.
+** Imports
+*** Python
+#+begin_src ipython :session web :results none
+import urllib
+#+end_src
+*** PyPi
+#+begin_src ipython :session web :results none
+from bs4 import BeautifulSoup
+from expects import (
+    equal,
+    expect,
+    be_true,
+)
+from requests_html import HTMLSession
+#+end_src
+** Setup
+*** The URLs
+#+begin_src ipython :session web :results none
+SAMPLE_URL = " http://py4e-data.dr-chuck.net/comments_42.html"
+ACTUAL_URL = "http://py4e-data.dr-chuck.net/comments_260442.html"
+#+end_src
+*** The Expected
+#+begin_src ipython :session web :results none
+SAMPLE_EXPECTED = 2553
+ACTUAL_EXPECTED_LAST_DIGIT = 5
+#+end_src
+* Middle
+** The Sample
+*** The Way I Would Do It
+
+#+begin_src ipython :session web :results none
+def using_requests(url: str) -> int:
+    """get the span total
+
+    Args:
+     url: The URL for the page
+     
+    Returns:
+     the total sum
+    """
+    session = HTMLSession()
+    response = session.get(url)
+    expect(response.ok).to(be_true)
+    total = 0
+
+    for count, span in enumerate(response.html.find("span")):
+        total += int(span.text)
+    
+    print(f"Count: {count + 1}")
+    print(f"Sum: {total}")
+    return total
+#+end_src
+
+#+begin_src ipython :session web :results output :exports both
+total = using_requests(SAMPLE_URL)
+expect(total).to(equal(SAMPLE_EXPECTED))
+#+end_src
+
+#+RESULTS:
+: Count: 50
+: Sum: 2553
+
+*** The Assignment Way
+    For this kind of thing, using urllib isn't really much more work, I'm used to the older python 2 version which (maybe only seemed at the time) was more complicated to use.
+#+begin_src ipython :session web :results none
+def using_urllib(url: str) -> int:
+    """get the span total with urllib and beautiful soup
+
+    Args:
+     url: the URL for the page
+
+    Returns:
+     the total of the span contents
+    """
+    response = urllib.request.urlopen(url)
+    soup = BeautifulSoup(response.read(), "html.parser")
+    total = 0
+    for count, span in enumerate(soup.find_all("span")):
+        total += int(span.text)
+    
+    print(f"Count: {count + 1}")
+    print(f"Sum: {total}")
+    return total
+#+end_src
+#+begin_src ipython :session web :results output :exports both
+total = using_urllib(SAMPLE_URL)
+expect(total).to(equal(SAMPLE_EXPECTED))
+#+end_src
+
+#+RESULTS:
+: Count: 50
+: Sum: 2553
+** The Assignment
+*** Requests HTML
+#+begin_src ipython :session web :results output :exports both
+total = using_requests(ACTUAL_URL)
+expect(int(str(total)[-1])).to(equal(ACTUAL_EXPECTED_LAST_DIGIT))
+#+end_src
+
+#+RESULTS:
+: Count: 50
+: Sum: 2305
+*** Urllib
+#+begin_src ipython :session web :results output :exports both
+total = using_urllib(ACTUAL_URL)
+expect(int(str(total)[-1])).to(equal(ACTUAL_EXPECTED_LAST_DIGIT))
+#+end_src
+
+#+RESULTS:
+: Count: 50
+: Sum: 2305
+
+* End
+Although I normally use =requests= or =requests-html=, I must say that the =urllib= version with [[https://www.crummy.com/software/BeautifulSoup/bs4/doc/][BeautifulSoup]] for this particular exercise wasn't much different.
