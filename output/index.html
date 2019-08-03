@@ -19,7 +19,7 @@
 </script>
 -->
 <script async src="javascript/p5.min.js" type="text/javascript"></script>
-<link href="/posts/web-scraping/web-scraping-assignment-2/" rel="prefetch" type="text/html">
+<link href="/posts/web-scraping/web-scraping-assignment-1/" rel="prefetch" type="text/html">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -48,6 +48,224 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/web-scraping/web-scraping-assignment-1/">Web Scraping Assignment 1</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/web-scraping/web-scraping-assignment-1/" rel="bookmark"><time class="published dt-published" datetime="2019-08-03T12:07:56-07:00" itemprop="datePublished" title="2019-08-03 12:07">2019-08-03 12:07</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org352760d">Beginning</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#orgfe04f84">Imports</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#orge2145f2">Python</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org04feb6f">PyPi</a></li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#orgaa63aee">Setup</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org640bff9">The URLs</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org4102cd8">The Expected</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org0ba3141">Middle</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org284d163">The Sample</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org143fc40">The Way I Would Do It</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org6b8841a">The Assignment Way</a></li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org2e101c6">The Assignment</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#orgd60f7b6">Requests HTML</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org9d4bed2">Urllib</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org772756e">End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org352760d">
+<h2 id="org352760d">Beginning</h2>
+<div class="outline-text-2" id="text-org352760d">
+<p>The goal of this exercise is to find all the <code>&lt;span&gt;</code> tags on a page and sum the numbers they contain.</p>
+</div>
+<div class="outline-3" id="outline-container-orgfe04f84">
+<h3 id="orgfe04f84">Imports</h3>
+<div class="outline-text-3" id="text-orgfe04f84"></div>
+<div class="outline-4" id="outline-container-orge2145f2">
+<h4 id="orge2145f2">Python</h4>
+<div class="outline-text-4" id="text-orge2145f2">
+<div class="highlight">
+<pre><span></span>import urllib
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org04feb6f">
+<h4 id="org04feb6f">PyPi</h4>
+<div class="outline-text-4" id="text-org04feb6f">
+<div class="highlight">
+<pre><span></span>from bs4 import BeautifulSoup
+from expects import (
+    equal,
+    expect,
+    be_true,
+)
+from requests_html import HTMLSession
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgaa63aee">
+<h3 id="orgaa63aee">Setup</h3>
+<div class="outline-text-3" id="text-orgaa63aee"></div>
+<div class="outline-4" id="outline-container-org640bff9">
+<h4 id="org640bff9">The URLs</h4>
+<div class="outline-text-4" id="text-org640bff9">
+<div class="highlight">
+<pre><span></span>SAMPLE_URL = " http://py4e-data.dr-chuck.net/comments_42.html"
+ACTUAL_URL = "http://py4e-data.dr-chuck.net/comments_260442.html"
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org4102cd8">
+<h4 id="org4102cd8">The Expected</h4>
+<div class="outline-text-4" id="text-org4102cd8">
+<div class="highlight">
+<pre><span></span>SAMPLE_EXPECTED = 2553
+ACTUAL_EXPECTED_LAST_DIGIT = 5
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org0ba3141">
+<h2 id="org0ba3141">Middle</h2>
+<div class="outline-text-2" id="text-org0ba3141"></div>
+<div class="outline-3" id="outline-container-org284d163">
+<h3 id="org284d163">The Sample</h3>
+<div class="outline-text-3" id="text-org284d163"></div>
+<div class="outline-4" id="outline-container-org143fc40">
+<h4 id="org143fc40">The Way I Would Do It</h4>
+<div class="outline-text-4" id="text-org143fc40">
+<div class="highlight">
+<pre><span></span>def using_requests(url: str) -&gt; int:
+    """get the span total
+
+    Args:
+     url: The URL for the page
+
+    Returns:
+     the total sum
+    """
+    session = HTMLSession()
+    response = session.get(url)
+    expect(response.ok).to(be_true)
+    total = 0
+
+    for count, span in enumerate(response.html.find("span")):
+        total += int(span.text)
+
+    print(f"Count: {count + 1}")
+    print(f"Sum: {total}")
+    return total
+</pre></div>
+<div class="highlight">
+<pre><span></span>total = using_requests(SAMPLE_URL)
+expect(total).to(equal(SAMPLE_EXPECTED))
+</pre></div>
+<pre class="example">
+Count: 50
+Sum: 2553
+
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-org6b8841a">
+<h4 id="org6b8841a">The Assignment Way</h4>
+<div class="outline-text-4" id="text-org6b8841a">
+<p>For this kind of thing, using urllib isn't really much more work, I'm used to the older python 2 version which (maybe only seemed at the time) was more complicated to use.</p>
+<div class="highlight">
+<pre><span></span>def using_urllib(url: str) -&gt; int:
+    """get the span total with urllib and beautiful soup
+
+    Args:
+     url: the URL for the page
+
+    Returns:
+     the total of the span contents
+    """
+    response = urllib.request.urlopen(url)
+    soup = BeautifulSoup(response.read(), "html.parser")
+    total = 0
+    for count, span in enumerate(soup.find_all("span")):
+        total += int(span.text)
+
+    print(f"Count: {count + 1}")
+    print(f"Sum: {total}")
+    return total
+</pre></div>
+<div class="highlight">
+<pre><span></span>total = using_urllib(SAMPLE_URL)
+expect(total).to(equal(SAMPLE_EXPECTED))
+</pre></div>
+<pre class="example">
+Count: 50
+Sum: 2553
+
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org2e101c6">
+<h3 id="org2e101c6">The Assignment</h3>
+<div class="outline-text-3" id="text-org2e101c6"></div>
+<div class="outline-4" id="outline-container-orgd60f7b6">
+<h4 id="orgd60f7b6">Requests HTML</h4>
+<div class="outline-text-4" id="text-orgd60f7b6">
+<div class="highlight">
+<pre><span></span>total = using_requests(ACTUAL_URL)
+expect(int(str(total)[-1])).to(equal(ACTUAL_EXPECTED_LAST_DIGIT))
+</pre></div>
+<pre class="example">
+Count: 50
+Sum: 2305
+
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-org9d4bed2">
+<h4 id="org9d4bed2">Urllib</h4>
+<div class="outline-text-4" id="text-org9d4bed2">
+<div class="highlight">
+<pre><span></span>total = using_urllib(ACTUAL_URL)
+expect(int(str(total)[-1])).to(equal(ACTUAL_EXPECTED_LAST_DIGIT))
+</pre></div>
+<pre class="example">
+Count: 50
+Sum: 2305
+
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org772756e">
+<h2 id="org772756e">End</h2>
+<div class="outline-text-2" id="text-org772756e">
+<p>Although I normally use <code>requests</code> or <code>requests-html</code>, I must say that the <code>urllib</code> version with <a href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/">BeautifulSoup</a> for this particular exercise wasn't much different.</p>
+</div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/web-scraping/web-scraping-assignment-2/">Web Scraping Assignment 2</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
@@ -59,107 +277,109 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org94d8038">Beginning</a>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orge963253">Beginning</a>
 <ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org9e22d7d">Imports</a>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org8433374">Imports</a>
 <ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org68798a3">Python</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org5bd1d0d">PyPi</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org04e5580">Python</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org264839a">PyPi</a></li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org6d70291">Setup</a>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgff32d65">Setup</a>
 <ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgbdb5ff5">The URL</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgdacff30">Middle</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org546c75a">The Sample Exercise</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orge612bda">The Easy Way</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org7026405">The Slightly Less Easy Way</a></li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org36a06d2">The Real One</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgbf288e5">The Easy Way</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org9b45676">The Assignment Way</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org89ae143">The URL</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgdf817e1">End</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgabe8dd0">Middle</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgcc42471">The Sample Exercise</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org83df5a1">The Easy Way</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org19809c4">The Slightly Less Easy Way</a></li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org45d41f3">The Real One</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org71f3761">The Easy Way</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org82ae5d5">The Assignment Way</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org3222b0a">End</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org94d8038">
-<h2 id="org94d8038">Beginning</h2>
-<div class="outline-text-2" id="text-org94d8038"></div>
-<div class="outline-3" id="outline-container-org9e22d7d">
-<h3 id="org9e22d7d">Imports</h3>
-<div class="outline-text-3" id="text-org9e22d7d"></div>
-<div class="outline-4" id="outline-container-org68798a3">
-<h4 id="org68798a3">Python</h4>
-<div class="outline-text-4" id="text-org68798a3">
+<div class="outline-2" id="outline-container-orge963253">
+<h2 id="orge963253">Beginning</h2>
+<div class="outline-text-2" id="text-orge963253">
+<p>The goal of this exercise is to crawl through a set of anchor links to get a particular name stored in the <i>nth</i> anchor tag. The assignment specifically says to use <a href="https://docs.python.org/3/library/urllib.html">urllib</a> but, if you go to the documentation for <a href="https://docs.python.org/3/library/urllib.request.html#module-urllib.request">urllib.request</a> it tells you to use to use <a href="https://2.python-requests.org/en/master/">requests</a>, which, if you go to its documentation says that it's in maintenance mode while work is being done on <a href="https://3.python-requests.org/">Requests III</a>… anyway, I like using <a href="https://html.python-requests.org/">Requests-HTML</a> so I'll use that and urllib side-by-side.</p>
+</div>
+<div class="outline-3" id="outline-container-org8433374">
+<h3 id="org8433374">Imports</h3>
+<div class="outline-text-3" id="text-org8433374"></div>
+<div class="outline-4" id="outline-container-org04e5580">
+<h4 id="org04e5580">Python</h4>
+<div class="outline-text-4" id="text-org04e5580">
 <div class="highlight">
-<pre><span></span>import re
-import urllib
+<pre><span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org5bd1d0d">
-<h4 id="org5bd1d0d">PyPi</h4>
-<div class="outline-text-4" id="text-org5bd1d0d">
+<div class="outline-4" id="outline-container-org264839a">
+<h4 id="org264839a">PyPi</h4>
+<div class="outline-text-4" id="text-org264839a">
 <div class="highlight">
-<pre><span></span>from bs4 import BeautifulSoup
-from requests_html import HTMLSession
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org6d70291">
-<h3 id="org6d70291">Setup</h3>
-<div class="outline-text-3" id="text-org6d70291"></div>
-<div class="outline-4" id="outline-container-orgbdb5ff5">
-<h4 id="orgbdb5ff5">The URL</h4>
-<div class="outline-text-4" id="text-orgbdb5ff5">
-<div class="highlight">
-<pre><span></span>BASE_URL = "http://py4e-data.dr-chuck.net/known_by_"
-SAMPLE_URL = f"{BASE_URL}Fikret.html"
-ASSIGNMENT_URL = f"{BASE_URL}Abdalroof.html"
+<pre><span></span><span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+<span class="kn">from</span> <span class="nn">requests_html</span> <span class="kn">import</span> <span class="n">HTMLSession</span>
 </pre></div>
 </div>
 </div>
 </div>
-</div>
-<div class="outline-2" id="outline-container-orgdacff30">
-<h2 id="orgdacff30">Middle</h2>
-<div class="outline-text-2" id="text-orgdacff30"></div>
-<div class="outline-3" id="outline-container-org546c75a">
-<h3 id="org546c75a">The Sample Exercise</h3>
-<div class="outline-text-3" id="text-org546c75a"></div>
-<div class="outline-4" id="outline-container-orge612bda">
-<h4 id="orge612bda">The Easy Way</h4>
-<div class="outline-text-4" id="text-orge612bda">
+<div class="outline-3" id="outline-container-orgff32d65">
+<h3 id="orgff32d65">Setup</h3>
+<div class="outline-text-3" id="text-orgff32d65"></div>
+<div class="outline-4" id="outline-container-org89ae143">
+<h4 id="org89ae143">The URL</h4>
+<div class="outline-text-4" id="text-org89ae143">
 <div class="highlight">
-<pre><span></span>session = HTMLSession()
-response = session.get(SAMPLE_URL)
-assert response.ok
+<pre><span></span><span class="n">BASE_URL</span> <span class="o">=</span> <span class="s2">"http://py4e-data.dr-chuck.net/known_by_"</span>
+<span class="n">SAMPLE_URL</span> <span class="o">=</span> <span class="n">f</span><span class="s2">"{BASE_URL}Fikret.html"</span>
+<span class="n">ASSIGNMENT_URL</span> <span class="o">=</span> <span class="n">f</span><span class="s2">"{BASE_URL}Abdalroof.html"</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgabe8dd0">
+<h2 id="orgabe8dd0">Middle</h2>
+<div class="outline-text-2" id="text-orgabe8dd0"></div>
+<div class="outline-3" id="outline-container-orgcc42471">
+<h3 id="orgcc42471">The Sample Exercise</h3>
+<div class="outline-text-3" id="text-orgcc42471"></div>
+<div class="outline-4" id="outline-container-org83df5a1">
+<h4 id="org83df5a1">The Easy Way</h4>
+<div class="outline-text-4" id="text-org83df5a1">
+<div class="highlight">
+<pre><span></span><span class="n">session</span> <span class="o">=</span> <span class="n">HTMLSession</span><span class="p">()</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SAMPLE_URL</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">ok</span>
 
-expression = "_(?P&lt;name&gt;[^_.]+).html"
-expression = re.compile(expression)
-print(f"Name: {expression.search(SAMPLE_URL).group('name')}")
+<span class="n">expression</span> <span class="o">=</span> <span class="s2">"_(?P&lt;name&gt;[^_.]+).html"</span>
+<span class="n">expression</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {expression.search(SAMPLE_URL).group('name')}"</span><span class="p">)</span>
 
-for hop in range(4):
-    links = response.html.find("a")
+<span class="k">for</span> <span class="n">hop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">links</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">"a"</span><span class="p">)</span>
 
-    link_element = links[2]
-    print(f"Name: {link_element.text}")
-    response = session.get(link_element.attrs["href"])
+    <span class="n">link_element</span> <span class="o">=</span> <span class="n">links</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {link_element.text}"</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">link_element</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"href"</span><span class="p">])</span>
 
-print(f"Final Answer: {link_element.text}")
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Final Answer: {link_element.text}"</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 Name: Fikret
@@ -171,19 +391,19 @@ Final Answer: Anayah
 
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org7026405">
-<h4 id="org7026405">The Slightly Less Easy Way</h4>
-<div class="outline-text-4" id="text-org7026405">
+<div class="outline-4" id="outline-container-org19809c4">
+<h4 id="org19809c4">The Slightly Less Easy Way</h4>
+<div class="outline-text-4" id="text-org19809c4">
 <div class="highlight">
-<pre><span></span>response = urllib.request.urlopen(SAMPLE_URL)
+<pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">SAMPLE_URL</span><span class="p">)</span>
 
-print(f"Name: {expression.search(SAMPLE_URL).group('name')}")
-for hop in range(4):
-   soup = BeautifulSoup(response.read(), "html.parser")
-   link_element = soup.find_all("a")[2] 
-   print(f"Name: {link_element.text}")
-   response = urllib.request.urlopen(link_element["href"])
-print(f"\nFinal Answer: {link_element.text}")
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {expression.search(SAMPLE_URL).group('name')}"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">hop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+   <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="s2">"html.parser"</span><span class="p">)</span>
+   <span class="n">link_element</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">"a"</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span> 
+   <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {link_element.text}"</span><span class="p">)</span>
+   <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">link_element</span><span class="p">[</span><span class="s2">"href"</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Final Answer: {link_element.text}"</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 Name: Fikret
@@ -197,29 +417,29 @@ Final Answer: Anayah
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org36a06d2">
-<h3 id="org36a06d2">The Real One</h3>
-<div class="outline-text-3" id="text-org36a06d2"></div>
-<div class="outline-4" id="outline-container-orgbf288e5">
-<h4 id="orgbf288e5">The Easy Way</h4>
-<div class="outline-text-4" id="text-orgbf288e5">
+<div class="outline-3" id="outline-container-org45d41f3">
+<h3 id="org45d41f3">The Real One</h3>
+<div class="outline-text-3" id="text-org45d41f3"></div>
+<div class="outline-4" id="outline-container-org71f3761">
+<h4 id="org71f3761">The Easy Way</h4>
+<div class="outline-text-4" id="text-org71f3761">
 <div class="highlight">
-<pre><span></span>session = HTMLSession()
-response = session.get(ASSIGNMENT_URL)
-assert response.ok
+<pre><span></span><span class="n">session</span> <span class="o">=</span> <span class="n">HTMLSession</span><span class="p">()</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ASSIGNMENT_URL</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">ok</span>
 
-expression = "_(?P&lt;name&gt;[^_.]+).html"
-expression = re.compile(expression)
-print(f"Name: {expression.search(ASSIGNMENT_URL).group('name')}")
+<span class="n">expression</span> <span class="o">=</span> <span class="s2">"_(?P&lt;name&gt;[^_.]+).html"</span>
+<span class="n">expression</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {expression.search(ASSIGNMENT_URL).group('name')}"</span><span class="p">)</span>
 
-for hop in range(7):
-    links = response.html.find("a")
+<span class="k">for</span> <span class="n">hop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">7</span><span class="p">):</span>
+    <span class="n">links</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">"a"</span><span class="p">)</span>
 
-    link_element = links[17]
-    print(f"Name: {link_element.text}")
-    response = session.get(link_element.attrs["href"])
+    <span class="n">link_element</span> <span class="o">=</span> <span class="n">links</span><span class="p">[</span><span class="mi">17</span><span class="p">]</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {link_element.text}"</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">link_element</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"href"</span><span class="p">])</span>
 
-print(f"Final Answer: {link_element.text}")
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Final Answer: {link_element.text}"</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 Name: Abdalroof
@@ -234,21 +454,21 @@ Final Answer: Kiara
 
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org9b45676">
-<h4 id="org9b45676">The Assignment Way</h4>
-<div class="outline-text-4" id="text-org9b45676">
+<div class="outline-4" id="outline-container-org82ae5d5">
+<h4 id="org82ae5d5">The Assignment Way</h4>
+<div class="outline-text-4" id="text-org82ae5d5">
 <div class="highlight">
-<pre><span></span>HOPS = 7
-FIND_AT_INDEX = 18 - 1
-response = urllib.request.urlopen(ASSIGNMENT_URL)
+<pre><span></span><span class="n">HOPS</span> <span class="o">=</span> <span class="mi">7</span>
+<span class="n">FIND_AT_INDEX</span> <span class="o">=</span> <span class="mi">18</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">ASSIGNMENT_URL</span><span class="p">)</span>
 
-print(f"Name: {expression.search(ASSIGNMENT_URL).group('name')}")
-for hop in range(HOPS):
-   soup = BeautifulSoup(response.read(), "html.parser")
-   link_element = soup.find_all("a")[FIND_AT_INDEX] 
-   print(f"Name: {link_element.text}")
-   response = urllib.request.urlopen(link_element["href"])
-print(f"\nFinal Answer: {link_element.text}")
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {expression.search(ASSIGNMENT_URL).group('name')}"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">hop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">HOPS</span><span class="p">):</span>
+   <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="s2">"html.parser"</span><span class="p">)</span>
+   <span class="n">link_element</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">"a"</span><span class="p">)[</span><span class="n">FIND_AT_INDEX</span><span class="p">]</span> 
+   <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {link_element.text}"</span><span class="p">)</span>
+   <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">link_element</span><span class="p">[</span><span class="s2">"href"</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Final Answer: {link_element.text}"</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 Name: Abdalroof
@@ -265,8 +485,8 @@ Final Answer: Kiara
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgdf817e1">
-<h2 id="orgdf817e1">End</h2>
+<div class="outline-2" id="outline-container-org3222b0a">
+<h2 id="org3222b0a">End</h2>
 </div>
 </div>
 </article>
@@ -2680,332 +2900,6 @@ fit_grid_searches(forest, parameters, "Random Forest")
 parameters = dict(n_estimators = list(range(10, 200, 10)))
 trees = ExtraTreesClassifier()
 fit_grid_searches(trees, parameters, "Extra Trees")
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="posts/networks/friends-and-politics/">Friends and Politics</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="posts/networks/friends-and-politics/" rel="bookmark"><time class="published dt-published" datetime="2019-04-13T11:40:48-07:00" itemprop="datePublished" title="2019-04-13 11:40">2019-04-13 11:40</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="posts/networks/friends-and-politics/#org7a76091">Part 1 - Friendships</a>
-<ul>
-<li><a href="posts/networks/friends-and-politics/#org288e01a">Imports</a></li>
-<li><a href="posts/networks/friends-and-politics/#org9ce45d4">Friendships data</a></li>
-<li><a href="posts/networks/friends-and-politics/#org82ad0cd">Degree, Closeness, and Normalized Betweenness Centrality</a></li>
-<li><a href="posts/networks/friends-and-politics/#orgd89fc6f">Most Connected Friend</a></li>
-<li><a href="posts/networks/friends-and-politics/#org0f1de56">Fewest Hops</a></li>
-<li><a href="posts/networks/friends-and-politics/#orgebc9d2e">Most Important Connection</a></li>
-</ul>
-</li>
-<li><a href="posts/networks/friends-and-politics/#orgd9024c8">Part 2 - Political Blogs</a>
-<ul>
-<li><a href="posts/networks/friends-and-politics/#orga7f2347">Scaled Page Rank of <i>realclearpolitics.com</i></a></li>
-<li><a href="posts/networks/friends-and-politics/#org745bcbb">Top Five Blogs by Page Rank</a></li>
-<li><a href="posts/networks/friends-and-politics/#org1d929b7">HITS Score for Real Clear Politics</a></li>
-<li><a href="posts/networks/friends-and-politics/#orgac6b1f8">Top 5 Blogs by Hub Score</a></li>
-<li><a href="posts/networks/friends-and-politics/#org6377615">Top Five Blogs By Authority</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
-<p><a href="https://en.wikipedia.org/wiki/Centrality">Node Centrality</a> is a measure of the importance of a node to a network. This will explore measures of centrality using two networks, a friendship network, and a blog network.</p>
-<div class="outline-2" id="outline-container-org7a76091">
-<h2 id="org7a76091">Part 1 - Friendships</h2>
-<div class="outline-text-2" id="text-org7a76091">
-<p>This will look at a network of friendships at a university department. Each node corresponds to a person (identified by an integer node label), and an edge indicates friendship.</p>
-</div>
-<div class="outline-3" id="outline-container-org288e01a">
-<h3 id="org288e01a">Imports</h3>
-<div class="outline-text-3" id="text-org288e01a">
-<div class="highlight">
-<pre><span></span>import networkx
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org9ce45d4">
-<h3 id="org9ce45d4">Friendships data</h3>
-<div class="outline-text-3" id="text-org9ce45d4">
-<div class="highlight">
-<pre><span></span>friendships = networkx.read_gml('friendships.gml')
-</pre></div>
-<div class="highlight">
-<pre><span></span>print(len(friendships))
-print(networkx.is_connected(friendships))
-print(networkx.is_directed(friendships))
-</pre></div>
-<p>There are 1,133 people in the friendship network, which is a connected, undirected graph.</p>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org82ad0cd">
-<h3 id="org82ad0cd">Degree, Closeness, and Normalized Betweenness Centrality</h3>
-<div class="outline-text-3" id="text-org82ad0cd">
-<p>Find the degree centrality, closeness centrality, and normalized betweenness centrality (excluding endpoints) of node 100.</p>
-<ul class="org-ul">
-<li><a href="https://en.wikipedia.org/wiki/Centrality#Degree_centrality">Degree Centrality</a> scores the nodes based on the number of links they have to other nose. The assumption is that a node with more connections should be more important.</li>
-<li><a href="https://en.wikipedia.org/wiki/Closeness_centrality">Closeness Centrality</a> uses the lengths of shortest paths to decide importance. The less distance there is between a node and the other nodes the more important it is.</li>
-<li><a href="https://en.wikipedia.org/wiki/Betweenness_centrality">Betweenness Centrality</a> counts the number of shortest paths between pairs of nodes that pass through a node.</li>
-</ul>
-<div class="highlight">
-<pre><span></span>DEGREE_CENTRALITY = networkx.degree_centrality(friendships)
-CLOSENESS_CENTRALITY = networkx.closeness_centrality(friendships)
-BETWEENNESS_CENTRALITY = networkx.betweenness_centrality(friendships)
-</pre></div>
-<div class="highlight">
-<pre><span></span>def node_centrality(node=100):
-    """gets measures of centrality for node
-
-    Args:
-     node (int): the number (key) for the node
-
-    Returns:
-     tuple: 
-      - float: degree centrality
-      - float: closeness centrality
-      - float: normalized betweeness centrality
-    """
-    return (DEGREE_CENTRALITY[node],
-            CLOSENESS_CENTRALITY[node], BETWEENNESS_CENTRALITY[node])
-</pre></div>
-<div class="highlight">
-<pre><span></span>print("Node 101:")
-degree, closeness, betweenness = node_centrality()
-print("Degree Centrality: {0:.4f}".format(degree))
-print("Closeness Centrality: {0:.2f}".format(closeness))
-print("Normalized Betweenness Centrality: {0:.6f}".format(betweenness))
-</pre></div>
-<div class="highlight">
-<pre><span></span>def largest_node(centrality):
-    """gets the node with the best (largest) score
-
-    Args:
-     centrality (dict): one of the centrality score dicts
-
-    Returns:
-     int: name of the node with the best score
-    """
-    return list(
-        reversed(sorted((value, node)
-                        for (node, value) in centrality.items())))[0][1]
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-orgd89fc6f">
-<h3 id="orgd89fc6f">Most Connected Friend</h3>
-<div class="outline-text-3" id="text-orgd89fc6f">
-<p>We want to contact one person in our friendship network and have him or her contact all his or her immediate friends. To have the greatest impact, this person should have the most links in the network. Which node is this?</p>
-<div class="highlight">
-<pre><span></span>def most_connected_friend():
-    """returns the node with the best degree centrality"""
-    return largest_node(DEGREE_CENTRALITY)
-</pre></div>
-<div class="highlight">
-<pre><span></span>MOST_CONNECTED = most_connected_friend()
-print("Most Connected Friend: {}".format(MOST_CONNECTED))
-</pre></div>
-<div class="highlight">
-<pre><span></span>connected = networkx.Graph()
-friends = friendships[MOST_CONNECTED]
-for friend in friends:
-    connected.add_edge(MOST_CONNECTED, friend)
-positions = networkx.spring_layout(connected)
-networkx.draw(connected, positions, with_labels=False, node_color='b', node_size=50)
-networkx.draw(connected, positions, nodelist=[MOST_CONNECTED], node_color="r")
-</pre></div>
-<p>Node 105 does appear to be well connected.</p>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org0f1de56">
-<h3 id="org0f1de56">Fewest Hops</h3>
-<div class="outline-text-3" id="text-org0f1de56">
-<p>We want to reach everyone in the network by having one person passing messages to his friends who can then pass it on and so forth (a six-degrees of separation type scenario) but we want the fewest number of transfers. <i>Which friend is closest to all the people in the friendship network?</i></p>
-<div class="highlight">
-<pre><span></span>def closest_friend():
-    """the node with the best closeness centrality
-
-    Returns:
-     int: Identifier for the node closest to all the other nodes
-    """
-    return largest_node(CLOSENESS_CENTRALITY)
-</pre></div>
-<div class="highlight">
-<pre><span></span>CLOSEST_FRIEND = closest_friend()
-print("Closest Friend: {}".format(CLOSEST_FRIEND))
-</pre></div>
-<div class="highlight">
-<pre><span></span>positions = networkx.spring_layout(friendships)
-networkx.draw(friendships, positions, node_size=1, alpha=0.25, node_color='b')
-networkx.draw_networkx_nodes(friendships, positions, nodelist=[CLOSEST_FRIEND],
-                             node_color='r', node_size=50)
-</pre></div>
-<p>Interesting to look at, if not the most informative.</p>
-</div>
-</div>
-<div class="outline-3" id="outline-container-orgebc9d2e">
-<h3 id="orgebc9d2e">Most Important Connection</h3>
-<div class="outline-text-3" id="text-orgebc9d2e">
-<p>Although the graph is connected, if you took out one persion from the network, which one would cause the most disruption (which person is in the path of the most shortest paths)?</p>
-<div class="highlight">
-<pre><span></span>def betweenness_centrality():
-    """the node with the highest betweenness centrality
-
-    Returns:
-     int: ID of the person who sits on the most shortest paths
-    """
-    return largest_node(BETWEENNESS_CENTRALITY)
-</pre></div>
-<div class="highlight">
-<pre><span></span>MOST_BETWEEN = betweenness_centrality()
-print("Most Between Friend: {}".format(MOST_BETWEEN))
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgd9024c8">
-<h2 id="orgd9024c8">Part 2 - Political Blogs</h2>
-<div class="outline-text-2" id="text-orgd9024c8">
-<p>Now we're going to use <a href="https://en.wikipedia.org/wiki/PageRank">PageRank</a> and <a href="https://en.wikipedia.org/wiki/HITS_algorithm">Hyperlink-Induced Topic Search (HITS)</a> to look at a directed network of political blogs, where nodes correspond to a blog and edges correspond to links between blogs.</p>
-<div class="highlight">
-<pre><span></span>blogs = networkx.read_gml('blogs.gml')
-</pre></div>
-<div class="highlight">
-<pre><span></span>print(len(blogs))
-print(networkx.is_directed(blogs))
-</pre></div>
-<div class="highlight">
-<pre><span></span>networkx.draw(blogs, alpha=0.5, node_size=1, node_color='r')
-</pre></div>
-</div>
-<div class="outline-3" id="outline-container-orga7f2347">
-<h3 id="orga7f2347">Scaled Page Rank of <i>realclearpolitics.com</i></h3>
-<div class="outline-text-3" id="text-orga7f2347">
-<p><i>PageRank</i> scores web-pages by the number of important nodes that link directly to them. It is possible for the algorithm to get stuck if there are no edges leading out from a directed subgraph, producing erroneous page-ranks so the <i>Scaled Page Rank</i> uses a random-restart do decide when to occasionally jump to a new node, an idea similar to the way Stochastic Gradient Descent avoids being stuck in local minima. The <a href="https://networkx.github.io/documentation/networkx-1.10/reference/generated/networkx.algorithms.link_analysis.pagerank_alg.pagerank.html">Networkx pagerank</a> uses a default of 0.85, which I will use, so it will do a random-restart about 15% of the time.</p>
-<div class="highlight">
-<pre><span></span>PAGE_RANK = networkx.pagerank(blogs)
-</pre></div>
-<div class="highlight">
-<pre><span></span>def real_clear_politics_page_rank():
-    """Page Rank of realclearpolitics.com
-
-    Returns:
-     float: The PageRank for the realclearpolitics blog.
-    """
-    return PAGE_RANK['realclearpolitics.com']
-</pre></div>
-<div class="highlight">
-<pre><span></span>print("Real Clear Politics Page Rank: {0:.4f}".format(real_clear_politics_page_rank()))
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org745bcbb">
-<h3 id="org745bcbb">Top Five Blogs by Page Rank</h3>
-<div class="outline-text-3" id="text-org745bcbb">
-<p>This time the PageRank scores will be used to find what it thinks are the most important blogs.</p>
-<div class="highlight">
-<pre><span></span>def top_five(ranks, count=5):
-    """gets the top-five blogs by rank
-
-    Args:
-     count (int): number to return
-
-    Returns:
-     list [str]: names of the top blogs - most to least important
-    """
-    top = list(reversed(sorted((rank, node)
-                               for node, rank in ranks.items())))[:count]
-    return [node for rank, node in top]
-</pre></div>
-<div class="highlight">
-<pre><span></span>def top_five_page_rank():
-    """Top 5 nodes by page rank
-
-    Returns:
-     list [str]: top-five blogs by page-rank
-    """
-    return top_five(PAGE_RANK)
-</pre></div>
-<div class="highlight">
-<pre><span></span>print("Top Five Blogs by PageRank")
-
-for blog in top_five_page_rank():
-    print("  - {}".format(blog))
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org1d929b7">
-<h3 id="org1d929b7">HITS Score for Real Clear Politics</h3>
-<div class="outline-text-3" id="text-org1d929b7">
-<p>This uses the HITS algorithm to find the authority and hub scores for <i>realclearpolitics.com</i>. This algorithm tries to identify <code>hubs</code>, collections of links that directed users to important pages, and <code>authoratative</code> pages, pages that are deemed important because of their relevant content (as identified by the fact that they are linked to by <code>hubs</code>).</p>
-<div class="highlight">
-<pre><span></span>HUBS, AUTHORITIES = networkx.hits(blogs)
-</pre></div>
-<div class="highlight">
-<pre><span></span>def real_clear_politics_hits():
-    """HITS score for realclearpolitics.com
-
-    Returns:
-     tuple (float, float): hub score, authority score
-    """
-    return HUBS['realclearpolitics.com'], AUTHORITIES['realclearpolitics.com']
-</pre></div>
-<div class="highlight">
-<pre><span></span>hub, authority = real_clear_politics_hits()
-print("Real Clear Politics")
-print("Hub: {0:.5f}\nAuthority: {0:.5f}".format(hub, authority))
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-orgac6b1f8">
-<h3 id="orgac6b1f8">Top 5 Blogs by Hub Score</h3>
-<div class="outline-text-3" id="text-orgac6b1f8">
-<p>This will find the top five blogs based on their hub scores (meaning they are the ones who link to the most authoratative sites).</p>
-<div class="highlight">
-<pre><span></span>def top_five_hubs():
-    """Top five blogs by hub scores
-
-    Returns:
-     list (str): Names of top-five hub blogs
-    """
-    return top_five(HUBS)
-</pre></div>
-<div class="highlight">
-<pre><span></span>top_five_hub_blogs = top_five_hubs()
-print('Top Five Hub Blogs')
-for blog in top_five_hub_blogs:
-    print(" - {}".format(blog))
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org6377615">
-<h3 id="org6377615">Top Five Blogs By Authority</h3>
-<div class="outline-text-3" id="text-org6377615">
-<p>This will find the top five political blogs based on how many of the hub-blogs link to them.</p>
-<div class="highlight">
-<pre><span></span>def top_five_authorities():
-    """the top 5 blogs by authorities score
-
-    Returns:
-     list (str): names of the most authoratative blogs
-    """
-    return top_five(AUTHORITIES)
-</pre></div>
-<div class="highlight">
-<pre><span></span>print("Top Five Authoratative Blogs")
-authoratative_blogs = top_five_authorities()
-for blog in authoratative_blogs:
-    print(" - {}".format(blog))
 </pre></div>
 </div>
 </div>
