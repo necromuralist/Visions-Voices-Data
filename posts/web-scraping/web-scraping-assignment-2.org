@@ -14,20 +14,21 @@
 #+OPTIONS: ^:{}
 #+TOC: headlines 3
 * Beginning
+  The goal of this exercise is to crawl through a set of anchor links to get a particular name stored in the /nth/ anchor tag. The assignment specifically says to use [[https://docs.python.org/3/library/urllib.html][urllib]] but, if you go to the documentation for [[https://docs.python.org/3/library/urllib.request.html#module-urllib.request][urllib.request]] it tells you to use to use [[https://2.python-requests.org/en/master/][requests]], which, if you go to its documentation says that it's in maintenance mode while work is being done on [[https://3.python-requests.org/][Requests III]]... anyway, I like using [[https://html.python-requests.org/][Requests-HTML]] so I'll use that and urllib side-by-side.
 ** Imports
 *** Python
-#+begin_src ipython :session web :results none
+#+begin_src python :session web :results none
 import re
 import urllib
 #+end_src
 *** PyPi
-#+begin_src ipython :session web :results none
+#+begin_src python :session web :results none
 from bs4 import BeautifulSoup
 from requests_html import HTMLSession
 #+end_src
 ** Setup
 *** The URL
-#+begin_src ipython :session web :results none
+#+begin_src python :session web :results none
 BASE_URL = "http://py4e-data.dr-chuck.net/known_by_"
 SAMPLE_URL = f"{BASE_URL}Fikret.html"
 ASSIGNMENT_URL = f"{BASE_URL}Abdalroof.html"
@@ -35,7 +36,7 @@ ASSIGNMENT_URL = f"{BASE_URL}Abdalroof.html"
 * Middle
 ** The Sample Exercise
 *** The Easy Way
-#+begin_src ipython :session web :results output :exports both
+#+begin_src python :session web :results output :exports both
 session = HTMLSession()
 response = session.get(SAMPLE_URL)
 assert response.ok
@@ -62,7 +63,7 @@ print(f"Final Answer: {link_element.text}")
 : Name: Anayah
 : Final Answer: Anayah
 *** The Slightly Less Easy Way
-#+begin_src ipython :session web :results output :exports both
+#+begin_src python :session web :results output :exports both
 response = urllib.request.urlopen(SAMPLE_URL)
 
 print(f"Name: {expression.search(SAMPLE_URL).group('name')}")
@@ -87,7 +88,7 @@ print(f"\nFinal Answer: {link_element.text}")
 
 ** The Real One
 *** The Easy Way
-#+begin_src ipython :session web :results output :exports both
+#+begin_src python :session web :results output :exports both
 session = HTMLSession()
 response = session.get(ASSIGNMENT_URL)
 assert response.ok
@@ -118,7 +119,7 @@ print(f"Final Answer: {link_element.text}")
 : Final Answer: Kiara
 
 *** The Assignment Way
-#+begin_src ipython :session web :results output :exports both
+#+begin_src python :session web :results output :exports both
 HOPS = 7
 FIND_AT_INDEX = 18 - 1
 response = urllib.request.urlopen(ASSIGNMENT_URL)

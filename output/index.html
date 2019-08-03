@@ -19,7 +19,7 @@
 </script>
 -->
 <script async src="javascript/p5.min.js" type="text/javascript"></script>
-<link href="/posts/nature-of-code/nested-follower/" rel="prefetch" type="text/html">
+<link href="/posts/web-scraping/web-scraping-assignment-2/" rel="prefetch" type="text/html">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -46,6 +46,230 @@
 <div class="container" id="content" role="main">
 <div class="body-content"><!--Body content-->
 <div class="postindex">
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/web-scraping/web-scraping-assignment-2/">Web Scraping Assignment 2</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/web-scraping/web-scraping-assignment-2/" rel="bookmark"><time class="published dt-published" datetime="2019-08-02T13:43:01-07:00" itemprop="datePublished" title="2019-08-02 13:43">2019-08-02 13:43</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org94d8038">Beginning</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org9e22d7d">Imports</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org68798a3">Python</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org5bd1d0d">PyPi</a></li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org6d70291">Setup</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgbdb5ff5">The URL</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgdacff30">Middle</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org546c75a">The Sample Exercise</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orge612bda">The Easy Way</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org7026405">The Slightly Less Easy Way</a></li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org36a06d2">The Real One</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgbf288e5">The Easy Way</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org9b45676">The Assignment Way</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgdf817e1">End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org94d8038">
+<h2 id="org94d8038">Beginning</h2>
+<div class="outline-text-2" id="text-org94d8038"></div>
+<div class="outline-3" id="outline-container-org9e22d7d">
+<h3 id="org9e22d7d">Imports</h3>
+<div class="outline-text-3" id="text-org9e22d7d"></div>
+<div class="outline-4" id="outline-container-org68798a3">
+<h4 id="org68798a3">Python</h4>
+<div class="outline-text-4" id="text-org68798a3">
+<div class="highlight">
+<pre><span></span>import re
+import urllib
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org5bd1d0d">
+<h4 id="org5bd1d0d">PyPi</h4>
+<div class="outline-text-4" id="text-org5bd1d0d">
+<div class="highlight">
+<pre><span></span>from bs4 import BeautifulSoup
+from requests_html import HTMLSession
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org6d70291">
+<h3 id="org6d70291">Setup</h3>
+<div class="outline-text-3" id="text-org6d70291"></div>
+<div class="outline-4" id="outline-container-orgbdb5ff5">
+<h4 id="orgbdb5ff5">The URL</h4>
+<div class="outline-text-4" id="text-orgbdb5ff5">
+<div class="highlight">
+<pre><span></span>BASE_URL = "http://py4e-data.dr-chuck.net/known_by_"
+SAMPLE_URL = f"{BASE_URL}Fikret.html"
+ASSIGNMENT_URL = f"{BASE_URL}Abdalroof.html"
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgdacff30">
+<h2 id="orgdacff30">Middle</h2>
+<div class="outline-text-2" id="text-orgdacff30"></div>
+<div class="outline-3" id="outline-container-org546c75a">
+<h3 id="org546c75a">The Sample Exercise</h3>
+<div class="outline-text-3" id="text-org546c75a"></div>
+<div class="outline-4" id="outline-container-orge612bda">
+<h4 id="orge612bda">The Easy Way</h4>
+<div class="outline-text-4" id="text-orge612bda">
+<div class="highlight">
+<pre><span></span>session = HTMLSession()
+response = session.get(SAMPLE_URL)
+assert response.ok
+
+expression = "_(?P&lt;name&gt;[^_.]+).html"
+expression = re.compile(expression)
+print(f"Name: {expression.search(SAMPLE_URL).group('name')}")
+
+for hop in range(4):
+    links = response.html.find("a")
+
+    link_element = links[2]
+    print(f"Name: {link_element.text}")
+    response = session.get(link_element.attrs["href"])
+
+print(f"Final Answer: {link_element.text}")
+</pre></div>
+<pre class="example">
+Name: Fikret
+Name: Montgomery
+Name: Mhairade
+Name: Butchi
+Name: Anayah
+Final Answer: Anayah
+
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-org7026405">
+<h4 id="org7026405">The Slightly Less Easy Way</h4>
+<div class="outline-text-4" id="text-org7026405">
+<div class="highlight">
+<pre><span></span>response = urllib.request.urlopen(SAMPLE_URL)
+
+print(f"Name: {expression.search(SAMPLE_URL).group('name')}")
+for hop in range(4):
+   soup = BeautifulSoup(response.read(), "html.parser")
+   link_element = soup.find_all("a")[2] 
+   print(f"Name: {link_element.text}")
+   response = urllib.request.urlopen(link_element["href"])
+print(f"\nFinal Answer: {link_element.text}")
+</pre></div>
+<pre class="example">
+Name: Fikret
+Name: Montgomery
+Name: Mhairade
+Name: Butchi
+Name: Anayah
+
+Final Answer: Anayah
+
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org36a06d2">
+<h3 id="org36a06d2">The Real One</h3>
+<div class="outline-text-3" id="text-org36a06d2"></div>
+<div class="outline-4" id="outline-container-orgbf288e5">
+<h4 id="orgbf288e5">The Easy Way</h4>
+<div class="outline-text-4" id="text-orgbf288e5">
+<div class="highlight">
+<pre><span></span>session = HTMLSession()
+response = session.get(ASSIGNMENT_URL)
+assert response.ok
+
+expression = "_(?P&lt;name&gt;[^_.]+).html"
+expression = re.compile(expression)
+print(f"Name: {expression.search(ASSIGNMENT_URL).group('name')}")
+
+for hop in range(7):
+    links = response.html.find("a")
+
+    link_element = links[17]
+    print(f"Name: {link_element.text}")
+    response = session.get(link_element.attrs["href"])
+
+print(f"Final Answer: {link_element.text}")
+</pre></div>
+<pre class="example">
+Name: Abdalroof
+Name: Billi
+Name: Jayse
+Name: Amaarah
+Name: Cesar
+Name: Rosheen
+Name: Mohamed
+Name: Kiara
+Final Answer: Kiara
+
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-org9b45676">
+<h4 id="org9b45676">The Assignment Way</h4>
+<div class="outline-text-4" id="text-org9b45676">
+<div class="highlight">
+<pre><span></span>HOPS = 7
+FIND_AT_INDEX = 18 - 1
+response = urllib.request.urlopen(ASSIGNMENT_URL)
+
+print(f"Name: {expression.search(ASSIGNMENT_URL).group('name')}")
+for hop in range(HOPS):
+   soup = BeautifulSoup(response.read(), "html.parser")
+   link_element = soup.find_all("a")[FIND_AT_INDEX] 
+   print(f"Name: {link_element.text}")
+   response = urllib.request.urlopen(link_element["href"])
+print(f"\nFinal Answer: {link_element.text}")
+</pre></div>
+<pre class="example">
+Name: Abdalroof
+Name: Billi
+Name: Jayse
+Name: Amaarah
+Name: Cesar
+Name: Rosheen
+Name: Mohamed
+Name: Kiara
+
+Final Answer: Kiara
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgdf817e1">
+<h2 id="orgdf817e1">End</h2>
+</div>
+</div>
+</article>
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/nature-of-code/nested-follower/">Nested follower</a></h1>
@@ -2784,207 +3008,6 @@ for blog in authoratative_blogs:
     print(" - {}".format(blog))
 </pre></div>
 </div>
-</div>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="posts/networks/company-e-mail/">Company E-Mail</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="posts/networks/company-e-mail/" rel="bookmark"><time class="published dt-published" datetime="2019-04-13T11:34:37-07:00" itemprop="datePublished" title="2019-04-13 11:34">2019-04-13 11:34</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="posts/networks/company-e-mail/#org3e96556">Tangle</a></li>
-<li><a href="posts/networks/company-e-mail/#org2772b96">Imports</a></li>
-<li><a href="posts/networks/company-e-mail/#org1e39d1f">1 - Load the Directed Multigraph</a></li>
-<li><a href="posts/networks/company-e-mail/#org97151f0">Number of employees and emails</a></li>
-<li><a href="posts/networks/company-e-mail/#org876440e">Information Routes</a>
-<ul>
-<li><a href="posts/networks/company-e-mail/#org12fbf94">Part 1. Assume that information in this company can only be exchanged through email.</a></li>
-<li><a href="posts/networks/company-e-mail/#orgc3860e5">Part 2. Now assume that a communication channel established by an email allows information to be exchanged both ways.</a></li>
-</ul>
-</li>
-<li><a href="posts/networks/company-e-mail/#orge396f15">Largest Weakly Connected Component</a></li>
-</ul>
-</div>
-</div>
-<p>This will go through the process of importing and analyzing an internal email communication network between employees of a mid-sized manufacturing company. Each node represents an employee and each directed edge between two nodes represents an individual email. The left node represents the sender and the right node represents the recipient.</p>
-<div class="highlight">
-<pre><span></span>+------+      +--------+
-|Sender| --&gt;  |Receiver|
-+------+      +--------+
-</pre></div>
-<div class="outline-2" id="outline-container-org3e96556">
-<h2 id="org3e96556">Tangle</h2>
-<div class="outline-text-2" id="text-org3e96556">
-<p>This is for troubleshooting.</p>
-<div class="highlight">
-<pre><span></span><span class="o">&lt;&lt;</span><span class="n">imports</span><span class="o">&gt;&gt;</span>
-
-<span class="o">&lt;&lt;</span><span class="n">data</span><span class="o">&gt;&gt;</span>
-
-<span class="o">&lt;&lt;</span><span class="n">answer</span><span class="o">-</span><span class="n">one</span><span class="o">&gt;&gt;</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org2772b96">
-<h2 id="org2772b96">Imports</h2>
-<div class="outline-text-2" id="text-org2772b96">
-<div class="highlight">
-<pre><span></span>import networkx
-import pandas
-import seaborn
-</pre></div>
-<div class="highlight">
-<pre><span></span>% matplotlib inline
-seaborn.set_style("whitegrid")
-</pre></div>
-<p>This line must be commented out when submitting to the autograder</p>
-<div class="highlight">
-<pre><span></span>email_network = pandas.read_table('email_network.txt', dtype={"#Sender": str, "Recipient": str})
-print(email_network.head())
-</pre></div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org1e39d1f">
-<h2 id="org1e39d1f">1 - Load the Directed Multigraph</h2>
-<div class="outline-text-2" id="text-org1e39d1f">
-<p>Using networkx, load up the directed multigraph from `email<sub>network.txt</sub>`. Make sure the node names are strings.</p>
-<p><b>This function should return a directed multigraph networkx graph.</b></p>
-<div class="highlight">
-<pre><span></span>def answer_one():
-    """Loads the email-network graph
-
-    Returns:
-     networkx.MultiDiGraph: the graph of the email network
-    """
-    # there's a bug in networkx loading MultiDiGraphs from pandas data-frames
-    # so this is a work-around
-    graph = networkx.MultiDiGraph()
-    tuples = [(sender, recipient, {"time": time})
-              for (sender, recipient, time) in email_network.values]
-    graph.add_edges_from(tuples)
-    return graph
-</pre></div>
-<div class="highlight">
-<pre><span></span>one = answer_one()
-networkx.draw_networkx(one)
-</pre></div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org97151f0">
-<h2 id="org97151f0">Number of employees and emails</h2>
-<div class="outline-text-2" id="text-org97151f0">
-<p>How many employees and emails are represented in the graph from Question 1?</p>
-<p><b>This function should return a tuple (#employees, #emails).</b></p>
-<div class="highlight">
-<pre><span></span>def answer_two():
-    """Counts the number of employees and emails
-
-    Returns:
-     tuple: count of employees, count of emails
-    """
-    one = answer_one()
-    return (one.order(), one.size())
-</pre></div>
-<div class="highlight">
-<pre><span></span>print(answer_two())
-</pre></div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org876440e">
-<h2 id="org876440e">Information Routes</h2>
-<div class="outline-text-2" id="text-org876440e"></div>
-<div class="outline-3" id="outline-container-org12fbf94">
-<h3 id="org12fbf94">Part 1. Assume that information in this company can only be exchanged through email.</h3>
-<div class="outline-text-3" id="text-org12fbf94">
-<p>When an employee sends an email to another employee, a communication channel has been created, allowing the sender to provide information to the receiver, but not vice versa.</p>
-<p>Based on the emails sent in the data, is it possible for information to go from every employee to every other employee?</p>
-</div>
-</div>
-<div class="outline-3" id="outline-container-orgc3860e5">
-<h3 id="orgc3860e5">Part 2. Now assume that a communication channel established by an email allows information to be exchanged both ways.</h3>
-<div class="outline-text-3" id="text-orgc3860e5">
-<p>Based on the emails sent in the data, is it possible for information to go from every employee to every other employee?</p>
-<p><b>This function should return a tuple of bools (part1, part2).</b></p>
-<div class="highlight">
-<pre><span></span>def answer_three():
-    """decides connectivity based on emails
-
-    First: Assume communication is not necessarily allowed both ways - 
-    based on data, can every employee contact each other?
-
-    Second: Assume any contact means there's two way communication. 
-    Can every employee be contacted?
-
-    Returns:
-     tuple: (every employee contacted every other employee, every employee contacted once)
-    """
-    emails = answer_one()
-    nodes = emails.nodes()
-    other_nodes = len(nodes) - 1
-    fully_connected = all((len(emails.neighbors(node)) == other_nodes for node in nodes))
-    undirected = emails.to_undirected()
-    all_connected = True
-    for left_node in nodes:
-        for right_node in nodes:
-            if left_node != right_node and not undirected.has_edge(left_node, right_node):
-                all_connected = False
-                break
-        if not all_connected:
-            break
-    return fully_connected, all_connected
-</pre></div>
-<div class="highlight">
-<pre><span></span>print(answer_three())
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orge396f15">
-<h2 id="orge396f15">Largest Weakly Connected Component</h2>
-<div class="outline-text-2" id="text-orge396f15">
-<p>How many nodes are in the largest (in terms of nodes) weakly connected component?</p>
-<p><b>This function should return an int.</b></p>
-<div class="highlight">
-<pre><span></span>def answer_four():
-    """Count of nodes in the largest weakly connected component"""
-    one = answer_one()
-    return len(max(networkx.weakly_connected_component_subgraphs(one), key=len).nodes())
-</pre></div>
-<p>According to <a href="https://en.wikipedia.org/wiki/Connectivity_(graph_theory)#Definitions_of_components.2C_cuts_and_connectivity">Wikipedia</a>, a directed graph is weakly connected if replacing every directed edge with an undirected one creates a connected graph, so if the undirected graph in the next section is a connected graph, then the entire email graph is weakly connected.</p>
-<div class="highlight">
-<pre><span></span>print(answer_four())
-undirected = one.to_undirected()
-print(networkx.is_connected(undirected))
-</pre></div>
-<p>def answer<sub>five</sub>():</p>
-<p>return # Your Answer Here</p>
-<p>def answer<sub>six</sub>():</p>
-<p>return # Your Answer Here</p>
-<p>def answer<sub>seven</sub>():</p>
-<p>return # Your Answer Here</p>
-<p>def answer<sub>eight</sub>():</p>
-<p>return # Your Answer Here</p>
-<p>def answer<sub>nine</sub>():</p>
-<p>return # Your Answer Here</p>
-<p>def answer<sub>ten</sub>():</p>
-<p>return # Your Answer Here</p>
-<p>def answer<sub>eleven</sub>():</p>
-<p>return # Your Answer Here</p>
-<p>def answer<sub>twelve</sub>():</p>
-<p>return # Your Answer Here</p>
-<p>def answer<sub>thirteen</sub>():</p>
-<p>return # Your Answer Here</p>
-<p>def answer<sub>fourteen</sub>():</p>
-<p>return # Your Answer Here</p>
 </div>
 </div>
 </div>
