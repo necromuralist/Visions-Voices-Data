@@ -1,0 +1,149 @@
+#+BEGIN_COMMENT
+.. title: Web Scraping Assignment 2
+.. slug: web-scraping-assignment-2
+.. date: 2019-08-02 13:43:01 UTC-07:00
+.. tags: web-scraping,web-crawiling
+.. category: Web Crawling
+.. link: 
+.. description: A simple web-crawling exercise.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+* Beginning
+** Imports
+*** Python
+#+begin_src ipython :session web :results none
+import re
+import urllib
+#+end_src
+*** PyPi
+#+begin_src ipython :session web :results none
+from bs4 import BeautifulSoup
+from requests_html import HTMLSession
+#+end_src
+** Setup
+*** The URL
+#+begin_src ipython :session web :results none
+BASE_URL = "http://py4e-data.dr-chuck.net/known_by_"
+SAMPLE_URL = f"{BASE_URL}Fikret.html"
+ASSIGNMENT_URL = f"{BASE_URL}Abdalroof.html"
+#+end_src
+* Middle
+** The Sample Exercise
+*** The Easy Way
+#+begin_src ipython :session web :results output :exports both
+session = HTMLSession()
+response = session.get(SAMPLE_URL)
+assert response.ok
+
+expression = "_(?P<name>[^_.]+).html"
+expression = re.compile(expression)
+print(f"Name: {expression.search(SAMPLE_URL).group('name')}")
+
+for hop in range(4):
+    links = response.html.find("a")
+
+    link_element = links[2]
+    print(f"Name: {link_element.text}")
+    response = session.get(link_element.attrs["href"])
+
+print(f"Final Answer: {link_element.text}")
+#+end_src
+
+#+RESULTS:
+: Name: Fikret
+: Name: Montgomery
+: Name: Mhairade
+: Name: Butchi
+: Name: Anayah
+: Final Answer: Anayah
+*** The Slightly Less Easy Way
+#+begin_src ipython :session web :results output :exports both
+response = urllib.request.urlopen(SAMPLE_URL)
+
+print(f"Name: {expression.search(SAMPLE_URL).group('name')}")
+for hop in range(4):
+   soup = BeautifulSoup(response.read(), "html.parser")
+   link_element = soup.find_all("a")[2] 
+   print(f"Name: {link_element.text}")
+   response = urllib.request.urlopen(link_element["href"])
+print(f"\nFinal Answer: {link_element.text}")
+#+end_src
+
+#+RESULTS:
+: Name: Fikret
+: Name: Montgomery
+: Name: Mhairade
+: Name: Butchi
+: Name: Anayah
+: 
+: Final Answer: Anayah
+
+#+RESULTS:
+
+** The Real One
+*** The Easy Way
+#+begin_src ipython :session web :results output :exports both
+session = HTMLSession()
+response = session.get(ASSIGNMENT_URL)
+assert response.ok
+
+expression = "_(?P<name>[^_.]+).html"
+expression = re.compile(expression)
+print(f"Name: {expression.search(ASSIGNMENT_URL).group('name')}")
+
+for hop in range(7):
+    links = response.html.find("a")
+
+    link_element = links[17]
+    print(f"Name: {link_element.text}")
+    response = session.get(link_element.attrs["href"])
+
+print(f"Final Answer: {link_element.text}")
+#+end_src
+
+#+RESULTS:
+: Name: Abdalroof
+: Name: Billi
+: Name: Jayse
+: Name: Amaarah
+: Name: Cesar
+: Name: Rosheen
+: Name: Mohamed
+: Name: Kiara
+: Final Answer: Kiara
+
+*** The Assignment Way
+#+begin_src ipython :session web :results output :exports both
+HOPS = 7
+FIND_AT_INDEX = 18 - 1
+response = urllib.request.urlopen(ASSIGNMENT_URL)
+
+print(f"Name: {expression.search(ASSIGNMENT_URL).group('name')}")
+for hop in range(HOPS):
+   soup = BeautifulSoup(response.read(), "html.parser")
+   link_element = soup.find_all("a")[FIND_AT_INDEX] 
+   print(f"Name: {link_element.text}")
+   response = urllib.request.urlopen(link_element["href"])
+print(f"\nFinal Answer: {link_element.text}")
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Name: Abdalroof
+Name: Billi
+Name: Jayse
+Name: Amaarah
+Name: Cesar
+Name: Rosheen
+Name: Mohamed
+Name: Kiara
+
+Final Answer: Kiara
+#+end_example
+
+* End
