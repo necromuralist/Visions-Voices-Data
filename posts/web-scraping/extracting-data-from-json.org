@@ -1,0 +1,80 @@
+#+BEGIN_COMMENT
+.. title: Extracting Data From JSON
+.. slug: extracting-data-from-json
+.. date: 2019-08-04 11:22:51 UTC-07:00
+.. tags: web-scraping,json
+.. category: web-scraping
+.. link: 
+.. description: Extracting JSON data.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+* Beginning
+** Imports
+*** Python
+#+begin_src ipython :session json :results none
+import json
+import urllib
+#+end_src
+*** PyPi
+#+begin_src ipython :session json :results none
+from expects import expect, equal
+#+end_src
+** Set Up
+*** The URLs
+#+begin_src ipython :session json :results none
+SAMPLE_URL = "http://py4e-data.dr-chuck.net/comments_42.json"
+ACTUAL_URL = "http://py4e-data.dr-chuck.net/comments_260445.json"
+#+end_src
+*** The Expected
+#+begin_src ipython :session json :results none
+SAMPLE_EXPECTED = 2553
+ACTUAL_EXPECTED_LAST_TWO_DIGITS = 94
+#+end_src
+* Middle
+  We're going to pull a JSON blob and extract the "count" values and sum them. The data is structured with a single top-level key ("comments") which holds a list of dicts with "name" (name of the commenter) and "count" (the number of comments the commenter has made) values.
+
+#+begin_src ipython :session json :results none
+def count(url: str) -> int:
+    """Totals the comment counts
+
+    Args:
+     url: source of the JSON
+    
+    Returns:
+     the total of the comment counts
+    """
+    response = urllib.request.urlopen(url)
+    data = json.loads(response.read())
+    total = 0
+    for index, commenter in enumerate(data["comments"]):
+        total += int(commenter["count"])
+
+    print(f"Comments: {index + 1}")
+    print(f"Comments: {total: ,}")
+    return total
+#+end_src
+** The Sample
+#+begin_src ipython :session json :results output :exports both
+total = count(SAMPLE_URL)
+expect(total).to(equal(SAMPLE_EXPECTED))
+#+end_src
+
+#+RESULTS:
+: Comments: 50
+: Comments:  2,553
+** The Assignment
+#+begin_src ipython :session json :results output :exports both
+total = count(ACTUAL_URL)
+expect(int(str(total)[-2:])).to(equal(ACTUAL_EXPECTED_LAST_TWO_DIGITS))
+#+end_src
+
+#+RESULTS:
+: Comments: 50
+: Comments:  2,594
+
+* End

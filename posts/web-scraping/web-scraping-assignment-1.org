@@ -17,11 +17,11 @@
   The goal of this exercise is to find all the =<span>= tags on a page and sum the numbers they contain.
 ** Imports
 *** Python
-#+begin_src ipython :session web :results none
+#+begin_src python :session web :results none
 import urllib
 #+end_src
 *** PyPi
-#+begin_src ipython :session web :results none
+#+begin_src python :session web :results none
 from bs4 import BeautifulSoup
 from expects import (
     equal,
@@ -32,12 +32,12 @@ from requests_html import HTMLSession
 #+end_src
 ** Setup
 *** The URLs
-#+begin_src ipython :session web :results none
+#+begin_src python :session web :results none
 SAMPLE_URL = " http://py4e-data.dr-chuck.net/comments_42.html"
 ACTUAL_URL = "http://py4e-data.dr-chuck.net/comments_260442.html"
 #+end_src
 *** The Expected
-#+begin_src ipython :session web :results none
+#+begin_src python :session web :results none
 SAMPLE_EXPECTED = 2553
 ACTUAL_EXPECTED_LAST_DIGIT = 5
 #+end_src
@@ -45,7 +45,7 @@ ACTUAL_EXPECTED_LAST_DIGIT = 5
 ** The Sample
 *** The Way I Would Do It
 
-#+begin_src ipython :session web :results none
+#+begin_src python :session web :results none
 def using_requests(url: str) -> int:
     """get the span total
 
@@ -68,7 +68,7 @@ def using_requests(url: str) -> int:
     return total
 #+end_src
 
-#+begin_src ipython :session web :results output :exports both
+#+begin_src python :session web :results output :exports both
 total = using_requests(SAMPLE_URL)
 expect(total).to(equal(SAMPLE_EXPECTED))
 #+end_src
@@ -79,7 +79,7 @@ expect(total).to(equal(SAMPLE_EXPECTED))
 
 *** The Assignment Way
     For this kind of thing, using urllib isn't really much more work, I'm used to the older python 2 version which (maybe only seemed at the time) was more complicated to use.
-#+begin_src ipython :session web :results none
+#+begin_src python :session web :results none
 def using_urllib(url: str) -> int:
     """get the span total with urllib and beautiful soup
 
@@ -99,7 +99,7 @@ def using_urllib(url: str) -> int:
     print(f"Sum: {total}")
     return total
 #+end_src
-#+begin_src ipython :session web :results output :exports both
+#+begin_src python :session web :results output :exports both
 total = using_urllib(SAMPLE_URL)
 expect(total).to(equal(SAMPLE_EXPECTED))
 #+end_src
@@ -109,7 +109,7 @@ expect(total).to(equal(SAMPLE_EXPECTED))
 : Sum: 2553
 ** The Assignment
 *** Requests HTML
-#+begin_src ipython :session web :results output :exports both
+#+begin_src python :session web :results output :exports both
 total = using_requests(ACTUAL_URL)
 expect(int(str(total)[-1])).to(equal(ACTUAL_EXPECTED_LAST_DIGIT))
 #+end_src
@@ -118,7 +118,7 @@ expect(int(str(total)[-1])).to(equal(ACTUAL_EXPECTED_LAST_DIGIT))
 : Count: 50
 : Sum: 2305
 *** Urllib
-#+begin_src ipython :session web :results output :exports both
+#+begin_src python :session web :results output :exports both
 total = using_urllib(ACTUAL_URL)
 expect(int(str(total)[-1])).to(equal(ACTUAL_EXPECTED_LAST_DIGIT))
 #+end_src
