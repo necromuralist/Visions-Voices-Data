@@ -1,0 +1,74 @@
+#+BEGIN_COMMENT
+.. title: Extracting Data From XML
+.. slug: extracting-data-from-xml
+.. date: 2019-08-03 16:24:05 UTC-07:00
+.. tags: xml,data
+.. category: XML
+.. link: 
+.. description: Extracting XML data.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+* Beginning
+** Imports
+*** Python
+#+begin_src ipython :session xml :results none
+from xml.etree import ElementTree
+import urllib
+#+end_src
+** Set Up
+*** The URLS
+#+begin_src ipython :session xml :results none
+SAMPLE_URL = "http://py4e-data.dr-chuck.net/comments_42.xml"
+ACTUAL_URL = "http://py4e-data.dr-chuck.net/comments_260444.xml"
+#+end_src
+*** The Expected
+#+begin_src ipython :session xml :results none
+SAMPLE_EXPECTED = 2553
+ACTUAL_EXPECTED_LAST_TWO_DIGITS = 34
+#+end_src
+* Middle
+#+begin_src ipython :session xml :results none
+def get_counts(url: str) -> int:
+    """Get the sum of the 'count' tags 
+
+    Args:
+     url: URL to get the XML from
+    
+    Returns:
+     sum of the count tags payloads
+    """
+    response = urllib.request.urlopen(url)
+    tree = ElementTree.fromstring(response.read())
+    total = 0
+    for index, count in enumerate(tree.findall(".//count")):
+        total += int(count.text)
+    
+    print(f"Tags: {index + 1}")
+    print(f"Sum of Counts: {total}")
+    return total
+#+end_src
+** Sample
+#+begin_src ipython :session xml :results output :exports both
+total = get_counts(SAMPLE_URL)
+assert total == SAMPLE_EXPECTED
+#+end_src
+
+#+RESULTS:
+: Tags: 50
+: Sum of Counts: 2553
+** The Assignment
+#+begin_src ipython :session xml :results output :exports both
+total =get_counts(ACTUAL_URL)
+assert int(str(total)[-2:]) == ACTUAL_EXPECTED_LAST_TWO_DIGITS
+#+end_src
+
+#+RESULTS:
+: Tags: 50
+: Sum of Counts: 2634
+
+* End
