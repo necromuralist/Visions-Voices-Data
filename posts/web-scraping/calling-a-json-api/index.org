@@ -1,0 +1,91 @@
+#+BEGIN_COMMENT
+.. title: Calling a JSON API
+.. slug: calling-a-json-api
+.. date: 2019-08-04 11:53:29 UTC-07:00
+.. tags: api,json
+.. category: JSON
+.. link: 
+.. description: Parsing JSON from a web API.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+* Beginning
+** Imports
+*** Python
+#+begin_src ipython :session api :results none
+from pprint import pprint
+import json
+import urllib
+#+end_src
+*** PyPi
+#+begin_src ipython :session api :results none
+from expects import (
+    equal,
+    expect,
+    start_with,
+)
+#+end_src
+** Set Up
+*** URL
+#+begin_src ipython :session api :results none
+API_KEY = 42
+API_URL = "http://py4e-data.dr-chuck.net/json?"
+#+end_src
+*** Sample
+#+begin_src ipython :session api :results none
+SAMPLE_LOCATION = "South Federal University"
+SAMPLE_PLACE_ID = "ChIJ9e_QQm0sDogRhUPatldEFxw"
+#+end_src
+*** Actual
+#+begin_src ipython :session api :results none
+ACTUAL_LOCATION = "Kazan Federal University"
+ACTUAL_PLACE_ID_STARTS_WITH = "ChIJGf9"
+#+end_src
+* Middle
+#+begin_src ipython :session api :results none
+def get_place_id(location: str) -> str:
+    """Get the place ID for the location
+
+    Args:
+     location: place to look up
+
+    Returns:
+     the place ID for the location
+    """
+    parameters = {"address": location, "key": API_KEY}
+    request = API_URL + urllib.parse.urlencode(parameters)
+
+    with urllib.request.urlopen(request) as response:
+        data = json.loads(response.read().decode())
+        results = data["results"][0]
+        expect(data["status"]).to(equal("OK"))
+        place_id = results["place_id"]
+        print(f"Location: {location}")
+        print(f"Place ID: {place_id}")
+    return place_id
+#+end_src
+** The Sample
+#+begin_src ipython :session api :results output :exports both
+place_id = get_place_id(SAMPLE_LOCATION)
+expect(SAMPLE_PLACE_ID).to(equal(place_id))
+#+end_src
+
+#+RESULTS:
+: Location: South Federal University
+: Place ID: ChIJ9e_QQm0sDogRhUPatldEFxw
+
+** The Actual
+#+begin_src ipython :session api :results output :exports both
+place_id = get_place_id(ACTUAL_LOCATION)
+expect(place_id).to(start_with(ACTUAL_PLACE_ID_STARTS_WITH))
+#+end_src
+
+#+RESULTS:
+: Location: Kazan Federal University
+: Place ID: ChIJGf9kMxGtXkERIzwzBzFo8kY
+
+* End
