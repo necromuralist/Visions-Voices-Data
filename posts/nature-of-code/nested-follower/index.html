@@ -69,34 +69,34 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/nature-of-code/nested-follower/#orge62e867">Beginning</a>
+<li><a href="/posts/nature-of-code/nested-follower/#org3f5ef15">Beginning</a>
 <ul>
-<li><a href="/posts/nature-of-code/nested-follower/#org7b0d2d0">Create A Walker</a></li>
-<li><a href="/posts/nature-of-code/nested-follower/#org1f6be0e">Specifications</a></li>
+<li><a href="/posts/nature-of-code/nested-follower/#org887d280">Create A Walker</a></li>
+<li><a href="/posts/nature-of-code/nested-follower/#org286e2fd">Specifications</a></li>
 </ul>
 </li>
-<li><a href="/posts/nature-of-code/nested-follower/#org574bcca">Middle</a></li>
-<li><a href="/posts/nature-of-code/nested-follower/#orgc3afdaf">End</a></li>
+<li><a href="/posts/nature-of-code/nested-follower/#orgf36a7c1">Middle</a></li>
+<li><a href="/posts/nature-of-code/nested-follower/#orga2503bf">End</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge62e867">
-<h2 id="orge62e867">Beginning</h2>
-<div class="outline-text-2" id="text-orge62e867">
+<div class="outline-2" id="outline-container-org3f5ef15">
+<h2 id="org3f5ef15">Beginning</h2>
+<div class="outline-text-2" id="text-org3f5ef15">
 <p>This is assignment 1 from the Nature of Code course on Kadenze. I was originally going to make it a mouse-follower but I re-read the instructions and it seems like it's better to make it a random-walker. These are the requirements:</p>
 </div>
-<div class="outline-3" id="outline-container-org7b0d2d0">
-<h3 id="org7b0d2d0">Create A Walker</h3>
-<div class="outline-text-3" id="text-org7b0d2d0">
+<div class="outline-3" id="outline-container-org887d280">
+<h3 id="org887d280">Create A Walker</h3>
+<div class="outline-text-3" id="text-org887d280">
 <ul class="org-ul">
 <li>Create an object that moves around the screen</li>
 <li>Incorporate randomness or perlin noise</li>
 </ul>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org1f6be0e">
-<h3 id="org1f6be0e">Specifications</h3>
-<div class="outline-text-3" id="text-org1f6be0e">
+<div class="outline-3" id="outline-container-org286e2fd">
+<h3 id="org286e2fd">Specifications</h3>
+<div class="outline-text-3" id="text-org286e2fd">
 <ul class="org-ul">
 <li>Needs to be visually different from the Nature of Code examples</li>
 <li>Use comments</li>
@@ -105,9 +105,9 @@
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org574bcca">
-<h2 id="org574bcca">Middle</h2>
-<div class="outline-text-2" id="text-org574bcca">
+<div class="outline-2" id="outline-container-orgf36a7c1">
+<h2 id="orgf36a7c1">Middle</h2>
+<div class="outline-text-2" id="text-orgf36a7c1">
 <script language="javascript" src="/posts/nature-of-code/nested-follower/follower.js" type="text/javascript"></script>
 <div id="nested-follower"></div>
 <div class="highlight">
@@ -136,11 +136,7 @@ let nested_follower_sketch = function(p) {
     p.setup = function() {
         this.canvas = p.createCanvas($("#" + nested_parent_div_id).outerWidth(true), 800);
         p.parent = new NoiseWalker(p);
-        let followers = 10;
-        p.followers = [new Follower(p, p.parent)];
-        for (let step=0; step &lt; followers; step++) {
-            p.followers.push(new Follower(p, p.followers[step]));
-        };
+        p.followers = [new Follower(p, p.parent), new Follower(p, p.parent), new Follower(p, p.parent)];
     };
 
     /**
@@ -149,7 +145,7 @@ let nested_follower_sketch = function(p) {
      * This also clears the background.
      */
     p.draw = function() {
-        p.background(255, 255, 255, 50);
+        p.background(255);
         p.parent.update();
         p.followers.forEach(function(follower) {
             follower.update();
@@ -163,138 +159,89 @@ let nested_follower_sketch = function(p) {
  * @param {P5} p
  */
 function NoiseWalker(p) {
-    // Our kinematics vectors
     this.position = p.createVector(p.width/2, p.height/2);
     this.velocity = p.createVector(0, 0);
-    this.acceleration = p.createVector(0, 0);
-
-    // Time for the perlin noise function
-    this.time_x = 0;
-    this.time_y = 10000;
-    this.time_delta = 0.01;
-
-    // The limit of how much we'll accelerate
-    this.max_acceleration = 0.05;
+    this.weight = p.round(p.random(5, 10));
 
     /**
      * Updates the walker's position
      */
     this.walk = function() {
-        // set the acceleration using perlin noise
-        this.acceleration.x = p.map(p.noise(this.time_x), 0, 1,
-                                    -this.max_acceleration,
-                                    this.max_acceleration);
-        this.acceleration.y = p.map(p.noise(this.time_y), 0, 1,
-                                    -this.max_acceleration,
-                                    this.max_acceleration);
-        // Move the walker
-        this.velocity = this.velocity.add(this.acceleration);
+        // calling sub on the vectors does an in-place update
+        // using p5.Vector.sub creates a new vector
+        // This is a static method so we use the module (p5) not the instance (p)
+        acceleration = mouse.sub(this.position);
+
+        // setMag always produces the same magnitude (but the orientation stays the same)
+        acceleration.setMag(this.magnitude);
+        console.log(acceleration);
+        this.velocity = this.velocity.add(acceleration);
         this.position = this.position.add(this.velocity);
 
         // keep it within the window
         if (this.position.x &lt; 0)
-            this.velocity.x = p.abs(this.velocity.x);
+            this.position.x = p.width;
         else if (this.position.x &gt; p.width)
-            this.velocity.x = -this.velocity.x;
+            this.position.x = 0;
         if (this.position.y &lt; 0)
-            this.velocity.y = p.abs(this.velocity.y);
+            this.position.y = p.height
         else if (this.position.y &gt; p.height)
-            this.velocity.y = -this.velocity.y;
+            this.position.y = 0
+  }
 
-        // update the time
-        this.time_x += this.time_delta;
-        this.time_y += this.time_delta;
-    };
-
-    /**
-     * draws the walker (for debugging)
-     */
     this.display = function() {
-        p.stroke(0);
-        p.point(this.position.x, this.position.y);
-    };
+        p.strokeWeight(this.weight);
+      p.stroke(0);
+      p.noFill();
+      p.background(255, 255, 255, 10);
+      p.circle(this.position.x, this.position.y, 48);
+  }
 
-    /**
-     * Calls the walk function
-     */
     this.update = function() {
         this.walk();
-    };
+        this.display()
+    }
 }
 
-
-/**
- * A follower that follows a parent object
- *
- * @param {P5} p
- * @param {NoiseWalker} parent
- */
 function Follower(p, parent) {
     this.parent = parent;
-    this.variance = p.random(1, 10);
-    this.position = p.createVector(
-        this.parent.position.x + p.random(-this.variance, this.variance),
-        this.parent.position.y + p.random(-this.variance, this.variance));
+    this.position = p.createVector(p.random(p.width), p.random(p.height));
     this.velocity = p.createVector(0, 0);
+    this.magnitude = p.random(0.05, 0.09);
 
-    // some colors to cycle through
-    this.max_diameter = p.round(p.random(5, 200));
-    this.time_x = p.random(100);
-    this.time_y = p.random(10000, 11000);
-    this.time_delta = 0.005;
+    this.red = [63, 123, 191, 191, 191];
+    this.green = [63, 63, 63, 63, 63];
+    this.blue = [191, 191, 191, 127, 63];
+    this.colors = this.red.length;
+    this.color = p.round(p.random(this.colors));
 
-    /**
-     * Moves the Follower
-     *
-     * sets the acceleration by pointing to the parent's position
-     */
     this.walk = function() {
-        let acceleration = p5.Vector.sub(this.parent.position, this.position);       
+        acceleration = this.parent.position.sub(this.position);
+
+        // setMag always produces the same magnitude (but the orientation stays the same)
+        acceleration.setMag(this.magnitude);
         this.velocity = this.velocity.add(acceleration);
-        this.position = this.position.add(this.velocity);
-    };
+        this.position = this.position.add(this.velocity)
+    }
 
-    /**
-     * Display the Follower
-     *
-     * cycles through the colors as we go
-     */
     this.display = function() {
-        // set our line width
-        p.strokeWeight(p.map(p.noise(this.time_x, this.time_y),
-                             0, 1, this.variance, 2 * this.variance));
-
-        // set our color
-        p.stroke(63, 63, 191);        
-
-        // don't fill the object
+        p.strokeWeight(p.random(5, 10));
+        p.stroke(this.red[this.color], this.green[0], this.blue[0]);
+        this.color = (this.color + 1) % this.colors;
         p.noFill();
+        p.ellipse(this.position.x, this.position.y, p.random(10, 45), p.random(10, 45));
+    }
 
-        // draw our object with a random diameter
-        p.ellipse(this.position.x, this.position.y,
-                  p.round(p.random(5, this.max_diameter)),
-                  p.round(p.random(5, this.max_diameter)));
-
-        // update the time
-        this.time_x += this.time_delta;
-        this.time_y += this.time_delta;
-
-    };
-
-    /**
-     * calls the update and walk 
-     */
     this.update = function() {
         this.walk();
         this.display();
-    };
+    }
 }
 
-// create the p5 object and attach it to the div
 new p5(nested_follower_sketch, nested_parent_div_id);
 </pre></div>
-<div class="outline-2" id="outline-container-orgc3afdaf">
-<h2 id="orgc3afdaf">End</h2>
+<div class="outline-2" id="outline-container-orga2503bf">
+<h2 id="orga2503bf">End</h2>
 </div>
 <aside class="postpromonav">
 <nav>
