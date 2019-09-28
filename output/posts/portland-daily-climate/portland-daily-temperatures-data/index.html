@@ -71,33 +71,33 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#org7cbdb82">Introduction</a></li>
-<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#org3bf4336">Set Up</a></li>
-<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#org26ac441">Loading the Data</a></li>
-<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#org0bd0415">Cleaning</a></li>
-<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#org6616ae0">Figuring Out the Missing Date</a></li>
-<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#orgc27a767">Pivot the Metric Column</a></li>
-<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#org93db059">Updating the Columns</a></li>
-<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#org8e8cc42">Save the Message Pack</a></li>
-<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#orgcf990b5">Looking at Some Plots</a></li>
+<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#orgf75aa64">Introduction</a></li>
+<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#org9400c0b">Set Up</a></li>
+<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#org7508a80">Loading the Data</a></li>
+<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#orgaf89575">Cleaning</a></li>
+<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#orgcaa8beb">Figuring Out the Missing Date</a></li>
+<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#orgd77339a">Pivot the Metric Column</a></li>
+<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#org09ae5fd">Updating the Columns</a></li>
+<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#orgc76a4f2">Save the Message Pack</a></li>
+<li><a href="/posts/portland-daily-climate/portland-daily-temperatures-data/#org8fb661f">Looking at Some Plots</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org7cbdb82">
-<h2 id="org7cbdb82">Introduction</h2>
-<div class="outline-text-2" id="text-org7cbdb82">
+<div class="outline-2" id="outline-container-orgf75aa64">
+<h2 id="orgf75aa64">Introduction</h2>
+<div class="outline-text-2" id="text-orgf75aa64">
 <p>I'm going to work with the Daily Temperatures data set for Portland, Oregon (measured at the airport) taken from the <a href="https://w2.weather.gov/climate/local_data.php?wfo=pqr">National Weather Service</a>. I cleaned it up a little already, removing the extra header rows and adding a missing column header (<code>Metric</code>) but the data is arranged with the year and month as a column and then each day is given its own column, which isn't how I want to work with it, so I'm going to transform it a little to make it more like what I expect it to look like.}</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org3bf4336">
-<h2 id="org3bf4336">Set Up</h2>
-<div class="outline-text-2" id="text-org3bf4336"></div>
-<div class="outline-3" id="outline-container-orgca58e8d">
-<h3 id="orgca58e8d">Imports</h3>
-<div class="outline-text-3" id="text-orgca58e8d"></div>
-<div class="outline-4" id="outline-container-orgbfa2092">
-<h4 id="orgbfa2092">Python</h4>
-<div class="outline-text-4" id="text-orgbfa2092">
+<div class="outline-2" id="outline-container-org9400c0b">
+<h2 id="org9400c0b">Set Up</h2>
+<div class="outline-text-2" id="text-org9400c0b"></div>
+<div class="outline-3" id="outline-container-orgc0c3181">
+<h3 id="orgc0c3181">Imports</h3>
+<div class="outline-text-3" id="text-orgc0c3181"></div>
+<div class="outline-4" id="outline-container-org04f05a8">
+<h4 id="org04f05a8">Python</h4>
+<div class="outline-text-4" id="text-org04f05a8">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
@@ -107,9 +107,9 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org50155bf">
-<h4 id="org50155bf">From PyPi</h4>
-<div class="outline-text-4" id="text-org50155bf">
+<div class="outline-4" id="outline-container-org9c4a462">
+<h4 id="org9c4a462">From PyPi</h4>
+<div class="outline-text-4" id="text-org9c4a462">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
 <span class="kn">import</span> <span class="nn">hvplot.pandas</span>
@@ -119,9 +119,9 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org4cc4ed0">
-<h4 id="org4cc4ed0">My Stuff</h4>
-<div class="outline-text-4" id="text-org4cc4ed0">
+<div class="outline-4" id="outline-container-orge82728b">
+<h4 id="orge82728b">My Stuff</h4>
+<div class="outline-text-4" id="text-orge82728b">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">graeae.timers</span> <span class="kn">import</span> <span class="n">Timer</span>
 <span class="kn">from</span> <span class="nn">bartleby_the_penguin.tangles.embed_bokeh</span> <span class="kn">import</span> <span class="n">EmbedBokeh</span>
@@ -129,9 +129,9 @@
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org5d293a6">
-<h3 id="org5d293a6">Plotting</h3>
-<div class="outline-text-3" id="text-org5d293a6">
+<div class="outline-3" id="outline-container-org92a6bc5">
+<h3 id="org92a6bc5">Plotting</h3>
+<div class="outline-text-3" id="text-org92a6bc5">
 <div class="highlight">
 <pre><span></span><span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">run_line_magic</span><span class="p">(</span><span class="s1">'matplotlib'</span><span class="p">,</span> <span class="s1">'inline'</span><span class="p">)</span>
 <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">run_line_magic</span><span class="p">(</span><span class="s1">'config'</span><span class="p">,</span> <span class="s2">"InlineBackend.figure_format = 'retina'"</span><span class="p">)</span>
@@ -144,17 +144,17 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org00134cd">
-<h3 id="org00134cd">The Timer</h3>
-<div class="outline-text-3" id="text-org00134cd">
+<div class="outline-3" id="outline-container-orgb4c8137">
+<h3 id="orgb4c8137">The Timer</h3>
+<div class="outline-text-3" id="text-orgb4c8137">
 <div class="highlight">
 <pre><span></span><span class="n">TIMER</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org47c0fe6">
-<h3 id="org47c0fe6">The Embedder</h3>
-<div class="outline-text-3" id="text-org47c0fe6">
+<div class="outline-3" id="outline-container-org6703439">
+<h3 id="org6703439">The Embedder</h3>
+<div class="outline-text-3" id="text-org6703439">
 <div class="highlight">
 <pre><span></span><span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
     <span class="n">EmbedBokeh</span><span class="p">,</span> 
@@ -163,9 +163,9 @@
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org26ac441">
-<h2 id="org26ac441">Loading the Data</h2>
-<div class="outline-text-2" id="text-org26ac441">
+<div class="outline-2" id="outline-container-org7508a80">
+<h2 id="org7508a80">Loading the Data</h2>
+<div class="outline-text-2" id="text-org7508a80">
 <div class="highlight">
 <pre><span></span><span class="n">load_dotenv</span><span class="p">()</span>
 <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CSV"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
@@ -176,9 +176,9 @@
 /home/athena/data/datasets/necromuralist/daily-climate-data/portland_1940_to_april_2018.csv
 
 </pre></div>
-<div class="outline-3" id="outline-container-org370ce9f">
-<h3 id="org370ce9f">Some Preparation</h3>
-<div class="outline-text-3" id="text-org370ce9f">
+<div class="outline-3" id="outline-container-org85de18f">
+<h3 id="org85de18f">Some Preparation</h3>
+<div class="outline-text-3" id="text-org85de18f">
 <p>The first thing to work with is that there are three characters representing "missing" data (that I noticed) - <i>M</i>, <i>T</i>, and <i>-</i> - that we have to tell pandas about when we use <a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_csv.html">read_csv</a>.</p>
 <div class="highlight">
 <pre><span></span><span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"M"</span><span class="p">,</span> <span class="s2">"T"</span><span class="p">,</span> <span class="s2">"-"</span><span class="p">]</span>
@@ -319,12 +319,12 @@ None
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org0bd0415">
-<h2 id="org0bd0415">Cleaning</h2>
-<div class="outline-text-2" id="text-org0bd0415"></div>
-<div class="outline-3" id="outline-container-orgda0a043">
-<h3 id="orgda0a043">Drop the Last Column</h3>
-<div class="outline-text-3" id="text-orgda0a043">
+<div class="outline-2" id="outline-container-orgaf89575">
+<h2 id="orgaf89575">Cleaning</h2>
+<div class="outline-text-2" id="text-orgaf89575"></div>
+<div class="outline-3" id="outline-container-org5305d22">
+<h3 id="org5305d22">Drop the Last Column</h3>
+<div class="outline-text-3" id="text-org5305d22">
 <p>Besides the fact that the last column is a calculated one, the fact that it's ambiguous (I guess you can tell by how big it is whether it's a Total, but still) makes me think I should get rid of the last column (using <a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.drop.html">drop</a>).</p>
 <div class="highlight">
 <pre><span></span><span class="n">cleaned</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
@@ -336,9 +336,9 @@ None
 
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-orgfcd7925">
-<h3 id="orgfcd7925">Rotate the Days</h3>
-<div class="outline-text-3" id="text-orgfcd7925">
+<div class="outline-3" id="outline-container-org9978a09">
+<h3 id="org9978a09">Rotate the Days</h3>
+<div class="outline-text-3" id="text-org9978a09">
 <p>Now I'm going to move the day-columns into row-values using <a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.melt.html">melt</a>.</p>
 <div class="highlight">
 <pre><span></span><span class="n">melted</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">cleaned</span><span class="p">,</span> <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">"YR"</span><span class="p">,</span> <span class="s2">"MO"</span><span class="p">,</span> <span class="s2">"Metric"</span><span class="p">],</span> <span class="n">var_name</span><span class="o">=</span><span class="s2">"Day"</span><span class="p">,</span> <span class="n">value_name</span><span class="o">=</span><span class="s2">"Value"</span><span class="p">)</span>
@@ -361,9 +361,9 @@ None
 (116436, 5)
 
 </pre></div>
-<div class="outline-4" id="outline-container-org4afab00">
-<h4 id="org4afab00">Casting the Days to Integers</h4>
-<div class="outline-text-4" id="text-org4afab00">
+<div class="outline-4" id="outline-container-orgf598563">
+<h4 id="orgf598563">Casting the Days to Integers</h4>
+<div class="outline-text-4" id="text-orgf598563">
 <p>Although they look like integers, the <code>Day</code> column was converted from column headers so they're strings. Maybe I could have cast them at the time of the conversion, but, oh, well.</p>
 <div class="highlight">
 <pre><span></span><span class="k">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">melted</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Day</span><span class="p">))</span>
@@ -382,9 +382,9 @@ None
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgb94c272">
-<h3 id="orgb94c272">Make a Date Column</h3>
-<div class="outline-text-3" id="text-orgb94c272">
+<div class="outline-3" id="outline-container-org80ce2d5">
+<h3 id="org80ce2d5">Make a Date Column</h3>
+<div class="outline-text-3" id="text-org80ce2d5">
 <p>Now I'll make a single date column.</p>
 <div class="highlight">
 <pre><span></span><span class="k">with</span> <span class="n">TIMER</span><span class="p">:</span>
@@ -462,9 +462,9 @@ Fraction Missing: 0.06
 
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-org122fd21">
-<h3 id="org122fd21">Drop the Missing</h3>
-<div class="outline-text-3" id="text-org122fd21">
+<div class="outline-3" id="outline-container-org8a23973">
+<h3 id="org8a23973">Drop the Missing</h3>
+<div class="outline-text-3" id="text-org8a23973">
 <p>I'll drop the dates that didn't have data.</p>
 <div class="highlight">
 <pre><span></span><span class="n">cleaned</span> <span class="o">=</span> <span class="n">melted</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">"Value"</span><span class="p">])</span>
@@ -480,9 +480,9 @@ Fraction Missing: 0.06
 
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-org0ab408b">
-<h3 id="org0ab408b">Drop the Extra Date Columns</h3>
-<div class="outline-text-3" id="text-org0ab408b">
+<div class="outline-3" id="outline-container-org1146043">
+<h3 id="org1146043">Drop the Extra Date Columns</h3>
+<div class="outline-text-3" id="text-org1146043">
 <p>Since we have a date column I'll get rid of the columns that I used to make it.</p>
 <div class="highlight">
 <pre><span></span><span class="n">cleaned</span> <span class="o">=</span> <span class="n">cleaned</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s2">"YR"</span><span class="p">,</span> <span class="s2">"MO"</span><span class="p">,</span> <span class="s2">"Day"</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
@@ -499,9 +499,9 @@ Fraction Missing: 0.06
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org6616ae0">
-<h2 id="org6616ae0">Figuring Out the Missing Date</h2>
-<div class="outline-text-2" id="text-org6616ae0">
+<div class="outline-2" id="outline-container-orgcaa8beb">
+<h2 id="orgcaa8beb">Figuring Out the Missing Date</h2>
+<div class="outline-text-2" id="text-orgcaa8beb">
 <p>One of the entries has values but no date.</p>
 <div class="highlight">
 <pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">cleaned</span><span class="p">[</span><span class="n">cleaned</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">isnull</span><span class="p">()])</span>
@@ -573,9 +573,9 @@ Name: 105427, dtype: object
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc27a767">
-<h2 id="orgc27a767">Pivot the Metric Column</h2>
-<div class="outline-text-2" id="text-orgc27a767">
+<div class="outline-2" id="outline-container-orgd77339a">
+<h2 id="orgd77339a">Pivot the Metric Column</h2>
+<div class="outline-text-2" id="text-orgd77339a">
 <p>So, besides getting the dates into a column one of the points of this was to get the metric types into columns by <a href="https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.pivot.html">pivoting</a>. I guess you could argue that this is just a category, but since each date gets all four of the values I think this makes sense.</p>
 <div class="highlight">
 <pre><span></span><span class="n">pivoted</span> <span class="o">=</span> <span class="n">cleaned</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">"Metric"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">"Value"</span><span class="p">)</span>
@@ -634,9 +634,9 @@ TX Missing: 0
 <p>This does seem problematic, if I do anything with precipitation I'll have to figure out what's going on here.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org93db059">
-<h2 id="org93db059">Updating the Columns</h2>
-<div class="outline-text-2" id="text-org93db059">
+<div class="outline-2" id="outline-container-org09ae5fd">
+<h2 id="org09ae5fd">Updating the Columns</h2>
+<div class="outline-text-2" id="text-org09ae5fd">
 <p>The whole <code>TX</code>, <code>TN</code>, etc. encoding scheme seems like it causes too much mental overhead so I'm going to rename the metric columns.</p>
 <div class="highlight">
 <pre><span></span><span class="n">renamed</span> <span class="o">=</span> <span class="n">pivoted</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">PR</span><span class="o">=</span><span class="s2">"precipitation"</span><span class="p">,</span>
@@ -657,9 +657,9 @@ date
 
 </pre></div>
 </div>
-<div class="outline-2" id="outline-container-org8e8cc42">
-<h2 id="org8e8cc42">Save the Message Pack</h2>
-<div class="outline-text-2" id="text-org8e8cc42">
+<div class="outline-2" id="outline-container-orgc76a4f2">
+<h2 id="orgc76a4f2">Save the Message Pack</h2>
+<div class="outline-text-2" id="text-orgc76a4f2">
 <p>Now that we have the cleaned-up data, I'll save it as a message pack.</p>
 <div class="highlight">
 <pre><span></span><span class="n">pack_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"MESSAGE_PACK"</span><span class="p">))</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
@@ -675,9 +675,9 @@ date
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgcf990b5">
-<h2 id="orgcf990b5">Looking at Some Plots</h2>
-<div class="outline-text-2" id="text-orgcf990b5">
+<div class="outline-2" id="outline-container-org8fb661f">
+<h2 id="org8fb661f">Looking at Some Plots</h2>
+<div class="outline-text-2" id="text-org8fb661f">
 <div class="highlight">
 <pre><span></span><span class="n">maximum_temperature</span> <span class="o">=</span> <span class="n">renamed</span><span class="o">.</span><span class="n">maximum_temperature</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"Y"</span><span class="p">)</span>
 <span class="n">medians</span> <span class="o">=</span> <span class="n">maximum_temperature</span><span class="o">.</span><span class="n">median</span><span class="p">()</span>
