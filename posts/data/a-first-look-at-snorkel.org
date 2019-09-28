@@ -1,0 +1,231 @@
+#+BEGIN_COMMENT
+.. title: A First Look At Snorkel
+.. slug: a-first-look-at-snorkel
+.. date: 2019-09-26 14:47:16 UTC-07:00
+.. tags: data,labeling
+.. category: Data
+.. link: 
+.. description: Walking through the Snorkel Get Started tutorial.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+* Beginning
+  This is a walk-through of Snorkel's [[https://www.snorkel.org/get-started/][Get Started]] page.
+** Imports
+*** Python
+#+begin_src ipython :session snorkel :results none
+from argparse import Namespace
+from datetime import datetime
+from functools import partial
+from pathlib import Path
+#+end_src
+*** PyPi
+#+begin_src ipython :session snorkel :results none
+from sklearn.model_selection import train_test_split
+import hvplot.pandas
+import pandas
+#+end_src
+*** Others
+#+begin_src ipython :session snorkel :results none
+from graeae import CountPercentage, EmbedHoloviews
+#+end_src
+** Set Up
+*** Some Constants
+    There are two classes in the data set - /spam/ and /not spam/, and for the labeling that we're going to do we also need a third value for the cases where the code can't give it a label.
+
+#+begin_src ipython :session snorkel :results none
+classified_as = Namespace(
+    not_spam = 0,
+    spam = 1,
+    unknown = -1,
+)
+#+end_src
+*** The Plotting
+#+begin_src ipython :session snorkel :results none
+path = "../../files/posts/data/a-first-look-at-snorkel"
+Embed = partial(EmbedHoloviews, folder_path=path)
+#+end_src
+*** The Data Set
+    This dataset is a set of comments taken from you-tube videos and hosted on [[http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/][this site]]. The comments are for music videos by five artists.
+
+#+begin_src ipython :session snorkel :results none
+path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
+assert path.is_dir()
+
+parts = []
+for name in path.glob("*csv"):
+    data = pandas.read_csv(name)    
+    data["artist"] = name.name.split()[-1].split(".")[0]
+    parts.append(data)
+
+data = pandas.concat(parts)
+#+end_src
+
+*** Rename the Columns
+    This just makes it easier for me since it matches my style.
+
+#+begin_src ipython :session snorkel :results none
+Column = Namespace(
+    comment_id = "comment_id",
+    author = "author",
+    datetime = "datetime",
+    text = "text",
+    label = "label",
+    artist = "artist",
+)
+renames = {"COMMENT_ID": Column.comment_id,
+           "AUTHOR": Column.author,
+           "DATE": Column.datetime,
+           "CONTENT": Column.text,
+           "CLASS": Column.label}
+data = data.rename(columns=renames)
+#+end_src
+
+* Middle
+** Setting Up the Training and Testing Sets
+#+begin_src ipython :session snorkel :results output :exports both
+x_train, x_test, y_train, y_test = train_test_split(data[Column.comment_id,
+                                                         Column.author,
+                                                         Column.datetime,
+                                                         Column.text,
+                                                         Column.artist],
+                                                    data[Column.label],
+                                                    test_size=0.2)
+x_train, x_dev, y_train, y_dev = train_test_split(x_train, y_train,
+                                                  test_size=0.1)
+x_test, x_validation, y_test, y_validation = train_test_split(x_test, y_test,
+                                                              test_size=0.1)
+
+print(f"Training Size: {len(x_train):,}")
+print(f"Development Size: {len(x_dev):,}")
+print(f"Validation Size: {len(x_validation):,}")
+print(f"Test Size: {len(x_test):,}")
+#+end_src
+
+#+RESULTS:
+: Training Size: 1,407
+: Development Size: 157
+: Validation Size: 40
+: Test Size: 352
+
+** Looking at the Data
+#+begin_src ipython :session snorkel :results output :exports both
+print(x_dev.sample().iloc[0])
+#+end_src
+
+#+RESULTS:
+: If I get 100 subscribers, I will summon Freddy Mercury's ghost to whipe  from the face of earth One Direction and Miley Cirus.﻿
+
+#+begin_src ipython :session snorkel :results output :exports both
+print(f"{len(data):,}")
+#+end_src
+
+#+RESULTS:
+: 1,956
+
+*** Spam and Ham
+    There are two classes in the dataset - SPAM (1) and not-spam (0), sometimes called HAM.
+#+begin_src ipython :session snorkel :results output raw :exports both
+counter = CountPercentage(data.label)
+counter()
+#+end_src
+
+#+RESULTS:
+| Value | Count | Percent (%) |
+|-------+-------+-------------|
+|     1 | 1,005 |       51.38 |
+|     0 | 951   |       48.62 |
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+grouped = data.groupby([Column.artist]).agg({Column.label: "sum", Column.comment_id: "count"}).reset_index().rename(
+    columns={Column.label: "spam", Column.comment_id: "total"})
+grouped["ham"] = grouped.total - grouped.spam
+plotter = grouped[[Column.artist, "spam", "ham"]]
+plot = plotter.hvplot.bar(x=Column.artist, stacked=True, legend=True,).opts(
+    title="Spam Counts",
+    width=1000, height=800)
+Embed(plot=plot, file_name="spam_counts")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="spam_counts.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+*** The Dates
+    I'll look at when the comments were made, just to see.
+
+#+begin_src ipython :session snorkel :results output :exports both
+print(len(data[data[Column.datetime].isna()]))
+#+end_src
+
+#+RESULTS:
+: 245
+
+#+begin_src ipython :session snorkel :results none
+with_date = data[~data[Column.datetime].isna()]
+with_date.loc[:, Column.datetime] = pandas.to_datetime(with_date[Column.datetime])
+#+end_src
+
+#+begin_src ipython :session snorkel :results none
+with_date.loc[:, "Month"] = with_date[Column.datetime].apply(lambda date: datetime(date.year, date.month, 1))
+group = with_date.groupby(["Month", Column.artist, Column.label]).agg(
+    {Column.comment_id: "count"}).reset_index().rename(
+        columns={Column.comment_id: "Count",
+                 Column.artist: "Artist"})
+#+end_src
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+spam = group[group[Column.label] == classified_as.spam]
+ham = group[group[Column.label] == classified_as.not_spam]
+spam_plot = spam.hvplot(x="Month", y="Count", by="Artist", label="Spam")
+plot = spam_plot.opts(title="Monthly Spam By Artist", width=1000, height=800)
+Embed(plot=plot, file_name="monthly_spam_by_artist")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="monthly_spam_by_artist.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+*** Some Samples
+**** SPAM
+#+begin_src ipython :session snorkel :results output :exports both
+spam = data[data[Column.label]==classified_as.spam].sample(5)
+for index in range(len(spam)):
+    print(f"({spam.iloc[index][Column.artist]}): {spam.iloc[index][Column.text]}")
+#+end_src
+
+#+RESULTS:
+: (Eminem): Do you need more instagram followers or photo likes? Check out IGBlast.com and get em in minutes!
+: (Eminem): Check out my channel im 15 year old rapper!
+: (Shakira): Part 5. Comforter of the afflicted, pray for us Help of Christians, pray for us Queen of Angels, pray for us Queen of Patriarchs, pray for us Queen of Prophets, pray for us Queen of Apostles, pray for us Queen of Martyrs, pray for us Queen of Confessors, pray for us Queen of Virgins, pray for us Queen of all Saints, pray for us Queen conceived without original sin, pray for us Queen of the most holy Rosary, pray for us Queen of the family, pray for us Queen of peace, pray for us 
+: (Eminem): Hey guys I&#39;m 87 cypher im 11 years old and Rap is my life I recently made my second album desire ep . please take a moment to check out my album on YouTube thank you very much for reading every like comment and subscription counts
+: (Eminem): Check out this video on YouTube:﻿
+
+**** Ham
+#+begin_src ipython :session snorkel :results output :exports both
+ham = data[data[Column.label]==classified_as.not_spam].sample(5)
+for index in range(len(ham)):
+    print(f"({ham.iloc[index][Column.artist]}): {ham.iloc[index][Column.text]}")
+#+end_src
+
+#+RESULTS:
+: (Eminem): charlieee :DDDD (Those who saw Lost only will understand)﻿
+: (LMFAO): BEST PARTY SONG LITERALLY PARTY ROCK IS IN THE HOUSEE TONIGHT!!!!﻿
+: (LMFAO): I like how the robot shuffles he shuffles good﻿
+: (KatyPerry): ROAAAAARRRRRR 🐯🐯🐯﻿
+: (Shakira): like me﻿
+
+** Labeling Functions
+* End
+** Citations
+ - Alberto, T.C., Lochter J.V., Almeida, T.A. TubeSpam: Comment Spam Filtering on YouTube. Proceedings of the 14th IEEE International Conference on Machine Learning and Applications (ICMLA'15), 1-6, Miami, FL, USA, December, 2015. (preprint)
