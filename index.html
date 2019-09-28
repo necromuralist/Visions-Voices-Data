@@ -19,7 +19,7 @@
 </script>
 -->
 <script async src="javascript/p5.min.js" type="text/javascript"></script>
-<link href="/posts/sql/sql-module-3/" rel="prefetch" type="text/html">
+<link href="/posts/data/a-first-look-at-snorkel/" rel="prefetch" type="text/html">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -48,6 +48,350 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/data/a-first-look-at-snorkel/">A First Look At Snorkel</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/data/a-first-look-at-snorkel/" rel="bookmark"><time class="published dt-published" datetime="2019-09-26T14:47:16-07:00" itemprop="datePublished" title="2019-09-26 14:47">2019-09-26 14:47</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/data/a-first-look-at-snorkel/#org83af856">Beginning</a>
+<ul>
+<li><a href="/posts/data/a-first-look-at-snorkel/#org50b1cc8">Imports</a>
+<ul>
+<li><a href="/posts/data/a-first-look-at-snorkel/#orgbef0233">Python</a></li>
+<li><a href="/posts/data/a-first-look-at-snorkel/#org1cfa078">PyPi</a></li>
+<li><a href="/posts/data/a-first-look-at-snorkel/#orgeef6a87">Others</a></li>
+</ul>
+</li>
+<li><a href="/posts/data/a-first-look-at-snorkel/#orgbeae10d">Set Up</a>
+<ul>
+<li><a href="/posts/data/a-first-look-at-snorkel/#org5c6ade9">Some Constants</a></li>
+<li><a href="/posts/data/a-first-look-at-snorkel/#org64c9634">The Plotting</a></li>
+<li><a href="/posts/data/a-first-look-at-snorkel/#orgfbafcf0">The Data Set</a></li>
+<li><a href="/posts/data/a-first-look-at-snorkel/#orgaf96094">Rename the Columns</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/data/a-first-look-at-snorkel/#org12c172b">Middle</a>
+<ul>
+<li><a href="/posts/data/a-first-look-at-snorkel/#org88e7e5b">Setting Up the Training and Testing Sets</a></li>
+<li><a href="/posts/data/a-first-look-at-snorkel/#orgad9c906">Looking at the Data</a>
+<ul>
+<li><a href="/posts/data/a-first-look-at-snorkel/#org6025f0a">Spam and Ham</a></li>
+<li><a href="/posts/data/a-first-look-at-snorkel/#org5b86e70">The Dates</a></li>
+<li><a href="/posts/data/a-first-look-at-snorkel/#org04c222b">Some Samples</a></li>
+</ul>
+</li>
+<li><a href="/posts/data/a-first-look-at-snorkel/#orgb646f5e">Labeling Functions</a></li>
+</ul>
+</li>
+<li><a href="/posts/data/a-first-look-at-snorkel/#orgd3004ee">End</a>
+<ul>
+<li><a href="/posts/data/a-first-look-at-snorkel/#org5d50667">Citations</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org83af856">
+<h2 id="org83af856">Beginning</h2>
+<div class="outline-text-2" id="text-org83af856">
+<p>This is a walk-through of Snorkel's <a href="https://www.snorkel.org/get-started/">Get Started</a> page.</p>
+</div>
+<div class="outline-3" id="outline-container-org50b1cc8">
+<h3 id="org50b1cc8">Imports</h3>
+<div class="outline-text-3" id="text-org50b1cc8"></div>
+<div class="outline-4" id="outline-container-orgbef0233">
+<h4 id="orgbef0233">Python</h4>
+<div class="outline-text-4" id="text-orgbef0233">
+<div class="highlight">
+<pre><span></span>from argparse import Namespace
+from datetime import datetime
+from functools import partial
+from pathlib import Path
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org1cfa078">
+<h4 id="org1cfa078">PyPi</h4>
+<div class="outline-text-4" id="text-org1cfa078">
+<div class="highlight">
+<pre><span></span>from sklearn.model_selection import train_test_split
+import hvplot.pandas
+import pandas
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgeef6a87">
+<h4 id="orgeef6a87">Others</h4>
+<div class="outline-text-4" id="text-orgeef6a87">
+<div class="highlight">
+<pre><span></span>from graeae import CountPercentage, EmbedHoloviews
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgbeae10d">
+<h3 id="orgbeae10d">Set Up</h3>
+<div class="outline-text-3" id="text-orgbeae10d"></div>
+<div class="outline-4" id="outline-container-org5c6ade9">
+<h4 id="org5c6ade9">Some Constants</h4>
+<div class="outline-text-4" id="text-org5c6ade9">
+<p>There are two classes in the data set - <i>spam</i> and <i>not spam</i>, and for the labeling that we're going to do we also need a third value for the cases where the code can't give it a label.</p>
+<div class="highlight">
+<pre><span></span>classified_as = Namespace(
+    not_spam = 0,
+    spam = 1,
+    unknown = -1,
+)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org64c9634">
+<h4 id="org64c9634">The Plotting</h4>
+<div class="outline-text-4" id="text-org64c9634">
+<div class="highlight">
+<pre><span></span>path = "../../files/posts/data/a-first-look-at-snorkel"
+Embed = partial(EmbedHoloviews, folder_path=path)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgfbafcf0">
+<h4 id="orgfbafcf0">The Data Set</h4>
+<div class="outline-text-4" id="text-orgfbafcf0">
+<p>This dataset is a set of comments taken from you-tube videos and hosted on <a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/">this site</a>. The comments are for music videos by five artists.</p>
+<div class="highlight">
+<pre><span></span>path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
+assert path.is_dir()
+
+parts = []
+for name in path.glob("*csv"):
+    data = pandas.read_csv(name)    
+    data["artist"] = name.name.split()[-1].split(".")[0]
+    parts.append(data)
+
+data = pandas.concat(parts)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgaf96094">
+<h4 id="orgaf96094">Rename the Columns</h4>
+<div class="outline-text-4" id="text-orgaf96094">
+<p>This just makes it easier for me since it matches my style.</p>
+<div class="highlight">
+<pre><span></span>Column = Namespace(
+    comment_id = "comment_id",
+    author = "author",
+    datetime = "datetime",
+    text = "text",
+    label = "label",
+    artist = "artist",
+)
+renames = {"COMMENT_ID": Column.comment_id,
+           "AUTHOR": Column.author,
+           "DATE": Column.datetime,
+           "CONTENT": Column.text,
+           "CLASS": Column.label}
+data = data.rename(columns=renames)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org12c172b">
+<h2 id="org12c172b">Middle</h2>
+<div class="outline-text-2" id="text-org12c172b"></div>
+<div class="outline-3" id="outline-container-org88e7e5b">
+<h3 id="org88e7e5b">Setting Up the Training and Testing Sets</h3>
+<div class="outline-text-3" id="text-org88e7e5b">
+<div class="highlight">
+<pre><span></span>x_train, x_test, y_train, y_test = train_test_split(data[Column.comment_id,
+                                                         Column.author,
+                                                         Column.datetime,
+                                                         Column.text,
+                                                         Column.artist],
+                                                    data[Column.label],
+                                                    test_size=0.2)
+x_train, x_dev, y_train, y_dev = train_test_split(x_train, y_train,
+                                                  test_size=0.1)
+x_test, x_validation, y_test, y_validation = train_test_split(x_test, y_test,
+                                                              test_size=0.1)
+
+print(f"Training Size: {len(x_train):,}")
+print(f"Development Size: {len(x_dev):,}")
+print(f"Validation Size: {len(x_validation):,}")
+print(f"Test Size: {len(x_test):,}")
+</pre></div>
+<pre class="example">
+Training Size: 1,407
+Development Size: 157
+Validation Size: 40
+Test Size: 352
+
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-orgad9c906">
+<h3 id="orgad9c906">Looking at the Data</h3>
+<div class="outline-text-3" id="text-orgad9c906">
+<div class="highlight">
+<pre><span></span>print(x_dev.sample().iloc[0])
+</pre></div>
+<pre class="example">
+If I get 100 subscribers, I will summon Freddy Mercury's ghost to whipe  from the face of earth One Direction and Miley Cirus.﻿
+
+</pre>
+<div class="highlight">
+<pre><span></span>print(f"{len(data):,}")
+</pre></div>
+<pre class="example">
+1,956
+
+</pre></div>
+<div class="outline-4" id="outline-container-org6025f0a">
+<h4 id="org6025f0a">Spam and Ham</h4>
+<div class="outline-text-4" id="text-org6025f0a">
+<p>There are two classes in the dataset - SPAM (1) and not-spam (0), sometimes called HAM.</p>
+<div class="highlight">
+<pre><span></span>counter = CountPercentage(data.label)
+counter()
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-right">
+<col class="org-left">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-right" scope="col">Value</th>
+<th class="org-left" scope="col">Count</th>
+<th class="org-right" scope="col">Percent (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">1</td>
+<td class="org-left">1,005</td>
+<td class="org-right">51.38</td>
+</tr>
+<tr>
+<td class="org-right">0</td>
+<td class="org-left">951</td>
+<td class="org-right">48.62</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span>grouped = data.groupby([Column.artist]).agg({Column.label: "sum", Column.comment_id: "count"}).reset_index().rename(
+    columns={Column.label: "spam", Column.comment_id: "total"})
+grouped["ham"] = grouped.total - grouped.spam
+plotter = grouped[[Column.artist, "spam", "ham"]]
+plot = plotter.hvplot.bar(x=Column.artist, stacked=True, legend=True,).opts(
+    title="Spam Counts",
+    width=1000, height=800)
+Embed(plot=plot, file_name="spam_counts")()
+</pre></div>
+<object data="/posts/data/a-first-look-at-snorkel/spam_counts.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-4" id="outline-container-org5b86e70">
+<h4 id="org5b86e70">The Dates</h4>
+<div class="outline-text-4" id="text-org5b86e70">
+<p>I'll look at when the comments were made, just to see.</p>
+<div class="highlight">
+<pre><span></span>print(len(data[data[Column.datetime].isna()]))
+</pre></div>
+<pre class="example">
+245
+
+</pre>
+<div class="highlight">
+<pre><span></span>with_date = data[~data[Column.datetime].isna()]
+with_date.loc[:, Column.datetime] = pandas.to_datetime(with_date[Column.datetime])
+</pre></div>
+<div class="highlight">
+<pre><span></span>with_date.loc[:, "Month"] = with_date[Column.datetime].apply(lambda date: datetime(date.year, date.month, 1))
+group = with_date.groupby(["Month", Column.artist, Column.label]).agg(
+    {Column.comment_id: "count"}).reset_index().rename(
+        columns={Column.comment_id: "Count",
+                 Column.artist: "Artist"})
+</pre></div>
+<div class="highlight">
+<pre><span></span>spam = group[group[Column.label] == classified_as.spam]
+ham = group[group[Column.label] == classified_as.not_spam]
+spam_plot = spam.hvplot(x="Month", y="Count", by="Artist", label="Spam")
+plot = spam_plot.opts(title="Monthly Spam By Artist", width=1000, height=800)
+Embed(plot=plot, file_name="monthly_spam_by_artist")()
+</pre></div>
+<object data="/posts/data/a-first-look-at-snorkel/monthly_spam_by_artist.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-4" id="outline-container-org04c222b">
+<h4 id="org04c222b">Some Samples</h4>
+<div class="outline-text-4" id="text-org04c222b"></div>
+<ul class="org-ul">
+<li><a id="orgd494599"></a>SPAM<br>
+<div class="outline-text-5" id="text-orgd494599">
+<div class="highlight">
+<pre><span></span>spam = data[data[Column.label]==classified_as.spam].sample(5)
+for index in range(len(spam)):
+    print(f"({spam.iloc[index][Column.artist]}): {spam.iloc[index][Column.text]}")
+</pre></div>
+<pre class="example">
+(Eminem): Do you need more instagram followers or photo likes? Check out IGBlast.com and get em in minutes!
+(Eminem): Check out my channel im 15 year old rapper!
+(Shakira): Part 5. Comforter of the afflicted, pray for us Help of Christians, pray for us Queen of Angels, pray for us Queen of Patriarchs, pray for us Queen of Prophets, pray for us Queen of Apostles, pray for us Queen of Martyrs, pray for us Queen of Confessors, pray for us Queen of Virgins, pray for us Queen of all Saints, pray for us Queen conceived without original sin, pray for us Queen of the most holy Rosary, pray for us Queen of the family, pray for us Queen of peace, pray for us 
+(Eminem): Hey guys I&amp;#39;m 87 cypher im 11 years old and Rap is my life I recently made my second album desire ep . please take a moment to check out my album on YouTube thank you very much for reading every like comment and subscription counts
+(Eminem): Check out this video on YouTube:﻿
+
+</pre></div>
+</li>
+<li><a id="org9f1160e"></a>Ham<br>
+<div class="outline-text-5" id="text-org9f1160e">
+<div class="highlight">
+<pre><span></span>ham = data[data[Column.label]==classified_as.not_spam].sample(5)
+for index in range(len(ham)):
+    print(f"({ham.iloc[index][Column.artist]}): {ham.iloc[index][Column.text]}")
+</pre></div>
+<pre class="example">
+(Eminem): charlieee :DDDD (Those who saw Lost only will understand)﻿
+(LMFAO): BEST PARTY SONG LITERALLY PARTY ROCK IS IN THE HOUSEE TONIGHT!!!!﻿
+(LMFAO): I like how the robot shuffles he shuffles good﻿
+(KatyPerry): ROAAAAARRRRRR 🐯🐯🐯﻿
+(Shakira): like me﻿
+
+</pre></div>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgb646f5e">
+<h3 id="orgb646f5e">Labeling Functions</h3>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgd3004ee">
+<h2 id="orgd3004ee">End</h2>
+<div class="outline-text-2" id="text-orgd3004ee"></div>
+<div class="outline-3" id="outline-container-org5d50667">
+<h3 id="org5d50667">Citations</h3>
+<div class="outline-text-3" id="text-org5d50667">
+<ul class="org-ul">
+<li>Alberto, T.C., Lochter J.V., Almeida, T.A. TubeSpam: Comment Spam Filtering on YouTube. Proceedings of the 14th IEEE International Conference on Machine Learning and Applications (ICMLA'15), 1-6, Miami, FL, USA, December, 2015. (preprint)</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/sql/sql-module-3/">SQL Module 3</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
@@ -59,20 +403,20 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/sql/sql-module-3/#orgbb25894">Question One</a></li>
-<li><a href="/posts/sql/sql-module-3/#orgdac5769">Question Two</a></li>
-<li><a href="/posts/sql/sql-module-3/#org9a6ff1d">Question Three</a></li>
-<li><a href="/posts/sql/sql-module-3/#org657ac9e">Question Four</a></li>
-<li><a href="/posts/sql/sql-module-3/#orgd1c3f89">Question Five</a></li>
-<li><a href="/posts/sql/sql-module-3/#org52d67c2">Question Six</a></li>
-<li><a href="/posts/sql/sql-module-3/#orgda4cd67">Question Seven</a></li>
+<li><a href="/posts/sql/sql-module-3/#org6504b4e">Question One</a></li>
+<li><a href="/posts/sql/sql-module-3/#org44b7e42">Question Two</a></li>
+<li><a href="/posts/sql/sql-module-3/#orgd57ae30">Question Three</a></li>
+<li><a href="/posts/sql/sql-module-3/#org884cf32">Question Four</a></li>
+<li><a href="/posts/sql/sql-module-3/#org4616b09">Question Five</a></li>
+<li><a href="/posts/sql/sql-module-3/#org6e7ea02">Question Six</a></li>
+<li><a href="/posts/sql/sql-module-3/#org12dcfd2">Question Seven</a></li>
 </ul>
 </div>
 </div>
 <p>All the questions in this Quiz use the Chinook Database.</p>
-<div class="outline-2" id="outline-container-orgbb25894">
-<h2 id="orgbb25894">Question One</h2>
-<div class="outline-text-2" id="text-orgbb25894">
+<div class="outline-2" id="outline-container-org6504b4e">
+<h2 id="org6504b4e">Question One</h2>
+<div class="outline-text-2" id="text-org6504b4e">
 <p>Using a subquery, find the names of all the tracks for the album "Californication".</p>
 <div class="highlight">
 <pre><span></span><span class="k">SELECT</span>
@@ -84,9 +428,9 @@
 <p>What is the 8th Track? Porcelain.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgdac5769">
-<h2 id="orgdac5769">Question Two</h2>
-<div class="outline-text-2" id="text-orgdac5769">
+<div class="outline-2" id="outline-container-org44b7e42">
+<h2 id="org44b7e42">Question Two</h2>
+<div class="outline-text-2" id="text-org44b7e42">
 <p>Find the total number of invoices for each customer along with the customer's full name, city and email.</p>
 <div class="highlight">
 <pre><span></span><span class="k">SELECT</span>
@@ -99,9 +443,9 @@
 <p>frantsekw@jetbrains.com</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org9a6ff1d">
-<h2 id="org9a6ff1d">Question Three</h2>
-<div class="outline-text-2" id="text-org9a6ff1d">
+<div class="outline-2" id="outline-container-orgd57ae30">
+<h2 id="orgd57ae30">Question Three</h2>
+<div class="outline-text-2" id="text-orgd57ae30">
 <p>Retrieve the track name, album, artistID, and trackID for all the albums.</p>
 <div class="highlight">
 <pre><span></span><span class="k">SELECT</span>
@@ -114,9 +458,9 @@
 <p>Breaking The Rules</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org657ac9e">
-<h2 id="org657ac9e">Question Four</h2>
-<div class="outline-text-2" id="text-org657ac9e">
+<div class="outline-2" id="outline-container-org884cf32">
+<h2 id="org884cf32">Question Four</h2>
+<div class="outline-text-2" id="text-org884cf32">
 <p>Retrieve a list with the managers last name, and the last name of the employees who report to him or her.</p>
 <div class="highlight">
 <pre><span></span><span class="k">SELECT</span>
@@ -128,9 +472,9 @@
 <p>King and Callahan.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgd1c3f89">
-<h2 id="orgd1c3f89">Question Five</h2>
-<div class="outline-text-2" id="text-orgd1c3f89">
+<div class="outline-2" id="outline-container-org4616b09">
+<h2 id="org4616b09">Question Five</h2>
+<div class="outline-text-2" id="text-org4616b09">
 <p>Find the name and ID of the artists who do not have albums.</p>
 <div class="highlight">
 <pre><span></span><span class="k">SELECT</span>
@@ -146,9 +490,9 @@
 <p>Gilberto</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org52d67c2">
-<h2 id="org52d67c2">Question Six</h2>
-<div class="outline-text-2" id="text-org52d67c2">
+<div class="outline-2" id="outline-container-org6e7ea02">
+<h2 id="org6e7ea02">Question Six</h2>
+<div class="outline-text-2" id="text-org6e7ea02">
 <p>Use a UNION to create a list of all the employee's and customer's first names and last names ordered by the last name in descending order.</p>
 <div class="highlight">
 <pre><span></span><span class="k">SELECT</span>
@@ -164,9 +508,9 @@
 <p>Taylor</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgda4cd67">
-<h2 id="orgda4cd67">Question Seven</h2>
-<div class="outline-text-2" id="text-orgda4cd67">
+<div class="outline-2" id="outline-container-org12dcfd2">
+<h2 id="org12dcfd2">Question Seven</h2>
+<div class="outline-text-2" id="text-org12dcfd2">
 <p>See if there are any customers who have a different city listed in their billing city versus their customer city.</p>
 <div class="highlight">
 <pre><span></span><span class="k">SELECT</span>
@@ -192,25 +536,25 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/sql/chinook-questions/#org30a1292">Beginning</a></li>
-<li><a href="/posts/sql/chinook-questions/#orgd2d77bd">Middle</a>
+<li><a href="/posts/sql/chinook-questions/#org74f709c">Beginning</a></li>
+<li><a href="/posts/sql/chinook-questions/#orga1e1b3a">Middle</a>
 <ul>
-<li><a href="/posts/sql/chinook-questions/#org2851f2b">Question One</a></li>
-<li><a href="/posts/sql/chinook-questions/#orgb35d861">Question Two</a></li>
-<li><a href="/posts/sql/chinook-questions/#org8db3962">Question Three</a></li>
-<li><a href="/posts/sql/chinook-questions/#org55b85bb">Question Four</a></li>
-<li><a href="/posts/sql/chinook-questions/#org41b7bf6">Question Five</a></li>
-<li><a href="/posts/sql/chinook-questions/#org9fa154a">Question Six</a></li>
-<li><a href="/posts/sql/chinook-questions/#orgce4a2fd">Question Seven</a></li>
+<li><a href="/posts/sql/chinook-questions/#org0c3f7b9">Question One</a></li>
+<li><a href="/posts/sql/chinook-questions/#orga8092d9">Question Two</a></li>
+<li><a href="/posts/sql/chinook-questions/#org3e7cca2">Question Three</a></li>
+<li><a href="/posts/sql/chinook-questions/#org713c32c">Question Four</a></li>
+<li><a href="/posts/sql/chinook-questions/#org8a0964b">Question Five</a></li>
+<li><a href="/posts/sql/chinook-questions/#org6255f3a">Question Six</a></li>
+<li><a href="/posts/sql/chinook-questions/#orgc5d411f">Question Seven</a></li>
 </ul>
 </li>
-<li><a href="/posts/sql/chinook-questions/#org6159dc3">End</a></li>
+<li><a href="/posts/sql/chinook-questions/#orgfd1ac03">End</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org30a1292">
-<h2 id="org30a1292">Beginning</h2>
-<div class="outline-text-2" id="text-org30a1292">
+<div class="outline-2" id="outline-container-org74f709c">
+<h2 id="org74f709c">Beginning</h2>
+<div class="outline-text-2" id="text-org74f709c">
 <p>The following questions use the <a href="http://www.sqlitetutorial.net/sqlite-sample-database/">SQLite Sample Database</a> - called the Chinook database - found on <a href="http://www.sqlitetutorial.net">the SQLite Tutorial site</a>. <img alt="chinook-entity-diagram.png" src="/posts/sql/chinook-questions/chinook-entity-diagram.png"></p>
 <p>It is made up of 11 tables:</p>
 <table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
@@ -272,57 +616,57 @@
 </table>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgd2d77bd">
-<h2 id="orgd2d77bd">Middle</h2>
-<div class="outline-text-2" id="text-orgd2d77bd"></div>
-<div class="outline-3" id="outline-container-org2851f2b">
-<h3 id="org2851f2b">Question One</h3>
-<div class="outline-text-3" id="text-org2851f2b">
+<div class="outline-2" id="outline-container-orga1e1b3a">
+<h2 id="orga1e1b3a">Middle</h2>
+<div class="outline-text-2" id="text-orga1e1b3a"></div>
+<div class="outline-3" id="outline-container-org0c3f7b9">
+<h3 id="org0c3f7b9">Question One</h3>
+<div class="outline-text-3" id="text-org0c3f7b9">
 <p>Pull a list of customer ids with the customer’s full name, and address, along with combining their city and country together. Be sure to make a space in between these two and make it UPPER CASE.</p>
 <p>What is the city and country result for CustomerID 16?</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgb35d861">
-<h3 id="orgb35d861">Question Two</h3>
-<div class="outline-text-3" id="text-orgb35d861">
+<div class="outline-3" id="outline-container-orga8092d9">
+<h3 id="orga8092d9">Question Two</h3>
+<div class="outline-text-3" id="text-orga8092d9">
 <p>Create a new employee user id by combining the first 4 letters of the employee’s first name with the first 2 letters of the employee’s last name. Make the new field lower case and pull each individual step to show your work.</p>
 <p>What is the final result for Robert King?</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org8db3962">
-<h3 id="org8db3962">Question Three</h3>
-<div class="outline-text-3" id="text-org8db3962">
+<div class="outline-3" id="outline-container-org3e7cca2">
+<h3 id="org3e7cca2">Question Three</h3>
+<div class="outline-text-3" id="text-org3e7cca2">
 <p>Show a list of employees who have worked for the company for 15 or more years using the current date function. Sort by lastname ascending.</p>
 <p>What is the lastname of the last person on the list returned?</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org55b85bb">
-<h3 id="org55b85bb">Question Four</h3>
-<div class="outline-text-3" id="text-org55b85bb">
+<div class="outline-3" id="outline-container-org713c32c">
+<h3 id="org713c32c">Question Four</h3>
+<div class="outline-text-3" id="text-org713c32c">
 <p>Profiling the Customers table, answer the following question.</p>
 <p>Are there any columns with null values? Indicate any below. Select all that apply.</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org41b7bf6">
-<h3 id="org41b7bf6">Question Five</h3>
-<div class="outline-text-3" id="text-org41b7bf6">
+<div class="outline-3" id="outline-container-org8a0964b">
+<h3 id="org8a0964b">Question Five</h3>
+<div class="outline-text-3" id="text-org8a0964b">
 <p>Find the cities with the most customers and rank in descending order.</p>
 <p>Which of the following cities indicate having 2 customers?</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org9fa154a">
-<h3 id="org9fa154a">Question Six</h3>
-<div class="outline-text-3" id="text-org9fa154a">
+<div class="outline-3" id="outline-container-org6255f3a">
+<h3 id="org6255f3a">Question Six</h3>
+<div class="outline-text-3" id="text-org6255f3a">
 <p>Create a new customer invoice id by combining a customer’s invoice id with their first and last name while ordering your query in the following order: firstname, lastname, and invoiceID.</p>
 <p>Select all of the correct "AstridGruber" entries that are returned in your results below. Select all that apply.</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgce4a2fd">
-<h3 id="orgce4a2fd">Question Seven</h3>
+<div class="outline-3" id="outline-container-orgc5d411f">
+<h3 id="orgc5d411f">Question Seven</h3>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org6159dc3">
-<h2 id="org6159dc3">End</h2>
+<div class="outline-2" id="outline-container-orgfd1ac03">
+<h2 id="orgfd1ac03">End</h2>
 </div>
 </div>
 </article>
@@ -339,42 +683,42 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/web-scraping/calling-a-json-api/#orgd17f8f0">Beginning</a>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org82399df">Beginning</a>
 <ul>
-<li><a href="/posts/web-scraping/calling-a-json-api/#orgea2d344">Imports</a>
+<li><a href="/posts/web-scraping/calling-a-json-api/#orgc979628">Imports</a>
 <ul>
-<li><a href="/posts/web-scraping/calling-a-json-api/#orgc2a1a94">Python</a></li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#orgc14d5ae">PyPi</a></li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org0ce9794">Python</a></li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org0cc3d69">PyPi</a></li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#orge4a9db3">Set Up</a>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org28455d8">Set Up</a>
 <ul>
-<li><a href="/posts/web-scraping/calling-a-json-api/#orga8709e7">URL</a></li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#orgd37a6fa">Sample</a></li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org590f6b3">Actual</a></li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org0a30d04">URL</a></li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org2bbff95">Sample</a></li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org3dd109f">Actual</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org04daa22">Middle</a>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org33c7380">Middle</a>
 <ul>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org991b9a2">The Sample</a></li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org166aaf2">The Actual</a></li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#orgc93ede2">The Sample</a></li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org18d24d9">The Actual</a></li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org2b4204c">End</a></li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#orgb941af8">End</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgd17f8f0">
-<h2 id="orgd17f8f0">Beginning</h2>
-<div class="outline-text-2" id="text-orgd17f8f0"></div>
-<div class="outline-3" id="outline-container-orgea2d344">
-<h3 id="orgea2d344">Imports</h3>
-<div class="outline-text-3" id="text-orgea2d344"></div>
-<div class="outline-4" id="outline-container-orgc2a1a94">
-<h4 id="orgc2a1a94">Python</h4>
-<div class="outline-text-4" id="text-orgc2a1a94">
+<div class="outline-2" id="outline-container-org82399df">
+<h2 id="org82399df">Beginning</h2>
+<div class="outline-text-2" id="text-org82399df"></div>
+<div class="outline-3" id="outline-container-orgc979628">
+<h3 id="orgc979628">Imports</h3>
+<div class="outline-text-3" id="text-orgc979628"></div>
+<div class="outline-4" id="outline-container-org0ce9794">
+<h4 id="org0ce9794">Python</h4>
+<div class="outline-text-4" id="text-org0ce9794">
 <div class="highlight">
 <pre><span></span>from pprint import pprint
 import json
@@ -382,9 +726,9 @@ import urllib
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgc14d5ae">
-<h4 id="orgc14d5ae">PyPi</h4>
-<div class="outline-text-4" id="text-orgc14d5ae">
+<div class="outline-4" id="outline-container-org0cc3d69">
+<h4 id="org0cc3d69">PyPi</h4>
+<div class="outline-text-4" id="text-org0cc3d69">
 <div class="highlight">
 <pre><span></span>from expects import (
     equal,
@@ -395,30 +739,30 @@ import urllib
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orge4a9db3">
-<h3 id="orge4a9db3">Set Up</h3>
-<div class="outline-text-3" id="text-orge4a9db3"></div>
-<div class="outline-4" id="outline-container-orga8709e7">
-<h4 id="orga8709e7">URL</h4>
-<div class="outline-text-4" id="text-orga8709e7">
+<div class="outline-3" id="outline-container-org28455d8">
+<h3 id="org28455d8">Set Up</h3>
+<div class="outline-text-3" id="text-org28455d8"></div>
+<div class="outline-4" id="outline-container-org0a30d04">
+<h4 id="org0a30d04">URL</h4>
+<div class="outline-text-4" id="text-org0a30d04">
 <div class="highlight">
 <pre><span></span>API_KEY = 42
 API_URL = "http://py4e-data.dr-chuck.net/json?"
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgd37a6fa">
-<h4 id="orgd37a6fa">Sample</h4>
-<div class="outline-text-4" id="text-orgd37a6fa">
+<div class="outline-4" id="outline-container-org2bbff95">
+<h4 id="org2bbff95">Sample</h4>
+<div class="outline-text-4" id="text-org2bbff95">
 <div class="highlight">
 <pre><span></span>SAMPLE_LOCATION = "South Federal University"
 SAMPLE_PLACE_ID = "ChIJ9e_QQm0sDogRhUPatldEFxw"
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org590f6b3">
-<h4 id="org590f6b3">Actual</h4>
-<div class="outline-text-4" id="text-org590f6b3">
+<div class="outline-4" id="outline-container-org3dd109f">
+<h4 id="org3dd109f">Actual</h4>
+<div class="outline-text-4" id="text-org3dd109f">
 <div class="highlight">
 <pre><span></span>ACTUAL_LOCATION = "Kazan Federal University"
 ACTUAL_PLACE_ID_STARTS_WITH = "ChIJGf9"
@@ -427,9 +771,9 @@ ACTUAL_PLACE_ID_STARTS_WITH = "ChIJGf9"
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org04daa22">
-<h2 id="org04daa22">Middle</h2>
-<div class="outline-text-2" id="text-org04daa22">
+<div class="outline-2" id="outline-container-org33c7380">
+<h2 id="org33c7380">Middle</h2>
+<div class="outline-text-2" id="text-org33c7380">
 <div class="highlight">
 <pre><span></span>def get_place_id(location: str) -&gt; str:
     """Get the place ID for the location
@@ -453,9 +797,9 @@ ACTUAL_PLACE_ID_STARTS_WITH = "ChIJGf9"
     return place_id
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-org991b9a2">
-<h3 id="org991b9a2">The Sample</h3>
-<div class="outline-text-3" id="text-org991b9a2">
+<div class="outline-3" id="outline-container-orgc93ede2">
+<h3 id="orgc93ede2">The Sample</h3>
+<div class="outline-text-3" id="text-orgc93ede2">
 <div class="highlight">
 <pre><span></span>place_id = get_place_id(SAMPLE_LOCATION)
 expect(SAMPLE_PLACE_ID).to(equal(place_id))
@@ -466,9 +810,9 @@ Place ID: ChIJ9e_QQm0sDogRhUPatldEFxw
 
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-org166aaf2">
-<h3 id="org166aaf2">The Actual</h3>
-<div class="outline-text-3" id="text-org166aaf2">
+<div class="outline-3" id="outline-container-org18d24d9">
+<h3 id="org18d24d9">The Actual</h3>
+<div class="outline-text-3" id="text-org18d24d9">
 <div class="highlight">
 <pre><span></span>place_id = get_place_id(ACTUAL_LOCATION)
 expect(place_id).to(start_with(ACTUAL_PLACE_ID_STARTS_WITH))
@@ -480,8 +824,8 @@ Place ID: ChIJGf9kMxGtXkERIzwzBzFo8kY
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org2b4204c">
-<h2 id="org2b4204c">End</h2>
+<div class="outline-2" id="outline-container-orgb941af8">
+<h2 id="orgb941af8">End</h2>
 </div>
 </div>
 </article>
@@ -498,71 +842,71 @@ Place ID: ChIJGf9kMxGtXkERIzwzBzFo8kY
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/web-scraping/extracting-data-from-json/#orgcca1d9d">Beginning</a>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#orgc589c7c">Beginning</a>
 <ul>
-<li><a href="/posts/web-scraping/extracting-data-from-json/#org50cdcdd">Imports</a>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org0d718da">Imports</a>
 <ul>
-<li><a href="/posts/web-scraping/extracting-data-from-json/#org02d8120">Python</a></li>
-<li><a href="/posts/web-scraping/extracting-data-from-json/#org18fa5cf">PyPi</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org21c2aca">Python</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org5b09150">PyPi</a></li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/extracting-data-from-json/#org77f813b">Set Up</a>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org78ae5fb">Set Up</a>
 <ul>
-<li><a href="/posts/web-scraping/extracting-data-from-json/#org2691e58">The URLs</a></li>
-<li><a href="/posts/web-scraping/extracting-data-from-json/#org744db72">The Expected</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org7b6a504">The URLs</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org3b63353">The Expected</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/extracting-data-from-json/#org4d724a3">Middle</a>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org5e33258">Middle</a>
 <ul>
-<li><a href="/posts/web-scraping/extracting-data-from-json/#orgf98747f">The Sample</a></li>
-<li><a href="/posts/web-scraping/extracting-data-from-json/#org17090a2">The Assignment</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org3bafdb5">The Sample</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org986f540">The Assignment</a></li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/extracting-data-from-json/#org67e6109">End</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org4d0c963">End</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgcca1d9d">
-<h2 id="orgcca1d9d">Beginning</h2>
-<div class="outline-text-2" id="text-orgcca1d9d"></div>
-<div class="outline-3" id="outline-container-org50cdcdd">
-<h3 id="org50cdcdd">Imports</h3>
-<div class="outline-text-3" id="text-org50cdcdd"></div>
-<div class="outline-4" id="outline-container-org02d8120">
-<h4 id="org02d8120">Python</h4>
-<div class="outline-text-4" id="text-org02d8120">
+<div class="outline-2" id="outline-container-orgc589c7c">
+<h2 id="orgc589c7c">Beginning</h2>
+<div class="outline-text-2" id="text-orgc589c7c"></div>
+<div class="outline-3" id="outline-container-org0d718da">
+<h3 id="org0d718da">Imports</h3>
+<div class="outline-text-3" id="text-org0d718da"></div>
+<div class="outline-4" id="outline-container-org21c2aca">
+<h4 id="org21c2aca">Python</h4>
+<div class="outline-text-4" id="text-org21c2aca">
 <div class="highlight">
 <pre><span></span>import json
 import urllib
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org18fa5cf">
-<h4 id="org18fa5cf">PyPi</h4>
-<div class="outline-text-4" id="text-org18fa5cf">
+<div class="outline-4" id="outline-container-org5b09150">
+<h4 id="org5b09150">PyPi</h4>
+<div class="outline-text-4" id="text-org5b09150">
 <div class="highlight">
 <pre><span></span>from expects import expect, equal
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org77f813b">
-<h3 id="org77f813b">Set Up</h3>
-<div class="outline-text-3" id="text-org77f813b"></div>
-<div class="outline-4" id="outline-container-org2691e58">
-<h4 id="org2691e58">The URLs</h4>
-<div class="outline-text-4" id="text-org2691e58">
+<div class="outline-3" id="outline-container-org78ae5fb">
+<h3 id="org78ae5fb">Set Up</h3>
+<div class="outline-text-3" id="text-org78ae5fb"></div>
+<div class="outline-4" id="outline-container-org7b6a504">
+<h4 id="org7b6a504">The URLs</h4>
+<div class="outline-text-4" id="text-org7b6a504">
 <div class="highlight">
 <pre><span></span>SAMPLE_URL = "http://py4e-data.dr-chuck.net/comments_42.json"
 ACTUAL_URL = "http://py4e-data.dr-chuck.net/comments_260445.json"
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org744db72">
-<h4 id="org744db72">The Expected</h4>
-<div class="outline-text-4" id="text-org744db72">
+<div class="outline-4" id="outline-container-org3b63353">
+<h4 id="org3b63353">The Expected</h4>
+<div class="outline-text-4" id="text-org3b63353">
 <div class="highlight">
 <pre><span></span>SAMPLE_EXPECTED = 2553
 ACTUAL_EXPECTED_LAST_TWO_DIGITS = 94
@@ -571,9 +915,9 @@ ACTUAL_EXPECTED_LAST_TWO_DIGITS = 94
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org4d724a3">
-<h2 id="org4d724a3">Middle</h2>
-<div class="outline-text-2" id="text-org4d724a3">
+<div class="outline-2" id="outline-container-org5e33258">
+<h2 id="org5e33258">Middle</h2>
+<div class="outline-text-2" id="text-org5e33258">
 <p>We're going to pull a JSON blob and extract the "count" values and sum them. The data is structured with a single top-level key ("comments") which holds a list of dicts with "name" (name of the commenter) and "count" (the number of comments the commenter has made) values.</p>
 <div class="highlight">
 <pre><span></span>def count(url: str) -&gt; int:
@@ -596,9 +940,9 @@ ACTUAL_EXPECTED_LAST_TWO_DIGITS = 94
     return total
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-orgf98747f">
-<h3 id="orgf98747f">The Sample</h3>
-<div class="outline-text-3" id="text-orgf98747f">
+<div class="outline-3" id="outline-container-org3bafdb5">
+<h3 id="org3bafdb5">The Sample</h3>
+<div class="outline-text-3" id="text-org3bafdb5">
 <div class="highlight">
 <pre><span></span>total = count(SAMPLE_URL)
 expect(total).to(equal(SAMPLE_EXPECTED))
@@ -609,9 +953,9 @@ Comments:  2,553
 
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-org17090a2">
-<h3 id="org17090a2">The Assignment</h3>
-<div class="outline-text-3" id="text-org17090a2">
+<div class="outline-3" id="outline-container-org986f540">
+<h3 id="org986f540">The Assignment</h3>
+<div class="outline-text-3" id="text-org986f540">
 <div class="highlight">
 <pre><span></span>total = count(ACTUAL_URL)
 expect(int(str(total)[-2:])).to(equal(ACTUAL_EXPECTED_LAST_TWO_DIGITS))
@@ -623,8 +967,8 @@ Comments:  2,594
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org67e6109">
-<h2 id="org67e6109">End</h2>
+<div class="outline-2" id="outline-container-org4d0c963">
+<h2 id="org4d0c963">End</h2>
 </div>
 </div>
 </article>
@@ -641,40 +985,40 @@ Comments:  2,594
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org9258d7e">Beginning</a>
+<li><a href="/posts/web-scraping/extracting-data-from-xml/#orgede83d5">Beginning</a>
 <ul>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#orgaa674de">Imports</a>
+<li><a href="/posts/web-scraping/extracting-data-from-xml/#org3167ad0">Imports</a>
 <ul>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org6ea4155">Python</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-xml/#org6fffe74">Python</a></li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#orge1a23cd">Set Up</a>
+<li><a href="/posts/web-scraping/extracting-data-from-xml/#org6724468">Set Up</a>
 <ul>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org4e66339">The URLS</a></li>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org1027687">The Expected</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-xml/#org9456c3d">The URLS</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-xml/#org3a4cd1a">The Expected</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org9129ab9">Middle</a>
+<li><a href="/posts/web-scraping/extracting-data-from-xml/#org40ca5db">Middle</a>
 <ul>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#orgee2f997">Sample</a></li>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org8f05f67">The Assignment</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-xml/#org6c86865">Sample</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-xml/#org860d303">The Assignment</a></li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org3a03b8b">End</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-xml/#orge4cec79">End</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org9258d7e">
-<h2 id="org9258d7e">Beginning</h2>
-<div class="outline-text-2" id="text-org9258d7e"></div>
-<div class="outline-3" id="outline-container-orgaa674de">
-<h3 id="orgaa674de">Imports</h3>
-<div class="outline-text-3" id="text-orgaa674de"></div>
-<div class="outline-4" id="outline-container-org6ea4155">
-<h4 id="org6ea4155">Python</h4>
-<div class="outline-text-4" id="text-org6ea4155">
+<div class="outline-2" id="outline-container-orgede83d5">
+<h2 id="orgede83d5">Beginning</h2>
+<div class="outline-text-2" id="text-orgede83d5"></div>
+<div class="outline-3" id="outline-container-org3167ad0">
+<h3 id="org3167ad0">Imports</h3>
+<div class="outline-text-3" id="text-org3167ad0"></div>
+<div class="outline-4" id="outline-container-org6fffe74">
+<h4 id="org6fffe74">Python</h4>
+<div class="outline-text-4" id="text-org6fffe74">
 <div class="highlight">
 <pre><span></span>from xml.etree import ElementTree
 import urllib
@@ -682,21 +1026,21 @@ import urllib
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orge1a23cd">
-<h3 id="orge1a23cd">Set Up</h3>
-<div class="outline-text-3" id="text-orge1a23cd"></div>
-<div class="outline-4" id="outline-container-org4e66339">
-<h4 id="org4e66339">The URLS</h4>
-<div class="outline-text-4" id="text-org4e66339">
+<div class="outline-3" id="outline-container-org6724468">
+<h3 id="org6724468">Set Up</h3>
+<div class="outline-text-3" id="text-org6724468"></div>
+<div class="outline-4" id="outline-container-org9456c3d">
+<h4 id="org9456c3d">The URLS</h4>
+<div class="outline-text-4" id="text-org9456c3d">
 <div class="highlight">
 <pre><span></span>SAMPLE_URL = "http://py4e-data.dr-chuck.net/comments_42.xml"
 ACTUAL_URL = "http://py4e-data.dr-chuck.net/comments_260444.xml"
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org1027687">
-<h4 id="org1027687">The Expected</h4>
-<div class="outline-text-4" id="text-org1027687">
+<div class="outline-4" id="outline-container-org3a4cd1a">
+<h4 id="org3a4cd1a">The Expected</h4>
+<div class="outline-text-4" id="text-org3a4cd1a">
 <div class="highlight">
 <pre><span></span>SAMPLE_EXPECTED = 2553
 ACTUAL_EXPECTED_LAST_TWO_DIGITS = 34
@@ -705,9 +1049,9 @@ ACTUAL_EXPECTED_LAST_TWO_DIGITS = 34
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org9129ab9">
-<h2 id="org9129ab9">Middle</h2>
-<div class="outline-text-2" id="text-org9129ab9">
+<div class="outline-2" id="outline-container-org40ca5db">
+<h2 id="org40ca5db">Middle</h2>
+<div class="outline-text-2" id="text-org40ca5db">
 <div class="highlight">
 <pre><span></span>def get_counts(url: str) -&gt; int:
     """Get the sum of the 'count' tags 
@@ -729,9 +1073,9 @@ ACTUAL_EXPECTED_LAST_TWO_DIGITS = 34
     return total
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-orgee2f997">
-<h3 id="orgee2f997">Sample</h3>
-<div class="outline-text-3" id="text-orgee2f997">
+<div class="outline-3" id="outline-container-org6c86865">
+<h3 id="org6c86865">Sample</h3>
+<div class="outline-text-3" id="text-org6c86865">
 <div class="highlight">
 <pre><span></span>total = get_counts(SAMPLE_URL)
 assert total == SAMPLE_EXPECTED
@@ -742,9 +1086,9 @@ Sum of Counts: 2553
 
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-org8f05f67">
-<h3 id="org8f05f67">The Assignment</h3>
-<div class="outline-text-3" id="text-org8f05f67">
+<div class="outline-3" id="outline-container-org860d303">
+<h3 id="org860d303">The Assignment</h3>
+<div class="outline-text-3" id="text-org860d303">
 <div class="highlight">
 <pre><span></span>total =get_counts(ACTUAL_URL)
 assert int(str(total)[-2:]) == ACTUAL_EXPECTED_LAST_TWO_DIGITS
@@ -756,8 +1100,8 @@ Sum of Counts: 2634
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org3a03b8b">
-<h2 id="org3a03b8b">End</h2>
+<div class="outline-2" id="outline-container-orge4cec79">
+<h2 id="orge4cec79">End</h2>
 </div>
 </div>
 </article>
@@ -774,61 +1118,61 @@ Sum of Counts: 2634
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#orgc1c03b2">Beginning</a>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org419e5a1">Beginning</a>
 <ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org0b83e74">Imports</a>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org7e89448">Imports</a>
 <ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org4354fd1">Python</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#orgd14c3f0">PyPi</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org3fcba4f">Python</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org72127b1">PyPi</a></li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org2988ff9">Setup</a>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org79aac5f">Setup</a>
 <ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#orgd5d61ef">The URLs</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#orga64122c">The Expected</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org01221b8">Middle</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#orgbae6d2a">The Sample</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#orga8d9c27">The Way I Would Do It</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org47cb164">The Assignment Way</a></li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org348a032">The Assignment</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org67295e4">Requests HTML</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org1aeb6e3">Urllib</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org7ef2f98">The URLs</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org3915553">The Expected</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org0fcf356">End</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org4dc1759">Middle</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#orgbb094ec">The Sample</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org2f0bc07">The Way I Would Do It</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org01b373f">The Assignment Way</a></li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org411f09a">The Assignment</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org24ce9e9">Requests HTML</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org48797a9">Urllib</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org1489652">End</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc1c03b2">
-<h2 id="orgc1c03b2">Beginning</h2>
-<div class="outline-text-2" id="text-orgc1c03b2">
+<div class="outline-2" id="outline-container-org419e5a1">
+<h2 id="org419e5a1">Beginning</h2>
+<div class="outline-text-2" id="text-org419e5a1">
 <p>The goal of this exercise is to find all the <code>&lt;span&gt;</code> tags on a page and sum the numbers they contain.</p>
 </div>
-<div class="outline-3" id="outline-container-org0b83e74">
-<h3 id="org0b83e74">Imports</h3>
-<div class="outline-text-3" id="text-org0b83e74"></div>
-<div class="outline-4" id="outline-container-org4354fd1">
-<h4 id="org4354fd1">Python</h4>
-<div class="outline-text-4" id="text-org4354fd1">
+<div class="outline-3" id="outline-container-org7e89448">
+<h3 id="org7e89448">Imports</h3>
+<div class="outline-text-3" id="text-org7e89448"></div>
+<div class="outline-4" id="outline-container-org3fcba4f">
+<h4 id="org3fcba4f">Python</h4>
+<div class="outline-text-4" id="text-org3fcba4f">
 <div class="highlight">
 <pre><span></span><span class="kn">import</span> <span class="nn">urllib</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgd14c3f0">
-<h4 id="orgd14c3f0">PyPi</h4>
-<div class="outline-text-4" id="text-orgd14c3f0">
+<div class="outline-4" id="outline-container-org72127b1">
+<h4 id="org72127b1">PyPi</h4>
+<div class="outline-text-4" id="text-org72127b1">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
 <span class="kn">from</span> <span class="nn">expects</span> <span class="kn">import</span> <span class="p">(</span>
@@ -841,21 +1185,21 @@ Sum of Counts: 2634
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org2988ff9">
-<h3 id="org2988ff9">Setup</h3>
-<div class="outline-text-3" id="text-org2988ff9"></div>
-<div class="outline-4" id="outline-container-orgd5d61ef">
-<h4 id="orgd5d61ef">The URLs</h4>
-<div class="outline-text-4" id="text-orgd5d61ef">
+<div class="outline-3" id="outline-container-org79aac5f">
+<h3 id="org79aac5f">Setup</h3>
+<div class="outline-text-3" id="text-org79aac5f"></div>
+<div class="outline-4" id="outline-container-org7ef2f98">
+<h4 id="org7ef2f98">The URLs</h4>
+<div class="outline-text-4" id="text-org7ef2f98">
 <div class="highlight">
 <pre><span></span><span class="n">SAMPLE_URL</span> <span class="o">=</span> <span class="s2">" http://py4e-data.dr-chuck.net/comments_42.html"</span>
 <span class="n">ACTUAL_URL</span> <span class="o">=</span> <span class="s2">"http://py4e-data.dr-chuck.net/comments_260442.html"</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orga64122c">
-<h4 id="orga64122c">The Expected</h4>
-<div class="outline-text-4" id="text-orga64122c">
+<div class="outline-4" id="outline-container-org3915553">
+<h4 id="org3915553">The Expected</h4>
+<div class="outline-text-4" id="text-org3915553">
 <div class="highlight">
 <pre><span></span><span class="n">SAMPLE_EXPECTED</span> <span class="o">=</span> <span class="mi">2553</span>
 <span class="n">ACTUAL_EXPECTED_LAST_DIGIT</span> <span class="o">=</span> <span class="mi">5</span>
@@ -864,15 +1208,15 @@ Sum of Counts: 2634
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org01221b8">
-<h2 id="org01221b8">Middle</h2>
-<div class="outline-text-2" id="text-org01221b8"></div>
-<div class="outline-3" id="outline-container-orgbae6d2a">
-<h3 id="orgbae6d2a">The Sample</h3>
-<div class="outline-text-3" id="text-orgbae6d2a"></div>
-<div class="outline-4" id="outline-container-orga8d9c27">
-<h4 id="orga8d9c27">The Way I Would Do It</h4>
-<div class="outline-text-4" id="text-orga8d9c27">
+<div class="outline-2" id="outline-container-org4dc1759">
+<h2 id="org4dc1759">Middle</h2>
+<div class="outline-text-2" id="text-org4dc1759"></div>
+<div class="outline-3" id="outline-container-orgbb094ec">
+<h3 id="orgbb094ec">The Sample</h3>
+<div class="outline-text-3" id="text-orgbb094ec"></div>
+<div class="outline-4" id="outline-container-org2f0bc07">
+<h4 id="org2f0bc07">The Way I Would Do It</h4>
+<div class="outline-text-4" id="text-org2f0bc07">
 <div class="highlight">
 <pre><span></span><span class="k">def</span> <span class="nf">using_requests</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="sd">"""get the span total</span>
@@ -905,9 +1249,9 @@ Sum: 2553
 
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org47cb164">
-<h4 id="org47cb164">The Assignment Way</h4>
-<div class="outline-text-4" id="text-org47cb164">
+<div class="outline-4" id="outline-container-org01b373f">
+<h4 id="org01b373f">The Assignment Way</h4>
+<div class="outline-text-4" id="text-org01b373f">
 <p>For this kind of thing, using urllib isn't really much more work, I'm used to the older python 2 version which (maybe only seemed at the time) was more complicated to use.</p>
 <div class="highlight">
 <pre><span></span><span class="k">def</span> <span class="nf">using_urllib</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -940,12 +1284,12 @@ Sum: 2553
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org348a032">
-<h3 id="org348a032">The Assignment</h3>
-<div class="outline-text-3" id="text-org348a032"></div>
-<div class="outline-4" id="outline-container-org67295e4">
-<h4 id="org67295e4">Requests HTML</h4>
-<div class="outline-text-4" id="text-org67295e4">
+<div class="outline-3" id="outline-container-org411f09a">
+<h3 id="org411f09a">The Assignment</h3>
+<div class="outline-text-3" id="text-org411f09a"></div>
+<div class="outline-4" id="outline-container-org24ce9e9">
+<h4 id="org24ce9e9">Requests HTML</h4>
+<div class="outline-text-4" id="text-org24ce9e9">
 <div class="highlight">
 <pre><span></span><span class="n">total</span> <span class="o">=</span> <span class="n">using_requests</span><span class="p">(</span><span class="n">ACTUAL_URL</span><span class="p">)</span>
 <span class="n">expect</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">total</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">equal</span><span class="p">(</span><span class="n">ACTUAL_EXPECTED_LAST_DIGIT</span><span class="p">))</span>
@@ -956,9 +1300,9 @@ Sum: 2305
 
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org1aeb6e3">
-<h4 id="org1aeb6e3">Urllib</h4>
-<div class="outline-text-4" id="text-org1aeb6e3">
+<div class="outline-4" id="outline-container-org48797a9">
+<h4 id="org48797a9">Urllib</h4>
+<div class="outline-text-4" id="text-org48797a9">
 <div class="highlight">
 <pre><span></span><span class="n">total</span> <span class="o">=</span> <span class="n">using_urllib</span><span class="p">(</span><span class="n">ACTUAL_URL</span><span class="p">)</span>
 <span class="n">expect</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">total</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">equal</span><span class="p">(</span><span class="n">ACTUAL_EXPECTED_LAST_DIGIT</span><span class="p">))</span>
@@ -971,9 +1315,9 @@ Sum: 2305
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org0fcf356">
-<h2 id="org0fcf356">End</h2>
-<div class="outline-text-2" id="text-org0fcf356">
+<div class="outline-2" id="outline-container-org1489652">
+<h2 id="org1489652">End</h2>
+<div class="outline-text-2" id="text-org1489652">
 <p>Although I normally use <code>requests</code> or <code>requests-html</code>, I must say that the <code>urllib</code> version with <a href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/">BeautifulSoup</a> for this particular exercise wasn't much different.</p>
 </div>
 </div>
@@ -992,61 +1336,61 @@ Sum: 2305
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgd685103">Beginning</a>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org3b6c88f">Beginning</a>
 <ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgf91d169">Imports</a>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org7d02c94">Imports</a>
 <ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org7229748">Python</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org7a06333">PyPi</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org24bb971">Python</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgb2622bb">PyPi</a></li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org399bae2">Setup</a>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orge701625">Setup</a>
 <ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org110fd5f">The URL</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org53047e9">Middle</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org6a839f2">The Sample Exercise</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org6c65690">The Easy Way</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgf960909">The Slightly Less Easy Way</a></li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgc9409a4">The Real One</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org69fc62d">The Easy Way</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgfc30b2f">The Assignment Way</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org9d25631">The URL</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org58261b3">End</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orga2041b8">Middle</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org1b3bf5b">The Sample Exercise</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org5793dc9">The Easy Way</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org20a1352">The Slightly Less Easy Way</a></li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgd8341f2">The Real One</a>
+<ul>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgf8dc8c8">The Easy Way</a></li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgcc4147c">The Assignment Way</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgd275add">End</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgd685103">
-<h2 id="orgd685103">Beginning</h2>
-<div class="outline-text-2" id="text-orgd685103">
+<div class="outline-2" id="outline-container-org3b6c88f">
+<h2 id="org3b6c88f">Beginning</h2>
+<div class="outline-text-2" id="text-org3b6c88f">
 <p>The goal of this exercise is to crawl through a set of anchor links to get a particular name stored in the <i>nth</i> anchor tag. The assignment specifically says to use <a href="https://docs.python.org/3/library/urllib.html">urllib</a> but, if you go to the documentation for <a href="https://docs.python.org/3/library/urllib.request.html#module-urllib.request">urllib.request</a> it tells you to use to use <a href="https://2.python-requests.org/en/master/">requests</a>, which, if you go to its documentation says that it's in maintenance mode while work is being done on <a href="https://3.python-requests.org/">Requests III</a>… anyway, I like using <a href="https://html.python-requests.org/">Requests-HTML</a> so I'll use that and urllib side-by-side.</p>
 </div>
-<div class="outline-3" id="outline-container-orgf91d169">
-<h3 id="orgf91d169">Imports</h3>
-<div class="outline-text-3" id="text-orgf91d169"></div>
-<div class="outline-4" id="outline-container-org7229748">
-<h4 id="org7229748">Python</h4>
-<div class="outline-text-4" id="text-org7229748">
+<div class="outline-3" id="outline-container-org7d02c94">
+<h3 id="org7d02c94">Imports</h3>
+<div class="outline-text-3" id="text-org7d02c94"></div>
+<div class="outline-4" id="outline-container-org24bb971">
+<h4 id="org24bb971">Python</h4>
+<div class="outline-text-4" id="text-org24bb971">
 <div class="highlight">
 <pre><span></span><span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">urllib</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org7a06333">
-<h4 id="org7a06333">PyPi</h4>
-<div class="outline-text-4" id="text-org7a06333">
+<div class="outline-4" id="outline-container-orgb2622bb">
+<h4 id="orgb2622bb">PyPi</h4>
+<div class="outline-text-4" id="text-orgb2622bb">
 <div class="highlight">
 <pre><span></span><span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
 <span class="kn">from</span> <span class="nn">requests_html</span> <span class="kn">import</span> <span class="n">HTMLSession</span>
@@ -1054,12 +1398,12 @@ Sum: 2305
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org399bae2">
-<h3 id="org399bae2">Setup</h3>
-<div class="outline-text-3" id="text-org399bae2"></div>
-<div class="outline-4" id="outline-container-org110fd5f">
-<h4 id="org110fd5f">The URL</h4>
-<div class="outline-text-4" id="text-org110fd5f">
+<div class="outline-3" id="outline-container-orge701625">
+<h3 id="orge701625">Setup</h3>
+<div class="outline-text-3" id="text-orge701625"></div>
+<div class="outline-4" id="outline-container-org9d25631">
+<h4 id="org9d25631">The URL</h4>
+<div class="outline-text-4" id="text-org9d25631">
 <div class="highlight">
 <pre><span></span><span class="n">BASE_URL</span> <span class="o">=</span> <span class="s2">"http://py4e-data.dr-chuck.net/known_by_"</span>
 <span class="n">SAMPLE_URL</span> <span class="o">=</span> <span class="n">f</span><span class="s2">"{BASE_URL}Fikret.html"</span>
@@ -1069,15 +1413,15 @@ Sum: 2305
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org53047e9">
-<h2 id="org53047e9">Middle</h2>
-<div class="outline-text-2" id="text-org53047e9"></div>
-<div class="outline-3" id="outline-container-org6a839f2">
-<h3 id="org6a839f2">The Sample Exercise</h3>
-<div class="outline-text-3" id="text-org6a839f2"></div>
-<div class="outline-4" id="outline-container-org6c65690">
-<h4 id="org6c65690">The Easy Way</h4>
-<div class="outline-text-4" id="text-org6c65690">
+<div class="outline-2" id="outline-container-orga2041b8">
+<h2 id="orga2041b8">Middle</h2>
+<div class="outline-text-2" id="text-orga2041b8"></div>
+<div class="outline-3" id="outline-container-org1b3bf5b">
+<h3 id="org1b3bf5b">The Sample Exercise</h3>
+<div class="outline-text-3" id="text-org1b3bf5b"></div>
+<div class="outline-4" id="outline-container-org5793dc9">
+<h4 id="org5793dc9">The Easy Way</h4>
+<div class="outline-text-4" id="text-org5793dc9">
 <div class="highlight">
 <pre><span></span><span class="n">session</span> <span class="o">=</span> <span class="n">HTMLSession</span><span class="p">()</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SAMPLE_URL</span><span class="p">)</span>
@@ -1106,9 +1450,9 @@ Final Answer: Anayah
 
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-orgf960909">
-<h4 id="orgf960909">The Slightly Less Easy Way</h4>
-<div class="outline-text-4" id="text-orgf960909">
+<div class="outline-4" id="outline-container-org20a1352">
+<h4 id="org20a1352">The Slightly Less Easy Way</h4>
+<div class="outline-text-4" id="text-org20a1352">
 <div class="highlight">
 <pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">SAMPLE_URL</span><span class="p">)</span>
 
@@ -1132,12 +1476,12 @@ Final Answer: Anayah
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgc9409a4">
-<h3 id="orgc9409a4">The Real One</h3>
-<div class="outline-text-3" id="text-orgc9409a4"></div>
-<div class="outline-4" id="outline-container-org69fc62d">
-<h4 id="org69fc62d">The Easy Way</h4>
-<div class="outline-text-4" id="text-org69fc62d">
+<div class="outline-3" id="outline-container-orgd8341f2">
+<h3 id="orgd8341f2">The Real One</h3>
+<div class="outline-text-3" id="text-orgd8341f2"></div>
+<div class="outline-4" id="outline-container-orgf8dc8c8">
+<h4 id="orgf8dc8c8">The Easy Way</h4>
+<div class="outline-text-4" id="text-orgf8dc8c8">
 <div class="highlight">
 <pre><span></span><span class="n">session</span> <span class="o">=</span> <span class="n">HTMLSession</span><span class="p">()</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ASSIGNMENT_URL</span><span class="p">)</span>
@@ -1169,9 +1513,9 @@ Final Answer: Kiara
 
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-orgfc30b2f">
-<h4 id="orgfc30b2f">The Assignment Way</h4>
-<div class="outline-text-4" id="text-orgfc30b2f">
+<div class="outline-4" id="outline-container-orgcc4147c">
+<h4 id="orgcc4147c">The Assignment Way</h4>
+<div class="outline-text-4" id="text-orgcc4147c">
 <div class="highlight">
 <pre><span></span><span class="n">HOPS</span> <span class="o">=</span> <span class="mi">7</span>
 <span class="n">FIND_AT_INDEX</span> <span class="o">=</span> <span class="mi">18</span> <span class="o">-</span> <span class="mi">1</span>
@@ -1200,8 +1544,8 @@ Final Answer: Kiara
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org58261b3">
-<h2 id="org58261b3">End</h2>
+<div class="outline-2" id="outline-container-orgd275add">
+<h2 id="orgd275add">End</h2>
 </div>
 </div>
 </article>
@@ -1218,34 +1562,34 @@ Final Answer: Kiara
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/nature-of-code/nested-follower/#orge62e867">Beginning</a>
+<li><a href="/posts/nature-of-code/nested-follower/#org3f5ef15">Beginning</a>
 <ul>
-<li><a href="/posts/nature-of-code/nested-follower/#org7b0d2d0">Create A Walker</a></li>
-<li><a href="/posts/nature-of-code/nested-follower/#org1f6be0e">Specifications</a></li>
+<li><a href="/posts/nature-of-code/nested-follower/#org887d280">Create A Walker</a></li>
+<li><a href="/posts/nature-of-code/nested-follower/#org286e2fd">Specifications</a></li>
 </ul>
 </li>
-<li><a href="/posts/nature-of-code/nested-follower/#org574bcca">Middle</a></li>
-<li><a href="/posts/nature-of-code/nested-follower/#orgc3afdaf">End</a></li>
+<li><a href="/posts/nature-of-code/nested-follower/#orgf36a7c1">Middle</a></li>
+<li><a href="/posts/nature-of-code/nested-follower/#orga2503bf">End</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge62e867">
-<h2 id="orge62e867">Beginning</h2>
-<div class="outline-text-2" id="text-orge62e867">
+<div class="outline-2" id="outline-container-org3f5ef15">
+<h2 id="org3f5ef15">Beginning</h2>
+<div class="outline-text-2" id="text-org3f5ef15">
 <p>This is assignment 1 from the Nature of Code course on Kadenze. I was originally going to make it a mouse-follower but I re-read the instructions and it seems like it's better to make it a random-walker. These are the requirements:</p>
 </div>
-<div class="outline-3" id="outline-container-org7b0d2d0">
-<h3 id="org7b0d2d0">Create A Walker</h3>
-<div class="outline-text-3" id="text-org7b0d2d0">
+<div class="outline-3" id="outline-container-org887d280">
+<h3 id="org887d280">Create A Walker</h3>
+<div class="outline-text-3" id="text-org887d280">
 <ul class="org-ul">
 <li>Create an object that moves around the screen</li>
 <li>Incorporate randomness or perlin noise</li>
 </ul>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org1f6be0e">
-<h3 id="org1f6be0e">Specifications</h3>
-<div class="outline-text-3" id="text-org1f6be0e">
+<div class="outline-3" id="outline-container-org286e2fd">
+<h3 id="org286e2fd">Specifications</h3>
+<div class="outline-text-3" id="text-org286e2fd">
 <ul class="org-ul">
 <li>Needs to be visually different from the Nature of Code examples</li>
 <li>Use comments</li>
@@ -1254,9 +1598,9 @@ Final Answer: Kiara
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org574bcca">
-<h2 id="org574bcca">Middle</h2>
-<div class="outline-text-2" id="text-org574bcca">
+<div class="outline-2" id="outline-container-orgf36a7c1">
+<h2 id="orgf36a7c1">Middle</h2>
+<div class="outline-text-2" id="text-orgf36a7c1">
 <script language="javascript" src="/posts/nature-of-code/nested-follower/follower.js" type="text/javascript"></script>
 <div id="nested-follower"></div>
 <div class="highlight">
@@ -1285,11 +1629,7 @@ let nested_follower_sketch = function(p) {
     p.setup = function() {
         this.canvas = p.createCanvas($("#" + nested_parent_div_id).outerWidth(true), 800);
         p.parent = new NoiseWalker(p);
-        let followers = 10;
-        p.followers = [new Follower(p, p.parent)];
-        for (let step=0; step &lt; followers; step++) {
-            p.followers.push(new Follower(p, p.followers[step]));
-        };
+        p.followers = [new Follower(p, p.parent), new Follower(p, p.parent), new Follower(p, p.parent)];
     };
 
     /**
@@ -1298,7 +1638,7 @@ let nested_follower_sketch = function(p) {
      * This also clears the background.
      */
     p.draw = function() {
-        p.background(255, 255, 255, 50);
+        p.background(255);
         p.parent.update();
         p.followers.forEach(function(follower) {
             follower.update();
@@ -1312,138 +1652,89 @@ let nested_follower_sketch = function(p) {
  * @param {P5} p
  */
 function NoiseWalker(p) {
-    // Our kinematics vectors
     this.position = p.createVector(p.width/2, p.height/2);
     this.velocity = p.createVector(0, 0);
-    this.acceleration = p.createVector(0, 0);
-
-    // Time for the perlin noise function
-    this.time_x = 0;
-    this.time_y = 10000;
-    this.time_delta = 0.01;
-
-    // The limit of how much we'll accelerate
-    this.max_acceleration = 0.05;
+    this.weight = p.round(p.random(5, 10));
 
     /**
      * Updates the walker's position
      */
     this.walk = function() {
-        // set the acceleration using perlin noise
-        this.acceleration.x = p.map(p.noise(this.time_x), 0, 1,
-                                    -this.max_acceleration,
-                                    this.max_acceleration);
-        this.acceleration.y = p.map(p.noise(this.time_y), 0, 1,
-                                    -this.max_acceleration,
-                                    this.max_acceleration);
-        // Move the walker
-        this.velocity = this.velocity.add(this.acceleration);
+        // calling sub on the vectors does an in-place update
+        // using p5.Vector.sub creates a new vector
+        // This is a static method so we use the module (p5) not the instance (p)
+        acceleration = mouse.sub(this.position);
+
+        // setMag always produces the same magnitude (but the orientation stays the same)
+        acceleration.setMag(this.magnitude);
+        console.log(acceleration);
+        this.velocity = this.velocity.add(acceleration);
         this.position = this.position.add(this.velocity);
 
         // keep it within the window
         if (this.position.x &lt; 0)
-            this.velocity.x = p.abs(this.velocity.x);
+            this.position.x = p.width;
         else if (this.position.x &gt; p.width)
-            this.velocity.x = -this.velocity.x;
+            this.position.x = 0;
         if (this.position.y &lt; 0)
-            this.velocity.y = p.abs(this.velocity.y);
+            this.position.y = p.height
         else if (this.position.y &gt; p.height)
-            this.velocity.y = -this.velocity.y;
+            this.position.y = 0
+  }
 
-        // update the time
-        this.time_x += this.time_delta;
-        this.time_y += this.time_delta;
-    };
-
-    /**
-     * draws the walker (for debugging)
-     */
     this.display = function() {
-        p.stroke(0);
-        p.point(this.position.x, this.position.y);
-    };
+        p.strokeWeight(this.weight);
+      p.stroke(0);
+      p.noFill();
+      p.background(255, 255, 255, 10);
+      p.circle(this.position.x, this.position.y, 48);
+  }
 
-    /**
-     * Calls the walk function
-     */
     this.update = function() {
         this.walk();
-    };
+        this.display()
+    }
 }
 
-
-/**
- * A follower that follows a parent object
- *
- * @param {P5} p
- * @param {NoiseWalker} parent
- */
 function Follower(p, parent) {
     this.parent = parent;
-    this.variance = p.random(1, 10);
-    this.position = p.createVector(
-        this.parent.position.x + p.random(-this.variance, this.variance),
-        this.parent.position.y + p.random(-this.variance, this.variance));
+    this.position = p.createVector(p.random(p.width), p.random(p.height));
     this.velocity = p.createVector(0, 0);
+    this.magnitude = p.random(0.05, 0.09);
 
-    // some colors to cycle through
-    this.max_diameter = p.round(p.random(5, 200));
-    this.time_x = p.random(100);
-    this.time_y = p.random(10000, 11000);
-    this.time_delta = 0.005;
+    this.red = [63, 123, 191, 191, 191];
+    this.green = [63, 63, 63, 63, 63];
+    this.blue = [191, 191, 191, 127, 63];
+    this.colors = this.red.length;
+    this.color = p.round(p.random(this.colors));
 
-    /**
-     * Moves the Follower
-     *
-     * sets the acceleration by pointing to the parent's position
-     */
     this.walk = function() {
-        let acceleration = p5.Vector.sub(this.parent.position, this.position);       
+        acceleration = this.parent.position.sub(this.position);
+
+        // setMag always produces the same magnitude (but the orientation stays the same)
+        acceleration.setMag(this.magnitude);
         this.velocity = this.velocity.add(acceleration);
-        this.position = this.position.add(this.velocity);
-    };
+        this.position = this.position.add(this.velocity)
+    }
 
-    /**
-     * Display the Follower
-     *
-     * cycles through the colors as we go
-     */
     this.display = function() {
-        // set our line width
-        p.strokeWeight(p.map(p.noise(this.time_x, this.time_y),
-                             0, 1, this.variance, 2 * this.variance));
-
-        // set our color
-        p.stroke(63, 63, 191);        
-
-        // don't fill the object
+        p.strokeWeight(p.random(5, 10));
+        p.stroke(this.red[this.color], this.green[0], this.blue[0]);
+        this.color = (this.color + 1) % this.colors;
         p.noFill();
+        p.ellipse(this.position.x, this.position.y, p.random(10, 45), p.random(10, 45));
+    }
 
-        // draw our object with a random diameter
-        p.ellipse(this.position.x, this.position.y,
-                  p.round(p.random(5, this.max_diameter)),
-                  p.round(p.random(5, this.max_diameter)));
-
-        // update the time
-        this.time_x += this.time_delta;
-        this.time_y += this.time_delta;
-
-    };
-
-    /**
-     * calls the update and walk 
-     */
     this.update = function() {
         this.walk();
         this.display();
-    };
+    }
 }
 
-// create the p5 object and attach it to the div
 new p5(nested_follower_sketch, nested_parent_div_id);
 </pre></div>
-<div class="outline-2" id="outline-container-orgc3afdaf">
-<h2 id="orgc3afdaf">End</h2>
+<div class="outline-2" id="outline-container-orga2503bf">
+<h2 id="orga2503bf">End</h2>
 </div>
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
@@ -1458,21 +1749,21 @@ new p5(nested_follower_sketch, nested_parent_div_id);
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="posts/nature-of-code/a-mouse-follower/#org07025f7">Beginning</a></li>
-<li><a href="posts/nature-of-code/a-mouse-follower/#orgff57404">Middle</a></li>
-<li><a href="posts/nature-of-code/a-mouse-follower/#orgb9d9af3">End</a></li>
+<li><a href="posts/nature-of-code/a-mouse-follower/#org1b9f699">Beginning</a></li>
+<li><a href="posts/nature-of-code/a-mouse-follower/#org779be40">Middle</a></li>
+<li><a href="posts/nature-of-code/a-mouse-follower/#orgd863619">End</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org07025f7">
-<h2 id="org07025f7">Beginning</h2>
-<div class="outline-text-2" id="text-org07025f7">
+<div class="outline-2" id="outline-container-org1b9f699">
+<h2 id="org1b9f699">Beginning</h2>
+<div class="outline-text-2" id="text-org1b9f699">
 <p>Instead of a random walker this walker will be attracted (somewhat) to the mouse cursor.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgff57404">
-<h2 id="orgff57404">Middle</h2>
-<div class="outline-text-2" id="text-orgff57404">
+<div class="outline-2" id="outline-container-org779be40">
+<h2 id="org779be40">Middle</h2>
+<div class="outline-text-2" id="text-org779be40">
 <script language="javascript" src="posts/nature-of-code/a-mouse-follower/follower.js" type="text/javascript"></script>
 <div id="mouse-follower"></div>
 <div class="highlight">
@@ -1504,7 +1795,7 @@ function MouseWalker(p) {
 
         // setMag always produces the same magnitude (but the orientation stays the same)
         acceleration.setMag(0.1);
-        this.velocity = this.velocity.add(acceleration);
+        this.velocity = this.velocity.add(acceleration)
         this.position = this.position.add(this.velocity)
   }
 
@@ -1520,89 +1811,9 @@ sketch_container = new p5(mouse_follower_sketch, parent_div_id);
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgb9d9af3">
-<h2 id="orgb9d9af3">End</h2>
-<div class="outline-text-2" id="text-orgb9d9af3">
-<ol class="org-ol">
-<li>Shiffman D. <a href="https://natureofcode.com/">The nature of code</a>: simulating natural systems with processing. Version 1.0, generated December 6, 2012. s.l.: Selbstverl.; 2012. 498 p.</li>
-</ol>
-</div>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="posts/nature-of-code/a-random-accelerator/">A Random Accelerator</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="posts/nature-of-code/a-random-accelerator/" rel="bookmark"><time class="published dt-published" datetime="2019-07-21T15:14:42-07:00" itemprop="datePublished" title="2019-07-21 15:14">2019-07-21 15:14</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="posts/nature-of-code/a-random-accelerator/#org86d503a">Beginning</a></li>
-<li><a href="posts/nature-of-code/a-random-accelerator/#orgf54a05c">Middle</a></li>
-<li><a href="posts/nature-of-code/a-random-accelerator/#org69ca11f">End</a></li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org86d503a">
-<h2 id="org86d503a">Beginning</h2>
-<div class="outline-text-2" id="text-org86d503a">
-<p>This is an extension of the random walker with acceleration added.</p>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgf54a05c">
-<h2 id="orgf54a05c">Middle</h2>
-<div class="outline-text-2" id="text-orgf54a05c">
-<script language="javascript" src="posts/nature-of-code/a-random-accelerator/walker.js" type="text/javascript"></script>
-<div id="random-accelerator"></div>
-<div class="highlight">
-<pre><span></span>let random_accelerator_sketch = function(p) {
-    p.setup = function() {
-        let parent_div_id = "random-accelerator";
-        this.canvas = p.createCanvas($("#" + parent_div_id).outerWidth(true), 800);
-        this.canvas.parent(parent_div_id);
-        p.walker = new Walker(p);
-    }
-
-    p.draw = function() {
-        p.background(255);
-        p.walker.walk();
-        p.walker.display();
-    }
-};
-
-function Walker(p) {
-    this.position = p.createVector(p.width/2, p.height/2);
-    this.velocity = p.createVector(0, 0)
-
-    this.walk = function() {
-        acceleration = p.createVector(p.random(-1, 1), p.random(-1, 1));
-        acceleration = acceleration.mult(0.1)
-        this.velocity = this.velocity.add(acceleration)
-        this.position = this.position.add(this.velocity)
-  }
-
-  this.display = function() {
-      p.stroke(0);
-      p.noFill();
-      p.background(255, 255, 255, 25);
-      p.ellipse(this.position.x, this.position.y, 48, 48);
-  }
-}
-
-sketch_container = new p5(random_accelerator_sketch, 'random-accelerator');
-</pre></div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org69ca11f">
-<h2 id="org69ca11f">End</h2>
-<div class="outline-text-2" id="text-org69ca11f">
-<p>This was a very rudimentary walker, the main point of it was that at this point we have the basic kinematic elements to make something following the rules of classical physics (more or less).</p>
+<div class="outline-2" id="outline-container-orgd863619">
+<h2 id="orgd863619">End</h2>
+<div class="outline-text-2" id="text-orgd863619">
 <ol class="org-ol">
 <li>Shiffman D. <a href="https://natureofcode.com/">The nature of code</a>: simulating natural systems with processing. Version 1.0, generated December 6, 2012. s.l.: Selbstverl.; 2012. 498 p.</li>
 </ol>
