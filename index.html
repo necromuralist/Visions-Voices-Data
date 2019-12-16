@@ -19,7 +19,7 @@
 </script>
 -->
 <script async src="javascript/p5.min.js" type="text/javascript"></script>
-<link href="/posts/data/a-first-look-at-snorkel/" rel="prefetch" type="text/html">
+<link href="/posts/libraries/trying-out-dabest/" rel="prefetch" type="text/html">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -46,6 +46,226 @@
 <div class="container" id="content" role="main">
 <div class="body-content"><!--Body content-->
 <div class="postindex">
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/libraries/trying-out-dabest/">Trying out DABEST</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/libraries/trying-out-dabest/" rel="bookmark"><time class="published dt-published" datetime="2019-12-16T13:50:24-08:00" itemprop="datePublished" title="2019-12-16 13:50">2019-12-16 13:50</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/libraries/trying-out-dabest/#org11bd7bb">Beginning</a>
+<ul>
+<li><a href="/posts/libraries/trying-out-dabest/#orgdb433f1">Imports</a></li>
+<li><a href="/posts/libraries/trying-out-dabest/#org28995cc">Set Up</a></li>
+</ul>
+</li>
+<li><a href="/posts/libraries/trying-out-dabest/#org0ef2ac9">Middle</a>
+<ul>
+<li><a href="/posts/libraries/trying-out-dabest/#orgd119e94">Petal Width</a></li>
+<li><a href="/posts/libraries/trying-out-dabest/#org5d88711">Hedge's G</a></li>
+<li><a href="/posts/libraries/trying-out-dabest/#orgeb657d5">Cohen's D</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org11bd7bb">
+<h2 id="org11bd7bb">Beginning</h2>
+<div class="outline-text-2" id="text-org11bd7bb"></div>
+<div class="outline-3" id="outline-container-orgdb433f1">
+<h3 id="orgdb433f1">Imports</h3>
+<div class="outline-text-3" id="text-orgdb433f1"></div>
+<div class="outline-4" id="outline-container-org6aed581">
+<h4 id="org6aed581">PyPi</h4>
+<div class="outline-text-4" id="text-org6aed581">
+<div class="highlight">
+<pre><span></span>from sklearn.datasets import load_iris
+import dabest
+import pandas
+import seaborn
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org28995cc">
+<h3 id="org28995cc">Set Up</h3>
+<div class="outline-text-3" id="text-org28995cc"></div>
+<div class="outline-4" id="outline-container-org49fbab0">
+<h4 id="org49fbab0">The Data Set</h4>
+<div class="outline-text-4" id="text-org49fbab0">
+<div class="highlight">
+<pre><span></span>iris = load_iris()
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(iris.DESCR)
+</pre></div>
+<pre class="example">
+Iris plants dataset
+--------------------
+
+**Data Set Characteristics:**
+
+    :Number of Instances: 150 (50 in each of three classes)
+    :Number of Attributes: 4 numeric, predictive attributes and the class
+    :Attribute Information:
+        - sepal length in cm
+        - sepal width in cm
+        - petal length in cm
+        - petal width in cm
+        - class:
+                - Iris-Setosa
+                - Iris-Versicolour
+                - Iris-Virginica
+                
+    :Summary Statistics:
+
+    ============== ==== ==== ======= ===== ====================
+                    Min  Max   Mean    SD   Class Correlation
+    ============== ==== ==== ======= ===== ====================
+    sepal length:   4.3  7.9   5.84   0.83    0.7826
+    sepal width:    2.0  4.4   3.05   0.43   -0.4194
+    petal length:   1.0  6.9   3.76   1.76    0.9490  (high!)
+    petal width:    0.1  2.5   1.20   0.76    0.9565  (high!)
+    ============== ==== ==== ======= ===== ====================
+
+    :Missing Attribute Values: None
+    :Class Distribution: 33.3% for each of 3 classes.
+    :Creator: R.A. Fisher
+    :Donor: Michael Marshall (MARSHALL%PLU@io.arc.nasa.gov)
+    :Date: July, 1988
+
+The famous Iris database, first used by Sir R.A. Fisher. The dataset is taken
+from Fisher's paper. Note that it's the same as in R, but not as in the UCI
+Machine Learning Repository, which has two wrong data points.
+
+This is perhaps the best known database to be found in the
+pattern recognition literature.  Fisher's paper is a classic in the field and
+is referenced frequently to this day.  (See Duda & Hart, for example.)  The
+data set contains 3 classes of 50 instances each, where each class refers to a
+type of iris plant.  One class is linearly separable from the other 2; the
+latter are NOT linearly separable from each other.
+
+.. topic:: References
+
+   - Fisher, R.A. "The use of multiple measurements in taxonomic problems"
+     Annual Eugenics, 7, Part II, 179-188 (1936); also in "Contributions to
+     Mathematical Statistics" (John Wiley, NY, 1950).
+   - Duda, R.O., & Hart, P.E. (1973) Pattern Classification and Scene Analysis.
+     (Q327.D83) John Wiley & Sons.  ISBN 0-471-22361-1.  See page 218.
+   - Dasarathy, B.V. (1980) "Nosing Around the Neighborhood: A New System
+     Structure and Classification Rule for Recognition in Partially Exposed
+     Environments".  IEEE Transactions on Pattern Analysis and Machine
+     Intelligence, Vol. PAMI-2, No. 1, 67-71.
+   - Gates, G.W. (1972) "The Reduced Nearest Neighbor Rule".  IEEE Transactions
+     on Information Theory, May 1972, 431-433.
+   - See also: 1988 MLC Proceedings, 54-64.  Cheeseman et al"s AUTOCLASS II
+     conceptual clustering system finds 3 classes in the data.
+   - Many, many more ...
+</pre>
+<div class="highlight">
+<pre><span></span>data = pandas.DataFrame(iris.data, columns=iris.feature_names)
+target = pandas.Series(iris.target)
+names = dict(zip(range(len(iris.target_names)), iris.target_names))
+data["species"] = target.map(names)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org0ef2ac9">
+<h2 id="org0ef2ac9">Middle</h2>
+<div class="outline-text-2" id="text-org0ef2ac9"></div>
+<div class="outline-3" id="outline-container-orgd119e94">
+<h3 id="orgd119e94">Petal Width</h3>
+<div class="outline-text-3" id="text-orgd119e94">
+<div class="highlight">
+<pre><span></span>iris_dabest = dabest.load(data=data, x="species", y="petal width (cm)", idx=iris.target_names)
+iris_dabest.mean_diff.plot()
+</pre></div>
+<div class="figure">
+<p><img alt="petal_width.png" src="/posts/libraries/trying-out-dabest/petal_width.png"></p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org5d88711">
+<h3 id="org5d88711">Hedge's G</h3>
+<div class="outline-text-3" id="text-org5d88711">
+<p><a href="https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/hedgeg.htm">Hedges G</a> is a measurement of effect size, similar to Cohen's d but with better properties when the samples are smaller or the sample sizes are different.</p>
+<div class="highlight">
+<pre><span></span>iris_dabest.hedges_g.plot()
+</pre></div>
+<div class="figure">
+<p><img alt="hedges_g.png" src="/posts/libraries/trying-out-dabest/hedges_g.png"></p>
+</div>
+<div class="highlight">
+<pre><span></span>print(iris_dabest.hedges_g)
+</pre></div>
+<pre class="example">
+DABEST v0.2.7
+=============
+             
+Good afternoon!
+The current time is Mon Dec 16 15:56:24 2019.
+
+The unpaired Hedges' g between setosa and versicolor is 6.76 [95%CI 5.71, 7.86].
+The two-sided p-value of the Mann-Whitney test is 2.28e-18.
+
+The unpaired Hedges' g between setosa and virginica is 8.49 [95%CI 7.08, 9.77].
+The two-sided p-value of the Mann-Whitney test is 2.43e-18.
+
+5000 bootstrap samples were taken; the confidence interval is bias-corrected and accelerated.
+The p-value(s) reported are the likelihood(s) of observing the effect size(s),
+if the null hypothesis of zero difference is true.
+
+To get the results of all valid statistical tests, use `.hedges_g.statistical_tests`
+</pre>
+<p>According to <a href="https://www.wikiwand.com/en/Effect_size">Wikipedia</a>, an effect size of 2 is "huge" so since the differences between the setosa and versicolor and setosa and virginica are 6.76 and 8.49 respectively, we might conclude that there is a significant difference between the petal width of the setosa and the other two species.</p>
+<p>I don't think that's really what this is meant for, but I just wanted to see how it works.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgeb657d5">
+<h3 id="orgeb657d5">Cohen's D</h3>
+<div class="outline-text-3" id="text-orgeb657d5">
+<div class="highlight">
+<pre><span></span>iris_dabest.cohens_d.plot()
+</pre></div>
+<div class="figure">
+<p><img alt="cohens_d.png" src="/posts/libraries/trying-out-dabest/cohens_d.png"></p>
+</div>
+<div class="highlight">
+<pre><span></span>print(iris_dabest.cohens_d)
+</pre></div>
+<pre class="example">
+DABEST v0.2.7
+=============
+             
+Good afternoon!
+The current time is Mon Dec 16 16:46:25 2019.
+
+The unpaired Cohen's d between setosa and versicolor is 6.82 [95%CI 5.76, 7.92].
+The two-sided p-value of the Mann-Whitney test is 2.28e-18.
+
+The unpaired Cohen's d between setosa and virginica is 8.56 [95%CI 7.13, 9.85].
+The two-sided p-value of the Mann-Whitney test is 2.43e-18.
+
+5000 bootstrap samples were taken; the confidence interval is bias-corrected and accelerated.
+The p-value(s) reported are the likelihood(s) of observing the effect size(s),
+if the null hypothesis of zero difference is true.
+
+To get the results of all valid statistical tests, use `.cohens_d.statistical_tests`
+</pre>
+<p>In this case the Cohen's d and Hedges g look similar.</p>
+</div>
+</div>
+</div>
+</div>
+</article>
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/data/a-first-look-at-snorkel/">A First Look At Snorkel</a></h1>
@@ -1736,91 +1956,6 @@ new p5(nested_follower_sketch, nested_parent_div_id);
 <div class="outline-2" id="outline-container-orga2503bf">
 <h2 id="orga2503bf">End</h2>
 </div>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="posts/nature-of-code/a-mouse-follower/">A Mouse Follower</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="posts/nature-of-code/a-mouse-follower/" rel="bookmark"><time class="published dt-published" datetime="2019-07-21T16:03:37-07:00" itemprop="datePublished" title="2019-07-21 16:03">2019-07-21 16:03</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="posts/nature-of-code/a-mouse-follower/#org1b9f699">Beginning</a></li>
-<li><a href="posts/nature-of-code/a-mouse-follower/#org779be40">Middle</a></li>
-<li><a href="posts/nature-of-code/a-mouse-follower/#orgd863619">End</a></li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org1b9f699">
-<h2 id="org1b9f699">Beginning</h2>
-<div class="outline-text-2" id="text-org1b9f699">
-<p>Instead of a random walker this walker will be attracted (somewhat) to the mouse cursor.</p>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org779be40">
-<h2 id="org779be40">Middle</h2>
-<div class="outline-text-2" id="text-org779be40">
-<script language="javascript" src="posts/nature-of-code/a-mouse-follower/follower.js" type="text/javascript"></script>
-<div id="mouse-follower"></div>
-<div class="highlight">
-<pre><span></span>let parent_div_id = "mouse-follower";
-
-let mouse_follower_sketch = function(p) {
-    p.setup = function() {
-        this.canvas = p.createCanvas($("#" + parent_div_id).outerWidth(true), 800);
-        p.walker = new MouseWalker(p);
-    }
-
-    p.draw = function() {
-        p.background(255);
-        p.walker.walk();
-        p.walker.display();
-    }
-};
-
-function MouseWalker(p) {
-    this.position = p.createVector(p.width/2, p.height/2);
-    this.velocity = p.createVector(0, 0)
-
-    this.walk = function() {
-        mouse = p.createVector(p.mouseX, p.mouseY);
-        // calling sub on the vectors does an in-place update
-        // using p5.Vector.sub creates a new vector
-        // This is a static method so we use the module (p5) not the instance (p)
-        acceleration = mouse.sub(this.position);
-
-        // setMag always produces the same magnitude (but the orientation stays the same)
-        acceleration.setMag(0.1);
-        this.velocity = this.velocity.add(acceleration)
-        this.position = this.position.add(this.velocity)
-  }
-
-  this.display = function() {
-      p.stroke(0);
-      p.noFill();
-      p.background(255, 255, 255, 25);
-      p.ellipse(this.position.x, this.position.y, 48, 48);
-  }
-}
-
-sketch_container = new p5(mouse_follower_sketch, parent_div_id);
-</pre></div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgd863619">
-<h2 id="orgd863619">End</h2>
-<div class="outline-text-2" id="text-orgd863619">
-<ol class="org-ol">
-<li>Shiffman D. <a href="https://natureofcode.com/">The nature of code</a>: simulating natural systems with processing. Version 1.0, generated December 6, 2012. s.l.: Selbstverl.; 2012. 498 p.</li>
-</ol>
-</div>
-</div>
-</div>
-</article>
 <ul class="pager postindexpager clearfix">
 <li class="next"><a href="index-4.html" rel="next">Older posts</a></li>
 </ul>
