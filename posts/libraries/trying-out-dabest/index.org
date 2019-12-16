@@ -1,0 +1,195 @@
+#+BEGIN_COMMENT
+.. title: Trying out DABEST
+.. slug: trying-out-dabest
+.. date: 2019-12-16 13:50:24 UTC-08:00
+.. tags: visualization,statistics,exploration
+.. category: statistics
+.. link: 
+.. description: Trying out DABEST to visualize Estimation Statistics.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+* Beginning
+** Imports
+*** PyPi
+#+begin_src jupyter-python :session dabest :results none
+from sklearn.datasets import load_iris
+import dabest
+import pandas
+import seaborn
+#+end_src
+** Set Up
+*** The Data Set
+#+begin_src jupyter-python :session dabest :results none
+iris = load_iris()
+#+end_src
+
+#+begin_src jupyter-python :session dabest :results output :exports both
+print(iris.DESCR)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Iris plants dataset
+--------------------
+
+,**Data Set Characteristics:**
+
+    :Number of Instances: 150 (50 in each of three classes)
+    :Number of Attributes: 4 numeric, predictive attributes and the class
+    :Attribute Information:
+        - sepal length in cm
+        - sepal width in cm
+        - petal length in cm
+        - petal width in cm
+        - class:
+                - Iris-Setosa
+                - Iris-Versicolour
+                - Iris-Virginica
+                
+    :Summary Statistics:
+
+    ============== ==== ==== ======= ===== ====================
+                    Min  Max   Mean    SD   Class Correlation
+    ============== ==== ==== ======= ===== ====================
+    sepal length:   4.3  7.9   5.84   0.83    0.7826
+    sepal width:    2.0  4.4   3.05   0.43   -0.4194
+    petal length:   1.0  6.9   3.76   1.76    0.9490  (high!)
+    petal width:    0.1  2.5   1.20   0.76    0.9565  (high!)
+    ============== ==== ==== ======= ===== ====================
+
+    :Missing Attribute Values: None
+    :Class Distribution: 33.3% for each of 3 classes.
+    :Creator: R.A. Fisher
+    :Donor: Michael Marshall (MARSHALL%PLU@io.arc.nasa.gov)
+    :Date: July, 1988
+
+The famous Iris database, first used by Sir R.A. Fisher. The dataset is taken
+from Fisher's paper. Note that it's the same as in R, but not as in the UCI
+Machine Learning Repository, which has two wrong data points.
+
+This is perhaps the best known database to be found in the
+pattern recognition literature.  Fisher's paper is a classic in the field and
+is referenced frequently to this day.  (See Duda & Hart, for example.)  The
+data set contains 3 classes of 50 instances each, where each class refers to a
+type of iris plant.  One class is linearly separable from the other 2; the
+latter are NOT linearly separable from each other.
+
+.. topic:: References
+
+   - Fisher, R.A. "The use of multiple measurements in taxonomic problems"
+     Annual Eugenics, 7, Part II, 179-188 (1936); also in "Contributions to
+     Mathematical Statistics" (John Wiley, NY, 1950).
+   - Duda, R.O., & Hart, P.E. (1973) Pattern Classification and Scene Analysis.
+     (Q327.D83) John Wiley & Sons.  ISBN 0-471-22361-1.  See page 218.
+   - Dasarathy, B.V. (1980) "Nosing Around the Neighborhood: A New System
+     Structure and Classification Rule for Recognition in Partially Exposed
+     Environments".  IEEE Transactions on Pattern Analysis and Machine
+     Intelligence, Vol. PAMI-2, No. 1, 67-71.
+   - Gates, G.W. (1972) "The Reduced Nearest Neighbor Rule".  IEEE Transactions
+     on Information Theory, May 1972, 431-433.
+   - See also: 1988 MLC Proceedings, 54-64.  Cheeseman et al"s AUTOCLASS II
+     conceptual clustering system finds 3 classes in the data.
+   - Many, many more ...
+#+end_example
+
+#+begin_src jupyter-python :session dabest :results none
+data = pandas.DataFrame(iris.data, columns=iris.feature_names)
+target = pandas.Series(iris.target)
+names = dict(zip(range(len(iris.target_names)), iris.target_names))
+data["species"] = target.map(names)
+#+end_src
+
+* Middle
+** Petal Width
+#+begin_src jupyter-python :session dabest :file petal_width.png
+iris_dabest = dabest.load(data=data, x="species", y="petal width (cm)", idx=iris.target_names)
+iris_dabest.mean_diff.plot()
+#+end_src
+
+#+RESULTS:
+[[file:petal_width.png]]
+
+[[file:petal_width.png]]
+
+** Hedge's G
+   [[https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/hedgeg.htm][Hedges G]] is a measurement of effect size, similar to Cohen's d but with better properties when the samples are smaller or the sample sizes are different.
+
+#+begin_src jupyter-python :session dabest :file hedges_g.png
+iris_dabest.hedges_g.plot()
+#+end_src
+
+#+RESULTS:
+[[file:hedges_g.png]]
+
+[[file:hedges_g.png]]
+
+#+begin_src jupyter-python :session dabest :results output :exports both
+print(iris_dabest.hedges_g)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+DABEST v0.2.7
+=============
+             
+Good afternoon!
+The current time is Mon Dec 16 15:56:24 2019.
+
+The unpaired Hedges' g between setosa and versicolor is 6.76 [95%CI 5.71, 7.86].
+The two-sided p-value of the Mann-Whitney test is 2.28e-18.
+
+The unpaired Hedges' g between setosa and virginica is 8.49 [95%CI 7.08, 9.77].
+The two-sided p-value of the Mann-Whitney test is 2.43e-18.
+
+5000 bootstrap samples were taken; the confidence interval is bias-corrected and accelerated.
+The p-value(s) reported are the likelihood(s) of observing the effect size(s),
+if the null hypothesis of zero difference is true.
+
+To get the results of all valid statistical tests, use `.hedges_g.statistical_tests`
+#+end_example
+
+According to [[https://www.wikiwand.com/en/Effect_size][Wikipedia]], an effect size of 2 is "huge" so since the differences between the setosa and versicolor and setosa and virginica are 6.76 and 8.49 respectively, we might conclude that there is a significant difference between the petal width of the setosa and the other two species.
+
+I don't think that's really what this is meant for, but I just wanted to see how it works.
+
+** Cohen's D
+#+begin_src jupyter-python :session dabest :file cohens_d.png
+iris_dabest.cohens_d.plot()
+#+end_src
+
+#+RESULTS:
+[[file:cohens_d.png]]
+
+[[file:cohens_d.png]]
+
+#+begin_src jupyter-python :session dabest :results output :exports both
+print(iris_dabest.cohens_d)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+DABEST v0.2.7
+=============
+             
+Good afternoon!
+The current time is Mon Dec 16 16:46:25 2019.
+
+The unpaired Cohen's d between setosa and versicolor is 6.82 [95%CI 5.76, 7.92].
+The two-sided p-value of the Mann-Whitney test is 2.28e-18.
+
+The unpaired Cohen's d between setosa and virginica is 8.56 [95%CI 7.13, 9.85].
+The two-sided p-value of the Mann-Whitney test is 2.43e-18.
+
+5000 bootstrap samples were taken; the confidence interval is bias-corrected and accelerated.
+The p-value(s) reported are the likelihood(s) of observing the effect size(s),
+if the null hypothesis of zero difference is true.
+
+To get the results of all valid statistical tests, use `.cohens_d.statistical_tests`
+#+end_example
+
+In this case the Cohen's d and Hedges g look similar.
