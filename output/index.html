@@ -19,7 +19,7 @@
 </script>
 -->
 <script async src="javascript/p5.min.js" type="text/javascript"></script>
-<link href="/posts/libraries/trying-out-dabest/" rel="prefetch" type="text/html">
+<link href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/" rel="prefetch" type="text/html">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -46,6 +46,105 @@
 <div class="container" id="content" role="main">
 <div class="body-content"><!--Body content-->
 <div class="postindex">
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/">Snorkel Example: Building a Spam Dataset</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/" rel="bookmark"><time class="published dt-published" datetime="2020-01-06T17:40:40-08:00" itemprop="datePublished" title="2020-01-06 17:40">2020-01-06 17:40</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div class="outline-2" id="outline-container-org24244ca">
+<h2 id="org24244ca">Beginning</h2>
+<div class="outline-text-2" id="text-org24244ca">
+<p>This is a walk-through of the Snorkel <a href="https://www.snorkel.org/get-started/">Get Started</a> tutorial which shows how you can use it to build a labeled dataset. It uses the <a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/">YouTube Spam Collection</a> data set (downloaded from the <a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection">UCI Machine Learning Repository</a>). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns <code>COMMENT_ID</code>, <code>AUTHOR</code>, <code>DATE</code>, <code>CONTENT</code>, <code>TAG</code>. The tag represents whether it was considered <i>Spam</i> or not, so we'll pretend it isn't there for most of this walk-through.</p>
+</div>
+<div class="outline-3" id="outline-container-org5fff57e">
+<h3 id="org5fff57e">Imports</h3>
+<div class="outline-text-3" id="text-org5fff57e"></div>
+<div class="outline-4" id="outline-container-org4ce3c66">
+<h4 id="org4ce3c66">Python</h4>
+<div class="outline-text-4" id="text-org4ce3c66">
+<div class="highlight">
+<pre><span></span>from functools import partial
+from pathlib import Path
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org341e331">
+<h4 id="org341e331">PyPi</h4>
+<div class="outline-text-4" id="text-org341e331">
+<div class="highlight">
+<pre><span></span>from sklearn.model_selection import train_test_split
+import hvplot.pandas
+import pandas
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org5a84173">
+<h4 id="org5a84173">Others</h4>
+<div class="outline-text-4" id="text-org5a84173">
+<div class="highlight">
+<pre><span></span>from graeae import EmbedHoloviews
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgc16d062">
+<h3 id="orgc16d062">Set Up</h3>
+<div class="outline-text-3" id="text-orgc16d062"></div>
+<div class="outline-4" id="outline-container-org7e1be06">
+<h4 id="org7e1be06">Plotting</h4>
+<div class="outline-text-4" id="text-org7e1be06">
+<div class="highlight">
+<pre><span></span>Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgbb00b9a">
+<h4 id="orgbb00b9a">The Dataset</h4>
+<div class="outline-text-4" id="text-orgbb00b9a">
+<p>The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a <code>artist</code> column.</p>
+<div class="highlight">
+<pre><span></span>path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
+sets = []
+for name in path.glob("*.csv"):
+    artist = name.stem.split()[-1]
+    data = pandas.read_csv(name)
+    data["artist"] = artist
+    sets.append(data)
+    print(artist)
+data = pandas.concat(sets)
+</pre></div>
+<pre class="example">
+KatyPerry
+LMFAO
+Eminem
+Shakira
+Psy
+</pre>
+<div class="highlight">
+<pre><span></span>grouped = data.groupby(["artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count").opts(title="Comments by Artist", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist")()
+</pre></div>
+<object data="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/comments_by_artist.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span>grouped = data.groupby(["artist", "CLASS"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count", by="CLASS").opts(title="Comments by Artist", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist_and_class")()
+</pre></div>
+<object data="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/comments_by_artist_and_class.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+</div>
+</div>
+</div>
+</article>
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/libraries/trying-out-dabest/">Trying out DABEST</a></h1>
@@ -1769,199 +1868,15 @@ Final Answer: Kiara
 </div>
 </div>
 </article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="/posts/nature-of-code/nested-follower/">Nested follower</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="/posts/nature-of-code/nested-follower/" rel="bookmark"><time class="published dt-published" datetime="2019-07-23T13:49:03-07:00" itemprop="datePublished" title="2019-07-23 13:49">2019-07-23 13:49</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="/posts/nature-of-code/nested-follower/#org3f5ef15">Beginning</a>
-<ul>
-<li><a href="/posts/nature-of-code/nested-follower/#org887d280">Create A Walker</a></li>
-<li><a href="/posts/nature-of-code/nested-follower/#org286e2fd">Specifications</a></li>
-</ul>
-</li>
-<li><a href="/posts/nature-of-code/nested-follower/#orgf36a7c1">Middle</a></li>
-<li><a href="/posts/nature-of-code/nested-follower/#orga2503bf">End</a></li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org3f5ef15">
-<h2 id="org3f5ef15">Beginning</h2>
-<div class="outline-text-2" id="text-org3f5ef15">
-<p>This is assignment 1 from the Nature of Code course on Kadenze. I was originally going to make it a mouse-follower but I re-read the instructions and it seems like it's better to make it a random-walker. These are the requirements:</p>
-</div>
-<div class="outline-3" id="outline-container-org887d280">
-<h3 id="org887d280">Create A Walker</h3>
-<div class="outline-text-3" id="text-org887d280">
-<ul class="org-ul">
-<li>Create an object that moves around the screen</li>
-<li>Incorporate randomness or perlin noise</li>
-</ul>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org286e2fd">
-<h3 id="org286e2fd">Specifications</h3>
-<div class="outline-text-3" id="text-org286e2fd">
-<ul class="org-ul">
-<li>Needs to be visually different from the Nature of Code examples</li>
-<li>Use comments</li>
-<li>Only use <code>p5.js</code> libraries</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgf36a7c1">
-<h2 id="orgf36a7c1">Middle</h2>
-<div class="outline-text-2" id="text-orgf36a7c1">
-<script language="javascript" src="/posts/nature-of-code/nested-follower/follower.js" type="text/javascript"></script>
-<div id="nested-follower"></div>
-<div class="highlight">
-<pre><span></span>/**
- * Random Walker
- *
- * This is an implementation of the Random Walker based on the example given in
- * "The Nature of Code"
- */
-
-// This is the div where the canvas will be placed
-let nested_parent_div_id = "nested-follower";
-
-/**
- * The sketch creator
- * 
- * @param {P5} p
- */
-let nested_follower_sketch = function(p) {
-    /**
-     * Setup the canvas
-     *
-     * - Attaches the canvas to the div
-     * - Creates the walker objects
-     */
-    p.setup = function() {
-        this.canvas = p.createCanvas($("#" + nested_parent_div_id).outerWidth(true), 800);
-        p.parent = new NoiseWalker(p);
-        p.followers = [new Follower(p, p.parent), new Follower(p, p.parent), new Follower(p, p.parent)];
-    };
-
-    /**
-     * Refresh the objects by calling their update functions
-     *
-     * This also clears the background.
-     */
-    p.draw = function() {
-        p.background(255);
-        p.parent.update();
-        p.followers.forEach(function(follower) {
-            follower.update();
-        });
-    };
-};
-
-/**
- * The main walker (with perlin noise)
- *
- * @param {P5} p
- */
-function NoiseWalker(p) {
-    this.position = p.createVector(p.width/2, p.height/2);
-    this.velocity = p.createVector(0, 0);
-    this.weight = p.round(p.random(5, 10));
-
-    /**
-     * Updates the walker's position
-     */
-    this.walk = function() {
-        // calling sub on the vectors does an in-place update
-        // using p5.Vector.sub creates a new vector
-        // This is a static method so we use the module (p5) not the instance (p)
-        acceleration = mouse.sub(this.position);
-
-        // setMag always produces the same magnitude (but the orientation stays the same)
-        acceleration.setMag(this.magnitude);
-        console.log(acceleration);
-        this.velocity = this.velocity.add(acceleration);
-        this.position = this.position.add(this.velocity);
-
-        // keep it within the window
-        if (this.position.x &lt; 0)
-            this.position.x = p.width;
-        else if (this.position.x &gt; p.width)
-            this.position.x = 0;
-        if (this.position.y &lt; 0)
-            this.position.y = p.height
-        else if (this.position.y &gt; p.height)
-            this.position.y = 0
-  }
-
-    this.display = function() {
-        p.strokeWeight(this.weight);
-      p.stroke(0);
-      p.noFill();
-      p.background(255, 255, 255, 10);
-      p.circle(this.position.x, this.position.y, 48);
-  }
-
-    this.update = function() {
-        this.walk();
-        this.display()
-    }
-}
-
-function Follower(p, parent) {
-    this.parent = parent;
-    this.position = p.createVector(p.random(p.width), p.random(p.height));
-    this.velocity = p.createVector(0, 0);
-    this.magnitude = p.random(0.05, 0.09);
-
-    this.red = [63, 123, 191, 191, 191];
-    this.green = [63, 63, 63, 63, 63];
-    this.blue = [191, 191, 191, 127, 63];
-    this.colors = this.red.length;
-    this.color = p.round(p.random(this.colors));
-
-    this.walk = function() {
-        acceleration = this.parent.position.sub(this.position);
-
-        // setMag always produces the same magnitude (but the orientation stays the same)
-        acceleration.setMag(this.magnitude);
-        this.velocity = this.velocity.add(acceleration);
-        this.position = this.position.add(this.velocity)
-    }
-
-    this.display = function() {
-        p.strokeWeight(p.random(5, 10));
-        p.stroke(this.red[this.color], this.green[0], this.blue[0]);
-        this.color = (this.color + 1) % this.colors;
-        p.noFill();
-        p.ellipse(this.position.x, this.position.y, p.random(10, 45), p.random(10, 45));
-    }
-
-    this.update = function() {
-        this.walk();
-        this.display();
-    }
-}
-
-new p5(nested_follower_sketch, nested_parent_div_id);
-</pre></div>
-<div class="outline-2" id="outline-container-orga2503bf">
-<h2 id="orga2503bf">End</h2>
 </div>
 <ul class="pager postindexpager clearfix">
-<li class="next"><a href="index-4.html" rel="next">Older posts</a></li>
+<li class="next"><a href="/index-4.html" rel="next">Older posts</a></li>
 </ul>
 <!--End of body content-->
-<footer id="footer">Contents © 2019 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
-<script src="assets/js/all-nocdn.js"></script>
+<footer id="footer">Contents © 2020 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
 <script>
 
     baguetteBox.run('div#content', {
@@ -1969,12 +1884,6 @@ new p5(nested_follower_sketch, nested_parent_div_id);
         captions: function(element) {
             return element.getElementsByTagName('img')[0].alt;
     }});
-</script> </div>
-</div>
-</div>
-</article>
-</div>
-</div>
-</div>
+</script> 
 </body>
 </html>
