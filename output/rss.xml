@@ -1,58 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Wed, 08 Jan 2020 22:49:13 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Snorkel Example: Building a Spam Dataset</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="outline-container-org986c5b6" class="outline-2"&gt;
-&lt;h2 id="org986c5b6"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org986c5b6"&gt;
+<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Thu, 09 Jan 2020 23:33:12 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Snorkel Example: Building a Spam Dataset</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="outline-container-org888a73e" class="outline-2"&gt;
+&lt;h2 id="org888a73e"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org888a73e"&gt;
 &lt;p&gt;
 This is a walk-through of the Snorkel &lt;a href="https://www.snorkel.org/get-started/"&gt;Get Started&lt;/a&gt; tutorial which shows how you can use it to build a labeled dataset. It uses the &lt;a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/"&gt;YouTube Spam Collection&lt;/a&gt; data set (downloaded from the &lt;a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection"&gt;UCI Machine Learning Repository&lt;/a&gt;). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns &lt;code&gt;COMMENT_ID&lt;/code&gt;, &lt;code&gt;AUTHOR&lt;/code&gt;, &lt;code&gt;DATE&lt;/code&gt;, &lt;code&gt;CONTENT&lt;/code&gt;, &lt;code&gt;TAG&lt;/code&gt;. The tag represents whether it was considered &lt;i&gt;Spam&lt;/i&gt; or not, so we'll pretend it isn't there for most of this walk-through.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org149dbb7" class="outline-3"&gt;
-&lt;h3 id="org149dbb7"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org149dbb7"&gt;
+&lt;div id="outline-container-orga4d4166" class="outline-3"&gt;
+&lt;h3 id="orga4d4166"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orga4d4166"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orga1876b8" class="outline-4"&gt;
-&lt;h4 id="orga1876b8"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orga1876b8"&gt;
+&lt;div id="outline-container-org2c87e08" class="outline-4"&gt;
+&lt;h4 id="org2c87e08"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2c87e08"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from argparse import Namespace
 from functools import partial
 from pathlib import Path
+import random
 import re
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org328295c" class="outline-4"&gt;
-&lt;h4 id="org328295c"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org328295c"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from sklearn.model_selection import train_test_split
+&lt;div id="outline-container-orgd1dc40d" class="outline-4"&gt;
+&lt;h4 id="orgd1dc40d"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd1dc40d"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from nltk.corpus import wordnet
+from sklearn import metrics
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from snorkel.augmentation import ApplyOnePolicy, PandasTFApplier, transformation_function
 from snorkel.labeling import labeling_function, LabelModel, PandasLFApplier
+from snorkel.slicing import slicing_function
 from textblob import TextBlob
 import hvplot.pandas
+import nltk
 import pandas
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org018f22d" class="outline-4"&gt;
-&lt;h4 id="org018f22d"&gt;Others&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org018f22d"&gt;
+&lt;div id="outline-container-orgcfd3fa6" class="outline-4"&gt;
+&lt;h4 id="orgcfd3fa6"&gt;Others&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgcfd3fa6"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from graeae import CountPercentage, EmbedHoloviews
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org5e1c14a" class="outline-3"&gt;
-&lt;h3 id="org5e1c14a"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org5e1c14a"&gt;
+&lt;div id="outline-container-orgde1db4f" class="outline-3"&gt;
+&lt;h3 id="orgde1db4f"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgde1db4f"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orge820db5" class="outline-4"&gt;
-&lt;h4 id="orge820db5"&gt;Plotting&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orge820db5"&gt;
+&lt;div id="outline-container-org3402793" class="outline-4"&gt;
+&lt;h4 id="org3402793"&gt;The WordNet Corpus&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org3402793"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;nltk.download("wordnet", quiet=True)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgd889079" class="outline-4"&gt;
+&lt;h4 id="orgd889079"&gt;Plotting&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd889079"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgcee9dc2" class="outline-4"&gt;
-&lt;h4 id="orgcee9dc2"&gt;The Dataset&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgcee9dc2"&gt;
+&lt;div id="outline-container-orga0d256f" class="outline-4"&gt;
+&lt;h4 id="orga0d256f"&gt;The Dataset&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orga0d256f"&gt;
 &lt;p&gt;
 The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a &lt;code&gt;artist&lt;/code&gt; column.
 &lt;/p&gt;
@@ -79,9 +94,9 @@ Psy
 &lt;/div&gt;
 
 
-&lt;div id="outline-container-org1765f19" class="outline-4"&gt;
-&lt;h4 id="org1765f19"&gt;Splitting the Set&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org1765f19"&gt;
+&lt;div id="outline-container-orgf7c88bd" class="outline-4"&gt;
+&lt;h4 id="orgf7c88bd"&gt;Splitting the Set&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgf7c88bd"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;train, test = train_test_split(data)
 print(train.shape)
 print(test.shape)
@@ -130,16 +145,16 @@ I said earlier that the spam/not-spam column was named tag, but its named &lt;co
 &lt;/div&gt;
 
 
-&lt;div id="outline-container-orgf3f3a33" class="outline-3"&gt;
-&lt;h3 id="orgf3f3a33"&gt;Labeling Functions&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgf3f3a33"&gt;
+&lt;div id="outline-container-org668f898" class="outline-3"&gt;
+&lt;h3 id="org668f898"&gt;Labeling Functions&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org668f898"&gt;
 &lt;p&gt;
 Labeling functions output a label for values in the training set.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org540215f" class="outline-4"&gt;
-&lt;h4 id="org540215f"&gt;Labels&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org540215f"&gt;
+&lt;div id="outline-container-org2e61d21" class="outline-4"&gt;
+&lt;h4 id="org2e61d21"&gt;Labels&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2e61d21"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Label = Namespace(
     abstain = -1,
     not_spam = 0,
@@ -153,9 +168,9 @@ The actual data-set only has spam/not-spam classes, but the Snorkel tutorial add
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org53ef068" class="outline-4"&gt;
-&lt;h4 id="org53ef068"&gt;Keyword Matching&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org53ef068"&gt;
+&lt;div id="outline-container-orgfcf4da0" class="outline-4"&gt;
+&lt;h4 id="orgfcf4da0"&gt;Keyword Matching&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgfcf4da0"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
 def labeling_by_keyword(comment: pandas.Series) -&amp;gt; int:
     """Assume if the author refers to something he/she owns it's spam
@@ -171,9 +186,9 @@ def labeling_by_keyword(comment: pandas.Series) -&amp;gt; int:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org85ff95a" class="outline-4"&gt;
-&lt;h4 id="org85ff95a"&gt;Regular Expressions&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org85ff95a"&gt;
+&lt;div id="outline-container-org581d49f" class="outline-4"&gt;
+&lt;h4 id="org581d49f"&gt;Regular Expressions&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org581d49f"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
 def label_check_out(comment) -&amp;gt; int:
     """check my/it/the out will be spam"""
@@ -182,9 +197,9 @@ def label_check_out(comment) -&amp;gt; int:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org8fe2c13" class="outline-4"&gt;
-&lt;h4 id="org8fe2c13"&gt;Short Comments&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org8fe2c13"&gt;
+&lt;div id="outline-container-orgd0041dc" class="outline-4"&gt;
+&lt;h4 id="orgd0041dc"&gt;Short Comments&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd0041dc"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
 def label_short_comment(comment) -&amp;gt; int:
     """if a comment is short it's probably not spam"""
@@ -193,9 +208,9 @@ def label_short_comment(comment) -&amp;gt; int:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgfb198ad" class="outline-4"&gt;
-&lt;h4 id="orgfb198ad"&gt;Positive Comments&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgfb198ad"&gt;
+&lt;div id="outline-container-org115ae08" class="outline-4"&gt;
+&lt;h4 id="org115ae08"&gt;Positive Comments&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org115ae08"&gt;
 &lt;p&gt;
 Here we'll use &lt;a href="https://textblob.readthedocs.io/en/dev/"&gt;textblob&lt;/a&gt; to try and decide on whether a comment is positive (textblob uses &lt;a href="https://www.clips.uantwerpen.be/pattern"&gt;pattern&lt;/a&gt; to decide on the polarity.)
 &lt;/p&gt;
@@ -207,9 +222,9 @@ def label_positive_comment(comment) -&amp;gt; int:
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgfd31182" class="outline-4"&gt;
-&lt;h4 id="orgfd31182"&gt;Combining the Functions and Cleaning the Labels&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgfd31182"&gt;
+&lt;div id="outline-container-org35dcf7b" class="outline-4"&gt;
+&lt;h4 id="org35dcf7b"&gt;Combining the Functions and Cleaning the Labels&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org35dcf7b"&gt;
 &lt;p&gt;
 First I'll create a list of the labeling functions so that we can pass it to the label-applier class.
 &lt;/p&gt;
@@ -254,9 +269,9 @@ for column in label_frame.columns:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orge6e2690" class="outline-4"&gt;
-&lt;h4 id="orge6e2690"&gt;Training the Label Model&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orge6e2690"&gt;
+&lt;div id="outline-container-org0cd4381" class="outline-4"&gt;
+&lt;h4 id="org0cd4381"&gt;Training the Label Model&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org0cd4381"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;label_model = LabelModel(cardinality=2, verbose=True)
 label_model.fit(label_matrix, n_epochs=500, log_freq=50, seed=0)
 train["label"] = label_model.predict(L=label_matrix, tie_break_policy="abstain")
@@ -310,6 +325,194 @@ CountPercentage(train.label)()
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;matched = sum(train.label == train.CLASS)
+print(f"{matched/len(train): .2f}")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+0.51
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+Of those that were matched, only a little more than half agree with the labels given by the dataset creators.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org732c7fd" class="outline-3"&gt;
+&lt;h3 id="org732c7fd"&gt;Data Augmentation&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org732c7fd"&gt;
+&lt;p&gt;
+We're going to create new entries in the data by randomly replacing words with their synonyms.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgd606c51" class="outline-4"&gt;
+&lt;h4 id="orgd606c51"&gt;Synonym Lookup Function&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd606c51"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def synonyms_for(word: str) -&amp;gt; list:
+    """get synonyms for word"""
+    lemmas = set().union(*[synset.lemmas() for synset in wordnet.synsets(word)])
+    return list(set(lemma.name().lower().replace("_" , " ") for lemma in lemmas) - {word})
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org8e8b67d" class="outline-4"&gt;
+&lt;h4 id="org8e8b67d"&gt;The Transformation Function&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org8e8b67d"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@transformation_function()
+def replace_word_with_synonym(comment: pandas.Series) -&amp;gt; pandas.Series:
+    """Replace one of the words with a synonym
+
+    Args:
+     comment: row with a comment
+
+    Returns:
+     comment with a word replaced
+    """
+    tokens = comment.CONTENT.lower().split()
+    index = random.choice(range(len(tokens)))
+    synonyms = synonyms_for(tokens[index])
+    if synonyms:
+	comment.CONTENT = " ".join(tokens[:index] + [synonyms[0]] + tokens[index + 1 :])
+    return comment
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;transform_policy = ApplyOnePolicy(n_per_original=2, keep_original=True)
+transform_applier = PandasTFApplier([replace_word_with_synonym], transform_policy)
+train_augmented = transform_applier.apply(train, progress_bar=False)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(train_augmented[:3].CONTENT)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+415           very good song:)﻿
+415    very respectable song:)﻿
+415           very good song:)﻿
+Name: CONTENT, dtype: object
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+Because it's random, we don't always end up with different content.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(f"{len(train_augmented):,}")
+train_augmented = train_augmented.drop_duplicates(subset="CONTENT")
+print(f"{len(train_augmented):,}")
+print(f"{len(train):,}")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+2,349
+1,357
+783
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+So we added some content.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org8a6f1e5" class="outline-3"&gt;
+&lt;h3 id="org8a6f1e5"&gt;Slicing&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org8a6f1e5"&gt;
+&lt;p&gt;
+A &lt;i&gt;slice&lt;/i&gt; is a subset of the data - in this case we want to identify slices that might be more important than others. In this case we're going to assume that we've identified that short links are more likely to be malicious, so we want to be more aware of them.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@slicing_function()
+def short_link(comment: pandas.Series) -&amp;gt; int:
+    """checks for shortened links in the comment
+
+    Args:
+     comment: row with comment in it
+
+    Returns:
+     1 if short-link detected, 0 otherwise
+    """
+    return int(bool(re.search(r"\w+\.ly", comment.CONTENT)))
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgccd254a" class="outline-3"&gt;
+&lt;h3 id="orgccd254a"&gt;Train A Classifier&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgccd254a"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;training_text = train_augmented.CONTENT.tolist()
+vectorizer = CountVectorizer(ngram_range=(1, 2))
+x_train = vectorizer.fit_transform(training_text)
+
+classifier = LogisticRegression(solver="lbfgs")
+classifier.fit(x_train, train_augmented.label.values)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;development_test = vectorizer.transform(development.CONTENT)
+development["predicted"] = classifier.predict(development_test)
+
+print(f"{sum(development.CLASS == development.predicted)/len(development):.2f}")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+0.54
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+So our model is almost random.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(metrics.classification_report(development.CLASS, development.predicted, target_names=["not spam", "spam"]))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+              precision    recall  f1-score   support
+
+    not spam       0.56      0.61      0.58       194
+        spam       0.51      0.45      0.48       173
+
+    accuracy                           0.54       367
+   macro avg       0.53      0.53      0.53       367
+weighted avg       0.53      0.54      0.53       367
+
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org20e9639" class="outline-4"&gt;
+&lt;h4 id="org20e9639"&gt;Training on the Original Labels&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org20e9639"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;vectorizer = CountVectorizer(ngram_range=(1, 2))
+x_train = vectorizer.fit_transform(train.CONTENT)
+
+classifier = LogisticRegression(solver="lbfgs")
+classifier.fit(x_train, train.CLASS.values)
+
+development_test = vectorizer.transform(development.CONTENT)
+predicted = classifier.predict(development_test)
+
+print(metrics.classification_report(development.CLASS, predicted, target_names=["not spam", "spam"]))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+              precision    recall  f1-score   support
+
+    not spam       0.91      0.97      0.94       194
+        spam       0.97      0.90      0.93       173
+
+    accuracy                           0.94       367
+   macro avg       0.94      0.94      0.94       367
+weighted avg       0.94      0.94      0.94       367
+
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+So our self-labeled data set really hurt the performance, but this was the Getting Started tutorial, so it was meant to be just a skimming of what the basic procedure is, hopefully tuning the labeling and transformations more would improve the performance.
+&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
@@ -547,7 +750,39 @@ In this case the Cohen's d and Hedges g look similar.
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description><category>exploration</category><category>statistics</category><category>visualization</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/</guid><pubDate>Mon, 16 Dec 2019 21:50:24 GMT</pubDate></item><item><title>A First Look At Snorkel</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;/div&gt;</description><category>exploration</category><category>statistics</category><category>visualization</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/</guid><pubDate>Mon, 16 Dec 2019 21:50:24 GMT</pubDate></item><item><title>A First Look At DABEST</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/#orgc1a8a9e"&gt;Beginning&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/#org2e82353"&gt;Imports&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/#orgfd82f5d"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgc1a8a9e" class="outline-2"&gt;
+&lt;h2 id="orgc1a8a9e"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgc1a8a9e"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org2e82353" class="outline-3"&gt;
+&lt;h3 id="org2e82353"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org2e82353"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgfd82f5d" class="outline-4"&gt;
+&lt;h4 id="orgfd82f5d"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgfd82f5d"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from sklearn.datasets import load_iris
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>dabest</category><category>visalization</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/</guid><pubDate>Mon, 16 Dec 2019 07:18:50 GMT</pubDate></item><item><title>A First Look At Snorkel</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
@@ -1903,229 +2138,4 @@ Sum: 2305
 Although I normally use &lt;code&gt;requests&lt;/code&gt; or &lt;code&gt;requests-html&lt;/code&gt;, I must say that the &lt;code&gt;urllib&lt;/code&gt; version with &lt;a href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/"&gt;BeautifulSoup&lt;/a&gt; for this particular exercise wasn't much different.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description><category>web-scraping</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/</guid><pubDate>Sat, 03 Aug 2019 19:07:56 GMT</pubDate></item><item><title>Web Scraping Assignment 2</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
-&lt;h2&gt;Table of Contents&lt;/h2&gt;
-&lt;div id="text-table-of-contents"&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#org3b6c88f"&gt;Beginning&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#org7d02c94"&gt;Imports&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#org24bb971"&gt;Python&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#orgb2622bb"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#orge701625"&gt;Setup&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#org9d25631"&gt;The URL&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#orga2041b8"&gt;Middle&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#org1b3bf5b"&gt;The Sample Exercise&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#org5793dc9"&gt;The Easy Way&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#org20a1352"&gt;The Slightly Less Easy Way&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#orgd8341f2"&gt;The Real One&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#orgf8dc8c8"&gt;The Easy Way&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#orgcc4147c"&gt;The Assignment Way&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/#orgd275add"&gt;End&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org3b6c88f" class="outline-2"&gt;
-&lt;h2 id="org3b6c88f"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org3b6c88f"&gt;
-&lt;p&gt;
-The goal of this exercise is to crawl through a set of anchor links to get a particular name stored in the &lt;i&gt;nth&lt;/i&gt; anchor tag. The assignment specifically says to use &lt;a href="https://docs.python.org/3/library/urllib.html"&gt;urllib&lt;/a&gt; but, if you go to the documentation for &lt;a href="https://docs.python.org/3/library/urllib.request.html#module-urllib.request"&gt;urllib.request&lt;/a&gt; it tells you to use to use &lt;a href="https://2.python-requests.org/en/master/"&gt;requests&lt;/a&gt;, which, if you go to its documentation says that it's in maintenance mode while work is being done on &lt;a href="https://3.python-requests.org/"&gt;Requests III&lt;/a&gt;… anyway, I like using &lt;a href="https://html.python-requests.org/"&gt;Requests-HTML&lt;/a&gt; so I'll use that and urllib side-by-side.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org7d02c94" class="outline-3"&gt;
-&lt;h3 id="org7d02c94"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org7d02c94"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org24bb971" class="outline-4"&gt;
-&lt;h4 id="org24bb971"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org24bb971"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;re&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;urllib&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgb2622bb" class="outline-4"&gt;
-&lt;h4 id="orgb2622bb"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgb2622bb"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;bs4&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;BeautifulSoup&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;requests_html&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;HTMLSession&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orge701625" class="outline-3"&gt;
-&lt;h3 id="orge701625"&gt;Setup&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orge701625"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org9d25631" class="outline-4"&gt;
-&lt;h4 id="org9d25631"&gt;The URL&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org9d25631"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;BASE_URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"http://py4e-data.dr-chuck.net/known_by_"&lt;/span&gt;
-&lt;span class="n"&gt;SAMPLE_URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"{BASE_URL}Fikret.html"&lt;/span&gt;
-&lt;span class="n"&gt;ASSIGNMENT_URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"{BASE_URL}Abdalroof.html"&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orga2041b8" class="outline-2"&gt;
-&lt;h2 id="orga2041b8"&gt;Middle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orga2041b8"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org1b3bf5b" class="outline-3"&gt;
-&lt;h3 id="org1b3bf5b"&gt;The Sample Exercise&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org1b3bf5b"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org5793dc9" class="outline-4"&gt;
-&lt;h4 id="org5793dc9"&gt;The Easy Way&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org5793dc9"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;session&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;HTMLSession&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;session&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SAMPLE_URL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ok&lt;/span&gt;
-
-&lt;span class="n"&gt;expression&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"_(?P&amp;lt;name&amp;gt;[^_.]+).html"&lt;/span&gt;
-&lt;span class="n"&gt;expression&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;re&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;compile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;expression&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Name: {expression.search(SAMPLE_URL).group('name')}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;hop&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="n"&gt;links&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;find&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"a"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-    &lt;span class="n"&gt;link_element&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;links&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-    &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Name: {link_element.text}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;session&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;link_element&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;attrs&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"href"&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
-
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Final Answer: {link_element.text}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Name: Fikret
-Name: Montgomery
-Name: Mhairade
-Name: Butchi
-Name: Anayah
-Final Answer: Anayah
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org20a1352" class="outline-4"&gt;
-&lt;h4 id="org20a1352"&gt;The Slightly Less Easy Way&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org20a1352"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;urllib&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;request&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;urlopen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SAMPLE_URL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Name: {expression.search(SAMPLE_URL).group('name')}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;hop&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-   &lt;span class="n"&gt;soup&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;BeautifulSoup&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt; &lt;span class="s2"&gt;"html.parser"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-   &lt;span class="n"&gt;link_element&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;soup&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;find_all&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"a"&lt;/span&gt;&lt;span class="p"&gt;)[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; 
-   &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Name: {link_element.text}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-   &lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;urllib&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;request&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;urlopen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;link_element&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"href"&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s2"&gt;Final Answer: {link_element.text}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Name: Fikret
-Name: Montgomery
-Name: Mhairade
-Name: Butchi
-Name: Anayah
-
-Final Answer: Anayah
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgd8341f2" class="outline-3"&gt;
-&lt;h3 id="orgd8341f2"&gt;The Real One&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgd8341f2"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgf8dc8c8" class="outline-4"&gt;
-&lt;h4 id="orgf8dc8c8"&gt;The Easy Way&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgf8dc8c8"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;session&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;HTMLSession&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;session&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ASSIGNMENT_URL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ok&lt;/span&gt;
-
-&lt;span class="n"&gt;expression&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"_(?P&amp;lt;name&amp;gt;[^_.]+).html"&lt;/span&gt;
-&lt;span class="n"&gt;expression&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;re&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;compile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;expression&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Name: {expression.search(ASSIGNMENT_URL).group('name')}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;hop&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="n"&gt;links&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;find&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"a"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-    &lt;span class="n"&gt;link_element&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;links&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;17&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-    &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Name: {link_element.text}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;session&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;link_element&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;attrs&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"href"&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
-
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Final Answer: {link_element.text}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Name: Abdalroof
-Name: Billi
-Name: Jayse
-Name: Amaarah
-Name: Cesar
-Name: Rosheen
-Name: Mohamed
-Name: Kiara
-Final Answer: Kiara
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgcc4147c" class="outline-4"&gt;
-&lt;h4 id="orgcc4147c"&gt;The Assignment Way&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgcc4147c"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;HOPS&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;
-&lt;span class="n"&gt;FIND_AT_INDEX&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;18&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-&lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;urllib&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;request&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;urlopen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ASSIGNMENT_URL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Name: {expression.search(ASSIGNMENT_URL).group('name')}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;hop&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;HOPS&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-   &lt;span class="n"&gt;soup&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;BeautifulSoup&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt; &lt;span class="s2"&gt;"html.parser"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-   &lt;span class="n"&gt;link_element&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;soup&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;find_all&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"a"&lt;/span&gt;&lt;span class="p"&gt;)[&lt;/span&gt;&lt;span class="n"&gt;FIND_AT_INDEX&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; 
-   &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Name: {link_element.text}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-   &lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;urllib&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;request&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;urlopen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;link_element&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"href"&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s2"&gt;Final Answer: {link_element.text}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Name: Abdalroof
-Name: Billi
-Name: Jayse
-Name: Amaarah
-Name: Cesar
-Name: Rosheen
-Name: Mohamed
-Name: Kiara
-
-Final Answer: Kiara
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgd275add" class="outline-2"&gt;
-&lt;h2 id="orgd275add"&gt;End&lt;/h2&gt;
-&lt;/div&gt;</description><category>web-crawiling</category><category>web-scraping</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-2/</guid><pubDate>Fri, 02 Aug 2019 20:43:01 GMT</pubDate></item></channel></rss>
+&lt;/div&gt;</description><category>web-scraping</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/</guid><pubDate>Sat, 03 Aug 2019 19:07:56 GMT</pubDate></item></channel></rss>

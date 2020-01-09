@@ -55,60 +55,76 @@
 </div>
 </header>
 <div class="e-content entry-content">
-<div class="outline-2" id="outline-container-org986c5b6">
-<h2 id="org986c5b6">Beginning</h2>
-<div class="outline-text-2" id="text-org986c5b6">
+<div class="outline-2" id="outline-container-org888a73e">
+<h2 id="org888a73e">Beginning</h2>
+<div class="outline-text-2" id="text-org888a73e">
 <p>This is a walk-through of the Snorkel <a href="https://www.snorkel.org/get-started/">Get Started</a> tutorial which shows how you can use it to build a labeled dataset. It uses the <a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/">YouTube Spam Collection</a> data set (downloaded from the <a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection">UCI Machine Learning Repository</a>). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns <code>COMMENT_ID</code>, <code>AUTHOR</code>, <code>DATE</code>, <code>CONTENT</code>, <code>TAG</code>. The tag represents whether it was considered <i>Spam</i> or not, so we'll pretend it isn't there for most of this walk-through.</p>
 </div>
-<div class="outline-3" id="outline-container-org149dbb7">
-<h3 id="org149dbb7">Imports</h3>
-<div class="outline-text-3" id="text-org149dbb7"></div>
-<div class="outline-4" id="outline-container-orga1876b8">
-<h4 id="orga1876b8">Python</h4>
-<div class="outline-text-4" id="text-orga1876b8">
+<div class="outline-3" id="outline-container-orga4d4166">
+<h3 id="orga4d4166">Imports</h3>
+<div class="outline-text-3" id="text-orga4d4166"></div>
+<div class="outline-4" id="outline-container-org2c87e08">
+<h4 id="org2c87e08">Python</h4>
+<div class="outline-text-4" id="text-org2c87e08">
 <div class="highlight">
 <pre><span></span>from argparse import Namespace
 from functools import partial
 from pathlib import Path
+import random
 import re
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org328295c">
-<h4 id="org328295c">PyPi</h4>
-<div class="outline-text-4" id="text-org328295c">
+<div class="outline-4" id="outline-container-orgd1dc40d">
+<h4 id="orgd1dc40d">PyPi</h4>
+<div class="outline-text-4" id="text-orgd1dc40d">
 <div class="highlight">
-<pre><span></span>from sklearn.model_selection import train_test_split
+<pre><span></span>from nltk.corpus import wordnet
+from sklearn import metrics
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from snorkel.augmentation import ApplyOnePolicy, PandasTFApplier, transformation_function
 from snorkel.labeling import labeling_function, LabelModel, PandasLFApplier
+from snorkel.slicing import slicing_function
 from textblob import TextBlob
 import hvplot.pandas
+import nltk
 import pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org018f22d">
-<h4 id="org018f22d">Others</h4>
-<div class="outline-text-4" id="text-org018f22d">
+<div class="outline-4" id="outline-container-orgcfd3fa6">
+<h4 id="orgcfd3fa6">Others</h4>
+<div class="outline-text-4" id="text-orgcfd3fa6">
 <div class="highlight">
 <pre><span></span>from graeae import CountPercentage, EmbedHoloviews
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org5e1c14a">
-<h3 id="org5e1c14a">Set Up</h3>
-<div class="outline-text-3" id="text-org5e1c14a"></div>
-<div class="outline-4" id="outline-container-orge820db5">
-<h4 id="orge820db5">Plotting</h4>
-<div class="outline-text-4" id="text-orge820db5">
+<div class="outline-3" id="outline-container-orgde1db4f">
+<h3 id="orgde1db4f">Set Up</h3>
+<div class="outline-text-3" id="text-orgde1db4f"></div>
+<div class="outline-4" id="outline-container-org3402793">
+<h4 id="org3402793">The WordNet Corpus</h4>
+<div class="outline-text-4" id="text-org3402793">
+<div class="highlight">
+<pre><span></span>nltk.download("wordnet", quiet=True)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgd889079">
+<h4 id="orgd889079">Plotting</h4>
+<div class="outline-text-4" id="text-orgd889079">
 <div class="highlight">
 <pre><span></span>Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgcee9dc2">
-<h4 id="orgcee9dc2">The Dataset</h4>
-<div class="outline-text-4" id="text-orgcee9dc2">
+<div class="outline-4" id="outline-container-orga0d256f">
+<h4 id="orga0d256f">The Dataset</h4>
+<div class="outline-text-4" id="text-orga0d256f">
 <p>The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a <code>artist</code> column.</p>
 <div class="highlight">
 <pre><span></span>path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
@@ -129,9 +145,9 @@ Shakira
 Psy
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org1765f19">
-<h4 id="org1765f19">Splitting the Set</h4>
-<div class="outline-text-4" id="text-org1765f19">
+<div class="outline-4" id="outline-container-orgf7c88bd">
+<h4 id="orgf7c88bd">Splitting the Set</h4>
+<div class="outline-text-4" id="text-orgf7c88bd">
 <div class="highlight">
 <pre><span></span>train, test = train_test_split(data)
 print(train.shape)
@@ -172,14 +188,14 @@ Embed(plot=plot, file_name="comments_by_artist_and_class")()
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgf3f3a33">
-<h3 id="orgf3f3a33">Labeling Functions</h3>
-<div class="outline-text-3" id="text-orgf3f3a33">
+<div class="outline-3" id="outline-container-org668f898">
+<h3 id="org668f898">Labeling Functions</h3>
+<div class="outline-text-3" id="text-org668f898">
 <p>Labeling functions output a label for values in the training set.</p>
 </div>
-<div class="outline-4" id="outline-container-org540215f">
-<h4 id="org540215f">Labels</h4>
-<div class="outline-text-4" id="text-org540215f">
+<div class="outline-4" id="outline-container-org2e61d21">
+<h4 id="org2e61d21">Labels</h4>
+<div class="outline-text-4" id="text-org2e61d21">
 <div class="highlight">
 <pre><span></span>Label = Namespace(
     abstain = -1,
@@ -190,9 +206,9 @@ Embed(plot=plot, file_name="comments_by_artist_and_class")()
 <p>The actual data-set only has spam/not-spam classes, but the Snorkel tutorial adds the <code>abstain</code> class as well. Each function is going to be passed a row from the training dataframe, so the class name you use has to match it.</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org53ef068">
-<h4 id="org53ef068">Keyword Matching</h4>
-<div class="outline-text-4" id="text-org53ef068">
+<div class="outline-4" id="outline-container-orgfcf4da0">
+<h4 id="orgfcf4da0">Keyword Matching</h4>
+<div class="outline-text-4" id="text-orgfcf4da0">
 <div class="highlight">
 <pre><span></span>@labeling_function()
 def labeling_by_keyword(comment: pandas.Series) -&gt; int:
@@ -208,9 +224,9 @@ def labeling_by_keyword(comment: pandas.Series) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org85ff95a">
-<h4 id="org85ff95a">Regular Expressions</h4>
-<div class="outline-text-4" id="text-org85ff95a">
+<div class="outline-4" id="outline-container-org581d49f">
+<h4 id="org581d49f">Regular Expressions</h4>
+<div class="outline-text-4" id="text-org581d49f">
 <div class="highlight">
 <pre><span></span>@labeling_function()
 def label_check_out(comment) -&gt; int:
@@ -219,9 +235,9 @@ def label_check_out(comment) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org8fe2c13">
-<h4 id="org8fe2c13">Short Comments</h4>
-<div class="outline-text-4" id="text-org8fe2c13">
+<div class="outline-4" id="outline-container-orgd0041dc">
+<h4 id="orgd0041dc">Short Comments</h4>
+<div class="outline-text-4" id="text-orgd0041dc">
 <div class="highlight">
 <pre><span></span>@labeling_function()
 def label_short_comment(comment) -&gt; int:
@@ -230,9 +246,9 @@ def label_short_comment(comment) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgfb198ad">
-<h4 id="orgfb198ad">Positive Comments</h4>
-<div class="outline-text-4" id="text-orgfb198ad">
+<div class="outline-4" id="outline-container-org115ae08">
+<h4 id="org115ae08">Positive Comments</h4>
+<div class="outline-text-4" id="text-org115ae08">
 <p>Here we'll use <a href="https://textblob.readthedocs.io/en/dev/">textblob</a> to try and decide on whether a comment is positive (textblob uses <a href="https://www.clips.uantwerpen.be/pattern">pattern</a> to decide on the polarity.)</p>
 <div class="highlight">
 <pre><span></span>@labeling_function()
@@ -242,9 +258,9 @@ def label_positive_comment(comment) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgfd31182">
-<h4 id="orgfd31182">Combining the Functions and Cleaning the Labels</h4>
-<div class="outline-text-4" id="text-orgfd31182">
+<div class="outline-4" id="outline-container-org35dcf7b">
+<h4 id="org35dcf7b">Combining the Functions and Cleaning the Labels</h4>
+<div class="outline-text-4" id="text-org35dcf7b">
 <p>First I'll create a list of the labeling functions so that we can pass it to the label-applier class.</p>
 <div class="highlight">
 <pre><span></span>labeling_functions = [labeling_by_keyword, label_check_out, label_short_comment, label_positive_comment]
@@ -276,9 +292,9 @@ for column in label_frame.columns:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orge6e2690">
-<h4 id="orge6e2690">Training the Label Model</h4>
-<div class="outline-text-4" id="text-orge6e2690">
+<div class="outline-4" id="outline-container-org0cd4381">
+<h4 id="org0cd4381">Training the Label Model</h4>
+<div class="outline-text-4" id="text-org0cd4381">
 <div class="highlight">
 <pre><span></span>label_model = LabelModel(cardinality=2, verbose=True)
 label_model.fit(label_matrix, n_epochs=500, log_freq=50, seed=0)
@@ -322,6 +338,165 @@ CountPercentage(train.label)()
 </tr>
 </tbody>
 </table>
+<div class="highlight">
+<pre><span></span>matched = sum(train.label == train.CLASS)
+print(f"{matched/len(train): .2f}")
+</pre></div>
+<pre class="example">
+0.51
+</pre>
+<p>Of those that were matched, only a little more than half agree with the labels given by the dataset creators.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org732c7fd">
+<h3 id="org732c7fd">Data Augmentation</h3>
+<div class="outline-text-3" id="text-org732c7fd">
+<p>We're going to create new entries in the data by randomly replacing words with their synonyms.</p>
+</div>
+<div class="outline-4" id="outline-container-orgd606c51">
+<h4 id="orgd606c51">Synonym Lookup Function</h4>
+<div class="outline-text-4" id="text-orgd606c51">
+<div class="highlight">
+<pre><span></span>def synonyms_for(word: str) -&gt; list:
+    """get synonyms for word"""
+    lemmas = set().union(*[synset.lemmas() for synset in wordnet.synsets(word)])
+    return list(set(lemma.name().lower().replace("_" , " ") for lemma in lemmas) - {word})
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org8e8b67d">
+<h4 id="org8e8b67d">The Transformation Function</h4>
+<div class="outline-text-4" id="text-org8e8b67d">
+<div class="highlight">
+<pre><span></span>@transformation_function()
+def replace_word_with_synonym(comment: pandas.Series) -&gt; pandas.Series:
+    """Replace one of the words with a synonym
+
+    Args:
+     comment: row with a comment
+
+    Returns:
+     comment with a word replaced
+    """
+    tokens = comment.CONTENT.lower().split()
+    index = random.choice(range(len(tokens)))
+    synonyms = synonyms_for(tokens[index])
+    if synonyms:
+        comment.CONTENT = " ".join(tokens[:index] + [synonyms[0]] + tokens[index + 1 :])
+    return comment
+</pre></div>
+<div class="highlight">
+<pre><span></span>transform_policy = ApplyOnePolicy(n_per_original=2, keep_original=True)
+transform_applier = PandasTFApplier([replace_word_with_synonym], transform_policy)
+train_augmented = transform_applier.apply(train, progress_bar=False)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(train_augmented[:3].CONTENT)
+</pre></div>
+<pre class="example">
+415           very good song:)﻿
+415    very respectable song:)﻿
+415           very good song:)﻿
+Name: CONTENT, dtype: object
+</pre>
+<p>Because it's random, we don't always end up with different content.</p>
+<div class="highlight">
+<pre><span></span>print(f"{len(train_augmented):,}")
+train_augmented = train_augmented.drop_duplicates(subset="CONTENT")
+print(f"{len(train_augmented):,}")
+print(f"{len(train):,}")
+</pre></div>
+<pre class="example">
+2,349
+1,357
+783
+</pre>
+<p>So we added some content.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org8a6f1e5">
+<h3 id="org8a6f1e5">Slicing</h3>
+<div class="outline-text-3" id="text-org8a6f1e5">
+<p>A <i>slice</i> is a subset of the data - in this case we want to identify slices that might be more important than others. In this case we're going to assume that we've identified that short links are more likely to be malicious, so we want to be more aware of them.</p>
+<div class="highlight">
+<pre><span></span>@slicing_function()
+def short_link(comment: pandas.Series) -&gt; int:
+    """checks for shortened links in the comment
+
+    Args:
+     comment: row with comment in it
+
+    Returns:
+     1 if short-link detected, 0 otherwise
+    """
+    return int(bool(re.search(r"\w+\.ly", comment.CONTENT)))
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgccd254a">
+<h3 id="orgccd254a">Train A Classifier</h3>
+<div class="outline-text-3" id="text-orgccd254a">
+<div class="highlight">
+<pre><span></span>training_text = train_augmented.CONTENT.tolist()
+vectorizer = CountVectorizer(ngram_range=(1, 2))
+x_train = vectorizer.fit_transform(training_text)
+
+classifier = LogisticRegression(solver="lbfgs")
+classifier.fit(x_train, train_augmented.label.values)
+</pre></div>
+<div class="highlight">
+<pre><span></span>development_test = vectorizer.transform(development.CONTENT)
+development["predicted"] = classifier.predict(development_test)
+
+print(f"{sum(development.CLASS == development.predicted)/len(development):.2f}")
+</pre></div>
+<pre class="example">
+0.54
+</pre>
+<p>So our model is almost random.</p>
+<div class="highlight">
+<pre><span></span>print(metrics.classification_report(development.CLASS, development.predicted, target_names=["not spam", "spam"]))
+</pre></div>
+<pre class="example">
+              precision    recall  f1-score   support
+
+    not spam       0.56      0.61      0.58       194
+        spam       0.51      0.45      0.48       173
+
+    accuracy                           0.54       367
+   macro avg       0.53      0.53      0.53       367
+weighted avg       0.53      0.54      0.53       367
+
+</pre></div>
+<div class="outline-4" id="outline-container-org20e9639">
+<h4 id="org20e9639">Training on the Original Labels</h4>
+<div class="outline-text-4" id="text-org20e9639">
+<div class="highlight">
+<pre><span></span>vectorizer = CountVectorizer(ngram_range=(1, 2))
+x_train = vectorizer.fit_transform(train.CONTENT)
+
+classifier = LogisticRegression(solver="lbfgs")
+classifier.fit(x_train, train.CLASS.values)
+
+development_test = vectorizer.transform(development.CONTENT)
+predicted = classifier.predict(development_test)
+
+print(metrics.classification_report(development.CLASS, predicted, target_names=["not spam", "spam"]))
+</pre></div>
+<pre class="example">
+              precision    recall  f1-score   support
+
+    not spam       0.91      0.97      0.94       194
+        spam       0.97      0.90      0.93       173
+
+    accuracy                           0.94       367
+   macro avg       0.94      0.94      0.94       367
+weighted avg       0.94      0.94      0.94       367
+
+</pre>
+<p>So our self-labeled data set really hurt the performance, but this was the Getting Started tutorial, so it was meant to be just a skimming of what the basic procedure is, hopefully tuning the labeling and transformations more would improve the performance.</p>
 </div>
 </div>
 </div>
@@ -543,6 +718,49 @@ if the null hypothesis of zero difference is true.
 To get the results of all valid statistical tests, use `.cohens_d.statistical_tests`
 </pre>
 <p>In this case the Cohen's d and Hedges g look similar.</p>
+</div>
+</div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/libraries/a-first-look-at-dabest/">A First Look At DABEST</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/libraries/a-first-look-at-dabest/" rel="bookmark"><time class="published dt-published" datetime="2019-12-15T23:18:50-08:00" itemprop="datePublished" title="2019-12-15 23:18">2019-12-15 23:18</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/libraries/a-first-look-at-dabest/#orgc1a8a9e">Beginning</a>
+<ul>
+<li><a href="/posts/libraries/a-first-look-at-dabest/#org2e82353">Imports</a>
+<ul>
+<li><a href="/posts/libraries/a-first-look-at-dabest/#orgfd82f5d">PyPi</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc1a8a9e">
+<h2 id="orgc1a8a9e">Beginning</h2>
+<div class="outline-text-2" id="text-orgc1a8a9e"></div>
+<div class="outline-3" id="outline-container-org2e82353">
+<h3 id="org2e82353">Imports</h3>
+<div class="outline-text-3" id="text-org2e82353"></div>
+<div class="outline-4" id="outline-container-orgfd82f5d">
+<h4 id="orgfd82f5d">PyPi</h4>
+<div class="outline-text-4" id="text-orgfd82f5d">
+<div class="highlight">
+<pre><span></span>from sklearn.datasets import load_iris
+</pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -1822,232 +2040,6 @@ Sum: 2305
 <div class="outline-text-2" id="text-org1489652">
 <p>Although I normally use <code>requests</code> or <code>requests-html</code>, I must say that the <code>urllib</code> version with <a href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/">BeautifulSoup</a> for this particular exercise wasn't much different.</p>
 </div>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="/posts/web-scraping/web-scraping-assignment-2/">Web Scraping Assignment 2</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="/posts/web-scraping/web-scraping-assignment-2/" rel="bookmark"><time class="published dt-published" datetime="2019-08-02T13:43:01-07:00" itemprop="datePublished" title="2019-08-02 13:43">2019-08-02 13:43</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org3b6c88f">Beginning</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org7d02c94">Imports</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org24bb971">Python</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgb2622bb">PyPi</a></li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orge701625">Setup</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org9d25631">The URL</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orga2041b8">Middle</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org1b3bf5b">The Sample Exercise</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org5793dc9">The Easy Way</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#org20a1352">The Slightly Less Easy Way</a></li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgd8341f2">The Real One</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgf8dc8c8">The Easy Way</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgcc4147c">The Assignment Way</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-2/#orgd275add">End</a></li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org3b6c88f">
-<h2 id="org3b6c88f">Beginning</h2>
-<div class="outline-text-2" id="text-org3b6c88f">
-<p>The goal of this exercise is to crawl through a set of anchor links to get a particular name stored in the <i>nth</i> anchor tag. The assignment specifically says to use <a href="https://docs.python.org/3/library/urllib.html">urllib</a> but, if you go to the documentation for <a href="https://docs.python.org/3/library/urllib.request.html#module-urllib.request">urllib.request</a> it tells you to use to use <a href="https://2.python-requests.org/en/master/">requests</a>, which, if you go to its documentation says that it's in maintenance mode while work is being done on <a href="https://3.python-requests.org/">Requests III</a>… anyway, I like using <a href="https://html.python-requests.org/">Requests-HTML</a> so I'll use that and urllib side-by-side.</p>
-</div>
-<div class="outline-3" id="outline-container-org7d02c94">
-<h3 id="org7d02c94">Imports</h3>
-<div class="outline-text-3" id="text-org7d02c94"></div>
-<div class="outline-4" id="outline-container-org24bb971">
-<h4 id="org24bb971">Python</h4>
-<div class="outline-text-4" id="text-org24bb971">
-<div class="highlight">
-<pre><span></span><span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">urllib</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-orgb2622bb">
-<h4 id="orgb2622bb">PyPi</h4>
-<div class="outline-text-4" id="text-orgb2622bb">
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
-<span class="kn">from</span> <span class="nn">requests_html</span> <span class="kn">import</span> <span class="n">HTMLSession</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-orge701625">
-<h3 id="orge701625">Setup</h3>
-<div class="outline-text-3" id="text-orge701625"></div>
-<div class="outline-4" id="outline-container-org9d25631">
-<h4 id="org9d25631">The URL</h4>
-<div class="outline-text-4" id="text-org9d25631">
-<div class="highlight">
-<pre><span></span><span class="n">BASE_URL</span> <span class="o">=</span> <span class="s2">"http://py4e-data.dr-chuck.net/known_by_"</span>
-<span class="n">SAMPLE_URL</span> <span class="o">=</span> <span class="n">f</span><span class="s2">"{BASE_URL}Fikret.html"</span>
-<span class="n">ASSIGNMENT_URL</span> <span class="o">=</span> <span class="n">f</span><span class="s2">"{BASE_URL}Abdalroof.html"</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orga2041b8">
-<h2 id="orga2041b8">Middle</h2>
-<div class="outline-text-2" id="text-orga2041b8"></div>
-<div class="outline-3" id="outline-container-org1b3bf5b">
-<h3 id="org1b3bf5b">The Sample Exercise</h3>
-<div class="outline-text-3" id="text-org1b3bf5b"></div>
-<div class="outline-4" id="outline-container-org5793dc9">
-<h4 id="org5793dc9">The Easy Way</h4>
-<div class="outline-text-4" id="text-org5793dc9">
-<div class="highlight">
-<pre><span></span><span class="n">session</span> <span class="o">=</span> <span class="n">HTMLSession</span><span class="p">()</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SAMPLE_URL</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">ok</span>
-
-<span class="n">expression</span> <span class="o">=</span> <span class="s2">"_(?P&lt;name&gt;[^_.]+).html"</span>
-<span class="n">expression</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {expression.search(SAMPLE_URL).group('name')}"</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">hop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-    <span class="n">links</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">"a"</span><span class="p">)</span>
-
-    <span class="n">link_element</span> <span class="o">=</span> <span class="n">links</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {link_element.text}"</span><span class="p">)</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">link_element</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"href"</span><span class="p">])</span>
-
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Final Answer: {link_element.text}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-Name: Fikret
-Name: Montgomery
-Name: Mhairade
-Name: Butchi
-Name: Anayah
-Final Answer: Anayah
-
-</pre></div>
-</div>
-<div class="outline-4" id="outline-container-org20a1352">
-<h4 id="org20a1352">The Slightly Less Easy Way</h4>
-<div class="outline-text-4" id="text-org20a1352">
-<div class="highlight">
-<pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">SAMPLE_URL</span><span class="p">)</span>
-
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {expression.search(SAMPLE_URL).group('name')}"</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">hop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-   <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="s2">"html.parser"</span><span class="p">)</span>
-   <span class="n">link_element</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">"a"</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span> 
-   <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {link_element.text}"</span><span class="p">)</span>
-   <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">link_element</span><span class="p">[</span><span class="s2">"href"</span><span class="p">])</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Final Answer: {link_element.text}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-Name: Fikret
-Name: Montgomery
-Name: Mhairade
-Name: Butchi
-Name: Anayah
-
-Final Answer: Anayah
-
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-orgd8341f2">
-<h3 id="orgd8341f2">The Real One</h3>
-<div class="outline-text-3" id="text-orgd8341f2"></div>
-<div class="outline-4" id="outline-container-orgf8dc8c8">
-<h4 id="orgf8dc8c8">The Easy Way</h4>
-<div class="outline-text-4" id="text-orgf8dc8c8">
-<div class="highlight">
-<pre><span></span><span class="n">session</span> <span class="o">=</span> <span class="n">HTMLSession</span><span class="p">()</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ASSIGNMENT_URL</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">ok</span>
-
-<span class="n">expression</span> <span class="o">=</span> <span class="s2">"_(?P&lt;name&gt;[^_.]+).html"</span>
-<span class="n">expression</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {expression.search(ASSIGNMENT_URL).group('name')}"</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">hop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">7</span><span class="p">):</span>
-    <span class="n">links</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">"a"</span><span class="p">)</span>
-
-    <span class="n">link_element</span> <span class="o">=</span> <span class="n">links</span><span class="p">[</span><span class="mi">17</span><span class="p">]</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {link_element.text}"</span><span class="p">)</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">link_element</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"href"</span><span class="p">])</span>
-
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Final Answer: {link_element.text}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-Name: Abdalroof
-Name: Billi
-Name: Jayse
-Name: Amaarah
-Name: Cesar
-Name: Rosheen
-Name: Mohamed
-Name: Kiara
-Final Answer: Kiara
-
-</pre></div>
-</div>
-<div class="outline-4" id="outline-container-orgcc4147c">
-<h4 id="orgcc4147c">The Assignment Way</h4>
-<div class="outline-text-4" id="text-orgcc4147c">
-<div class="highlight">
-<pre><span></span><span class="n">HOPS</span> <span class="o">=</span> <span class="mi">7</span>
-<span class="n">FIND_AT_INDEX</span> <span class="o">=</span> <span class="mi">18</span> <span class="o">-</span> <span class="mi">1</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">ASSIGNMENT_URL</span><span class="p">)</span>
-
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {expression.search(ASSIGNMENT_URL).group('name')}"</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">hop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">HOPS</span><span class="p">):</span>
-   <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="s2">"html.parser"</span><span class="p">)</span>
-   <span class="n">link_element</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">"a"</span><span class="p">)[</span><span class="n">FIND_AT_INDEX</span><span class="p">]</span> 
-   <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Name: {link_element.text}"</span><span class="p">)</span>
-   <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">link_element</span><span class="p">[</span><span class="s2">"href"</span><span class="p">])</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Final Answer: {link_element.text}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-Name: Abdalroof
-Name: Billi
-Name: Jayse
-Name: Amaarah
-Name: Cesar
-Name: Rosheen
-Name: Mohamed
-Name: Kiara
-
-Final Answer: Kiara
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgd275add">
-<h2 id="orgd275add">End</h2>
 </div>
 </div>
 </article>
