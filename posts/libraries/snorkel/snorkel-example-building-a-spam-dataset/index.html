@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="A walk-through of the Snorkel you-tube comments example." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Snorkel Example: Building a Spam Dataset | Visions, Voices, Data</title>
+<link href="../../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/" rel="canonical"><!--[if lt IE 9]><script src="../../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="../../../assets/javascript/p5.min.js" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="/posts/libraries/trying-out-dabest/" rel="prev" title="Trying out DABEST" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Snorkel Example: Building a Spam Dataset" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/" property="og:url">
+<meta content="A walk-through of the Snorkel you-tube comments example." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2020-01-06T17:40:40-08:00" property="article:published_time">
+<meta content="data labeling" property="article:tag">
+<meta content="snorkel" property="article:tag">
+<meta content="weak supervision" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="/archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="/categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="/rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="/pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"> <input name="k8" type="hidden" value="#444444"> <input name="k9" type="hidden" value="#D51920"> <input name="kt" type="hidden" value="h"> <input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"> <input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/">Snorkel Example: Building a Spam Dataset</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/" rel="bookmark"><time class="published dt-published" datetime="2020-01-06T17:40:40-08:00" itemprop="datePublished" title="2020-01-06 17:40">2020-01-06 17:40</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div class="outline-2" id="outline-container-org888a73e">
+<h2 id="org888a73e">Beginning</h2>
+<div class="outline-text-2" id="text-org888a73e">
+<p>This is a walk-through of the Snorkel <a href="https://www.snorkel.org/get-started/">Get Started</a> tutorial which shows how you can use it to build a labeled dataset. It uses the <a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/">YouTube Spam Collection</a> data set (downloaded from the <a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection">UCI Machine Learning Repository</a>). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns <code>COMMENT_ID</code>, <code>AUTHOR</code>, <code>DATE</code>, <code>CONTENT</code>, <code>TAG</code>. The tag represents whether it was considered <i>Spam</i> or not, so we'll pretend it isn't there for most of this walk-through.</p>
+</div>
+<div class="outline-3" id="outline-container-orga4d4166">
+<h3 id="orga4d4166">Imports</h3>
+<div class="outline-text-3" id="text-orga4d4166"></div>
+<div class="outline-4" id="outline-container-org2c87e08">
+<h4 id="org2c87e08">Python</h4>
+<div class="outline-text-4" id="text-org2c87e08">
+<div class="highlight">
+<pre><span></span>from argparse import Namespace
+from functools import partial
+from pathlib import Path
+import random
+import re
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgd1dc40d">
+<h4 id="orgd1dc40d">PyPi</h4>
+<div class="outline-text-4" id="text-orgd1dc40d">
+<div class="highlight">
+<pre><span></span>from nltk.corpus import wordnet
+from sklearn import metrics
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from snorkel.augmentation import ApplyOnePolicy, PandasTFApplier, transformation_function
+from snorkel.labeling import labeling_function, LabelModel, PandasLFApplier
+from snorkel.slicing import slicing_function
+from textblob import TextBlob
+import hvplot.pandas
+import nltk
+import pandas
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgcfd3fa6">
+<h4 id="orgcfd3fa6">Others</h4>
+<div class="outline-text-4" id="text-orgcfd3fa6">
+<div class="highlight">
+<pre><span></span>from graeae import CountPercentage, EmbedHoloviews
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgde1db4f">
+<h3 id="orgde1db4f">Set Up</h3>
+<div class="outline-text-3" id="text-orgde1db4f"></div>
+<div class="outline-4" id="outline-container-org3402793">
+<h4 id="org3402793">The WordNet Corpus</h4>
+<div class="outline-text-4" id="text-org3402793">
+<div class="highlight">
+<pre><span></span>nltk.download("wordnet", quiet=True)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgd889079">
+<h4 id="orgd889079">Plotting</h4>
+<div class="outline-text-4" id="text-orgd889079">
+<div class="highlight">
+<pre><span></span>Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orga0d256f">
+<h4 id="orga0d256f">The Dataset</h4>
+<div class="outline-text-4" id="text-orga0d256f">
+<p>The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a <code>artist</code> column.</p>
+<div class="highlight">
+<pre><span></span>path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
+sets = []
+for name in path.glob("*.csv"):
+    artist = name.stem.split()[-1]
+    data = pandas.read_csv(name)
+    data["artist"] = artist
+    sets.append(data)
+    print(artist)
+data = pandas.concat(sets)
+</pre></div>
+<pre class="example">
+KatyPerry
+LMFAO
+Eminem
+Shakira
+Psy
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-orgf7c88bd">
+<h4 id="orgf7c88bd">Splitting the Set</h4>
+<div class="outline-text-4" id="text-orgf7c88bd">
+<div class="highlight">
+<pre><span></span>train, test = train_test_split(data)
+print(train.shape)
+print(test.shape)
+
+train, development = train_test_split(train)
+validation, test = train_test_split(test)
+print(train.shape)
+print(development.shape)
+print(validation.shape)
+print(test.shape)
+</pre></div>
+<pre class="example">
+(1467, 6)
+(489, 6)
+(1100, 6)
+(367, 6)
+(366, 6)
+(123, 6)
+</pre>
+<div class="highlight">
+<pre><span></span>grouped = train.groupby(["artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count").opts(title="Comments by Artist", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist")()
+</pre></div>
+<object data="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/comments_by_artist.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span>grouped = train.groupby(["artist", "CLASS"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count", by="CLASS").opts(title="Comments by Artist and Class", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist_and_class")()
+</pre></div>
+<object data="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/comments_by_artist_and_class.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>I said earlier that the spam/not-spam column was named tag, but its named <code>CLASS</code> here, I don't know where the switch came (it says <code>TAG</code> on the UCI page).</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org668f898">
+<h3 id="org668f898">Labeling Functions</h3>
+<div class="outline-text-3" id="text-org668f898">
+<p>Labeling functions output a label for values in the training set.</p>
+</div>
+<div class="outline-4" id="outline-container-org2e61d21">
+<h4 id="org2e61d21">Labels</h4>
+<div class="outline-text-4" id="text-org2e61d21">
+<div class="highlight">
+<pre><span></span>Label = Namespace(
+    abstain = -1,
+    not_spam = 0,
+    spam = 1,
+)
+</pre></div>
+<p>The actual data-set only has spam/not-spam classes, but the Snorkel tutorial adds the <code>abstain</code> class as well. Each function is going to be passed a row from the training dataframe, so the class name you use has to match it.</p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgfcf4da0">
+<h4 id="orgfcf4da0">Keyword Matching</h4>
+<div class="outline-text-4" id="text-orgfcf4da0">
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def labeling_by_keyword(comment: pandas.Series) -&gt; int:
+    """Assume if the author refers to something he/she owns it's spam
+
+    Args: 
+     row with comment CONTENT
+
+    Returns:
+     label for the comment
+    """
+    return Label.spam if "my" in comment.CONTENT.lower() else Label.abstain
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org581d49f">
+<h4 id="org581d49f">Regular Expressions</h4>
+<div class="outline-text-4" id="text-org581d49f">
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def label_check_out(comment) -&gt; int:
+    """check my/it/the out will be spam"""
+    return Label.spam if re.search(r"check.*out", comment.CONTENT, flags=re.I) else Label.abstain
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgd0041dc">
+<h4 id="orgd0041dc">Short Comments</h4>
+<div class="outline-text-4" id="text-orgd0041dc">
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def label_short_comment(comment) -&gt; int:
+    """if a comment is short it's probably not spam"""
+    return Label.not_spam if len(comment.CONTENT.split()) &lt; 5 else Label.abstain
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org115ae08">
+<h4 id="org115ae08">Positive Comments</h4>
+<div class="outline-text-4" id="text-org115ae08">
+<p>Here we'll use <a href="https://textblob.readthedocs.io/en/dev/">textblob</a> to try and decide on whether a comment is positive (textblob uses <a href="https://www.clips.uantwerpen.be/pattern">pattern</a> to decide on the polarity.)</p>
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def label_positive_comment(comment) -&gt; int:
+    """If a comment is positive, we'll accept it"""
+    return Label.not_spam if TextBlob(comment.CONTENT).sentiment.polarity &gt; 0.3 else Label.abstain
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org35dcf7b">
+<h4 id="org35dcf7b">Combining the Functions and Cleaning the Labels</h4>
+<div class="outline-text-4" id="text-org35dcf7b">
+<p>First I'll create a list of the labeling functions so that we can pass it to the label-applier class.</p>
+<div class="highlight">
+<pre><span></span>labeling_functions = [labeling_by_keyword, label_check_out, label_short_comment, label_positive_comment]
+</pre></div>
+<p>Now create the applier.</p>
+<div class="highlight">
+<pre><span></span>applier = PandasLFApplier(labeling_functions)
+</pre></div>
+<p>Now create it.</p>
+<div class="highlight">
+<pre><span></span>label_matrix = applier.apply(train, progress_bar=False)
+
+print(label_matrix.shape)
+print(train.shape)
+</pre></div>
+<pre class="example">
+(1100, 4)
+(1100, 6)
+</pre>
+<p>The label-matrix has one row for each of the comments in our training set and one column for each of our labeling functions.</p>
+<div class="highlight">
+<pre><span></span>label_frame = pandas.DataFrame(label_matrix, columns=["keyword", "check_out", "short", "positive"])
+</pre></div>
+<div class="highlight">
+<pre><span></span>re_framed = {}
+
+for column in label_frame.columns:
+    re_framed[column] = 
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org0cd4381">
+<h4 id="org0cd4381">Training the Label Model</h4>
+<div class="outline-text-4" id="text-org0cd4381">
+<div class="highlight">
+<pre><span></span>label_model = LabelModel(cardinality=2, verbose=True)
+label_model.fit(label_matrix, n_epochs=500, log_freq=50, seed=0)
+train["label"] = label_model.predict(L=label_matrix, tie_break_policy="abstain")
+</pre></div>
+<div class="highlight">
+<pre><span></span>grouped = train.groupby(["label", "artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "count"})
+plot = grouped.hvplot.bar(x="label", y="count", by="artist").opts(title="Label Counts", height=800, width=1000)
+Embed(plot=plot, file_name="label_counts")()
+</pre></div>
+<object data="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/label_counts.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>Most comments were labeled spam or not-spam, but some were abstained. In order to move on to the next section, we'll drop the rows where an opinion about the label was abstained.</p>
+<div class="highlight">
+<pre><span></span>train = train[train.label != Label.abstain]
+CountPercentage(train.label)()
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-right" scope="col">Value</th>
+<th class="org-right" scope="col">Count</th>
+<th class="org-right" scope="col">Percent (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">0</td>
+<td class="org-right">419</td>
+<td class="org-right">53.51</td>
+</tr>
+<tr>
+<td class="org-right">1</td>
+<td class="org-right">364</td>
+<td class="org-right">46.49</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span>matched = sum(train.label == train.CLASS)
+print(f"{matched/len(train): .2f}")
+</pre></div>
+<pre class="example">
+0.51
+</pre>
+<p>Of those that were matched, only a little more than half agree with the labels given by the dataset creators.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org732c7fd">
+<h3 id="org732c7fd">Data Augmentation</h3>
+<div class="outline-text-3" id="text-org732c7fd">
+<p>We're going to create new entries in the data by randomly replacing words with their synonyms.</p>
+</div>
+<div class="outline-4" id="outline-container-orgd606c51">
+<h4 id="orgd606c51">Synonym Lookup Function</h4>
+<div class="outline-text-4" id="text-orgd606c51">
+<div class="highlight">
+<pre><span></span>def synonyms_for(word: str) -&gt; list:
+    """get synonyms for word"""
+    lemmas = set().union(*[synset.lemmas() for synset in wordnet.synsets(word)])
+    return list(set(lemma.name().lower().replace("_" , " ") for lemma in lemmas) - {word})
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org8e8b67d">
+<h4 id="org8e8b67d">The Transformation Function</h4>
+<div class="outline-text-4" id="text-org8e8b67d">
+<div class="highlight">
+<pre><span></span>@transformation_function()
+def replace_word_with_synonym(comment: pandas.Series) -&gt; pandas.Series:
+    """Replace one of the words with a synonym
+
+    Args:
+     comment: row with a comment
+
+    Returns:
+     comment with a word replaced
+    """
+    tokens = comment.CONTENT.lower().split()
+    index = random.choice(range(len(tokens)))
+    synonyms = synonyms_for(tokens[index])
+    if synonyms:
+        comment.CONTENT = " ".join(tokens[:index] + [synonyms[0]] + tokens[index + 1 :])
+    return comment
+</pre></div>
+<div class="highlight">
+<pre><span></span>transform_policy = ApplyOnePolicy(n_per_original=2, keep_original=True)
+transform_applier = PandasTFApplier([replace_word_with_synonym], transform_policy)
+train_augmented = transform_applier.apply(train, progress_bar=False)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(train_augmented[:3].CONTENT)
+</pre></div>
+<pre class="example">
+415           very good song:)﻿
+415    very respectable song:)﻿
+415           very good song:)﻿
+Name: CONTENT, dtype: object
+</pre>
+<p>Because it's random, we don't always end up with different content.</p>
+<div class="highlight">
+<pre><span></span>print(f"{len(train_augmented):,}")
+train_augmented = train_augmented.drop_duplicates(subset="CONTENT")
+print(f"{len(train_augmented):,}")
+print(f"{len(train):,}")
+</pre></div>
+<pre class="example">
+2,349
+1,357
+783
+</pre>
+<p>So we added some content.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org8a6f1e5">
+<h3 id="org8a6f1e5">Slicing</h3>
+<div class="outline-text-3" id="text-org8a6f1e5">
+<p>A <i>slice</i> is a subset of the data - in this case we want to identify slices that might be more important than others. In this case we're going to assume that we've identified that short links are more likely to be malicious, so we want to be more aware of them.</p>
+<div class="highlight">
+<pre><span></span>@slicing_function()
+def short_link(comment: pandas.Series) -&gt; int:
+    """checks for shortened links in the comment
+
+    Args:
+     comment: row with comment in it
+
+    Returns:
+     1 if short-link detected, 0 otherwise
+    """
+    return int(bool(re.search(r"\w+\.ly", comment.CONTENT)))
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgccd254a">
+<h3 id="orgccd254a">Train A Classifier</h3>
+<div class="outline-text-3" id="text-orgccd254a">
+<div class="highlight">
+<pre><span></span>training_text = train_augmented.CONTENT.tolist()
+vectorizer = CountVectorizer(ngram_range=(1, 2))
+x_train = vectorizer.fit_transform(training_text)
+
+classifier = LogisticRegression(solver="lbfgs")
+classifier.fit(x_train, train_augmented.label.values)
+</pre></div>
+<div class="highlight">
+<pre><span></span>development_test = vectorizer.transform(development.CONTENT)
+development["predicted"] = classifier.predict(development_test)
+
+print(f"{sum(development.CLASS == development.predicted)/len(development):.2f}")
+</pre></div>
+<pre class="example">
+0.54
+</pre>
+<p>So our model is almost random.</p>
+<div class="highlight">
+<pre><span></span>print(metrics.classification_report(development.CLASS, development.predicted, target_names=["not spam", "spam"]))
+</pre></div>
+<pre class="example">
+              precision    recall  f1-score   support
+
+    not spam       0.56      0.61      0.58       194
+        spam       0.51      0.45      0.48       173
+
+    accuracy                           0.54       367
+   macro avg       0.53      0.53      0.53       367
+weighted avg       0.53      0.54      0.53       367
+
+</pre></div>
+<div class="outline-4" id="outline-container-org20e9639">
+<h4 id="org20e9639">Training on the Original Labels</h4>
+<div class="outline-text-4" id="text-org20e9639">
+<div class="highlight">
+<pre><span></span>vectorizer = CountVectorizer(ngram_range=(1, 2))
+x_train = vectorizer.fit_transform(train.CONTENT)
+
+classifier = LogisticRegression(solver="lbfgs")
+classifier.fit(x_train, train.CLASS.values)
+
+development_test = vectorizer.transform(development.CONTENT)
+predicted = classifier.predict(development_test)
+
+print(metrics.classification_report(development.CLASS, predicted, target_names=["not spam", "spam"]))
+</pre></div>
+<pre class="example">
+              precision    recall  f1-score   support
+
+    not spam       0.91      0.97      0.94       194
+        spam       0.97      0.90      0.93       173
+
+    accuracy                           0.94       367
+   macro avg       0.94      0.94      0.94       367
+weighted avg       0.94      0.94      0.94       367
+
+</pre>
+<p>So our self-labeled data set really hurt the performance, but this was the Getting Started tutorial, so it was meant to be just a skimming of what the basic procedure is, hopefully tuning the labeling and transformations more would improve the performance.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="/categories/data-labeling/" rel="tag">data labeling</a></li>
+<li><a class="tag p-category" href="/categories/snorkel/" rel="tag">snorkel</a></li>
+<li><a class="tag p-category" href="/categories/weak-supervision/" rel="tag">weak supervision</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="/posts/libraries/trying-out-dabest/" rel="prev" title="Trying out DABEST">Previous post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2020 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script> 
+</body>
+</html>

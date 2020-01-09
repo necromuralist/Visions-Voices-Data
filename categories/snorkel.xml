@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data (Posts about snorkel)</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description></description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/categories/snorkel.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Thu, 09 Jan 2020 23:33:12 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Snorkel Example: Building a Spam Dataset</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="outline-container-org888a73e" class="outline-2"&gt;
+&lt;h2 id="org888a73e"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org888a73e"&gt;
+&lt;p&gt;
+This is a walk-through of the Snorkel &lt;a href="https://www.snorkel.org/get-started/"&gt;Get Started&lt;/a&gt; tutorial which shows how you can use it to build a labeled dataset. It uses the &lt;a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/"&gt;YouTube Spam Collection&lt;/a&gt; data set (downloaded from the &lt;a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection"&gt;UCI Machine Learning Repository&lt;/a&gt;). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns &lt;code&gt;COMMENT_ID&lt;/code&gt;, &lt;code&gt;AUTHOR&lt;/code&gt;, &lt;code&gt;DATE&lt;/code&gt;, &lt;code&gt;CONTENT&lt;/code&gt;, &lt;code&gt;TAG&lt;/code&gt;. The tag represents whether it was considered &lt;i&gt;Spam&lt;/i&gt; or not, so we'll pretend it isn't there for most of this walk-through.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orga4d4166" class="outline-3"&gt;
+&lt;h3 id="orga4d4166"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orga4d4166"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org2c87e08" class="outline-4"&gt;
+&lt;h4 id="org2c87e08"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2c87e08"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from argparse import Namespace
+from functools import partial
+from pathlib import Path
+import random
+import re
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgd1dc40d" class="outline-4"&gt;
+&lt;h4 id="orgd1dc40d"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd1dc40d"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from nltk.corpus import wordnet
+from sklearn import metrics
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from snorkel.augmentation import ApplyOnePolicy, PandasTFApplier, transformation_function
+from snorkel.labeling import labeling_function, LabelModel, PandasLFApplier
+from snorkel.slicing import slicing_function
+from textblob import TextBlob
+import hvplot.pandas
+import nltk
+import pandas
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgcfd3fa6" class="outline-4"&gt;
+&lt;h4 id="orgcfd3fa6"&gt;Others&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgcfd3fa6"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from graeae import CountPercentage, EmbedHoloviews
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgde1db4f" class="outline-3"&gt;
+&lt;h3 id="orgde1db4f"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgde1db4f"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org3402793" class="outline-4"&gt;
+&lt;h4 id="org3402793"&gt;The WordNet Corpus&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org3402793"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;nltk.download("wordnet", quiet=True)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgd889079" class="outline-4"&gt;
+&lt;h4 id="orgd889079"&gt;Plotting&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd889079"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orga0d256f" class="outline-4"&gt;
+&lt;h4 id="orga0d256f"&gt;The Dataset&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orga0d256f"&gt;
+&lt;p&gt;
+The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a &lt;code&gt;artist&lt;/code&gt; column.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
+sets = []
+for name in path.glob("*.csv"):
+    artist = name.stem.split()[-1]
+    data = pandas.read_csv(name)
+    data["artist"] = artist
+    sets.append(data)
+    print(artist)
+data = pandas.concat(sets)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+KatyPerry
+LMFAO
+Eminem
+Shakira
+Psy
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div id="outline-container-orgf7c88bd" class="outline-4"&gt;
+&lt;h4 id="orgf7c88bd"&gt;Splitting the Set&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgf7c88bd"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;train, test = train_test_split(data)
+print(train.shape)
+print(test.shape)
+
+train, development = train_test_split(train)
+validation, test = train_test_split(test)
+print(train.shape)
+print(development.shape)
+print(validation.shape)
+print(test.shape)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+(1467, 6)
+(489, 6)
+(1100, 6)
+(367, 6)
+(366, 6)
+(123, 6)
+&lt;/pre&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grouped = train.groupby(["artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count").opts(title="Comments by Artist", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist")()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/comments_by_artist.html" style="width:100%" height="800"&gt;
+  &lt;p&gt;Figure Missing&lt;/p&gt;
+&lt;/object&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grouped = train.groupby(["artist", "CLASS"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count", by="CLASS").opts(title="Comments by Artist and Class", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist_and_class")()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/comments_by_artist_and_class.html" style="width:100%" height="800"&gt;
+  &lt;p&gt;Figure Missing&lt;/p&gt;
+&lt;/object&gt;
+
+&lt;p&gt;
+I said earlier that the spam/not-spam column was named tag, but its named &lt;code&gt;CLASS&lt;/code&gt; here, I don't know where the switch came (it says &lt;code&gt;TAG&lt;/code&gt; on the UCI page).
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div id="outline-container-org668f898" class="outline-3"&gt;
+&lt;h3 id="org668f898"&gt;Labeling Functions&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org668f898"&gt;
+&lt;p&gt;
+Labeling functions output a label for values in the training set.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org2e61d21" class="outline-4"&gt;
+&lt;h4 id="org2e61d21"&gt;Labels&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2e61d21"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Label = Namespace(
+    abstain = -1,
+    not_spam = 0,
+    spam = 1,
+)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+The actual data-set only has spam/not-spam classes, but the Snorkel tutorial adds the &lt;code&gt;abstain&lt;/code&gt; class as well. Each function is going to be passed a row from the training dataframe, so the class name you use has to match it.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgfcf4da0" class="outline-4"&gt;
+&lt;h4 id="orgfcf4da0"&gt;Keyword Matching&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgfcf4da0"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
+def labeling_by_keyword(comment: pandas.Series) -&amp;gt; int:
+    """Assume if the author refers to something he/she owns it's spam
+
+    Args: 
+     row with comment CONTENT
+
+    Returns:
+     label for the comment
+    """
+    return Label.spam if "my" in comment.CONTENT.lower() else Label.abstain
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org581d49f" class="outline-4"&gt;
+&lt;h4 id="org581d49f"&gt;Regular Expressions&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org581d49f"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
+def label_check_out(comment) -&amp;gt; int:
+    """check my/it/the out will be spam"""
+    return Label.spam if re.search(r"check.*out", comment.CONTENT, flags=re.I) else Label.abstain
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgd0041dc" class="outline-4"&gt;
+&lt;h4 id="orgd0041dc"&gt;Short Comments&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd0041dc"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
+def label_short_comment(comment) -&amp;gt; int:
+    """if a comment is short it's probably not spam"""
+    return Label.not_spam if len(comment.CONTENT.split()) &amp;lt; 5 else Label.abstain
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org115ae08" class="outline-4"&gt;
+&lt;h4 id="org115ae08"&gt;Positive Comments&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org115ae08"&gt;
+&lt;p&gt;
+Here we'll use &lt;a href="https://textblob.readthedocs.io/en/dev/"&gt;textblob&lt;/a&gt; to try and decide on whether a comment is positive (textblob uses &lt;a href="https://www.clips.uantwerpen.be/pattern"&gt;pattern&lt;/a&gt; to decide on the polarity.)
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
+def label_positive_comment(comment) -&amp;gt; int:
+    """If a comment is positive, we'll accept it"""
+    return Label.not_spam if TextBlob(comment.CONTENT).sentiment.polarity &amp;gt; 0.3 else Label.abstain
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org35dcf7b" class="outline-4"&gt;
+&lt;h4 id="org35dcf7b"&gt;Combining the Functions and Cleaning the Labels&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org35dcf7b"&gt;
+&lt;p&gt;
+First I'll create a list of the labeling functions so that we can pass it to the label-applier class.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;labeling_functions = [labeling_by_keyword, label_check_out, label_short_comment, label_positive_comment]
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Now create the applier.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;applier = PandasLFApplier(labeling_functions)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Now create it.
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;label_matrix = applier.apply(train, progress_bar=False)
+
+print(label_matrix.shape)
+print(train.shape)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+(1100, 4)
+(1100, 6)
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+The label-matrix has one row for each of the comments in our training set and one column for each of our labeling functions.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;label_frame = pandas.DataFrame(label_matrix, columns=["keyword", "check_out", "short", "positive"])
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;re_framed = {}
+
+for column in label_frame.columns:
+    re_framed[column] = 
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org0cd4381" class="outline-4"&gt;
+&lt;h4 id="org0cd4381"&gt;Training the Label Model&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org0cd4381"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;label_model = LabelModel(cardinality=2, verbose=True)
+label_model.fit(label_matrix, n_epochs=500, log_freq=50, seed=0)
+train["label"] = label_model.predict(L=label_matrix, tie_break_policy="abstain")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grouped = train.groupby(["label", "artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "count"})
+plot = grouped.hvplot.bar(x="label", y="count", by="artist").opts(title="Label Counts", height=800, width=1000)
+Embed(plot=plot, file_name="label_counts")()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/label_counts.html" style="width:100%" height="800"&gt;
+  &lt;p&gt;Figure Missing&lt;/p&gt;
+&lt;/object&gt;
+
+&lt;p&gt;
+Most comments were labeled spam or not-spam, but some were abstained. In order to move on to the next section, we'll drop the rows where an opinion about the label was abstained.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;train = train[train.label != Label.abstain]
+CountPercentage(train.label)()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
+
+
+&lt;colgroup&gt;
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope="col" class="org-right"&gt;Value&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Count&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Percent (%)&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;419&lt;/td&gt;
+&lt;td class="org-right"&gt;53.51&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;td class="org-right"&gt;364&lt;/td&gt;
+&lt;td class="org-right"&gt;46.49&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;matched = sum(train.label == train.CLASS)
+print(f"{matched/len(train): .2f}")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+0.51
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+Of those that were matched, only a little more than half agree with the labels given by the dataset creators.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org732c7fd" class="outline-3"&gt;
+&lt;h3 id="org732c7fd"&gt;Data Augmentation&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org732c7fd"&gt;
+&lt;p&gt;
+We're going to create new entries in the data by randomly replacing words with their synonyms.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgd606c51" class="outline-4"&gt;
+&lt;h4 id="orgd606c51"&gt;Synonym Lookup Function&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd606c51"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def synonyms_for(word: str) -&amp;gt; list:
+    """get synonyms for word"""
+    lemmas = set().union(*[synset.lemmas() for synset in wordnet.synsets(word)])
+    return list(set(lemma.name().lower().replace("_" , " ") for lemma in lemmas) - {word})
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org8e8b67d" class="outline-4"&gt;
+&lt;h4 id="org8e8b67d"&gt;The Transformation Function&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org8e8b67d"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@transformation_function()
+def replace_word_with_synonym(comment: pandas.Series) -&amp;gt; pandas.Series:
+    """Replace one of the words with a synonym
+
+    Args:
+     comment: row with a comment
+
+    Returns:
+     comment with a word replaced
+    """
+    tokens = comment.CONTENT.lower().split()
+    index = random.choice(range(len(tokens)))
+    synonyms = synonyms_for(tokens[index])
+    if synonyms:
+	comment.CONTENT = " ".join(tokens[:index] + [synonyms[0]] + tokens[index + 1 :])
+    return comment
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;transform_policy = ApplyOnePolicy(n_per_original=2, keep_original=True)
+transform_applier = PandasTFApplier([replace_word_with_synonym], transform_policy)
+train_augmented = transform_applier.apply(train, progress_bar=False)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(train_augmented[:3].CONTENT)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+415           very good song:)﻿
+415    very respectable song:)﻿
+415           very good song:)﻿
+Name: CONTENT, dtype: object
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+Because it's random, we don't always end up with different content.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(f"{len(train_augmented):,}")
+train_augmented = train_augmented.drop_duplicates(subset="CONTENT")
+print(f"{len(train_augmented):,}")
+print(f"{len(train):,}")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+2,349
+1,357
+783
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+So we added some content.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org8a6f1e5" class="outline-3"&gt;
+&lt;h3 id="org8a6f1e5"&gt;Slicing&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org8a6f1e5"&gt;
+&lt;p&gt;
+A &lt;i&gt;slice&lt;/i&gt; is a subset of the data - in this case we want to identify slices that might be more important than others. In this case we're going to assume that we've identified that short links are more likely to be malicious, so we want to be more aware of them.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@slicing_function()
+def short_link(comment: pandas.Series) -&amp;gt; int:
+    """checks for shortened links in the comment
+
+    Args:
+     comment: row with comment in it
+
+    Returns:
+     1 if short-link detected, 0 otherwise
+    """
+    return int(bool(re.search(r"\w+\.ly", comment.CONTENT)))
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgccd254a" class="outline-3"&gt;
+&lt;h3 id="orgccd254a"&gt;Train A Classifier&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgccd254a"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;training_text = train_augmented.CONTENT.tolist()
+vectorizer = CountVectorizer(ngram_range=(1, 2))
+x_train = vectorizer.fit_transform(training_text)
+
+classifier = LogisticRegression(solver="lbfgs")
+classifier.fit(x_train, train_augmented.label.values)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;development_test = vectorizer.transform(development.CONTENT)
+development["predicted"] = classifier.predict(development_test)
+
+print(f"{sum(development.CLASS == development.predicted)/len(development):.2f}")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+0.54
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+So our model is almost random.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(metrics.classification_report(development.CLASS, development.predicted, target_names=["not spam", "spam"]))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+              precision    recall  f1-score   support
+
+    not spam       0.56      0.61      0.58       194
+        spam       0.51      0.45      0.48       173
+
+    accuracy                           0.54       367
+   macro avg       0.53      0.53      0.53       367
+weighted avg       0.53      0.54      0.53       367
+
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org20e9639" class="outline-4"&gt;
+&lt;h4 id="org20e9639"&gt;Training on the Original Labels&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org20e9639"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;vectorizer = CountVectorizer(ngram_range=(1, 2))
+x_train = vectorizer.fit_transform(train.CONTENT)
+
+classifier = LogisticRegression(solver="lbfgs")
+classifier.fit(x_train, train.CLASS.values)
+
+development_test = vectorizer.transform(development.CONTENT)
+predicted = classifier.predict(development_test)
+
+print(metrics.classification_report(development.CLASS, predicted, target_names=["not spam", "spam"]))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+              precision    recall  f1-score   support
+
+    not spam       0.91      0.97      0.94       194
+        spam       0.97      0.90      0.93       173
+
+    accuracy                           0.94       367
+   macro avg       0.94      0.94      0.94       367
+weighted avg       0.94      0.94      0.94       367
+
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+So our self-labeled data set really hurt the performance, but this was the Getting Started tutorial, so it was meant to be just a skimming of what the basic procedure is, hopefully tuning the labeling and transformations more would improve the performance.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>data labeling</category><category>snorkel</category><category>weak supervision</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/</guid><pubDate>Tue, 07 Jan 2020 01:40:40 GMT</pubDate></item></channel></rss>
