@@ -19,21 +19,33 @@
 from argparse import Namespace
 from functools import partial
 from pathlib import Path
+import random
 import re
 #+end_src
 *** PyPi
 #+begin_src ipython :session snorkel :results none
+from nltk.corpus import wordnet
+from sklearn import metrics
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from snorkel.labeling import labeling_function
+from snorkel.augmentation import ApplyOnePolicy, PandasTFApplier, transformation_function
+from snorkel.labeling import labeling_function, LabelModel, PandasLFApplier
+from snorkel.slicing import slicing_function
 from textblob import TextBlob
 import hvplot.pandas
+import nltk
 import pandas
 #+end_src
 *** Others
 #+begin_src ipython :session snorkel :results none
-from graeae import EmbedHoloviews
+from graeae import CountPercentage, EmbedHoloviews
 #+end_src
 ** Set Up
+*** The WordNet Corpus
+#+begin_src ipython :session snorkel :results none
+nltk.download("wordnet", quiet=True)
+#+end_src
 *** Plotting
 #+begin_src ipython :session snorkel :results none
 Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
@@ -123,15 +135,22 @@ Label = Namespace(
 )
 #+end_src
 
-The actual data-set only has spam/not-spam classes, but the Snorkel tutorial adds the =abstain= class as well.
+The actual data-set only has spam/not-spam classes, but the Snorkel tutorial adds the =abstain= class as well. Each function is going to be passed a row from the training dataframe, so the class name you use has to match it.
 
 *** Keyword Matching
 
 #+begin_src ipython :session snorkel :results none
 @labeling_function()
-def labeling_by_keyword(comment) -> int:
-    """Assume if the author refers to something he/she owns it's spam"""
-    return Label.spam if "my" in comment.text.lower() else label.abstain
+def labeling_by_keyword(comment: pandas.Series) -> int:
+    """Assume if the author refers to something he/she owns it's spam
+
+    Args: 
+     row with comment CONTENT
+
+    Returns:
+     label for the comment
+    """
+    return Label.spam if "my" in comment.CONTENT.lower() else Label.abstain
 #+end_src
 
 *** Regular Expressions
@@ -140,7 +159,7 @@ def labeling_by_keyword(comment) -> int:
 @labeling_function()
 def label_check_out(comment) -> int:
     """check my/it/the out will be spam"""
-    return Label.spam if re.search(r"check.*out", comment.text, flags=re.I) else Label.abstain
+    return Label.spam if re.search(r"check.*out", comment.CONTENT, flags=re.I) else Label.abstain
 #+end_src
 
 *** Short Comments
@@ -148,7 +167,7 @@ def label_check_out(comment) -> int:
 @labeling_function()
 def label_short_comment(comment) -> int:
     """if a comment is short it's probably not spam"""
-    return Label.not_spam if len(comment.text.split()) < 5 else Label.abstain
+    return Label.not_spam if len(comment.CONTENT.split()) < 5 else Label.abstain
 #+end_src
 
 *** Positive Comments
@@ -158,5 +177,200 @@ def label_short_comment(comment) -> int:
 @labeling_function()
 def label_positive_comment(comment) -> int:
     """If a comment is positive, we'll accept it"""
-    return Label.not_spam if TextBlob(comment.text).sentiment.polarity > 0.3 else Label.abstain
+    return Label.not_spam if TextBlob(comment.CONTENT).sentiment.polarity > 0.3 else Label.abstain
 #+end_src
+*** Combining the Functions and Cleaning the Labels
+   First I'll create a list of the labeling functions so that we can pass it to the label-applier class.
+
+#+begin_src ipython :session snorkel :results none
+labeling_functions = [labeling_by_keyword, label_check_out, label_short_comment, label_positive_comment]
+#+end_src
+
+Now create the applier.
+
+#+begin_src ipython :session snorkel :results none
+applier = PandasLFApplier(labeling_functions)
+#+end_src
+
+Now create it.
+#+begin_src ipython :session snorkel :results output :exports both
+label_matrix = applier.apply(train, progress_bar=False)
+
+print(label_matrix.shape)
+print(train.shape)
+#+end_src
+
+#+RESULTS:
+: (1100, 4)
+: (1100, 6)
+
+The label-matrix has one row for each of the comments in our training set and one column for each of our labeling functions.
+
+#+begin_src ipython :session snorkel :results none
+label_frame = pandas.DataFrame(label_matrix, columns=["keyword", "check_out", "short", "positive"])
+#+end_src
+
+#+begin_src ipython :session snorkel :results none
+re_framed = {}
+
+for column in label_frame.columns:
+    re_framed[column] = 
+#+end_src
+
+*** Training the Label Model
+
+#+begin_src ipython :session snorkel :results none
+label_model = LabelModel(cardinality=2, verbose=True)
+label_model.fit(label_matrix, n_epochs=500, log_freq=50, seed=0)
+train["label"] = label_model.predict(L=label_matrix, tie_break_policy="abstain")
+#+end_src
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+grouped = train.groupby(["label", "artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "count"})
+plot = grouped.hvplot.bar(x="label", y="count", by="artist").opts(title="Label Counts", height=800, width=1000)
+Embed(plot=plot, file_name="label_counts")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="label_counts.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+Most comments were labeled spam or not-spam, but some were abstained. In order to move on to the next section, we'll drop the rows where an opinion about the label was abstained.
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+train = train[train.label != Label.abstain]
+CountPercentage(train.label)()
+#+end_src
+
+#+RESULTS:
+| Value | Count | Percent (%) |
+|-------+-------+-------------|
+|     0 |   419 |       53.51 |
+|     1 |   364 |       46.49 |
+
+#+begin_src ipython :session snorkel :results output :exports both
+matched = sum(train.label == train.CLASS)
+print(f"{matched/len(train): .2f}")
+#+end_src
+
+#+RESULTS:
+:  0.51
+
+Of those that were matched, only a little more than half agree with the labels given by the dataset creators.
+** Data Augmentation
+   We're going to create new entries in the data by randomly replacing words with their synonyms.
+*** Synonym Lookup Function
+#+begin_src ipython :session snorkel :results none
+def synonyms_for(word: str) -> list:
+    """get synonyms for word"""
+    lemmas = set().union(*[synset.lemmas() for synset in wordnet.synsets(word)])
+    return list(set(lemma.name().lower().replace("_" , " ") for lemma in lemmas) - {word})
+#+end_src
+
+*** The Transformation Function
+#+begin_src ipython :session snorkel :results none
+@transformation_function()
+def replace_word_with_synonym(comment: pandas.Series) -> pandas.Series:
+    """Replace one of the words with a synonym
+
+    Args:
+     comment: row with a comment
+    
+    Returns:
+     comment with a word replaced
+    """
+    tokens = comment.CONTENT.lower().split()
+    index = random.choice(range(len(tokens)))
+    synonyms = synonyms_for(tokens[index])
+    if synonyms:
+        comment.CONTENT = " ".join(tokens[:index] + [synonyms[0]] + tokens[index + 1 :])
+    return comment
+#+end_src
+
+#+begin_src ipython :session snorkel :results none
+transform_policy = ApplyOnePolicy(n_per_original=2, keep_original=True)
+transform_applier = PandasTFApplier([replace_word_with_synonym], transform_policy)
+train_augmented = transform_applier.apply(train, progress_bar=False)
+#+end_src
+
+#+begin_src ipython :session snorkel :results output :exports both
+print(train_augmented[:3].CONTENT)
+#+end_src
+
+#+RESULTS:
+: 415           very good song:)﻿
+: 415    very respectable song:)﻿
+: 415           very good song:)﻿
+: Name: CONTENT, dtype: object
+
+Because it's random, we don't always end up with different content.
+
+#+begin_src ipython :session snorkel :results output :exports both
+print(f"{len(train_augmented):,}")
+train_augmented = train_augmented.drop_duplicates(subset="CONTENT")
+print(f"{len(train_augmented):,}")
+print(f"{len(train):,}")
+#+end_src
+
+#+RESULTS:
+: 2,349
+: 1,357
+: 783
+
+So we added some content.
+** Slicing
+   A /slice/ is a subset of the data - in this case we want to identify slices that might be more important than others. In this case we're going to assume that we've identified that short links are more likely to be malicious, so we want to be more aware of them.
+
+#+begin_src ipython :session snorkel :results none
+@slicing_function()
+def short_link(comment: pandas.Series) -> int:
+    """checks for shortened links in the comment
+
+    Args:
+     comment: row with comment in it
+
+    Returns:
+     1 if short-link detected, 0 otherwise
+    """
+    return int(bool(re.search(r"\w+\.ly", comment.CONTENT)))
+#+end_src
+
+** Train A Classifier
+#+begin_src ipython :session snorkel :results none
+training_text = train_augmented.CONTENT.tolist()
+vectorizer = CountVectorizer(ngram_range=(1, 2))
+x_train = vectorizer.fit_transform(training_text)
+
+classifier = LogisticRegression(solver="lbfgs")
+classifier.fit(x_train, train_augmented.label.values)
+#+end_src
+
+#+begin_src ipython :session snorkel :results output :exports both
+development_test = vectorizer.transform(development.CONTENT)
+development["predicted"] = classifier.predict(development_test)
+
+print(f"{sum(development.CLASS == development.predicted)/len(development):.2f}")
+#+end_src
+
+#+RESULTS:
+: 0.54
+
+So our model is almost random.
+
+#+begin_src ipython :session snorkel :results output :exports both
+print(metrics.classification_report(development.CLASS, development.predicted, target_names=["not spam", "spam"]))
+#+end_src
+
+#+RESULTS:
+:               precision    recall  f1-score   support
+: 
+:     not spam       0.56      0.61      0.58       194
+:         spam       0.51      0.45      0.48       173
+: 
+:     accuracy                           0.54       367
+:    macro avg       0.53      0.53      0.53       367
+: weighted avg       0.53      0.54      0.53       367
+: 

@@ -55,56 +55,60 @@
 </div>
 </header>
 <div class="e-content entry-content">
-<div class="outline-2" id="outline-container-org24244ca">
-<h2 id="org24244ca">Beginning</h2>
-<div class="outline-text-2" id="text-org24244ca">
+<div class="outline-2" id="outline-container-org986c5b6">
+<h2 id="org986c5b6">Beginning</h2>
+<div class="outline-text-2" id="text-org986c5b6">
 <p>This is a walk-through of the Snorkel <a href="https://www.snorkel.org/get-started/">Get Started</a> tutorial which shows how you can use it to build a labeled dataset. It uses the <a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/">YouTube Spam Collection</a> data set (downloaded from the <a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection">UCI Machine Learning Repository</a>). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns <code>COMMENT_ID</code>, <code>AUTHOR</code>, <code>DATE</code>, <code>CONTENT</code>, <code>TAG</code>. The tag represents whether it was considered <i>Spam</i> or not, so we'll pretend it isn't there for most of this walk-through.</p>
 </div>
-<div class="outline-3" id="outline-container-org5fff57e">
-<h3 id="org5fff57e">Imports</h3>
-<div class="outline-text-3" id="text-org5fff57e"></div>
-<div class="outline-4" id="outline-container-org4ce3c66">
-<h4 id="org4ce3c66">Python</h4>
-<div class="outline-text-4" id="text-org4ce3c66">
+<div class="outline-3" id="outline-container-org149dbb7">
+<h3 id="org149dbb7">Imports</h3>
+<div class="outline-text-3" id="text-org149dbb7"></div>
+<div class="outline-4" id="outline-container-orga1876b8">
+<h4 id="orga1876b8">Python</h4>
+<div class="outline-text-4" id="text-orga1876b8">
 <div class="highlight">
-<pre><span></span>from functools import partial
+<pre><span></span>from argparse import Namespace
+from functools import partial
 from pathlib import Path
+import re
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org341e331">
-<h4 id="org341e331">PyPi</h4>
-<div class="outline-text-4" id="text-org341e331">
+<div class="outline-4" id="outline-container-org328295c">
+<h4 id="org328295c">PyPi</h4>
+<div class="outline-text-4" id="text-org328295c">
 <div class="highlight">
 <pre><span></span>from sklearn.model_selection import train_test_split
+from snorkel.labeling import labeling_function, LabelModel, PandasLFApplier
+from textblob import TextBlob
 import hvplot.pandas
 import pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org5a84173">
-<h4 id="org5a84173">Others</h4>
-<div class="outline-text-4" id="text-org5a84173">
+<div class="outline-4" id="outline-container-org018f22d">
+<h4 id="org018f22d">Others</h4>
+<div class="outline-text-4" id="text-org018f22d">
 <div class="highlight">
-<pre><span></span>from graeae import EmbedHoloviews
+<pre><span></span>from graeae import CountPercentage, EmbedHoloviews
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgc16d062">
-<h3 id="orgc16d062">Set Up</h3>
-<div class="outline-text-3" id="text-orgc16d062"></div>
-<div class="outline-4" id="outline-container-org7e1be06">
-<h4 id="org7e1be06">Plotting</h4>
-<div class="outline-text-4" id="text-org7e1be06">
+<div class="outline-3" id="outline-container-org5e1c14a">
+<h3 id="org5e1c14a">Set Up</h3>
+<div class="outline-text-3" id="text-org5e1c14a"></div>
+<div class="outline-4" id="outline-container-orge820db5">
+<h4 id="orge820db5">Plotting</h4>
+<div class="outline-text-4" id="text-orge820db5">
 <div class="highlight">
 <pre><span></span>Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgbb00b9a">
-<h4 id="orgbb00b9a">The Dataset</h4>
-<div class="outline-text-4" id="text-orgbb00b9a">
+<div class="outline-4" id="outline-container-orgcee9dc2">
+<h4 id="orgcee9dc2">The Dataset</h4>
+<div class="outline-text-4" id="text-orgcee9dc2">
 <p>The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a <code>artist</code> column.</p>
 <div class="highlight">
 <pre><span></span>path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
@@ -123,9 +127,33 @@ LMFAO
 Eminem
 Shakira
 Psy
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-org1765f19">
+<h4 id="org1765f19">Splitting the Set</h4>
+<div class="outline-text-4" id="text-org1765f19">
+<div class="highlight">
+<pre><span></span>train, test = train_test_split(data)
+print(train.shape)
+print(test.shape)
+
+train, development = train_test_split(train)
+validation, test = train_test_split(test)
+print(train.shape)
+print(development.shape)
+print(validation.shape)
+print(test.shape)
+</pre></div>
+<pre class="example">
+(1467, 6)
+(489, 6)
+(1100, 6)
+(367, 6)
+(366, 6)
+(123, 6)
 </pre>
 <div class="highlight">
-<pre><span></span>grouped = data.groupby(["artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+<pre><span></span>grouped = train.groupby(["artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
 plot = grouped.hvplot.bar(x="artist", y="Count").opts(title="Comments by Artist", width=1000, height=800)
 Embed(plot=plot, file_name="comments_by_artist")()
 </pre></div>
@@ -133,13 +161,168 @@ Embed(plot=plot, file_name="comments_by_artist")()
 <p>Figure Missing</p>
 </object>
 <div class="highlight">
-<pre><span></span>grouped = data.groupby(["artist", "CLASS"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
-plot = grouped.hvplot.bar(x="artist", y="Count", by="CLASS").opts(title="Comments by Artist", width=1000, height=800)
+<pre><span></span>grouped = train.groupby(["artist", "CLASS"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count", by="CLASS").opts(title="Comments by Artist and Class", width=1000, height=800)
 Embed(plot=plot, file_name="comments_by_artist_and_class")()
 </pre></div>
 <object data="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/comments_by_artist_and_class.html" height="800" style="width:100%" type="text/html">
 <p>Figure Missing</p>
-</object></div>
+</object>
+<p>I said earlier that the spam/not-spam column was named tag, but its named <code>CLASS</code> here, I don't know where the switch came (it says <code>TAG</code> on the UCI page).</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgf3f3a33">
+<h3 id="orgf3f3a33">Labeling Functions</h3>
+<div class="outline-text-3" id="text-orgf3f3a33">
+<p>Labeling functions output a label for values in the training set.</p>
+</div>
+<div class="outline-4" id="outline-container-org540215f">
+<h4 id="org540215f">Labels</h4>
+<div class="outline-text-4" id="text-org540215f">
+<div class="highlight">
+<pre><span></span>Label = Namespace(
+    abstain = -1,
+    not_spam = 0,
+    spam = 1,
+)
+</pre></div>
+<p>The actual data-set only has spam/not-spam classes, but the Snorkel tutorial adds the <code>abstain</code> class as well. Each function is going to be passed a row from the training dataframe, so the class name you use has to match it.</p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org53ef068">
+<h4 id="org53ef068">Keyword Matching</h4>
+<div class="outline-text-4" id="text-org53ef068">
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def labeling_by_keyword(comment: pandas.Series) -&gt; int:
+    """Assume if the author refers to something he/she owns it's spam
+
+    Args: 
+     row with comment CONTENT
+
+    Returns:
+     label for the comment
+    """
+    return Label.spam if "my" in comment.CONTENT.lower() else Label.abstain
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org85ff95a">
+<h4 id="org85ff95a">Regular Expressions</h4>
+<div class="outline-text-4" id="text-org85ff95a">
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def label_check_out(comment) -&gt; int:
+    """check my/it/the out will be spam"""
+    return Label.spam if re.search(r"check.*out", comment.CONTENT, flags=re.I) else Label.abstain
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org8fe2c13">
+<h4 id="org8fe2c13">Short Comments</h4>
+<div class="outline-text-4" id="text-org8fe2c13">
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def label_short_comment(comment) -&gt; int:
+    """if a comment is short it's probably not spam"""
+    return Label.not_spam if len(comment.CONTENT.split()) &lt; 5 else Label.abstain
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgfb198ad">
+<h4 id="orgfb198ad">Positive Comments</h4>
+<div class="outline-text-4" id="text-orgfb198ad">
+<p>Here we'll use <a href="https://textblob.readthedocs.io/en/dev/">textblob</a> to try and decide on whether a comment is positive (textblob uses <a href="https://www.clips.uantwerpen.be/pattern">pattern</a> to decide on the polarity.)</p>
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def label_positive_comment(comment) -&gt; int:
+    """If a comment is positive, we'll accept it"""
+    return Label.not_spam if TextBlob(comment.CONTENT).sentiment.polarity &gt; 0.3 else Label.abstain
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgfd31182">
+<h4 id="orgfd31182">Combining the Functions and Cleaning the Labels</h4>
+<div class="outline-text-4" id="text-orgfd31182">
+<p>First I'll create a list of the labeling functions so that we can pass it to the label-applier class.</p>
+<div class="highlight">
+<pre><span></span>labeling_functions = [labeling_by_keyword, label_check_out, label_short_comment, label_positive_comment]
+</pre></div>
+<p>Now create the applier.</p>
+<div class="highlight">
+<pre><span></span>applier = PandasLFApplier(labeling_functions)
+</pre></div>
+<p>Now create it.</p>
+<div class="highlight">
+<pre><span></span>label_matrix = applier.apply(train, progress_bar=False)
+
+print(label_matrix.shape)
+print(train.shape)
+</pre></div>
+<pre class="example">
+(1100, 4)
+(1100, 6)
+</pre>
+<p>The label-matrix has one row for each of the comments in our training set and one column for each of our labeling functions.</p>
+<div class="highlight">
+<pre><span></span>label_frame = pandas.DataFrame(label_matrix, columns=["keyword", "check_out", "short", "positive"])
+</pre></div>
+<div class="highlight">
+<pre><span></span>re_framed = {}
+
+for column in label_frame.columns:
+    re_framed[column] = 
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orge6e2690">
+<h4 id="orge6e2690">Training the Label Model</h4>
+<div class="outline-text-4" id="text-orge6e2690">
+<div class="highlight">
+<pre><span></span>label_model = LabelModel(cardinality=2, verbose=True)
+label_model.fit(label_matrix, n_epochs=500, log_freq=50, seed=0)
+train["label"] = label_model.predict(L=label_matrix, tie_break_policy="abstain")
+</pre></div>
+<div class="highlight">
+<pre><span></span>grouped = train.groupby(["label", "artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "count"})
+plot = grouped.hvplot.bar(x="label", y="count", by="artist").opts(title="Label Counts", height=800, width=1000)
+Embed(plot=plot, file_name="label_counts")()
+</pre></div>
+<object data="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/label_counts.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>Most comments were labeled spam or not-spam, but some were abstained. In order to move on to the next section, we'll drop the rows where an opinion about the label was abstained.</p>
+<div class="highlight">
+<pre><span></span>train = train[train.label != Label.abstain]
+CountPercentage(train.label)()
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-right" scope="col">Value</th>
+<th class="org-right" scope="col">Count</th>
+<th class="org-right" scope="col">Percent (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">0</td>
+<td class="org-right">419</td>
+<td class="org-right">53.51</td>
+</tr>
+<tr>
+<td class="org-right">1</td>
+<td class="org-right">364</td>
+<td class="org-right">46.49</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </div>
