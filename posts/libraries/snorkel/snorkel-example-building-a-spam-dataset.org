@@ -374,3 +374,29 @@ print(metrics.classification_report(development.CLASS, development.predicted, ta
 :    macro avg       0.53      0.53      0.53       367
 : weighted avg       0.53      0.54      0.53       367
 : 
+*** Training on the Original Labels
+#+begin_src ipython :session snorkel :results output :exports both
+vectorizer = CountVectorizer(ngram_range=(1, 2))
+x_train = vectorizer.fit_transform(train.CONTENT)
+
+classifier = LogisticRegression(solver="lbfgs")
+classifier.fit(x_train, train.CLASS.values)
+
+development_test = vectorizer.transform(development.CONTENT)
+predicted = classifier.predict(development_test)
+
+print(metrics.classification_report(development.CLASS, predicted, target_names=["not spam", "spam"]))
+#+end_src
+
+#+RESULTS:
+:               precision    recall  f1-score   support
+: 
+:     not spam       0.91      0.97      0.94       194
+:         spam       0.97      0.90      0.93       173
+: 
+:     accuracy                           0.94       367
+:    macro avg       0.94      0.94      0.94       367
+: weighted avg       0.94      0.94      0.94       367
+: 
+
+So our self-labeled data set really hurt the performance, but this was the Getting Started tutorial, so it was meant to be just a skimming of what the basic procedure is, hopefully tuning the labeling and transformations more would improve the performance.
