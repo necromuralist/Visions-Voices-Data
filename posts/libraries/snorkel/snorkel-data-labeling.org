@@ -22,6 +22,7 @@ from pathlib import Path
 #+end_src
 *** PyPi
 #+begin_src ipython :session snorkel :results none
+from sklearn.model_selection import train_test_split
 import pandas
 #+end_src
 ** Set Up
@@ -48,6 +49,10 @@ data = pandas.concat(sets)
 : Psy
 
 *** Splitting the Set
+    The tutorial takes a slightly different approach from the one I previously took. Here's their four data-set splits:
+    - /train/: Comments from the first four videos
+    - /dev/: 200 comments taken from /train/
+    - /valid & test/: A 50-50 split of the last video (actually /Shakira/, not /Psy/ as listed above)
 #+begin_src ipython :session snorkel :results output :exports both
 train, test = train_test_split(data)
 print(train.shape)
@@ -69,31 +74,4 @@ print(test.shape)
 : (366, 6)
 : (123, 6)
 
-#+begin_src ipython :session snorkel :results output raw :exports both
-grouped = train.groupby(["artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
-plot = grouped.hvplot.bar(x="artist", y="Count").opts(title="Comments by Artist", width=1000, height=800)
-Embed(plot=plot, file_name="comments_by_artist")()
-#+end_src
-
-#+RESULTS:
-#+begin_export html
-<object type="text/html" data="comments_by_artist.html" style="width:100%" height=800>
-  <p>Figure Missing</p>
-</object>
-#+end_export
-
-#+begin_src ipython :session snorkel :results output raw :exports both
-grouped = train.groupby(["artist", "CLASS"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
-plot = grouped.hvplot.bar(x="artist", y="Count", by="CLASS").opts(title="Comments by Artist and Class", width=1000, height=800)
-Embed(plot=plot, file_name="comments_by_artist_and_class")()
-#+end_src
-
-#+RESULTS:
-#+begin_export html
-<object type="text/html" data="comments_by_artist_and_class.html" style="width:100%" height=800>
-  <p>Figure Missing</p>
-</object>
-#+end_export
-
-I said earlier that the spam/not-spam column was named tag, but its named =CLASS= here, I don't know where the switch came (it says =TAG= on the UCI page).
 
