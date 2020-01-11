@@ -18,6 +18,7 @@
 ** Imports
 *** Python
 #+begin_src ipython :session snorkel :results none
+from argparse import Namespace
 from pathlib import Path
 #+end_src
 *** PyPi
@@ -26,6 +27,32 @@ from sklearn.model_selection import train_test_split
 import pandas
 #+end_src
 ** Set Up
+*** Some Constants
+#+begin_src ipython :session snorkel :results none
+Comment = Namespace(
+    dont_know = -1,
+    is_ham = 0,
+    is_spam = 1
+)
+#+end_src
+
+#+begin_src ipython :session snorkel :results none
+Data = Namespace(
+    test_artist = "Shakira",
+    development_size = 200,
+    validation_size = 0.5,
+    random_seed = 666,
+)
+#+end_src
+
+#+begin_src ipython :session snorkel :results none
+Columns = Namespace(
+    comment = "CONTENT",
+    classification = "CLASS",
+    artist = "artist",
+)
+#+end_src
+* Middle
 *** The Dataset
     The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a =artist= column.
 
@@ -54,24 +81,52 @@ data = pandas.concat(sets)
     - /dev/: 200 comments taken from /train/
     - /valid & test/: A 50-50 split of the last video (actually /Shakira/, not /Psy/ as listed above)
 #+begin_src ipython :session snorkel :results output :exports both
-train, test = train_test_split(data)
-print(train.shape)
-print(test.shape)
+test = data[data.artist==Data.test_artist]
+train = data[data.artist != Data.test_artist]
+train, development = train_test_split(train, test_size=Data.development_size)
 
-train, development = train_test_split(train)
-validation, test = train_test_split(test)
-print(train.shape)
-print(development.shape)
-print(validation.shape)
-print(test.shape)
+validation, test = train_test_split(test, test_size=Data.validation_size)
+print(f"Training: {train.shape}")
+print(f"Development: {development.shape}")
+print(f"Validation: {validation.shape}")
+print(f"Testing: {test.shape}")
 #+end_src
 
 #+RESULTS:
-: (1467, 6)
-: (489, 6)
-: (1100, 6)
-: (367, 6)
-: (366, 6)
-: (123, 6)
+: Training: (1386, 6)
+: Development: (200, 6)
+: Validation: (185, 6)
+: Testing: (185, 6)
 
+** Finding Labeling Functions
+   The place to start is with the development set - it's labeled (although in this case the training set is as well, but pretend it isn't) and we can inspect it to get ideas.
 
+#+begin_src ipython :session snorkel :results output :exports both
+print(development.sample(random_state=Data.random_seed)[[Columns.comment, Columns.classification]])
+#+end_src
+
+#+RESULTS:
+:         CONTENT  CLASS
+: 172  I love it﻿      0
+
+#+begin_src ipython :session snorkel :results output :exports both
+spam = development[development[Columns.classification]==Comment.is_spam]
+for count in range(10):
+    print(spam.sample(random_state=count).iloc[0][Columns.comment])
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Limit sun exposure while driving. Eliminate the hassle of having to swing  the car visor between the windshield and window.  https://www.kickstarter.com/projects/733634264/visortwin﻿
+check men out i put allot of effort into my music but unfortunatly not many  watch it﻿
+Check out our cover of this song!
+please like : http://www.bubblews.com/news/9277547-peace-and-brotherhood﻿
+Hey guys subscribe to my chanel and i will subscribe back and like all your vids :)<br /><br />﻿
+CHECK OUT MY CHANNEL BOYS AND GIRLS ;)
+do you want to make some easy money? check out my page tvcmcadavid.weebly . com dont miss out on this opportunity
+Have you tried a new social network TSU? This new social network has a  special thing.You can share the posts as well as on fb and twitter and even  to'll get paid You can registr here:  https://www.tsu.co/WORLDWIDE_LIFE﻿
+Hiya😊 I just started YouTube and it would mean a lot if some of you could  subscribe and watch my first video?xx﻿
+Check out this playlist on YouTube:﻿
+#+end_example
+
+Already you can see that the spam has people asking viewers to check out their sites.
