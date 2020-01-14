@@ -19,14 +19,23 @@
 *** Python
 #+begin_src ipython :session snorkel :results none
 from argparse import Namespace
+from functools import partial
 from pathlib import Path
+import re
 #+end_src
 *** PyPi
 #+begin_src ipython :session snorkel :results none
+from snorkel.analysis import get_label_buckets
+from snorkel.labeling import labeling_function, LFAnalysis, PandasLFApplier
 from sklearn.model_selection import train_test_split
+from tabulate import tabulate
 import pandas
 #+end_src
 ** Set Up
+*** The Tabulate Table
+#+begin_src ipython :session snorkel :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys")
+#+end_src
 *** Some Constants
 #+begin_src ipython :session snorkel :results none
 Comment = Namespace(
@@ -106,8 +115,8 @@ print(development.sample(random_state=Data.random_seed)[[Columns.comment, Column
 #+end_src
 
 #+RESULTS:
-:         CONTENT  CLASS
-: 172  I love it﻿      0
+:                                               CONTENT  CLASS
+: 49  should not have paused the music, this is a cl...      0
 
 #+begin_src ipython :session snorkel :results output :exports both
 spam = development[development[Columns.classification]==Comment.is_spam]
@@ -117,16 +126,146 @@ for count in range(10):
 
 #+RESULTS:
 #+begin_example
-Limit sun exposure while driving. Eliminate the hassle of having to swing  the car visor between the windshield and window.  https://www.kickstarter.com/projects/733634264/visortwin﻿
-check men out i put allot of effort into my music but unfortunatly not many  watch it﻿
-Check out our cover of this song!
-please like : http://www.bubblews.com/news/9277547-peace-and-brotherhood﻿
-Hey guys subscribe to my chanel and i will subscribe back and like all your vids :)<br /><br />﻿
-CHECK OUT MY CHANNEL BOYS AND GIRLS ;)
-do you want to make some easy money? check out my page tvcmcadavid.weebly . com dont miss out on this opportunity
-Have you tried a new social network TSU? This new social network has a  special thing.You can share the posts as well as on fb and twitter and even  to'll get paid You can registr here:  https://www.tsu.co/WORLDWIDE_LIFE﻿
-Hiya😊 I just started YouTube and it would mean a lot if some of you could  subscribe and watch my first video?xx﻿
+https://www.facebook.com/pages/Nailey-nicool/629410220489046?ref=hl like  mee﻿
+Check out this video on YouTube: <a rel="nofollow" class="ot-hashtag" href="https://plus.google.com/s/%23Eminem">#Eminem</a> <a rel="nofollow" class="ot-hashtag" href="https://plus.google.com/s/%23Lovethewayyoulie">#Lovethewayyoulie</a> <a rel="nofollow" class="ot-hashtag" href="https://plus.google.com/s/%23RapGod">#RapGod</a> <a rel="nofollow" class="ot-hashtag" href="https://plus.google.com/s/%23King">#King</a> ﻿
+Check out this video on YouTube:﻿
 Check out this playlist on YouTube:﻿
+You guys should check out this EXTRAORDINARY website called MONEYGQ.COM . You can make money online and start working from home today as I am! I am making over $3,000+ per month at MONEYGQ.COM ! Visit MONEYGQ.COM and check it out! Wazzasoft Industry Sertave Wind Tendency Order Humor Unelind Operation Feandra Chorenn Oleald Claster Nation Industry Roll Fuffapster Competition Ociramma Quality
+The Perry you're doing a good job good job I love all of their videos and  by the way can you please describe to my channel please please please  please I'm trying to get as many comments to Skyburst lights is a cancer  and get famous please﻿
+http://www.avaaz.org/po/petition/Youtube_Corporation_Fox_Broadcasting_Company_Anular_os_strikes_no_Canal_Nostalgia/?cXPZpgb ﻿
+Please help me go here http://www.gofundme.com/littlebrother﻿
+3 yrs ago I had a health scare but thankfully I’m okay. I realized I wasn’t living life to the fullest.  Now I’m on a mission to do EVERYTHING I’ve always wanted to do. If you found out you were going to die tomorrow would you be happy with what you’ve accomplished or would you regret not doing certain things? Sorry for spamming I’m just trying to motivate people to do the things they’ve always wanted to. If you’re bored come see what I’ve done so far! Almost 1000 subscribers and I just started!
+Hello I&#39;am from Palastine﻿
 #+end_example
 
-Already you can see that the spam has people asking viewers to check out their sites.
+You can already see that the spam has people asking viewers to check out their sites.
+*** Check vs Check Out
+Let's see which one of the strings (/check/ or /check out/) does better for us.
+**** The Labeling Functions
+#+begin_src ipython :session snorkel :results none
+@labeling_function()
+def check(row: pandas.Series) -> int:
+    """sees if the word 'check' is in the comment"""
+    return Comment.is_spam if "check" in row.CONTENT.lower() else Comment.dont_know
+#+end_src
+
+#+begin_src ipython :session snorkel :results none
+@labeling_function()
+def check_out(row: pandas.Series) -> int:
+    """looks for phrase 'check out'"""
+    return Comment.is_spam if "check out" in row.CONTENT.lower() else Comment.dont_know
+#+end_src
+**** Applying the Functions
+     The next step is to create some Labeling Matrices using our labeling functions by applying them to our training and development sets. Since our data is stored using pandas, we'll use the =PandasLFApplier=, but there are [[https://snorkel.readthedocs.io/en/master/packages/labeling.html][other types available]] as well.
+#+begin_src ipython :session snorkel :results output :exports both
+labeling_functions = [check, check_out]
+
+applier = PandasLFApplier(lfs=labeling_functions)
+train_labeling_matrix = applier.apply(df=train, progress_bar=False)
+development_labeling_matrix = applier.apply(df=development, progress_bar=False)
+print(f"Training Labeling Matrix: {train_labeling_matrix.shape}")
+print(f"Development Labeling Matrix: {development_labeling_matrix.shape}")
+#+end_src
+
+#+RESULTS:
+: Training Labeling Matrix: (1386, 2)
+: Development Labeling Matrix: (200, 2)
+
+Each matrix has one column for each of our labeling functions (so two in this case) and one row for each of the rows in the set that the functions were applied to.
+
+**** Evaluating the Labeling Functions
+     Snorkel provides a [[https://snorkel.readthedocs.io/en/master/packages/_autosummary/labeling/snorkel.labeling.LFAnalysis.html][LFAnalysis]] class to help you see how well the labeling functions do.
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+analysis = LFAnalysis(L=train_labeling_matrix, lfs=labeling_functions)
+print(TABLE(analysis.lf_summary()))
+#+end_src
+
+#+RESULTS:
+|           | j | Polarity | Coverage | Overlaps | Conflicts |
+|-----------+---+----------+----------+----------+-----------|
+| check     | 0 | [1]      | 0.259019 | 0.217172 |         0 |
+| check_out | 1 | [1]      | 0.217172 | 0.217172 |         0 |
+
+This is what the table is giving us for each of the labeling functions:
+
+ - /j/ : I think this is just an index
+ - /Polarity/: The number of unique values the function puts out (other than -1, which is interpreted as an un-labeled row)
+ - /Coverage: The fraction of the data-set that the function labeled
+ - /Overlaps: The fraction of the data that the function labeled and at least one other function also labeled
+ - /Conflicts/: The fraction of the data that the function labeled something different from at least one other function
+
+So it looks like =check= covers slightly more than =check_out=, and they don't disagree with each other at all. This makes sense when you consider that =check= is a sub-string of =check out= - we can guess that all the overlaps are cases where =check out= were found in the comment.
+
+We can also pass it a set of labels and it will see how well the functions did. In this case we have labels for all the rows, but in most cases we won't just for the development set so we'll use it here.
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+print(TABLE(LFAnalysis(
+    L=development_labeling_matrix,
+    lfs=labeling_functions).lf_summary(Y=development.CLASS.values)))
+#+end_src
+
+#+RESULTS:
+|           | j | Polarity | Coverage | Overlaps | Conflicts | Correct | Incorrect | Emp. Acc. |
+|-----------+---+----------+----------+----------+-----------+---------+-----------+-----------|
+| check     | 0 | [1]      |     0.25 |    0.195 |         0 |      46 |         4 |      0.92 |
+| check_out | 1 | [1]      |    0.195 |    0.195 |         0 |      39 |         0 |         1 |
+
+**Note:** The =LFAnalysis= class works with =numpy= arrays, so when I called the =lf_summary= method I had to pass in the =values= and not the =CLASS= Series.
+
+With our development set, the functions cover slightly less than before (as a fraction of the total), and although =check= covers slightly more that =check_out=, it also has some false-postives, so we'd have to decide if we care about getting all the spam or not accidentally labeling non-spam as spam.
+
+We can also check which ones were mis-labeled to get a better idea of how off they were.
+
+#+begin_src ipython :session snorkel :results output :exports both
+buckets = get_label_buckets(development.CLASS.values, development_labeling_matrix[:, 0])
+for comment in development.iloc[buckets[(Comment.is_ham, Comment.is_spam)]]["CONTENT"]:
+    print(comment)
+#+end_src
+
+#+RESULTS:
+: Don't mind me, I'm just checking what the views are up to : )﻿
+: This video will get to 2 billion just because of people checking if it has  hit 2 billion yet.﻿
+: Why dafuq is a Korean song so big in the USA. Does that mean we support  Koreans? Last time I checked they wanted to bomb us. ﻿
+: Came here to check the views, goodbye.﻿
+
+So the first ones were actually the result of not making sure that only =check= was matched. I'm not sure what to make of the last comment. We could fix the first three by using a regular expression to only match the word =check= and not =checking=, etc.
+
+
+#+begin_src ipython :session snorkel :results none
+@labeling_function()
+def re_check(row: pandas.Series) -> int:
+    """Checks if the word 'check' is in the comment
+    
+    doesn't allow derivatives like checking, checked, etc.
+    """
+    return Comment.is_spam if re.search(r"check\W", row.CONTENT.lower()) else Comment.dont_know 
+
+labeling_functions = [re_check, check_out]
+applier = PandasLFApplier(lfs=labeling_functions)
+train_labeling_matrix = applier.apply(df=train, progress_bar=False)
+development_labeling_matrix = applier.apply(df=development, progress_bar=False)
+#+end_src
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+print(TABLE(LFAnalysis(
+    L=development_labeling_matrix,
+    lfs=labeling_functions).lf_summary(Y=development.CLASS.values)))
+#+end_src
+
+#+RESULTS:
+|           | j | Polarity | Coverage | Overlaps | Conflicts | Correct | Incorrect | Emp. Acc. |
+|-----------+---+----------+----------+----------+-----------+---------+-----------+-----------|
+| re_check  | 0 | [1]      |    0.235 |    0.195 |         0 |      46 |         1 |  0.978723 |
+| check_out | 1 | [1]      |    0.195 |    0.195 |         0 |      39 |         0 |         1 |
+
+#+begin_src ipython :session snorkel :results output :exports both
+buckets = get_label_buckets(development.CLASS.values, development_labeling_matrix[:, 0])
+for comment in development.iloc[buckets[(Comment.is_ham, Comment.is_spam)]]["CONTENT"]:
+    print(comment)
+#+end_src
+
+#+RESULTS:
+: Came here to check the views, goodbye.﻿
+
+So our coverage has dropped a bit, but our false positive rate is better.
