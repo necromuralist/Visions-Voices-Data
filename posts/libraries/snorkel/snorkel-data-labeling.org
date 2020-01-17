@@ -25,13 +25,22 @@ import re
 #+end_src
 *** PyPi
 #+begin_src ipython :session snorkel :results none
+import spacy
 from snorkel.analysis import get_label_buckets
-from snorkel.labeling import labeling_function, LFAnalysis, PandasLFApplier
+from snorkel.labeling import labeling_function, LabelingFunction, LFAnalysis, PandasLFApplier
+from snorkel.preprocess import preprocessor
+from snorkel.labeling.lf.nlp import nlp_labeling_function
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
+from textblob import TextBlob
+
 import pandas
 #+end_src
 ** Set Up
+*** Spacy
+#+begin_src ipython :session snorkel :results none
+spacy.load("en_core_web_sm")
+#+end_src
 *** The Tabulate Table
 #+begin_src ipython :session snorkel :results none
 TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys")
@@ -39,7 +48,7 @@ TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys")
 *** Some Constants
 #+begin_src ipython :session snorkel :results none
 Comment = Namespace(
-    dont_know = -1,
+    is_ambiguous = -1,
     is_ham = 0,
     is_spam = 1
 )
@@ -78,10 +87,10 @@ data = pandas.concat(sets)
 #+end_src
 
 #+RESULTS:
-: KatyPerry
+: Shakira
 : LMFAO
 : Eminem
-: Shakira
+: KatyPerry
 : Psy
 
 *** Splitting the Set
@@ -115,8 +124,8 @@ print(development.sample(random_state=Data.random_seed)[[Columns.comment, Column
 #+end_src
 
 #+RESULTS:
-:                                               CONTENT  CLASS
-: 49  should not have paused the music, this is a cl...      0
+:                                 CONTENT  CLASS
+: 126  Love the way you lie - Driveshaft﻿      0
 
 #+begin_src ipython :session snorkel :results output :exports both
 spam = development[development[Columns.classification]==Comment.is_spam]
@@ -126,16 +135,16 @@ for count in range(10):
 
 #+RESULTS:
 #+begin_example
-https://www.facebook.com/pages/Nailey-nicool/629410220489046?ref=hl like  mee﻿
-Check out this video on YouTube: <a rel="nofollow" class="ot-hashtag" href="https://plus.google.com/s/%23Eminem">#Eminem</a> <a rel="nofollow" class="ot-hashtag" href="https://plus.google.com/s/%23Lovethewayyoulie">#Lovethewayyoulie</a> <a rel="nofollow" class="ot-hashtag" href="https://plus.google.com/s/%23RapGod">#RapGod</a> <a rel="nofollow" class="ot-hashtag" href="https://plus.google.com/s/%23King">#King</a> ﻿
-Check out this video on YouTube:﻿
 Check out this playlist on YouTube:﻿
-You guys should check out this EXTRAORDINARY website called MONEYGQ.COM . You can make money online and start working from home today as I am! I am making over $3,000+ per month at MONEYGQ.COM ! Visit MONEYGQ.COM and check it out! Wazzasoft Industry Sertave Wind Tendency Order Humor Unelind Operation Feandra Chorenn Oleald Claster Nation Industry Roll Fuffapster Competition Ociramma Quality
-The Perry you're doing a good job good job I love all of their videos and  by the way can you please describe to my channel please please please  please I'm trying to get as many comments to Skyburst lights is a cancer  and get famous please﻿
-http://www.avaaz.org/po/petition/Youtube_Corporation_Fox_Broadcasting_Company_Anular_os_strikes_no_Canal_Nostalgia/?cXPZpgb ﻿
-Please help me go here http://www.gofundme.com/littlebrother﻿
-3 yrs ago I had a health scare but thankfully I’m okay. I realized I wasn’t living life to the fullest.  Now I’m on a mission to do EVERYTHING I’ve always wanted to do. If you found out you were going to die tomorrow would you be happy with what you’ve accomplished or would you regret not doing certain things? Sorry for spamming I’m just trying to motivate people to do the things they’ve always wanted to. If you’re bored come see what I’ve done so far! Almost 1000 subscribers and I just started!
-Hello I&#39;am from Palastine﻿
+Check out this playlist on YouTube:﻿
+Fruits and vegetables give you longer lasting energy for weight loss.  Check out youtube.com/user/36loseweight.
+Suscribe My Channel Please XD lol﻿
+Check out this video on YouTube:﻿
+You guys should check out this EXTRAORDINARY website called ZONEPA.COM . You can make money online and start working from home today as I am! I am making over $3,000+ per month at ZONEPA.COM ! Visit Zonepa.com and check it out! How does the mammoth waste achieve the shock? How does the limit reduce the delicate minute? How does the meaty scale adapt the oil?
+COFFEE ! LOVERS ! PLEASE ! READ ! Check out a song I wrote and sing on You Tube called COFFEE LOVA.Type COFFEE LOVA like I spell it while your already on You Tube hit enter.Then look for video titled COFFEE LOVA hit enter and BLAST ! OFF !
+I know that maybe no one will read this but PLEASE TYPE IN &quot;deazy99&quot; I&#39;m a rapper with a dream. I know you must see like millions of those on here everyday but please check out my music and subscribe if you&#39;d like thank you, i would love nothing more than to have a decent following on youtube from people if anyone reading this could give it a &quot;THUMBS UP&quot; because what some might see as just a simple button press could make my dream come true..thank you again for your time &amp; may god bless you
+Hi everyone! Do you like music? Then why not check out my music channel. The LEXIS band will be uploading their own songs and covers soon so don&#39;t miss out. Please SUBSCRIBE too as it does help us out a lot. Just takes one click. -&gt;﻿
+She loves Vena. trojmiasto.pl/Vena-Bus-Taxi-o59253.html﻿
 #+end_example
 
 You can already see that the spam has people asking viewers to check out their sites.
@@ -146,14 +155,14 @@ Let's see which one of the strings (/check/ or /check out/) does better for us.
 @labeling_function()
 def check(row: pandas.Series) -> int:
     """sees if the word 'check' is in the comment"""
-    return Comment.is_spam if "check" in row.CONTENT.lower() else Comment.dont_know
+    return Comment.is_spam if "check" in row.CONTENT.lower() else Comment.is_ambiguous
 #+end_src
 
 #+begin_src ipython :session snorkel :results none
 @labeling_function()
 def check_out(row: pandas.Series) -> int:
     """looks for phrase 'check out'"""
-    return Comment.is_spam if "check out" in row.CONTENT.lower() else Comment.dont_know
+    return Comment.is_spam if "check out" in row.CONTENT.lower() else Comment.is_ambiguous
 #+end_src
 **** Applying the Functions
      The next step is to create some Labeling Matrices using our labeling functions by applying them to our training and development sets. Since our data is stored using pandas, we'll use the =PandasLFApplier=, but there are [[https://snorkel.readthedocs.io/en/master/packages/labeling.html][other types available]] as well.
@@ -184,8 +193,8 @@ print(TABLE(analysis.lf_summary()))
 #+RESULTS:
 |           | j | Polarity | Coverage | Overlaps | Conflicts |
 |-----------+---+----------+----------+----------+-----------|
-| check     | 0 | [1]      | 0.259019 | 0.217172 |         0 |
-| check_out | 1 | [1]      | 0.217172 | 0.217172 |         0 |
+| check     | 0 | [1]      | 0.256854 | 0.213564 |         0 |
+| check_out | 1 | [1]      | 0.213564 | 0.213564 |         0 |
 
 This is what the table is giving us for each of the labeling functions:
 
@@ -208,8 +217,8 @@ print(TABLE(LFAnalysis(
 #+RESULTS:
 |           | j | Polarity | Coverage | Overlaps | Conflicts | Correct | Incorrect | Emp. Acc. |
 |-----------+---+----------+----------+----------+-----------+---------+-----------+-----------|
-| check     | 0 | [1]      |     0.25 |    0.195 |         0 |      46 |         4 |      0.92 |
-| check_out | 1 | [1]      |    0.195 |    0.195 |         0 |      39 |         0 |         1 |
+| check     | 0 | [1]      |    0.265 |     0.22 |         0 |      50 |         3 |  0.943396 |
+| check_out | 1 | [1]      |     0.22 |     0.22 |         0 |      44 |         0 |         1 |
 
 **Note:** The =LFAnalysis= class works with =numpy= arrays, so when I called the =lf_summary= method I had to pass in the =values= and not the =CLASS= Series.
 
@@ -219,33 +228,106 @@ We can also check which ones were mis-labeled to get a better idea of how off th
 
 #+begin_src ipython :session snorkel :results output :exports both
 buckets = get_label_buckets(development.CLASS.values, development_labeling_matrix[:, 0])
+for key, value in buckets.items():
+    print(key)
+    print(value)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+(0, -1)
+[  0   4   5   6   7   8  10  11  13  20  25  26  27  32  34  35  39  40
+  41  45  46  48  51  52  54  55  60  62  63  66  67  69  73  74  75  77
+  79  82  84  85  86  87  88  90  91  92  95  97  98  99 100 102 103 107
+ 110 111 117 119 124 125 128 129 130 134 135 137 139 141 142 143 145 146
+ 150 151 155 158 160 163 164 166 167 169 175 176 181 183 184 185 186 191
+ 192 197 198]
+(1, 1)
+[  1   2  14  17  21  22  28  30  31  36  38  42  43  47  49  58  59  64
+  65  70  81  93 101 109 115 116 118 120 122 126 131 132 136 138 147 148
+ 153 157 159 161 162 165 171 178 187 188 189 190 193 199]
+(0, 1)
+[  3 149 170]
+(1, -1)
+[  9  12  15  16  18  19  23  24  29  33  37  44  50  53  56  57  61  68
+  71  72  76  78  80  83  89  94  96 104 105 106 108 112 113 114 121 123
+ 127 133 140 144 152 154 156 168 172 173 174 177 179 180 182 194 195 196]
+#+end_example
+
+Buckets is a dict whose keys are tuples of (actual classes, predicted classes) and whose values are the indices of the rows matching the keys (so the key =(0, 1)= returns the indices for rows where we labeled the comment as spam but it wasn't). Looking at the output you can see that the last key (0, 1) has the cases that we labeled as spam when they weren't, let's take a look at them.
+
+#+begin_src ipython :session snorkel :results output :exports both
 for comment in development.iloc[buckets[(Comment.is_ham, Comment.is_spam)]]["CONTENT"]:
     print(comment)
 #+end_src
 
 #+RESULTS:
-: Don't mind me, I'm just checking what the views are up to : )﻿
-: This video will get to 2 billion just because of people checking if it has  hit 2 billion yet.﻿
 : Why dafuq is a Korean song so big in the USA. Does that mean we support  Koreans? Last time I checked they wanted to bomb us. ﻿
-: Came here to check the views, goodbye.﻿
+: She named the tiger Kitty Purry  No, seriously, she did, check the video ﻿
+: Just coming to check if people are still viewing this video. And  apparently, they still do.﻿
 
-So the first ones were actually the result of not making sure that only =check= was matched. I'm not sure what to make of the last comment. We could fix the first three by using a regular expression to only match the word =check= and not =checking=, etc.
+It's not obvious to me how you should handle those.
+**** Check Out But Not Check
+     What are some training examples that =check= labels but =check_out= doesn't? We can check by feeding the columns from the labeling matrix for the =check= and =check_out= functions and see where =check_out= abstained and =check= didn't. I said earlier that the first argument to =get_label_buckets= is the actual label, but really you can feed any two arrays and it will find give you the indices for the permutations of their row-values.
 
+#+begin_src ipython :session snorkel :results output :exports both
+buckets = get_label_buckets(train_labeling_matrix[:, 0], train_labeling_matrix[:, 1])
+sampled = train.iloc[buckets[(Comment.is_spam, Comment.is_ambiguous)]].sample(10, random_state=Data.random_seed)
+for sample in sampled.itertuples():
+    print(sample.CONTENT)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Check my channel, please!﻿
+watch?v=vtaRGgvGtWQ   Check this out .﻿
+I did a cover if u want to check it out THANK U.....Michael Age 8﻿
+i think about 100 millions of the views come from people who only wanted to  check the views﻿
+Hey come check us out were new on youtube let us know what you think and  don't forget to subscribe thanks.﻿
+Check me out! I'm kyle. I rap so yeah ﻿
+┏━━━┓┏┓╋┏┓┏━━━┓┏━━━┓┏┓╋╋┏┓  ┃┏━┓┃┃┃╋┃┃┃┏━┓┃┗┓┏┓┃┃┗┓┏┛┃  ┃┗━━┓┃┗━┛┃┃┃╋┃┃╋┃┃┃┃┗┓┗┛┏  ┗━━┓┃┃┏━┓┃┃┗━┛┃╋┃┃┃┃╋┗┓┏┛  ┃┗━┛┃┃┃╋┃┃┃┏━┓┃┏┛┗┛┃╋╋┃┃  ┗━━━┛┗┛╋┗┛┗┛╋┗┛┗━━━┛╋╋┗┛ CHECK MY VIDEOS AND SUBSCRIBE AND LIKE PLZZ
+Admit it you just came here to check the number of viewers ﻿
+http://tankionline.com#friend=cd92db3f4 great game check it out!﻿
+CHECK MY CHANNEL FOR MY NEW SONG 'STATIC'!! YOU'LL LOVE IT!!﻿
+#+end_example
+
+I'm going to deviate from the tutorial a little and create a regular expression to match any comment with "check" and not "view" to avoid cases where the commenter is saying that they're checking out how many views the video had.
 
 #+begin_src ipython :session snorkel :results none
-@labeling_function()
-def re_check(row: pandas.Series) -> int:
-    """Checks if the word 'check' is in the comment
-    
-    doesn't allow derivatives like checking, checked, etc.
-    """
-    return Comment.is_spam if re.search(r"check\W", row.CONTENT.lower()) else Comment.dont_know 
+EXPRESSION = re.compile(r"check(?!.*view)")
 
-labeling_functions = [re_check, check_out]
+assert EXPRESSION.search("everyone please come check our newest song in memories of Martin Luther  King Jr.﻿")
+assert EXPRESSION.search("and u should.d check my channel and tell me what I should do next!﻿")
+assert not EXPRESSION.search("Admit it you just came here to check the number of viewers ﻿")
+
+@labeling_function()
+def re_check_out(row: pandas.Series) -> int:
+    """match cases with 'check' but not view"""
+    return Comment.is_spam if EXPRESSION.search(row.CONTENT.lower()) else Comment.is_ambiguous
+#+end_src
+
+#+begin_src ipython :session snorkel :results none
+labeling_functions = [check, check_out, re_check_out]
 applier = PandasLFApplier(lfs=labeling_functions)
 train_labeling_matrix = applier.apply(df=train, progress_bar=False)
 development_labeling_matrix = applier.apply(df=development, progress_bar=False)
 #+end_src
+
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+analysis = LFAnalysis(L=train_labeling_matrix, lfs=labeling_functions)
+print(TABLE(analysis.lf_summary()))
+#+end_src
+
+#+RESULTS:
+|              | j | Polarity | Coverage | Overlaps | Conflicts |
+|--------------+---+----------+----------+----------+-----------|
+| check        | 0 | [1]      | 0.256854 | 0.246032 |         0 |
+| check_out    | 1 | [1]      | 0.213564 | 0.213564 |         0 |
+| re_check_out | 2 | [1]      | 0.241703 | 0.241703 |         0 |
+
+Our =re_check_out= function has a little less coverage than =check= as we'd expect, since it excludes reviews with "view" in them but it also covers a little more than =check_out=.
+
 
 #+begin_src ipython :session snorkel :results output raw :exports both
 print(TABLE(LFAnalysis(
@@ -254,18 +336,169 @@ print(TABLE(LFAnalysis(
 #+end_src
 
 #+RESULTS:
-|           | j | Polarity | Coverage | Overlaps | Conflicts | Correct | Incorrect | Emp. Acc. |
-|-----------+---+----------+----------+----------+-----------+---------+-----------+-----------|
-| re_check  | 0 | [1]      |    0.235 |    0.195 |         0 |      46 |         1 |  0.978723 |
-| check_out | 1 | [1]      |    0.195 |    0.195 |         0 |      39 |         0 |         1 |
+|              | j | Polarity | Coverage | Overlaps | Conflicts | Correct | Incorrect | Emp. Acc. |
+|--------------+---+----------+----------+----------+-----------+---------+-----------+-----------|
+| check        | 0 | [1]      |    0.265 |     0.26 |         0 |      50 |         3 |  0.943396 |
+| check_out    | 1 | [1]      |     0.22 |     0.22 |         0 |      44 |         0 |         1 |
+| re_check_out | 2 | [1]      |    0.255 |    0.255 |         0 |      49 |         2 |  0.960784 |
+
+It looks like we were able to avoid the false-positives by adding our regular expression.
+
+
 
 #+begin_src ipython :session snorkel :results output :exports both
-buckets = get_label_buckets(development.CLASS.values, development_labeling_matrix[:, 0])
-for comment in development.iloc[buckets[(Comment.is_ham, Comment.is_spam)]]["CONTENT"]:
+buckets = get_label_buckets(development_labeling_matrix[:, 0], development_labeling_matrix[:,2])
+for comment in development.iloc[buckets[(Comment.is_spam, Comment.is_ambiguous)]]["CONTENT"]:
     print(comment)
 #+end_src
 
 #+RESULTS:
-: Came here to check the views, goodbye.﻿
+: hey its M.E.S here I&#39;m a young up and coming rapper and i wanna get my music heard i know spam wont get me fame. but at the moment i got no way of getting a little attention so please do me a favour and check out my channel and drop a sub if you enjoy yourself. im just getting started so i really appreciate those who take time to leave constructive criticism i already got 200 subscribers and 4000 views on my first vid ive been told i have potential
+: Just coming to check if people are still viewing this video. And  apparently, they still do.﻿
 
-So our coverage has dropped a bit, but our false positive rate is better.
+So it looks like we got rid of some false positives but also missed some spam by using the regular expression. We could probably grab more by searching for "my" as well.
+
+** Using TextBlob with a Preprocessor
+   Here we'll use text-blobs sentiment scorer to find comments that aren't spam. To do this we'll need to use snorkel's Preprocessor, which maps data using black-box functions.
+
+#+begin_src ipython :session snorkel :results none
+@preprocessor(memoize=True)
+def textblob_sentiment(row: pandas.Series) -> pandas.Series:
+    """Add the polarity and subjectivity of the comment's sentiment
+
+    This adds two columns ('polarity' and 'subjectivity') based on the comment
+
+    """
+    blob = TextBlob(row.CONTENT)
+    row["polarity"] = blob.sentiment.polarity
+    row["subjectivity"] = blob.sentiment.subjectivity
+    return row
+#+end_src
+
+The =polarity= is a value from -1.0 to 1.0 which reflects how negative or positive the text is believed to be. The =subjectivity= is a value from 0.0 to 1.0 which reflects whether the text is objective or subjective - whether it is a statement of fact or opinion.
+
+Now that we have the pre-processor we can use it with a labeling function.
+
+*** Polarity
+#+begin_src ipython :session snorkel :results none
+@labeling_function(pre=[textblob_sentiment])
+def textblob_polarity(row: pandas.Series) -> int:
+    """decides if the comment is ham based on the polarity of the sentiment"""
+    return Comment.is_ham if row.polarity > 0.9 else Comment.is_ambiguous
+#+end_src
+*** Subjectivity
+#+begin_src ipython :session snorkel :results none
+@labeling_function(pre=[textblob_sentiment])
+def textblob_subjectivity(row: pandas.Series) -> int:
+    """decides if the comment is ham based on the subjectivity"""
+    return Comment.is_ham if row.subjectivity > 0.5 else Comment.is_ambiguous
+#+end_src
+
+*** Analyzing the Performance
+    Once again, now that we have labeling functions we need to analyze how well they do.
+
+#+begin_src ipython :session snorkel :results none
+labeling_functions = [textblob_polarity, textblob_subjectivity]
+applier = PandasLFApplier(lfs=labeling_functions)
+train_label_matrix = applier.apply(train, progress_bar=False)
+development_label_matrix = applier.apply(development, progress_bar=False)
+#+end_src
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+print(TABLE(LFAnalysis(train_label_matrix, labeling_functions).lf_summary()))
+#+end_src
+
+#+RESULTS:
+|                       | j | Polarity |  Coverage |  Overlaps | Conflicts |
+|-----------------------+---+----------+-----------+-----------+-----------|
+| textblob_polarity     | 0 | [0]      | 0.0353535 | 0.0137085 |         0 |
+| textblob_subjectivity | 1 | [0]      |  0.321068 | 0.0137085 |         0 |
+
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+print(TABLE(LFAnalysis(development_label_matrix, labeling_functions).lf_summary(Y=development.CLASS.values)))
+#+end_src
+
+#+RESULTS:
+|                       | j | Polarity | Coverage | Overlaps | Conflicts | Correct | Incorrect | Emp. Acc. |
+|-----------------------+---+----------+----------+----------+-----------+---------+-----------+-----------|
+| textblob_polarity     | 0 | [0]      |    0.035 |    0.015 |         0 |       5 |         2 |  0.714286 |
+| textblob_subjectivity | 1 | [0]      |     0.34 |    0.015 |         0 |      40 |        28 |  0.588235 |
+
+Subjectivity seems to have much better coverage, but it was also fairly inaccurate.
+
+** More Labeling Functions
+   We previously created a keyword-based labeling function for "check". Because using keywords is such a common thing Snorkel has a way to create them with a little less work than creating the labeling functions individually.
+
+First we make a function that checks if any of a collection of keywords is in the comment.
+
+#+begin_src ipython :session snorkel :results none
+def lookup_keyword(row: pandas.Series, keywords: list, label: int) -> int:
+    """check if any of the keywords are in the comment
+
+    Args:
+     row: the series with the Comment
+     keywords: collection of keywords indicating spam
+     label: what to return if the keyword is in the comment
+
+    Returns:
+     label if keyword in comment else -1
+    """
+    return label if any(keyword in row.CONTENT.lower() for keyword in keywords) else Comment.is_ambiguous
+#+end_src
+
+Now we make the labeling-function creator that uses the =lookup_keyword=.
+
+#+begin_src ipython :session snorkel :results none
+def make_keyword_labeling_function(keywords: list, label: int=Comment.is_spam) -> LabelingFunction:
+    """Makes LabelingFunction objects that check keywords"""
+    return LabelingFunction(
+        name=f"keyword_{keywords[0]}",
+        f=lookup_keyword,
+        resources=dict(keywords=keywords, label=label)
+    )
+#+end_src
+
+#+begin_src ipython :session snorkel :results none
+keyword_my = make_keyword_labeling_function(keywords=["my"])
+keyword_subscribe = make_keyword_labeling_function(keywords=["subscribe"])
+keyword_link = make_keyword_labeling_function(keywords=["http"])
+keyword_please = make_keyword_labeling_function(keywords=["please", "plz"])
+keyword_song = make_keyword_labeling_function(keywords=["song"], label=Comment.is_ham)
+#+end_src
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+labeling_functions = [
+    keyword_my,
+    keyword_subscribe,
+    keyword_link,
+    keyword_please,
+    keyword_song,
+]
+applier = PandasLFApplier(lfs=labeling_functions)
+train_label_matrix = applier.apply(train, progress_bar=False)
+development_label_matrix = applier.apply(development, progress_bar=False)
+print(TABLE(LFAnalysis(development_label_matrix, labeling_functions).lf_summary(Y=development.CLASS.values)))
+#+end_src
+
+#+RESULTS:
+|                   | j | Polarity | Coverage | Overlaps | Conflicts | Correct | Incorrect | Emp. Acc. |
+|-------------------+---+----------+----------+----------+-----------+---------+-----------+-----------|
+| keyword_my        | 0 | [1]      |    0.185 |     0.12 |     0.015 |      30 |         7 |  0.810811 |
+| keyword_subscribe | 1 | [1]      |     0.14 |    0.085 |     0.005 |      27 |         1 |  0.964286 |
+| keyword_http      | 2 | [1]      |     0.11 |     0.04 |     0.005 |      19 |         3 |  0.863636 |
+| keyword_please    | 3 | [1]      |     0.11 |      0.1 |      0.01 |      22 |         0 |         1 |
+| keyword_song      | 4 | [0]      |    0.145 |    0.025 |     0.025 |      19 |        10 |  0.655172 |
+
+There are varying degrees of coveragen and accuracy with these. Interestingly, the =subscribe= keyword was completely accurate and had pretty good coverage (compared to our check-out labelers).
+
+** Adding a Spacy Preprocessor
+   The purpose of the pre-processors is to do a little feature engineering to add features that aren't in the original dataset but which can be derived from it. Because SpaCY is used so much for this, snorkel comes with a labeling function that adds a =doc= attribute (you can also create it manually to get more control). This requires that you install [[https://spacy.io/][spacy]] and its [[https://spacy.io/usage/models][=en_core_web_sm= model]].
+
+#+begin_src ipython :session snorkel :results none
+@nlp_labeling_function()
+def short_with_person(row: pandas.Series) -> int:
+    """Check if the comment is short and mentions a person"""
+    return (Comment.is_ham if (len(row.CONTENT) < 20 and any((entity.label_=="PERSON" for entity in row.dot.ents)))
+                               else Comment.is_ambiguous)
+#+end_src
