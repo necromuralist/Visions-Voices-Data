@@ -1,18 +1,163 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data (Posts about Snorkel)</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description></description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/categories/cat_snorkel.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Thu, 09 Jan 2020 23:33:12 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Snorkel Example: Building a Spam Dataset</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="outline-container-org888a73e" class="outline-2"&gt;
-&lt;h2 id="org888a73e"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org888a73e"&gt;
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data (Posts about Snorkel)</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description></description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/categories/cat_snorkel.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Mon, 27 Jan 2020 00:49:53 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Snorkel Data Labeling</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#org2d29170"&gt;Beginning&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#org49c5f44"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#org3c3c8d9"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org2d29170" class="outline-2"&gt;
+&lt;h2 id="org2d29170"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org2d29170"&gt;
+&lt;p&gt;
+This is a walk-through of the Snorkel &lt;a href="https://www.snorkel.org/use-cases/01-spam-tutorial"&gt;Snorkel Data Labeling&lt;/a&gt; tutorial.It uses the &lt;a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/"&gt;YouTube Spam Collection&lt;/a&gt; data set (downloaded from the &lt;a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection"&gt;UCI Machine Learning Repository&lt;/a&gt;). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns &lt;code&gt;COMMENT_ID&lt;/code&gt;, &lt;code&gt;AUTHOR&lt;/code&gt;, &lt;code&gt;DATE&lt;/code&gt;, &lt;code&gt;CONTENT&lt;/code&gt;, &lt;code&gt;CLASS&lt;/code&gt;. The tag represents whether it was considered &lt;i&gt;Spam&lt;/i&gt; or not, so we'll pretend it isn't there for most of this walk-through.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org49c5f44" class="outline-3"&gt;
+&lt;h3 id="org49c5f44"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org49c5f44"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orge9b8b1d" class="outline-4"&gt;
+&lt;h4 id="orge9b8b1d"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orge9b8b1d"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from pathlib import Path
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org6092c7a" class="outline-4"&gt;
+&lt;h4 id="org6092c7a"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org6092c7a"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;import pandas
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org3c3c8d9" class="outline-3"&gt;
+&lt;h3 id="org3c3c8d9"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org3c3c8d9"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org1895171" class="outline-4"&gt;
+&lt;h4 id="org1895171"&gt;The Dataset&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1895171"&gt;
+&lt;p&gt;
+The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a &lt;code&gt;artist&lt;/code&gt; column.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
+sets = []
+for name in path.glob("*.csv"):
+    artist = name.stem.split()[-1]
+    data = pandas.read_csv(name)
+    data["artist"] = artist
+    sets.append(data)
+    print(artist)
+data = pandas.concat(sets)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+KatyPerry
+LMFAO
+Eminem
+Shakira
+Psy
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgb21406b" class="outline-4"&gt;
+&lt;h4 id="orgb21406b"&gt;Splitting the Set&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgb21406b"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;train, test = train_test_split(data)
+print(train.shape)
+print(test.shape)
+
+train, development = train_test_split(train)
+validation, test = train_test_split(test)
+print(train.shape)
+print(development.shape)
+print(validation.shape)
+print(test.shape)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+(1467, 6)
+(489, 6)
+(1100, 6)
+(367, 6)
+(366, 6)
+(123, 6)
+&lt;/pre&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grouped = train.groupby(["artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count").opts(title="Comments by Artist", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist")()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/comments_by_artist.html" style="width:100%" height="800"&gt;
+  &lt;p&gt;Figure Missing&lt;/p&gt;
+&lt;/object&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grouped = train.groupby(["artist", "CLASS"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count", by="CLASS").opts(title="Comments by Artist and Class", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist_and_class")()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/comments_by_artist_and_class.html" style="width:100%" height="800"&gt;
+  &lt;p&gt;Figure Missing&lt;/p&gt;
+&lt;/object&gt;
+
+&lt;p&gt;
+I said earlier that the spam/not-spam column was named tag, but its named &lt;code&gt;CLASS&lt;/code&gt; here, I don't know where the switch came (it says &lt;code&gt;TAG&lt;/code&gt; on the UCI page).
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>data</category><category>exploration</category><category>snorkel</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/</guid><pubDate>Fri, 10 Jan 2020 01:07:33 GMT</pubDate></item><item><title>Snorkel Example: Building a Spam Dataset</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org40dd6b3"&gt;Beginning&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org16510b3"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org0578a38"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orge91f516"&gt;Middle&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgb681313"&gt;Labeling Functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgadf32d2"&gt;Data Augmentation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org6972c97"&gt;Slicing&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgc1745cb"&gt;End&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org977c939"&gt;Train A Classifier&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org40dd6b3" class="outline-2"&gt;
+&lt;h2 id="org40dd6b3"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org40dd6b3"&gt;
 &lt;p&gt;
 This is a walk-through of the Snorkel &lt;a href="https://www.snorkel.org/get-started/"&gt;Get Started&lt;/a&gt; tutorial which shows how you can use it to build a labeled dataset. It uses the &lt;a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/"&gt;YouTube Spam Collection&lt;/a&gt; data set (downloaded from the &lt;a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection"&gt;UCI Machine Learning Repository&lt;/a&gt;). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns &lt;code&gt;COMMENT_ID&lt;/code&gt;, &lt;code&gt;AUTHOR&lt;/code&gt;, &lt;code&gt;DATE&lt;/code&gt;, &lt;code&gt;CONTENT&lt;/code&gt;, &lt;code&gt;TAG&lt;/code&gt;. The tag represents whether it was considered &lt;i&gt;Spam&lt;/i&gt; or not, so we'll pretend it isn't there for most of this walk-through.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orga4d4166" class="outline-3"&gt;
-&lt;h3 id="orga4d4166"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orga4d4166"&gt;
+&lt;div id="outline-container-org16510b3" class="outline-3"&gt;
+&lt;h3 id="org16510b3"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org16510b3"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org2c87e08" class="outline-4"&gt;
-&lt;h4 id="org2c87e08"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org2c87e08"&gt;
+&lt;div id="outline-container-org21f74c2" class="outline-4"&gt;
+&lt;h4 id="org21f74c2"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org21f74c2"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from argparse import Namespace
 from functools import partial
 from pathlib import Path
@@ -21,9 +166,9 @@ import re
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgd1dc40d" class="outline-4"&gt;
-&lt;h4 id="orgd1dc40d"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgd1dc40d"&gt;
+&lt;div id="outline-container-orge277dd1" class="outline-4"&gt;
+&lt;h4 id="orge277dd1"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orge277dd1"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from nltk.corpus import wordnet
 from sklearn import metrics
 from sklearn.feature_extraction.text import CountVectorizer
@@ -39,35 +184,35 @@ import pandas
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgcfd3fa6" class="outline-4"&gt;
-&lt;h4 id="orgcfd3fa6"&gt;Others&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgcfd3fa6"&gt;
+&lt;div id="outline-container-orgfdd7668" class="outline-4"&gt;
+&lt;h4 id="orgfdd7668"&gt;Others&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgfdd7668"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from graeae import CountPercentage, EmbedHoloviews
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgde1db4f" class="outline-3"&gt;
-&lt;h3 id="orgde1db4f"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgde1db4f"&gt;
+&lt;div id="outline-container-org0578a38" class="outline-3"&gt;
+&lt;h3 id="org0578a38"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org0578a38"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org3402793" class="outline-4"&gt;
-&lt;h4 id="org3402793"&gt;The WordNet Corpus&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org3402793"&gt;
+&lt;div id="outline-container-org0c57164" class="outline-4"&gt;
+&lt;h4 id="org0c57164"&gt;The WordNet Corpus&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org0c57164"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;nltk.download("wordnet", quiet=True)
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgd889079" class="outline-4"&gt;
-&lt;h4 id="orgd889079"&gt;Plotting&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgd889079"&gt;
+&lt;div id="outline-container-org9832938" class="outline-4"&gt;
+&lt;h4 id="org9832938"&gt;Plotting&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org9832938"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orga0d256f" class="outline-4"&gt;
-&lt;h4 id="orga0d256f"&gt;The Dataset&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orga0d256f"&gt;
+&lt;div id="outline-container-org1824b8e" class="outline-4"&gt;
+&lt;h4 id="org1824b8e"&gt;The Dataset&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1824b8e"&gt;
 &lt;p&gt;
 The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a &lt;code&gt;artist&lt;/code&gt; column.
 &lt;/p&gt;
@@ -94,9 +239,9 @@ Psy
 &lt;/div&gt;
 
 
-&lt;div id="outline-container-orgf7c88bd" class="outline-4"&gt;
-&lt;h4 id="orgf7c88bd"&gt;Splitting the Set&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgf7c88bd"&gt;
+&lt;div id="outline-container-org8e6eafd" class="outline-4"&gt;
+&lt;h4 id="org8e6eafd"&gt;Splitting the Set&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org8e6eafd"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;train, test = train_test_split(data)
 print(train.shape)
 print(test.shape)
@@ -143,18 +288,22 @@ I said earlier that the spam/not-spam column was named tag, but its named &lt;co
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;/div&gt;
 
-
-&lt;div id="outline-container-org668f898" class="outline-3"&gt;
-&lt;h3 id="org668f898"&gt;Labeling Functions&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org668f898"&gt;
+&lt;div id="outline-container-orge91f516" class="outline-2"&gt;
+&lt;h2 id="orge91f516"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orge91f516"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgb681313" class="outline-3"&gt;
+&lt;h3 id="orgb681313"&gt;Labeling Functions&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgb681313"&gt;
 &lt;p&gt;
 Labeling functions output a label for values in the training set.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org2e61d21" class="outline-4"&gt;
-&lt;h4 id="org2e61d21"&gt;Labels&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org2e61d21"&gt;
+&lt;div id="outline-container-org1b10309" class="outline-4"&gt;
+&lt;h4 id="org1b10309"&gt;Labels&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1b10309"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Label = Namespace(
     abstain = -1,
     not_spam = 0,
@@ -168,9 +317,9 @@ The actual data-set only has spam/not-spam classes, but the Snorkel tutorial add
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgfcf4da0" class="outline-4"&gt;
-&lt;h4 id="orgfcf4da0"&gt;Keyword Matching&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgfcf4da0"&gt;
+&lt;div id="outline-container-orgf83d267" class="outline-4"&gt;
+&lt;h4 id="orgf83d267"&gt;Keyword Matching&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgf83d267"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
 def labeling_by_keyword(comment: pandas.Series) -&amp;gt; int:
     """Assume if the author refers to something he/she owns it's spam
@@ -186,9 +335,9 @@ def labeling_by_keyword(comment: pandas.Series) -&amp;gt; int:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org581d49f" class="outline-4"&gt;
-&lt;h4 id="org581d49f"&gt;Regular Expressions&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org581d49f"&gt;
+&lt;div id="outline-container-org0c32df3" class="outline-4"&gt;
+&lt;h4 id="org0c32df3"&gt;Regular Expressions&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org0c32df3"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
 def label_check_out(comment) -&amp;gt; int:
     """check my/it/the out will be spam"""
@@ -197,9 +346,9 @@ def label_check_out(comment) -&amp;gt; int:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgd0041dc" class="outline-4"&gt;
-&lt;h4 id="orgd0041dc"&gt;Short Comments&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgd0041dc"&gt;
+&lt;div id="outline-container-org9581112" class="outline-4"&gt;
+&lt;h4 id="org9581112"&gt;Short Comments&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org9581112"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
 def label_short_comment(comment) -&amp;gt; int:
     """if a comment is short it's probably not spam"""
@@ -208,9 +357,9 @@ def label_short_comment(comment) -&amp;gt; int:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org115ae08" class="outline-4"&gt;
-&lt;h4 id="org115ae08"&gt;Positive Comments&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org115ae08"&gt;
+&lt;div id="outline-container-orgd646779" class="outline-4"&gt;
+&lt;h4 id="orgd646779"&gt;Positive Comments&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd646779"&gt;
 &lt;p&gt;
 Here we'll use &lt;a href="https://textblob.readthedocs.io/en/dev/"&gt;textblob&lt;/a&gt; to try and decide on whether a comment is positive (textblob uses &lt;a href="https://www.clips.uantwerpen.be/pattern"&gt;pattern&lt;/a&gt; to decide on the polarity.)
 &lt;/p&gt;
@@ -222,9 +371,9 @@ def label_positive_comment(comment) -&amp;gt; int:
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org35dcf7b" class="outline-4"&gt;
-&lt;h4 id="org35dcf7b"&gt;Combining the Functions and Cleaning the Labels&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org35dcf7b"&gt;
+&lt;div id="outline-container-orgdedcedc" class="outline-4"&gt;
+&lt;h4 id="orgdedcedc"&gt;Combining the Functions and Cleaning the Labels&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgdedcedc"&gt;
 &lt;p&gt;
 First I'll create a list of the labeling functions so that we can pass it to the label-applier class.
 &lt;/p&gt;
@@ -269,9 +418,9 @@ for column in label_frame.columns:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org0cd4381" class="outline-4"&gt;
-&lt;h4 id="org0cd4381"&gt;Training the Label Model&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org0cd4381"&gt;
+&lt;div id="outline-container-org2ec1c28" class="outline-4"&gt;
+&lt;h4 id="org2ec1c28"&gt;Training the Label Model&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2ec1c28"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;label_model = LabelModel(cardinality=2, verbose=True)
 label_model.fit(label_matrix, n_epochs=500, log_freq=50, seed=0)
 train["label"] = label_model.predict(L=label_matrix, tie_break_policy="abstain")
@@ -341,16 +490,16 @@ Of those that were matched, only a little more than half agree with the labels g
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org732c7fd" class="outline-3"&gt;
-&lt;h3 id="org732c7fd"&gt;Data Augmentation&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org732c7fd"&gt;
+&lt;div id="outline-container-orgadf32d2" class="outline-3"&gt;
+&lt;h3 id="orgadf32d2"&gt;Data Augmentation&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgadf32d2"&gt;
 &lt;p&gt;
 We're going to create new entries in the data by randomly replacing words with their synonyms.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgd606c51" class="outline-4"&gt;
-&lt;h4 id="orgd606c51"&gt;Synonym Lookup Function&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgd606c51"&gt;
+&lt;div id="outline-container-orgfab4241" class="outline-4"&gt;
+&lt;h4 id="orgfab4241"&gt;Synonym Lookup Function&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgfab4241"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def synonyms_for(word: str) -&amp;gt; list:
     """get synonyms for word"""
     lemmas = set().union(*[synset.lemmas() for synset in wordnet.synsets(word)])
@@ -359,9 +508,9 @@ We're going to create new entries in the data by randomly replacing words with t
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org8e8b67d" class="outline-4"&gt;
-&lt;h4 id="org8e8b67d"&gt;The Transformation Function&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org8e8b67d"&gt;
+&lt;div id="outline-container-orgb76b7ac" class="outline-4"&gt;
+&lt;h4 id="orgb76b7ac"&gt;The Transformation Function&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgb76b7ac"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@transformation_function()
 def replace_word_with_synonym(comment: pandas.Series) -&amp;gt; pandas.Series:
     """Replace one of the words with a synonym
@@ -419,9 +568,9 @@ So we added some content.
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8a6f1e5" class="outline-3"&gt;
-&lt;h3 id="org8a6f1e5"&gt;Slicing&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org8a6f1e5"&gt;
+&lt;div id="outline-container-org6972c97" class="outline-3"&gt;
+&lt;h3 id="org6972c97"&gt;Slicing&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org6972c97"&gt;
 &lt;p&gt;
 A &lt;i&gt;slice&lt;/i&gt; is a subset of the data - in this case we want to identify slices that might be more important than others. In this case we're going to assume that we've identified that short links are more likely to be malicious, so we want to be more aware of them.
 &lt;/p&gt;
@@ -440,10 +589,15 @@ def short_link(comment: pandas.Series) -&amp;gt; int:
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;/div&gt;
 
-&lt;div id="outline-container-orgccd254a" class="outline-3"&gt;
-&lt;h3 id="orgccd254a"&gt;Train A Classifier&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgccd254a"&gt;
+&lt;div id="outline-container-orgc1745cb" class="outline-2"&gt;
+&lt;h2 id="orgc1745cb"&gt;End&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgc1745cb"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org977c939" class="outline-3"&gt;
+&lt;h3 id="org977c939"&gt;Train A Classifier&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org977c939"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;training_text = train_augmented.CONTENT.tolist()
 vectorizer = CountVectorizer(ngram_range=(1, 2))
 x_train = vectorizer.fit_transform(training_text)
@@ -482,9 +636,9 @@ weighted avg       0.53      0.54      0.53       367
 
 &lt;/pre&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org20e9639" class="outline-4"&gt;
-&lt;h4 id="org20e9639"&gt;Training on the Original Labels&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org20e9639"&gt;
+&lt;div id="outline-container-orge97cffb" class="outline-4"&gt;
+&lt;h4 id="orge97cffb"&gt;Training on the Original Labels&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orge97cffb"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;vectorizer = CountVectorizer(ngram_range=(1, 2))
 x_train = vectorizer.fit_transform(train.CONTENT)
 

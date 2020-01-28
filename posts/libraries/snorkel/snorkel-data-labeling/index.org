@@ -1,0 +1,99 @@
+#+BEGIN_COMMENT
+.. title: Snorkel Data Labeling
+.. slug: snorkel-data-labeling
+.. date: 2020-01-09 17:07:33 UTC-08:00
+.. tags: snorkel,data,exploration
+.. category: Snorkel
+.. link: 
+.. description: The Snorkel data labeling tutorial.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+* Beginning
+  This is a walk-through of the Snorkel [[https://www.snorkel.org/use-cases/01-spam-tutorial][Snorkel Data Labeling]] tutorial.It uses the [[http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/][YouTube Spam Collection]] data set (downloaded from the [[https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection][UCI Machine Learning Repository]]). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns =COMMENT_ID=, =AUTHOR=, =DATE=, =CONTENT=, =CLASS=. The tag represents whether it was considered /Spam/ or not, so we'll pretend it isn't there for most of this walk-through.
+** Imports
+*** Python
+#+begin_src ipython :session snorkel :results none
+from pathlib import Path
+#+end_src
+*** PyPi
+#+begin_src ipython :session snorkel :results none
+import pandas
+#+end_src
+** Set Up
+*** The Dataset
+    The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a =artist= column.
+
+#+begin_src ipython :session snorkel :results output :exports both
+path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
+sets = []
+for name in path.glob("*.csv"):
+    artist = name.stem.split()[-1]
+    data = pandas.read_csv(name)
+    data["artist"] = artist
+    sets.append(data)
+    print(artist)
+data = pandas.concat(sets)
+#+end_src
+
+#+RESULTS:
+: KatyPerry
+: LMFAO
+: Eminem
+: Shakira
+: Psy
+
+*** Splitting the Set
+#+begin_src ipython :session snorkel :results output :exports both
+train, test = train_test_split(data)
+print(train.shape)
+print(test.shape)
+
+train, development = train_test_split(train)
+validation, test = train_test_split(test)
+print(train.shape)
+print(development.shape)
+print(validation.shape)
+print(test.shape)
+#+end_src
+
+#+RESULTS:
+: (1467, 6)
+: (489, 6)
+: (1100, 6)
+: (367, 6)
+: (366, 6)
+: (123, 6)
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+grouped = train.groupby(["artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count").opts(title="Comments by Artist", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="comments_by_artist.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+#+begin_src ipython :session snorkel :results output raw :exports both
+grouped = train.groupby(["artist", "CLASS"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count", by="CLASS").opts(title="Comments by Artist and Class", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist_and_class")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="comments_by_artist_and_class.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+I said earlier that the spam/not-spam column was named tag, but its named =CLASS= here, I don't know where the switch came (it says =TAG= on the UCI page).
+
