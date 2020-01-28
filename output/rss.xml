@@ -1,18 +1,748 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Thu, 09 Jan 2020 23:33:12 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Snorkel Example: Building a Spam Dataset</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="outline-container-org888a73e" class="outline-2"&gt;
-&lt;h2 id="org888a73e"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org888a73e"&gt;
+<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Tue, 28 Jan 2020 02:37:34 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Decision Trees</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/machine-learning/decision-trees/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/machine-learning/decision-trees/#orgbcddfe2"&gt;Beginning&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/machine-learning/decision-trees/#orgdf6db35"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/machine-learning/decision-trees/#orgfe107b3"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/machine-learning/decision-trees/#orga28221a"&gt;Splitting A Node&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/machine-learning/decision-trees/#orgd006346"&gt;Entropy&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/machine-learning/decision-trees/#org7d9e0c9"&gt;Binary Splitting of Qualitative Attributes Using the Gini Index&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgbcddfe2" class="outline-2"&gt;
+&lt;h2 id="orgbcddfe2"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgbcddfe2"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgdf6db35" class="outline-3"&gt;
+&lt;h3 id="orgdf6db35"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgdf6db35"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org7b1dcbf" class="outline-4"&gt;
+&lt;h4 id="org7b1dcbf"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org7b1dcbf"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from functools import partial
+from typing import Any
+from math import log2
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org9bd7238" class="outline-4"&gt;
+&lt;h4 id="org9bd7238"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org9bd7238"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from expects import (
+    be_within,
+    expect,
+)
+from tabulate import tabulate
+import attr
+import pandas
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgfe107b3" class="outline-3"&gt;
+&lt;h3 id="orgfe107b3"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgfe107b3"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;TABLE = partial(tabulate, headers="keys", tablefmt="orgtbl")
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orga28221a" class="outline-2"&gt;
+&lt;h2 id="orga28221a"&gt;Splitting A Node&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orga28221a"&gt;
+&lt;p&gt;
+We choose which is the next node to split by checking the amount of information we would gain for each candidate node and picking the one that gives us the highest gain. We do this by measuring the &lt;b&gt;&lt;b&gt;impurity&lt;/b&gt;&lt;/b&gt; of the nodes, which is a measurement of how dissimilar the class labels are for a node.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgd006346" class="outline-3"&gt;
+&lt;h3 id="orgd006346"&gt;Entropy&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgd006346"&gt;
+&lt;p&gt;
+One measure of "impurity" is &lt;a href="https://www.wikiwand.com/en/Entropy_(information_theory)"&gt;entropy&lt;/a&gt;, a measurement of the information associated with our nodes.
+&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org199cb66" class="outline-4"&gt;
+&lt;h4 id="org199cb66"&gt;Node Entropy&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org199cb66"&gt;
+&lt;p&gt;
+Here's where we'll calculate the entropy for a node.
+&lt;/p&gt;
+
+&lt;p&gt;
+\[
+Entropy = - \sum_{i=0}^{c-1} p_i(t)log_2 p_i(t)
+\]
+&lt;/p&gt;
+
+&lt;p&gt;
+Where \(p_1(t)\) is the fraction of training data (&lt;i&gt;t&lt;/i&gt;) that has the classification &lt;i&gt;i&lt;/i&gt;. We can translate that to a python function.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; def node_entropy(data: pandas.Series, debug: bool=False) -&amp;gt; float:
+     """Calculate the entropy for a child node
+
+     Args:
+      data: target data filtered to match the child-node's class
+      debug: emit values
+
+     Returns:
+      entropy for this node
+     """
+     if debug:
+	 print("calculating node-entropy")
+     total = len(data)
+     accumulated = 0
+     for classification in data.unique():
+	 p = len(data[data == classification])/total
+	 if debug:
+	     print(f"\tclass: {classification}, p: {p} entropy: {p * log2(p)}")
+	 accumulated += p * log2(p)
+     if debug:
+	 print(f"Node Entropy: {accumulated}")
+     return -accumulated
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org5daa6c7" class="outline-4"&gt;
+&lt;h4 id="org5daa6c7"&gt;Entropy of a Node's Children&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org5daa6c7"&gt;
+&lt;p&gt;
+We'll use the entropy formula to get the entropy for an indivdual node but to get the total contribution from the possible splits we'll take a weighted sum of the node entropies.
+&lt;/p&gt;
+
+&lt;p&gt;
+\[
+I(children) = \sum_{j=1}^k \frac{N(v_j)}{N} I(v_j)
+\]
+&lt;/p&gt;
+
+&lt;p&gt;
+Where \(\frac{N(v_j)}{N}\) is the fraction of the child data in node &lt;i&gt;j&lt;/i&gt; and \(I(v_j)\) is the entropy (Impurity) of node &lt;i&gt;j&lt;/i&gt;.
+&lt;/p&gt;
+
+&lt;p&gt;
+Once again, in python.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def children_impurity(data: pandas.DataFrame, column: str, target: str,
+		      impurity: object=node_entropy,
+	    debug: bool=False) -&amp;gt; float:
+    """Calculate the entropy for the parent of child nodes
+
+    Args:
+     data: the container for the values to check
+     column: the column to get the entropy
+     target: the target column
+     impurity: the function to calculate the impurity of the child
+     debug: whether to print some intermediate values
+
+    Returns:
+     entropy for the data
+    """
+    if debug:
+	print("Calculating entropy for child nodes")
+    total = len(data)
+    accumulator = 0
+    for classification in data[column].unique():
+	child = data[data[column] == classification][target]
+	if debug:
+	    print(f"\tI_({classification}) = ({len(child)}/{total}) "
+		  f"x {impurity(child)}")
+	accumulator += (len(child)/total) * impurity(child)
+    if debug:
+	print(f"Child node entropy: {accumulator}")
+    return accumulator
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org82a3430" class="outline-4"&gt;
+&lt;h4 id="org82a3430"&gt;Information Gain&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org82a3430"&gt;
+&lt;p&gt;
+The measurement of how much is gained is the difference between a parent node and its children.
+\[
+\Delta = I(parent) - I(children)
+\]
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; def information_gain(data: pandas.Series, column: str, target: str,
+		      debug: bool=False) -&amp;gt; float:
+     """See how much entropy is removed using this node
+
+     Args:
+      data: source to check
+      column: name of the column representing the parent node
+      target: name of the column we are trying to predict
+      debug: emit messages
+     """
+     return node_entropy(data[target], debug=debug) - children_impurity(
+	 data, column=column, target=target, debug=debug)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org53f16d8" class="outline-4"&gt;
+&lt;h4 id="org53f16d8"&gt;Home Loans&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org53f16d8"&gt;
+&lt;p&gt;
+To make this concrete we can look at a small dataset of people applying for a loan. We want to know if they are likely to default and we need to decide if we want our first split to be on whether they own a home or are married (we'll ignore income for this check because it's meant to illustrate splitting qualitative data).
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; @attr.s(auto_attribs=True, slots=True, frozen=True)
+ class LoanColumns:
+     owner: str = "Home Owner"
+     married: str = "Marital Status"
+     income: str = "Annual Income"
+     defaulted: str = "Defaulted"
+
+ LOANS = LoanColumns()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; loans = pandas.DataFrame({
+     LOANS.owner: [True, False, False, True, False, False, True, False, False, False],
+     LOANS.married: ["Single", "Married", "Single", "Married", "Divorced", "Single", "Divorced", "Single", "Married", "Single"],
+     LOANS.income: [125000, 100000, 70000, 120000, 95000, 60000, 220000, 85000, 75000, 90000],
+     LOANS.defaulted: [False, False, False, False, True, False, False, True, False, True],
+ })
+ print(TABLE(loans))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
+
+
+&lt;colgroup&gt;
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-left"&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope="col" class="org-right"&gt; &lt;/th&gt;
+&lt;th scope="col" class="org-left"&gt;Home Owner&lt;/th&gt;
+&lt;th scope="col" class="org-left"&gt;Marital Status&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Annual Income&lt;/th&gt;
+&lt;th scope="col" class="org-left"&gt;Defaulted&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-left"&gt;True&lt;/td&gt;
+&lt;td class="org-left"&gt;Single&lt;/td&gt;
+&lt;td class="org-right"&gt;125000&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;td class="org-left"&gt;Married&lt;/td&gt;
+&lt;td class="org-right"&gt;100000&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;2&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;td class="org-left"&gt;Single&lt;/td&gt;
+&lt;td class="org-right"&gt;70000&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;3&lt;/td&gt;
+&lt;td class="org-left"&gt;True&lt;/td&gt;
+&lt;td class="org-left"&gt;Married&lt;/td&gt;
+&lt;td class="org-right"&gt;120000&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;4&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;td class="org-left"&gt;Divorced&lt;/td&gt;
+&lt;td class="org-right"&gt;95000&lt;/td&gt;
+&lt;td class="org-left"&gt;True&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;5&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;td class="org-left"&gt;Single&lt;/td&gt;
+&lt;td class="org-right"&gt;60000&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;6&lt;/td&gt;
+&lt;td class="org-left"&gt;True&lt;/td&gt;
+&lt;td class="org-left"&gt;Divorced&lt;/td&gt;
+&lt;td class="org-right"&gt;220000&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;7&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;td class="org-left"&gt;Single&lt;/td&gt;
+&lt;td class="org-right"&gt;85000&lt;/td&gt;
+&lt;td class="org-left"&gt;True&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;8&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;td class="org-left"&gt;Married&lt;/td&gt;
+&lt;td class="org-right"&gt;75000&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-right"&gt;9&lt;/td&gt;
+&lt;td class="org-left"&gt;False&lt;/td&gt;
+&lt;td class="org-left"&gt;Single&lt;/td&gt;
+&lt;td class="org-right"&gt;90000&lt;/td&gt;
+&lt;td class="org-left"&gt;True&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;
+The first step is to calculate the entropy for the entire set using whether they defaulted or not as our classification.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; impurity_parent = node_entropy(loans[LOANS.defaulted])
+ print(f"I_parent: {impurity_parent:0.3f}")
+
+ expect(impurity_parent).to(be_within(0.8812, 0.8813))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+I_parent: 0.881
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+The next step is to figure out which of our two chosen attributes gives us the most information gain- whether the person was a Home Owner or their Marital Status. We could just look at which has a lower entropy, but the problem is stated so that we want to find the greatest difference between the class' entropy and the parent entropy instead.
+&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;ul class="org-ul"&gt;
+&lt;li&gt;&lt;a id="org4eeda5d"&gt;&lt;/a&gt;Home Owners&lt;br&gt;
+&lt;div class="outline-text-5" id="text-org4eeda5d"&gt;
+&lt;p&gt;
+We have two child nodes - one for homeowners and one for non-homeowners.
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; print(loans[loans[LOANS.owner]][LOANS.defaulted].value_counts())
+ print()
+ print(loans[~loans[LOANS.owner]][LOANS.defaulted].value_counts())
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+False    3
+Name: Defaulted, dtype: int64
+
+False    4
+True     3
+Name: Defaulted, dtype: int64
+&lt;/pre&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; impurity_home_owner = children_entropy(loans,
+					column=LOANS.owner,
+					target=LOANS.defaulted, debug=True)
+ print(f"{impurity_home_owner: 0.3f}")
+ expect(impurity_home_owner).to(be_within(0.689, 0.691))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+Calculating entropy for child nodes
+	I_(True) = (3/10) x -0.0
+	I_(False) = (7/10) x 0.9852281360342515
+Child node entropy: 0.6896596952239761
+ 0.690
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+Odd that python allows negative zero-values… Now we can see what the information gain will be.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; gain_home_owner = information_gain(loans, LOANS.owner, LOANS.defaulted)
+ print(f"Delta Home-Owner: {gain_home_owner: 0.3}")
+ expect(gain_home_owner).to(be_within(0.190, 0.19165))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+Delta Home-Owner:  0.192
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+I seem to have precision differences with the book…
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a id="org55384e0"&gt;&lt;/a&gt;Married Applicants&lt;br&gt;
+&lt;div class="outline-text-5" id="text-org55384e0"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; gain_married = information_gain(loans, LOANS.married, LOANS.defaulted, debug=True)
+ print(f"Delta Married: {gain_married: 0.3f}")
+ expect(gain_married).to(be_within(0.194, 0.196))
+ choice = max(((gain_home_owner, LOANS.owner),
+	       (gain_married, LOANS.married)))
+ print(f"Next Node: {choice}")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+calculating node-entropy
+        class: False, p: 0.7 entropy: -0.3602012209808308
+        class: True, p: 0.3 entropy: -0.5210896782498619
+Node Entropy: -0.8812908992306927
+Calculating entropy for child nodes
+        I_(Single) = (5/10) x 0.9709505944546686
+        I_(Married) = (3/10) x -0.0
+        I_(Divorced) = (2/10) x 1.0
+Child node entropy: 0.6854752972273344
+Delta Married:  0.196
+Next Node: (0.19581560200335835, 'Marital Status')
+&lt;/pre&gt;
+
+&lt;p&gt;
+Since we gain more information from checking whether someone was married or not, that would be the next node we would choose to split.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org7d9e0c9" class="outline-3"&gt;
+&lt;h3 id="org7d9e0c9"&gt;Binary Splitting of Qualitative Attributes Using the Gini Index&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org7d9e0c9"&gt;
+&lt;p&gt;
+\[
+\textit{Gini Index} = 1 - \sum_{i=0}^{c - 1}
+\]
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def gini(data: pandas.Series) -&amp;gt; float:
+    """Calculate the gini index for the data"""
+    total = len(data)
+    accumulator = 0
+    for classification in data.unique():
+	accumulator += (len(data[data==classification])/total)**2
+    return 1 - accumulator
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org5ec7157" class="outline-4"&gt;
+&lt;h4 id="org5ec7157"&gt;Parent Impurity&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org5ec7157"&gt;
+&lt;p&gt;
+First we get the gini index for the overall data.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;parent_gini = gini(loans[LOANS.defaulted])
+print(f"I_parent = {parent_gini: 0.3f}")
+expect(parent_gini).to(be_within(0.420, 0.421))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+I_parent =  0.420
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org1454491" class="outline-4"&gt;
+&lt;h4 id="org1454491"&gt;Home Owner Impurity&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1454491"&gt;
+&lt;p&gt;
+Now the homeowner attribute.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;homeowner_gini = children_impurity(loans, LOANS.owner, LOANS.defaulted, gini, debug=True)
+expect(homeowner_gini).to(be_within(0.342, 0.344))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+Calculating entropy for child nodes
+	I_(True) = (3/10) x 0.0
+	I_(False) = (7/10) x 0.48979591836734704
+Child node entropy: 0.3428571428571429
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org4ddb355" class="outline-4"&gt;
+&lt;h4 id="org4ddb355"&gt;Married Impurity&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org4ddb355"&gt;
+&lt;p&gt;
+This is different from the entropy case because we want to do binary splits but the marital status attribute has three values (&lt;i&gt;Single&lt;/i&gt;, &lt;i&gt;Married&lt;/i&gt;, and &lt;i&gt;Divorced&lt;/i&gt;) so we need to use a different function that does each attribute against the other (or we could add columns which turn the marital status into a binary attribute, but this seems simpler).
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def binary_gini(data: pandas.Series, column: str, target: str,
+		classification: object, debug: bool=False) -&amp;gt; float:
+    """Calculate the gini value for the data using one against many
+
+    Args:
+     data: source with qualitative values
+     column: column with the classifications to test
+     target: column with the classifications to predict
+     classification: the classification to compare
+     debug: whether to emit messages
+    """
+    total = len(data)
+    classified = data[data[column] == classification]
+    others = data[data[column] != classification]
+    if debug:
+	print(f"N({classification}/N) I({classification}) = {len(classified)/total * gini(classified[target]):0.3f}")
+	print(f"N(!{classification}/N) I!({classification}) = {len(others)/total * gini(others[target]):0.3f}")
+	print(f"I({classification}) = {((len(classified)/total) * gini(classified[target]) + (len(others)/total) * gini(others[target])):0.3f}")
+    return ((len(classified)/total) * gini(classified[target])
+	    + (len(others)/total) * gini(others[target]))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@attr.s(auto_attribs=True, slots=True, frozen=True)
+class MaritalStatus:
+    single: str="Single"
+    married: str="Married"
+    divorced: str="Divorced"
+
+status = MaritalStatus()
+&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i_single = binary_gini(loans, LOANS.married, LOANS.defaulted, status.single,
+		       debug=True)
+print()
+i_married = binary_gini(loans, LOANS.married, LOANS.defaulted, status.married,
+			debug=True)
+print()
+i_divorced = binary_gini(loans, LOANS.married, LOANS.defaulted,
+			 status.divorced, debug=True)
+expect(i_single).to(be_within(0.39, 0.41))
+expect(i_divorced).to(be_within(0.39, 0.41))
+expect(i_married).to(be_within(0.342, 0.344))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+N(Single/N) I(Single) = 0.240
+N(!Single/N) I!(Single) = 0.160
+I(Single) = 0.400
+
+N(Married/N) I(Married) = 0.000
+N(!Married/N) I!(Married) = 0.343
+I(Married) = 0.343
+
+N(Divorced/N) I(Divorced) = 0.100
+N(!Divorced/N) I!(Divorced) = 0.300
+I(Divorced) = 0.400
+&lt;/pre&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;best = 0
+best_split = None
+for candidate, label in ((homeowner_gini, "Homeowner"),
+			 (i_single, "Single"),
+			 (i_married, "Married"),
+			 (i_divorced, "Divorced")):
+    delta = parent_gini - candidate
+    if delta &amp;gt; best:
+	best = delta
+	best_split = label
+    print(f"Delta {label} = {delta:0.3f}")
+print(f"Best Split: {best_split}")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+Delta Homeowner = 0.077
+Delta Single = 0.020
+Delta Married = 0.077
+Delta Divorced = 0.020
+Best Split: Homeowner
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+Either using Home Ownership or Whether someone is married would be the best candidates for the next split.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>trees</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/machine-learning/decision-trees/</guid><pubDate>Sun, 26 Jan 2020 00:31:40 GMT</pubDate></item><item><title>Snorkel Data Labeling</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#org2d29170"&gt;Beginning&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#org49c5f44"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#org3c3c8d9"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org2d29170" class="outline-2"&gt;
+&lt;h2 id="org2d29170"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org2d29170"&gt;
+&lt;p&gt;
+This is a walk-through of the Snorkel &lt;a href="https://www.snorkel.org/use-cases/01-spam-tutorial"&gt;Snorkel Data Labeling&lt;/a&gt; tutorial.It uses the &lt;a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/"&gt;YouTube Spam Collection&lt;/a&gt; data set (downloaded from the &lt;a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection"&gt;UCI Machine Learning Repository&lt;/a&gt;). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns &lt;code&gt;COMMENT_ID&lt;/code&gt;, &lt;code&gt;AUTHOR&lt;/code&gt;, &lt;code&gt;DATE&lt;/code&gt;, &lt;code&gt;CONTENT&lt;/code&gt;, &lt;code&gt;CLASS&lt;/code&gt;. The tag represents whether it was considered &lt;i&gt;Spam&lt;/i&gt; or not, so we'll pretend it isn't there for most of this walk-through.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org49c5f44" class="outline-3"&gt;
+&lt;h3 id="org49c5f44"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org49c5f44"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orge9b8b1d" class="outline-4"&gt;
+&lt;h4 id="orge9b8b1d"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orge9b8b1d"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from pathlib import Path
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org6092c7a" class="outline-4"&gt;
+&lt;h4 id="org6092c7a"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org6092c7a"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;import pandas
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org3c3c8d9" class="outline-3"&gt;
+&lt;h3 id="org3c3c8d9"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org3c3c8d9"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org1895171" class="outline-4"&gt;
+&lt;h4 id="org1895171"&gt;The Dataset&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1895171"&gt;
+&lt;p&gt;
+The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a &lt;code&gt;artist&lt;/code&gt; column.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
+sets = []
+for name in path.glob("*.csv"):
+    artist = name.stem.split()[-1]
+    data = pandas.read_csv(name)
+    data["artist"] = artist
+    sets.append(data)
+    print(artist)
+data = pandas.concat(sets)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+KatyPerry
+LMFAO
+Eminem
+Shakira
+Psy
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgb21406b" class="outline-4"&gt;
+&lt;h4 id="orgb21406b"&gt;Splitting the Set&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgb21406b"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;train, test = train_test_split(data)
+print(train.shape)
+print(test.shape)
+
+train, development = train_test_split(train)
+validation, test = train_test_split(test)
+print(train.shape)
+print(development.shape)
+print(validation.shape)
+print(test.shape)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+(1467, 6)
+(489, 6)
+(1100, 6)
+(367, 6)
+(366, 6)
+(123, 6)
+&lt;/pre&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grouped = train.groupby(["artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count").opts(title="Comments by Artist", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist")()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/comments_by_artist.html" style="width:100%" height="800"&gt;
+  &lt;p&gt;Figure Missing&lt;/p&gt;
+&lt;/object&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grouped = train.groupby(["artist", "CLASS"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count", by="CLASS").opts(title="Comments by Artist and Class", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist_and_class")()
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/comments_by_artist_and_class.html" style="width:100%" height="800"&gt;
+  &lt;p&gt;Figure Missing&lt;/p&gt;
+&lt;/object&gt;
+
+&lt;p&gt;
+I said earlier that the spam/not-spam column was named tag, but its named &lt;code&gt;CLASS&lt;/code&gt; here, I don't know where the switch came (it says &lt;code&gt;TAG&lt;/code&gt; on the UCI page).
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>data</category><category>exploration</category><category>snorkel</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/</guid><pubDate>Fri, 10 Jan 2020 01:07:33 GMT</pubDate></item><item><title>Snorkel Example: Building a Spam Dataset</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org40dd6b3"&gt;Beginning&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org16510b3"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org0578a38"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orge91f516"&gt;Middle&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgb681313"&gt;Labeling Functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgadf32d2"&gt;Data Augmentation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org6972c97"&gt;Slicing&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgc1745cb"&gt;End&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org977c939"&gt;Train A Classifier&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org40dd6b3" class="outline-2"&gt;
+&lt;h2 id="org40dd6b3"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org40dd6b3"&gt;
 &lt;p&gt;
 This is a walk-through of the Snorkel &lt;a href="https://www.snorkel.org/get-started/"&gt;Get Started&lt;/a&gt; tutorial which shows how you can use it to build a labeled dataset. It uses the &lt;a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/"&gt;YouTube Spam Collection&lt;/a&gt; data set (downloaded from the &lt;a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection"&gt;UCI Machine Learning Repository&lt;/a&gt;). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns &lt;code&gt;COMMENT_ID&lt;/code&gt;, &lt;code&gt;AUTHOR&lt;/code&gt;, &lt;code&gt;DATE&lt;/code&gt;, &lt;code&gt;CONTENT&lt;/code&gt;, &lt;code&gt;TAG&lt;/code&gt;. The tag represents whether it was considered &lt;i&gt;Spam&lt;/i&gt; or not, so we'll pretend it isn't there for most of this walk-through.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orga4d4166" class="outline-3"&gt;
-&lt;h3 id="orga4d4166"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orga4d4166"&gt;
+&lt;div id="outline-container-org16510b3" class="outline-3"&gt;
+&lt;h3 id="org16510b3"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org16510b3"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org2c87e08" class="outline-4"&gt;
-&lt;h4 id="org2c87e08"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org2c87e08"&gt;
+&lt;div id="outline-container-org21f74c2" class="outline-4"&gt;
+&lt;h4 id="org21f74c2"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org21f74c2"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from argparse import Namespace
 from functools import partial
 from pathlib import Path
@@ -21,9 +751,9 @@ import re
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgd1dc40d" class="outline-4"&gt;
-&lt;h4 id="orgd1dc40d"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgd1dc40d"&gt;
+&lt;div id="outline-container-orge277dd1" class="outline-4"&gt;
+&lt;h4 id="orge277dd1"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orge277dd1"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from nltk.corpus import wordnet
 from sklearn import metrics
 from sklearn.feature_extraction.text import CountVectorizer
@@ -39,35 +769,35 @@ import pandas
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgcfd3fa6" class="outline-4"&gt;
-&lt;h4 id="orgcfd3fa6"&gt;Others&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgcfd3fa6"&gt;
+&lt;div id="outline-container-orgfdd7668" class="outline-4"&gt;
+&lt;h4 id="orgfdd7668"&gt;Others&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgfdd7668"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from graeae import CountPercentage, EmbedHoloviews
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgde1db4f" class="outline-3"&gt;
-&lt;h3 id="orgde1db4f"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgde1db4f"&gt;
+&lt;div id="outline-container-org0578a38" class="outline-3"&gt;
+&lt;h3 id="org0578a38"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org0578a38"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org3402793" class="outline-4"&gt;
-&lt;h4 id="org3402793"&gt;The WordNet Corpus&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org3402793"&gt;
+&lt;div id="outline-container-org0c57164" class="outline-4"&gt;
+&lt;h4 id="org0c57164"&gt;The WordNet Corpus&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org0c57164"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;nltk.download("wordnet", quiet=True)
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgd889079" class="outline-4"&gt;
-&lt;h4 id="orgd889079"&gt;Plotting&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgd889079"&gt;
+&lt;div id="outline-container-org9832938" class="outline-4"&gt;
+&lt;h4 id="org9832938"&gt;Plotting&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org9832938"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orga0d256f" class="outline-4"&gt;
-&lt;h4 id="orga0d256f"&gt;The Dataset&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orga0d256f"&gt;
+&lt;div id="outline-container-org1824b8e" class="outline-4"&gt;
+&lt;h4 id="org1824b8e"&gt;The Dataset&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1824b8e"&gt;
 &lt;p&gt;
 The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a &lt;code&gt;artist&lt;/code&gt; column.
 &lt;/p&gt;
@@ -94,9 +824,9 @@ Psy
 &lt;/div&gt;
 
 
-&lt;div id="outline-container-orgf7c88bd" class="outline-4"&gt;
-&lt;h4 id="orgf7c88bd"&gt;Splitting the Set&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgf7c88bd"&gt;
+&lt;div id="outline-container-org8e6eafd" class="outline-4"&gt;
+&lt;h4 id="org8e6eafd"&gt;Splitting the Set&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org8e6eafd"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;train, test = train_test_split(data)
 print(train.shape)
 print(test.shape)
@@ -143,18 +873,22 @@ I said earlier that the spam/not-spam column was named tag, but its named &lt;co
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;/div&gt;
 
-
-&lt;div id="outline-container-org668f898" class="outline-3"&gt;
-&lt;h3 id="org668f898"&gt;Labeling Functions&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org668f898"&gt;
+&lt;div id="outline-container-orge91f516" class="outline-2"&gt;
+&lt;h2 id="orge91f516"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orge91f516"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgb681313" class="outline-3"&gt;
+&lt;h3 id="orgb681313"&gt;Labeling Functions&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgb681313"&gt;
 &lt;p&gt;
 Labeling functions output a label for values in the training set.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org2e61d21" class="outline-4"&gt;
-&lt;h4 id="org2e61d21"&gt;Labels&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org2e61d21"&gt;
+&lt;div id="outline-container-org1b10309" class="outline-4"&gt;
+&lt;h4 id="org1b10309"&gt;Labels&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1b10309"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Label = Namespace(
     abstain = -1,
     not_spam = 0,
@@ -168,9 +902,9 @@ The actual data-set only has spam/not-spam classes, but the Snorkel tutorial add
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgfcf4da0" class="outline-4"&gt;
-&lt;h4 id="orgfcf4da0"&gt;Keyword Matching&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgfcf4da0"&gt;
+&lt;div id="outline-container-orgf83d267" class="outline-4"&gt;
+&lt;h4 id="orgf83d267"&gt;Keyword Matching&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgf83d267"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
 def labeling_by_keyword(comment: pandas.Series) -&amp;gt; int:
     """Assume if the author refers to something he/she owns it's spam
@@ -186,9 +920,9 @@ def labeling_by_keyword(comment: pandas.Series) -&amp;gt; int:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org581d49f" class="outline-4"&gt;
-&lt;h4 id="org581d49f"&gt;Regular Expressions&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org581d49f"&gt;
+&lt;div id="outline-container-org0c32df3" class="outline-4"&gt;
+&lt;h4 id="org0c32df3"&gt;Regular Expressions&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org0c32df3"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
 def label_check_out(comment) -&amp;gt; int:
     """check my/it/the out will be spam"""
@@ -197,9 +931,9 @@ def label_check_out(comment) -&amp;gt; int:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgd0041dc" class="outline-4"&gt;
-&lt;h4 id="orgd0041dc"&gt;Short Comments&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgd0041dc"&gt;
+&lt;div id="outline-container-org9581112" class="outline-4"&gt;
+&lt;h4 id="org9581112"&gt;Short Comments&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org9581112"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
 def label_short_comment(comment) -&amp;gt; int:
     """if a comment is short it's probably not spam"""
@@ -208,9 +942,9 @@ def label_short_comment(comment) -&amp;gt; int:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org115ae08" class="outline-4"&gt;
-&lt;h4 id="org115ae08"&gt;Positive Comments&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org115ae08"&gt;
+&lt;div id="outline-container-orgd646779" class="outline-4"&gt;
+&lt;h4 id="orgd646779"&gt;Positive Comments&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd646779"&gt;
 &lt;p&gt;
 Here we'll use &lt;a href="https://textblob.readthedocs.io/en/dev/"&gt;textblob&lt;/a&gt; to try and decide on whether a comment is positive (textblob uses &lt;a href="https://www.clips.uantwerpen.be/pattern"&gt;pattern&lt;/a&gt; to decide on the polarity.)
 &lt;/p&gt;
@@ -222,9 +956,9 @@ def label_positive_comment(comment) -&amp;gt; int:
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org35dcf7b" class="outline-4"&gt;
-&lt;h4 id="org35dcf7b"&gt;Combining the Functions and Cleaning the Labels&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org35dcf7b"&gt;
+&lt;div id="outline-container-orgdedcedc" class="outline-4"&gt;
+&lt;h4 id="orgdedcedc"&gt;Combining the Functions and Cleaning the Labels&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgdedcedc"&gt;
 &lt;p&gt;
 First I'll create a list of the labeling functions so that we can pass it to the label-applier class.
 &lt;/p&gt;
@@ -269,9 +1003,9 @@ for column in label_frame.columns:
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org0cd4381" class="outline-4"&gt;
-&lt;h4 id="org0cd4381"&gt;Training the Label Model&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org0cd4381"&gt;
+&lt;div id="outline-container-org2ec1c28" class="outline-4"&gt;
+&lt;h4 id="org2ec1c28"&gt;Training the Label Model&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2ec1c28"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;label_model = LabelModel(cardinality=2, verbose=True)
 label_model.fit(label_matrix, n_epochs=500, log_freq=50, seed=0)
 train["label"] = label_model.predict(L=label_matrix, tie_break_policy="abstain")
@@ -341,16 +1075,16 @@ Of those that were matched, only a little more than half agree with the labels g
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org732c7fd" class="outline-3"&gt;
-&lt;h3 id="org732c7fd"&gt;Data Augmentation&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org732c7fd"&gt;
+&lt;div id="outline-container-orgadf32d2" class="outline-3"&gt;
+&lt;h3 id="orgadf32d2"&gt;Data Augmentation&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgadf32d2"&gt;
 &lt;p&gt;
 We're going to create new entries in the data by randomly replacing words with their synonyms.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgd606c51" class="outline-4"&gt;
-&lt;h4 id="orgd606c51"&gt;Synonym Lookup Function&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgd606c51"&gt;
+&lt;div id="outline-container-orgfab4241" class="outline-4"&gt;
+&lt;h4 id="orgfab4241"&gt;Synonym Lookup Function&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgfab4241"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def synonyms_for(word: str) -&amp;gt; list:
     """get synonyms for word"""
     lemmas = set().union(*[synset.lemmas() for synset in wordnet.synsets(word)])
@@ -359,9 +1093,9 @@ We're going to create new entries in the data by randomly replacing words with t
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org8e8b67d" class="outline-4"&gt;
-&lt;h4 id="org8e8b67d"&gt;The Transformation Function&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org8e8b67d"&gt;
+&lt;div id="outline-container-orgb76b7ac" class="outline-4"&gt;
+&lt;h4 id="orgb76b7ac"&gt;The Transformation Function&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgb76b7ac"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@transformation_function()
 def replace_word_with_synonym(comment: pandas.Series) -&amp;gt; pandas.Series:
     """Replace one of the words with a synonym
@@ -419,9 +1153,9 @@ So we added some content.
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8a6f1e5" class="outline-3"&gt;
-&lt;h3 id="org8a6f1e5"&gt;Slicing&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org8a6f1e5"&gt;
+&lt;div id="outline-container-org6972c97" class="outline-3"&gt;
+&lt;h3 id="org6972c97"&gt;Slicing&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org6972c97"&gt;
 &lt;p&gt;
 A &lt;i&gt;slice&lt;/i&gt; is a subset of the data - in this case we want to identify slices that might be more important than others. In this case we're going to assume that we've identified that short links are more likely to be malicious, so we want to be more aware of them.
 &lt;/p&gt;
@@ -440,10 +1174,15 @@ def short_link(comment: pandas.Series) -&amp;gt; int:
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;/div&gt;
 
-&lt;div id="outline-container-orgccd254a" class="outline-3"&gt;
-&lt;h3 id="orgccd254a"&gt;Train A Classifier&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgccd254a"&gt;
+&lt;div id="outline-container-orgc1745cb" class="outline-2"&gt;
+&lt;h2 id="orgc1745cb"&gt;End&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgc1745cb"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org977c939" class="outline-3"&gt;
+&lt;h3 id="org977c939"&gt;Train A Classifier&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org977c939"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;training_text = train_augmented.CONTENT.tolist()
 vectorizer = CountVectorizer(ngram_range=(1, 2))
 x_train = vectorizer.fit_transform(training_text)
@@ -482,9 +1221,9 @@ weighted avg       0.53      0.54      0.53       367
 
 &lt;/pre&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org20e9639" class="outline-4"&gt;
-&lt;h4 id="org20e9639"&gt;Training on the Original Labels&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org20e9639"&gt;
+&lt;div id="outline-container-orge97cffb" class="outline-4"&gt;
+&lt;h4 id="orge97cffb"&gt;Training on the Original Labels&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orge97cffb"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;vectorizer = CountVectorizer(ngram_range=(1, 2))
 x_train = vectorizer.fit_transform(train.CONTENT)
 
@@ -520,33 +1259,33 @@ So our self-labeled data set really hurt the performance, but this was the Getti
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#org11bd7bb"&gt;Beginning&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#org27a196f"&gt;Beginning&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#orgdb433f1"&gt;Imports&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#org28995cc"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#org9d3e203"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#org07e536a"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#org0ef2ac9"&gt;Middle&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#orgabbb33d"&gt;Middle&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#orgd119e94"&gt;Petal Width&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#org5d88711"&gt;Hedge's G&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#orgeb657d5"&gt;Cohen's D&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#orga8af6cb"&gt;Petal Width&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#orgbcd0497"&gt;Hedge's G&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/trying-out-dabest/#org91c1a78"&gt;Cohen's D&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org11bd7bb" class="outline-2"&gt;
-&lt;h2 id="org11bd7bb"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org11bd7bb"&gt;
+&lt;div id="outline-container-org27a196f" class="outline-2"&gt;
+&lt;h2 id="org27a196f"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org27a196f"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgdb433f1" class="outline-3"&gt;
-&lt;h3 id="orgdb433f1"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgdb433f1"&gt;
+&lt;div id="outline-container-org9d3e203" class="outline-3"&gt;
+&lt;h3 id="org9d3e203"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org9d3e203"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org6aed581" class="outline-4"&gt;
-&lt;h4 id="org6aed581"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org6aed581"&gt;
+&lt;div id="outline-container-org6c3bc52" class="outline-4"&gt;
+&lt;h4 id="org6c3bc52"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org6c3bc52"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from sklearn.datasets import load_iris
 import dabest
 import pandas
@@ -555,13 +1294,13 @@ import seaborn
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org28995cc" class="outline-3"&gt;
-&lt;h3 id="org28995cc"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org28995cc"&gt;
+&lt;div id="outline-container-org07e536a" class="outline-3"&gt;
+&lt;h3 id="org07e536a"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org07e536a"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org49fbab0" class="outline-4"&gt;
-&lt;h4 id="org49fbab0"&gt;The Data Set&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org49fbab0"&gt;
+&lt;div id="outline-container-org7515a90" class="outline-4"&gt;
+&lt;h4 id="org7515a90"&gt;The Data Set&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org7515a90"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;iris = load_iris()
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -642,13 +1381,13 @@ data["species"] = target.map(names)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org0ef2ac9" class="outline-2"&gt;
-&lt;h2 id="org0ef2ac9"&gt;Middle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org0ef2ac9"&gt;
+&lt;div id="outline-container-orgabbb33d" class="outline-2"&gt;
+&lt;h2 id="orgabbb33d"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgabbb33d"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgd119e94" class="outline-3"&gt;
-&lt;h3 id="orgd119e94"&gt;Petal Width&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgd119e94"&gt;
+&lt;div id="outline-container-orga8af6cb" class="outline-3"&gt;
+&lt;h3 id="orga8af6cb"&gt;Petal Width&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orga8af6cb"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;iris_dabest = dabest.load(data=data, x="species", y="petal width (cm)", idx=iris.target_names)
 iris_dabest.mean_diff.plot()
 &lt;/pre&gt;&lt;/div&gt;
@@ -661,9 +1400,9 @@ iris_dabest.mean_diff.plot()
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org5d88711" class="outline-3"&gt;
-&lt;h3 id="org5d88711"&gt;Hedge's G&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org5d88711"&gt;
+&lt;div id="outline-container-orgbcd0497" class="outline-3"&gt;
+&lt;h3 id="orgbcd0497"&gt;Hedge's G&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgbcd0497"&gt;
 &lt;p&gt;
 &lt;a href="https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/hedgeg.htm"&gt;Hedges G&lt;/a&gt; is a measurement of effect size, similar to Cohen's d but with better properties when the samples are smaller or the sample sizes are different.
 &lt;/p&gt;
@@ -710,9 +1449,9 @@ I don't think that's really what this is meant for, but I just wanted to see how
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgeb657d5" class="outline-3"&gt;
-&lt;h3 id="orgeb657d5"&gt;Cohen's D&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgeb657d5"&gt;
+&lt;div id="outline-container-org91c1a78" class="outline-3"&gt;
+&lt;h3 id="org91c1a78"&gt;Cohen's D&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org91c1a78"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;iris_dabest.cohens_d.plot()
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -754,11 +1493,11 @@ In this case the Cohen's d and Hedges g look similar.
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/#orgc1a8a9e"&gt;Beginning&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/#org532c938"&gt;Beginning&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/#org2e82353"&gt;Imports&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/#org8ea9616"&gt;Imports&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/#orgfd82f5d"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/#org2c22b0b"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
@@ -766,17 +1505,17 @@ In this case the Cohen's d and Hedges g look similar.
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgc1a8a9e" class="outline-2"&gt;
-&lt;h2 id="orgc1a8a9e"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgc1a8a9e"&gt;
+&lt;div id="outline-container-org532c938" class="outline-2"&gt;
+&lt;h2 id="org532c938"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org532c938"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org2e82353" class="outline-3"&gt;
-&lt;h3 id="org2e82353"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org2e82353"&gt;
+&lt;div id="outline-container-org8ea9616" class="outline-3"&gt;
+&lt;h3 id="org8ea9616"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org8ea9616"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgfd82f5d" class="outline-4"&gt;
-&lt;h4 id="orgfd82f5d"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgfd82f5d"&gt;
+&lt;div id="outline-container-org2c22b0b" class="outline-4"&gt;
+&lt;h4 id="org2c22b0b"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2c22b0b"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from sklearn.datasets import load_iris
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
@@ -786,60 +1525,60 @@ In this case the Cohen's d and Hedges g look similar.
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org83af856"&gt;Beginning&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orge9daf90"&gt;Beginning&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org50b1cc8"&gt;Imports&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orgb6187b9"&gt;Imports&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orgbef0233"&gt;Python&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org1cfa078"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orgeef6a87"&gt;Others&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org5a4d26c"&gt;Python&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org3f24a07"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org430fcde"&gt;Others&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orgbeae10d"&gt;Set Up&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org93ee95a"&gt;Set Up&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org5c6ade9"&gt;Some Constants&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org64c9634"&gt;The Plotting&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orgfbafcf0"&gt;The Data Set&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orgaf96094"&gt;Rename the Columns&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org2a4a5a5"&gt;Some Constants&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org7f8a1e9"&gt;The Plotting&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org44f8d52"&gt;The Data Set&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org973695b"&gt;Rename the Columns&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org12c172b"&gt;Middle&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org0f08f4e"&gt;Middle&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org88e7e5b"&gt;Setting Up the Training and Testing Sets&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orgad9c906"&gt;Looking at the Data&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org4d99c76"&gt;Setting Up the Training and Testing Sets&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orgf2efbb5"&gt;Looking at the Data&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org6025f0a"&gt;Spam and Ham&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org5b86e70"&gt;The Dates&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org04c222b"&gt;Some Samples&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org853da44"&gt;Spam and Ham&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org54512f3"&gt;The Dates&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org4004a77"&gt;Some Samples&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orgb646f5e"&gt;Labeling Functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org121ec30"&gt;Labeling Functions&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orgd3004ee"&gt;End&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org6c32e7a"&gt;End&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org5d50667"&gt;Citations&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org6800c08"&gt;Citations&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org83af856" class="outline-2"&gt;
-&lt;h2 id="org83af856"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org83af856"&gt;
+&lt;div id="outline-container-orge9daf90" class="outline-2"&gt;
+&lt;h2 id="orge9daf90"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orge9daf90"&gt;
 &lt;p&gt;
 This is a walk-through of Snorkel's &lt;a href="https://www.snorkel.org/get-started/"&gt;Get Started&lt;/a&gt; page.
 &lt;/p&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org50b1cc8" class="outline-3"&gt;
-&lt;h3 id="org50b1cc8"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org50b1cc8"&gt;
+&lt;div id="outline-container-orgb6187b9" class="outline-3"&gt;
+&lt;h3 id="orgb6187b9"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgb6187b9"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgbef0233" class="outline-4"&gt;
-&lt;h4 id="orgbef0233"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgbef0233"&gt;
+&lt;div id="outline-container-org5a4d26c" class="outline-4"&gt;
+&lt;h4 id="org5a4d26c"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org5a4d26c"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from argparse import Namespace
 from datetime import datetime
 from functools import partial
@@ -847,30 +1586,30 @@ from pathlib import Path
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org1cfa078" class="outline-4"&gt;
-&lt;h4 id="org1cfa078"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org1cfa078"&gt;
+&lt;div id="outline-container-org3f24a07" class="outline-4"&gt;
+&lt;h4 id="org3f24a07"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org3f24a07"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from sklearn.model_selection import train_test_split
 import hvplot.pandas
 import pandas
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgeef6a87" class="outline-4"&gt;
-&lt;h4 id="orgeef6a87"&gt;Others&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgeef6a87"&gt;
+&lt;div id="outline-container-org430fcde" class="outline-4"&gt;
+&lt;h4 id="org430fcde"&gt;Others&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org430fcde"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from graeae import CountPercentage, EmbedHoloviews
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgbeae10d" class="outline-3"&gt;
-&lt;h3 id="orgbeae10d"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgbeae10d"&gt;
+&lt;div id="outline-container-org93ee95a" class="outline-3"&gt;
+&lt;h3 id="org93ee95a"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org93ee95a"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org5c6ade9" class="outline-4"&gt;
-&lt;h4 id="org5c6ade9"&gt;Some Constants&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org5c6ade9"&gt;
+&lt;div id="outline-container-org2a4a5a5" class="outline-4"&gt;
+&lt;h4 id="org2a4a5a5"&gt;Some Constants&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2a4a5a5"&gt;
 &lt;p&gt;
 There are two classes in the data set - &lt;i&gt;spam&lt;/i&gt; and &lt;i&gt;not spam&lt;/i&gt;, and for the labeling that we're going to do we also need a third value for the cases where the code can't give it a label.
 &lt;/p&gt;
@@ -883,17 +1622,17 @@ There are two classes in the data set - &lt;i&gt;spam&lt;/i&gt; and &lt;i&gt;not
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org64c9634" class="outline-4"&gt;
-&lt;h4 id="org64c9634"&gt;The Plotting&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org64c9634"&gt;
+&lt;div id="outline-container-org7f8a1e9" class="outline-4"&gt;
+&lt;h4 id="org7f8a1e9"&gt;The Plotting&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org7f8a1e9"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;path = "../../files/posts/data/a-first-look-at-snorkel"
 Embed = partial(EmbedHoloviews, folder_path=path)
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgfbafcf0" class="outline-4"&gt;
-&lt;h4 id="orgfbafcf0"&gt;The Data Set&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgfbafcf0"&gt;
+&lt;div id="outline-container-org44f8d52" class="outline-4"&gt;
+&lt;h4 id="org44f8d52"&gt;The Data Set&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org44f8d52"&gt;
 &lt;p&gt;
 This dataset is a set of comments taken from you-tube videos and hosted on &lt;a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/"&gt;this site&lt;/a&gt;. The comments are for music videos by five artists.
 &lt;/p&gt;
@@ -912,9 +1651,9 @@ data = pandas.concat(parts)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgaf96094" class="outline-4"&gt;
-&lt;h4 id="orgaf96094"&gt;Rename the Columns&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgaf96094"&gt;
+&lt;div id="outline-container-org973695b" class="outline-4"&gt;
+&lt;h4 id="org973695b"&gt;Rename the Columns&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org973695b"&gt;
 &lt;p&gt;
 This just makes it easier for me since it matches my style.
 &lt;/p&gt;
@@ -939,13 +1678,13 @@ data = data.rename(columns=renames)
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org12c172b" class="outline-2"&gt;
-&lt;h2 id="org12c172b"&gt;Middle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org12c172b"&gt;
+&lt;div id="outline-container-org0f08f4e" class="outline-2"&gt;
+&lt;h2 id="org0f08f4e"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org0f08f4e"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org88e7e5b" class="outline-3"&gt;
-&lt;h3 id="org88e7e5b"&gt;Setting Up the Training and Testing Sets&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org88e7e5b"&gt;
+&lt;div id="outline-container-org4d99c76" class="outline-3"&gt;
+&lt;h3 id="org4d99c76"&gt;Setting Up the Training and Testing Sets&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org4d99c76"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;x_train, x_test, y_train, y_test = train_test_split(data[Column.comment_id,
 							 Column.author,
 							 Column.datetime,
@@ -969,34 +1708,32 @@ Training Size: 1,407
 Development Size: 157
 Validation Size: 40
 Test Size: 352
-
 &lt;/pre&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgad9c906" class="outline-3"&gt;
-&lt;h3 id="orgad9c906"&gt;Looking at the Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgad9c906"&gt;
+&lt;div id="outline-container-orgf2efbb5" class="outline-3"&gt;
+&lt;h3 id="orgf2efbb5"&gt;Looking at the Data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgf2efbb5"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(x_dev.sample().iloc[0])
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;pre class="example"&gt;
 If I get 100 subscribers, I will summon Freddy Mercury's ghost to whipe  from the face of earth One Direction and Miley Cirus.﻿
-
 &lt;/pre&gt;
+
 
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(f"{len(data):,}")
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;pre class="example"&gt;
 1,956
-
 &lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org6025f0a" class="outline-4"&gt;
-&lt;h4 id="org6025f0a"&gt;Spam and Ham&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org6025f0a"&gt;
+&lt;div id="outline-container-org853da44" class="outline-4"&gt;
+&lt;h4 id="org853da44"&gt;Spam and Ham&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org853da44"&gt;
 &lt;p&gt;
 There are two classes in the dataset - SPAM (1) and not-spam (0), sometimes called HAM.
 &lt;/p&gt;
@@ -1052,9 +1789,9 @@ Embed(plot=plot, file_name="spam_counts")()
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org5b86e70" class="outline-4"&gt;
-&lt;h4 id="org5b86e70"&gt;The Dates&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org5b86e70"&gt;
+&lt;div id="outline-container-org54512f3" class="outline-4"&gt;
+&lt;h4 id="org54512f3"&gt;The Dates&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org54512f3"&gt;
 &lt;p&gt;
 I'll look at when the comments were made, just to see.
 &lt;/p&gt;
@@ -1064,8 +1801,8 @@ I'll look at when the comments were made, just to see.
 
 &lt;pre class="example"&gt;
 245
-
 &lt;/pre&gt;
+
 
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;with_date = data[~data[Column.datetime].isna()]
 with_date.loc[:, Column.datetime] = pandas.to_datetime(with_date[Column.datetime])
@@ -1091,13 +1828,13 @@ Embed(plot=plot, file_name="monthly_spam_by_artist")()
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org04c222b" class="outline-4"&gt;
-&lt;h4 id="org04c222b"&gt;Some Samples&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org04c222b"&gt;
+&lt;div id="outline-container-org4004a77" class="outline-4"&gt;
+&lt;h4 id="org4004a77"&gt;Some Samples&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org4004a77"&gt;
 &lt;/div&gt;
 &lt;ul class="org-ul"&gt;
-&lt;li&gt;&lt;a id="orgd494599"&gt;&lt;/a&gt;SPAM&lt;br&gt;
-&lt;div class="outline-text-5" id="text-orgd494599"&gt;
+&lt;li&gt;&lt;a id="orgd416c09"&gt;&lt;/a&gt;SPAM&lt;br&gt;
+&lt;div class="outline-text-5" id="text-orgd416c09"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;spam = data[data[Column.label]==classified_as.spam].sample(5)
 for index in range(len(spam)):
     print(f"({spam.iloc[index][Column.artist]}): {spam.iloc[index][Column.text]}")
@@ -1109,13 +1846,12 @@ for index in range(len(spam)):
 (Shakira): Part 5. Comforter of the afflicted, pray for us Help of Christians, pray for us Queen of Angels, pray for us Queen of Patriarchs, pray for us Queen of Prophets, pray for us Queen of Apostles, pray for us Queen of Martyrs, pray for us Queen of Confessors, pray for us Queen of Virgins, pray for us Queen of all Saints, pray for us Queen conceived without original sin, pray for us Queen of the most holy Rosary, pray for us Queen of the family, pray for us Queen of peace, pray for us 
 (Eminem): Hey guys I&amp;amp;#39;m 87 cypher im 11 years old and Rap is my life I recently made my second album desire ep . please take a moment to check out my album on YouTube thank you very much for reading every like comment and subscription counts
 (Eminem): Check out this video on YouTube:﻿
-
 &lt;/pre&gt;
 &lt;/div&gt;
 &lt;/li&gt;
 
-&lt;li&gt;&lt;a id="org9f1160e"&gt;&lt;/a&gt;Ham&lt;br&gt;
-&lt;div class="outline-text-5" id="text-org9f1160e"&gt;
+&lt;li&gt;&lt;a id="orga91282d"&gt;&lt;/a&gt;Ham&lt;br&gt;
+&lt;div class="outline-text-5" id="text-orga91282d"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ham = data[data[Column.label]==classified_as.not_spam].sample(5)
 for index in range(len(ham)):
     print(f"({ham.iloc[index][Column.artist]}): {ham.iloc[index][Column.text]}")
@@ -1127,7 +1863,6 @@ for index in range(len(ham)):
 (LMFAO): I like how the robot shuffles he shuffles good﻿
 (KatyPerry): ROAAAAARRRRRR 🐯🐯🐯﻿
 (Shakira): like me﻿
-
 &lt;/pre&gt;
 &lt;/div&gt;
 &lt;/li&gt;
@@ -1135,17 +1870,17 @@ for index in range(len(ham)):
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgb646f5e" class="outline-3"&gt;
-&lt;h3 id="orgb646f5e"&gt;Labeling Functions&lt;/h3&gt;
+&lt;div id="outline-container-org121ec30" class="outline-3"&gt;
+&lt;h3 id="org121ec30"&gt;Labeling Functions&lt;/h3&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgd3004ee" class="outline-2"&gt;
-&lt;h2 id="orgd3004ee"&gt;End&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgd3004ee"&gt;
+&lt;div id="outline-container-org6c32e7a" class="outline-2"&gt;
+&lt;h2 id="org6c32e7a"&gt;End&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org6c32e7a"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org5d50667" class="outline-3"&gt;
-&lt;h3 id="org5d50667"&gt;Citations&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org5d50667"&gt;
+&lt;div id="outline-container-org6800c08" class="outline-3"&gt;
+&lt;h3 id="org6800c08"&gt;Citations&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org6800c08"&gt;
 &lt;ul class="org-ul"&gt;
 &lt;li&gt;Alberto, T.C., Lochter J.V., Almeida, T.A. TubeSpam: Comment Spam Filtering on YouTube. Proceedings of the 14th IEEE International Conference on Machine Learning and Applications (ICMLA'15), 1-6, Miami, FL, USA, December, 2015. (preprint)&lt;/li&gt;
 &lt;/ul&gt;
@@ -1155,22 +1890,22 @@ for index in range(len(ham)):
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#org6504b4e"&gt;Question One&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#org44b7e42"&gt;Question Two&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#orgd57ae30"&gt;Question Three&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#org884cf32"&gt;Question Four&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#org4616b09"&gt;Question Five&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#org6e7ea02"&gt;Question Six&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#org12dcfd2"&gt;Question Seven&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#org4031b9e"&gt;Question One&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#org9dae90a"&gt;Question Two&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#orgc36ad95"&gt;Question Three&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#org09c58dc"&gt;Question Four&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#org98a8407"&gt;Question Five&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#org5ca8abf"&gt;Question Six&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/sql-module-3/#org5679c2e"&gt;Question Seven&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;p&gt;
 All the questions in this Quiz use the Chinook Database.
 &lt;/p&gt;
-&lt;div id="outline-container-org6504b4e" class="outline-2"&gt;
-&lt;h2 id="org6504b4e"&gt;Question One&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org6504b4e"&gt;
+&lt;div id="outline-container-org4031b9e" class="outline-2"&gt;
+&lt;h2 id="org4031b9e"&gt;Question One&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org4031b9e"&gt;
 &lt;p&gt;
 Using a subquery, find the names of all the tracks for the album "Californication".
 &lt;/p&gt;
@@ -1186,9 +1921,9 @@ What is the 8th Track? Porcelain.
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org44b7e42" class="outline-2"&gt;
-&lt;h2 id="org44b7e42"&gt;Question Two&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org44b7e42"&gt;
+&lt;div id="outline-container-org9dae90a" class="outline-2"&gt;
+&lt;h2 id="org9dae90a"&gt;Question Two&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org9dae90a"&gt;
 &lt;p&gt;
 Find the total number of invoices for each customer along with the customer's full name, city and email.
 &lt;/p&gt;
@@ -1209,9 +1944,9 @@ frantsekw@jetbrains.com
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgd57ae30" class="outline-2"&gt;
-&lt;h2 id="orgd57ae30"&gt;Question Three&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgd57ae30"&gt;
+&lt;div id="outline-container-orgc36ad95" class="outline-2"&gt;
+&lt;h2 id="orgc36ad95"&gt;Question Three&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgc36ad95"&gt;
 &lt;p&gt;
 Retrieve the track name, album, artistID, and trackID for all the albums.
 &lt;/p&gt;
@@ -1233,9 +1968,9 @@ Breaking The Rules
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org884cf32" class="outline-2"&gt;
-&lt;h2 id="org884cf32"&gt;Question Four&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org884cf32"&gt;
+&lt;div id="outline-container-org09c58dc" class="outline-2"&gt;
+&lt;h2 id="org09c58dc"&gt;Question Four&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org09c58dc"&gt;
 &lt;p&gt;
 Retrieve a list with the managers last name, and the last name of the employees who report to him or her.
 &lt;/p&gt;
@@ -1256,9 +1991,9 @@ King and Callahan.
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org4616b09" class="outline-2"&gt;
-&lt;h2 id="org4616b09"&gt;Question Five&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org4616b09"&gt;
+&lt;div id="outline-container-org98a8407" class="outline-2"&gt;
+&lt;h2 id="org98a8407"&gt;Question Five&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org98a8407"&gt;
 &lt;p&gt;
 Find the name and ID of the artists who do not have albums. 
 &lt;/p&gt;
@@ -1283,9 +2018,9 @@ Gilberto
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org6e7ea02" class="outline-2"&gt;
-&lt;h2 id="org6e7ea02"&gt;Question Six&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org6e7ea02"&gt;
+&lt;div id="outline-container-org5ca8abf" class="outline-2"&gt;
+&lt;h2 id="org5ca8abf"&gt;Question Six&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org5ca8abf"&gt;
 &lt;p&gt;
 Use a UNION to create a list of all the employee's and customer's first names and last names ordered by the last name in descending order.
 &lt;/p&gt;
@@ -1309,9 +2044,9 @@ Taylor
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org12dcfd2" class="outline-2"&gt;
-&lt;h2 id="org12dcfd2"&gt;Question Seven&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org12dcfd2"&gt;
+&lt;div id="outline-container-org5679c2e" class="outline-2"&gt;
+&lt;h2 id="org5679c2e"&gt;Question Seven&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org5679c2e"&gt;
 &lt;p&gt;
 See if there are any customers who have a different city listed in their billing city versus their customer city.
 &lt;/p&gt;
@@ -1330,25 +2065,25 @@ No, there aren't.
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#org74f709c"&gt;Beginning&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#orga1e1b3a"&gt;Middle&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#orge65da72"&gt;Beginning&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#orgd3858b3"&gt;Middle&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#org0c3f7b9"&gt;Question One&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#orga8092d9"&gt;Question Two&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#org3e7cca2"&gt;Question Three&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#org713c32c"&gt;Question Four&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#org8a0964b"&gt;Question Five&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#org6255f3a"&gt;Question Six&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#orgc5d411f"&gt;Question Seven&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#org708ca9e"&gt;Question One&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#org3ab48f2"&gt;Question Two&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#org0830803"&gt;Question Three&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#org26ab570"&gt;Question Four&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#org909b2fb"&gt;Question Five&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#orge5212e9"&gt;Question Six&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#org3efe939"&gt;Question Seven&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#orgfd1ac03"&gt;End&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/#orgb0e1e09"&gt;End&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org74f709c" class="outline-2"&gt;
-&lt;h2 id="org74f709c"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org74f709c"&gt;
+&lt;div id="outline-container-orge65da72" class="outline-2"&gt;
+&lt;h2 id="orge65da72"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orge65da72"&gt;
 &lt;p&gt;
 The following questions use the &lt;a href="http://www.sqlitetutorial.net/sqlite-sample-database/"&gt;SQLite Sample Database&lt;/a&gt; - called the Chinook database - found on &lt;a href="http://www.sqlitetutorial.net"&gt;the SQLite Tutorial site&lt;/a&gt;.
 &lt;img src="https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/chinook-entity-diagram.png" alt="chinook-entity-diagram.png"&gt;
@@ -1431,13 +2166,13 @@ It is made up of 11 tables:
 &lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orga1e1b3a" class="outline-2"&gt;
-&lt;h2 id="orga1e1b3a"&gt;Middle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orga1e1b3a"&gt;
+&lt;div id="outline-container-orgd3858b3" class="outline-2"&gt;
+&lt;h2 id="orgd3858b3"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgd3858b3"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org0c3f7b9" class="outline-3"&gt;
-&lt;h3 id="org0c3f7b9"&gt;Question One&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org0c3f7b9"&gt;
+&lt;div id="outline-container-org708ca9e" class="outline-3"&gt;
+&lt;h3 id="org708ca9e"&gt;Question One&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org708ca9e"&gt;
 &lt;p&gt;
 Pull a list of customer ids with the customer’s full name, and address, along with combining their city and country together. Be sure to make a space in between these two and make it UPPER CASE.
 &lt;/p&gt;
@@ -1447,9 +2182,9 @@ What is the city and country result for CustomerID 16?
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orga8092d9" class="outline-3"&gt;
-&lt;h3 id="orga8092d9"&gt;Question Two&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orga8092d9"&gt;
+&lt;div id="outline-container-org3ab48f2" class="outline-3"&gt;
+&lt;h3 id="org3ab48f2"&gt;Question Two&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org3ab48f2"&gt;
 &lt;p&gt;
 Create a new employee user id by combining the first 4 letters of the employee’s first name with the first 2 letters of the employee’s last name. Make the new field lower case and pull each individual step to show your work.
 &lt;/p&gt;
@@ -1459,9 +2194,9 @@ What is the final result for Robert King?
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org3e7cca2" class="outline-3"&gt;
-&lt;h3 id="org3e7cca2"&gt;Question Three&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org3e7cca2"&gt;
+&lt;div id="outline-container-org0830803" class="outline-3"&gt;
+&lt;h3 id="org0830803"&gt;Question Three&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org0830803"&gt;
 &lt;p&gt;
 Show a list of employees who have worked for the company for 15 or more years using the current date function. Sort by lastname ascending.
 &lt;/p&gt;
@@ -1471,9 +2206,9 @@ What is the lastname of the last person on the list returned?
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org713c32c" class="outline-3"&gt;
-&lt;h3 id="org713c32c"&gt;Question Four&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org713c32c"&gt;
+&lt;div id="outline-container-org26ab570" class="outline-3"&gt;
+&lt;h3 id="org26ab570"&gt;Question Four&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org26ab570"&gt;
 &lt;p&gt;
 Profiling the Customers table, answer the following question.
 &lt;/p&gt;
@@ -1483,9 +2218,9 @@ Are there any columns with null values? Indicate any below. Select all that appl
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org8a0964b" class="outline-3"&gt;
-&lt;h3 id="org8a0964b"&gt;Question Five&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org8a0964b"&gt;
+&lt;div id="outline-container-org909b2fb" class="outline-3"&gt;
+&lt;h3 id="org909b2fb"&gt;Question Five&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org909b2fb"&gt;
 &lt;p&gt;
 Find the cities with the most customers and rank in descending order.
 &lt;/p&gt;
@@ -1495,9 +2230,9 @@ Which of the following cities indicate having 2 customers?
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org6255f3a" class="outline-3"&gt;
-&lt;h3 id="org6255f3a"&gt;Question Six&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org6255f3a"&gt;
+&lt;div id="outline-container-orge5212e9" class="outline-3"&gt;
+&lt;h3 id="orge5212e9"&gt;Question Six&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orge5212e9"&gt;
 &lt;p&gt;
 Create a new customer invoice id by combining a customer’s invoice id with their first and last name while ordering your query in the following order: firstname, lastname, and invoiceID.
 &lt;/p&gt;
@@ -1507,64 +2242,64 @@ Select all of the correct "AstridGruber" entries that are returned in your resul
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgc5d411f" class="outline-3"&gt;
-&lt;h3 id="orgc5d411f"&gt;Question Seven&lt;/h3&gt;
+&lt;div id="outline-container-org3efe939" class="outline-3"&gt;
+&lt;h3 id="org3efe939"&gt;Question Seven&lt;/h3&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgfd1ac03" class="outline-2"&gt;
-&lt;h2 id="orgfd1ac03"&gt;End&lt;/h2&gt;
+&lt;div id="outline-container-orgb0e1e09" class="outline-2"&gt;
+&lt;h2 id="orgb0e1e09"&gt;End&lt;/h2&gt;
 &lt;/div&gt;</description><category>practice</category><category>sql</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/sql/chinook-questions/</guid><pubDate>Wed, 21 Aug 2019 15:39:49 GMT</pubDate></item><item><title>Calling a JSON API</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org82399df"&gt;Beginning&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org3fb20d4"&gt;Beginning&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#orgc979628"&gt;Imports&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org663d11d"&gt;Imports&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org0ce9794"&gt;Python&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org0cc3d69"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#orgd4a57ec"&gt;Python&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org6806545"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org28455d8"&gt;Set Up&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#orgee1f254"&gt;Set Up&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org0a30d04"&gt;URL&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org2bbff95"&gt;Sample&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org3dd109f"&gt;Actual&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#orgccd59ba"&gt;URL&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org80c0fc4"&gt;Sample&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org6130de2"&gt;Actual&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org33c7380"&gt;Middle&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org0cc1baf"&gt;Middle&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#orgc93ede2"&gt;The Sample&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org18d24d9"&gt;The Actual&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#orge8d13d4"&gt;The Sample&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#org278a8f9"&gt;The Actual&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#orgb941af8"&gt;End&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/#orge542544"&gt;End&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org82399df" class="outline-2"&gt;
-&lt;h2 id="org82399df"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org82399df"&gt;
+&lt;div id="outline-container-org3fb20d4" class="outline-2"&gt;
+&lt;h2 id="org3fb20d4"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org3fb20d4"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgc979628" class="outline-3"&gt;
-&lt;h3 id="orgc979628"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgc979628"&gt;
+&lt;div id="outline-container-org663d11d" class="outline-3"&gt;
+&lt;h3 id="org663d11d"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org663d11d"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org0ce9794" class="outline-4"&gt;
-&lt;h4 id="org0ce9794"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org0ce9794"&gt;
+&lt;div id="outline-container-orgd4a57ec" class="outline-4"&gt;
+&lt;h4 id="orgd4a57ec"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgd4a57ec"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from pprint import pprint
 import json
 import urllib
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org0cc3d69" class="outline-4"&gt;
-&lt;h4 id="org0cc3d69"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org0cc3d69"&gt;
+&lt;div id="outline-container-org6806545" class="outline-4"&gt;
+&lt;h4 id="org6806545"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org6806545"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from expects import (
     equal,
     expect,
@@ -1574,29 +2309,29 @@ import urllib
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org28455d8" class="outline-3"&gt;
-&lt;h3 id="org28455d8"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org28455d8"&gt;
+&lt;div id="outline-container-orgee1f254" class="outline-3"&gt;
+&lt;h3 id="orgee1f254"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgee1f254"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org0a30d04" class="outline-4"&gt;
-&lt;h4 id="org0a30d04"&gt;URL&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org0a30d04"&gt;
+&lt;div id="outline-container-orgccd59ba" class="outline-4"&gt;
+&lt;h4 id="orgccd59ba"&gt;URL&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgccd59ba"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;API_KEY = 42
 API_URL = "http://py4e-data.dr-chuck.net/json?"
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org2bbff95" class="outline-4"&gt;
-&lt;h4 id="org2bbff95"&gt;Sample&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org2bbff95"&gt;
+&lt;div id="outline-container-org80c0fc4" class="outline-4"&gt;
+&lt;h4 id="org80c0fc4"&gt;Sample&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org80c0fc4"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;SAMPLE_LOCATION = "South Federal University"
 SAMPLE_PLACE_ID = "ChIJ9e_QQm0sDogRhUPatldEFxw"
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org3dd109f" class="outline-4"&gt;
-&lt;h4 id="org3dd109f"&gt;Actual&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org3dd109f"&gt;
+&lt;div id="outline-container-org6130de2" class="outline-4"&gt;
+&lt;h4 id="org6130de2"&gt;Actual&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org6130de2"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ACTUAL_LOCATION = "Kazan Federal University"
 ACTUAL_PLACE_ID_STARTS_WITH = "ChIJGf9"
 &lt;/pre&gt;&lt;/div&gt;
@@ -1604,9 +2339,9 @@ ACTUAL_PLACE_ID_STARTS_WITH = "ChIJGf9"
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org33c7380" class="outline-2"&gt;
-&lt;h2 id="org33c7380"&gt;Middle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org33c7380"&gt;
+&lt;div id="outline-container-org0cc1baf" class="outline-2"&gt;
+&lt;h2 id="org0cc1baf"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org0cc1baf"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def get_place_id(location: str) -&amp;gt; str:
     """Get the place ID for the location
 
@@ -1629,9 +2364,9 @@ ACTUAL_PLACE_ID_STARTS_WITH = "ChIJGf9"
     return place_id
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgc93ede2" class="outline-3"&gt;
-&lt;h3 id="orgc93ede2"&gt;The Sample&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgc93ede2"&gt;
+&lt;div id="outline-container-orge8d13d4" class="outline-3"&gt;
+&lt;h3 id="orge8d13d4"&gt;The Sample&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orge8d13d4"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;place_id = get_place_id(SAMPLE_LOCATION)
 expect(SAMPLE_PLACE_ID).to(equal(place_id))
 &lt;/pre&gt;&lt;/div&gt;
@@ -1639,14 +2374,13 @@ expect(SAMPLE_PLACE_ID).to(equal(place_id))
 &lt;pre class="example"&gt;
 Location: South Federal University
 Place ID: ChIJ9e_QQm0sDogRhUPatldEFxw
-
 &lt;/pre&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org18d24d9" class="outline-3"&gt;
-&lt;h3 id="org18d24d9"&gt;The Actual&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org18d24d9"&gt;
+&lt;div id="outline-container-org278a8f9" class="outline-3"&gt;
+&lt;h3 id="org278a8f9"&gt;The Actual&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org278a8f9"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;place_id = get_place_id(ACTUAL_LOCATION)
 expect(place_id).to(start_with(ACTUAL_PLACE_ID_STARTS_WITH))
 &lt;/pre&gt;&lt;/div&gt;
@@ -1654,83 +2388,82 @@ expect(place_id).to(start_with(ACTUAL_PLACE_ID_STARTS_WITH))
 &lt;pre class="example"&gt;
 Location: Kazan Federal University
 Place ID: ChIJGf9kMxGtXkERIzwzBzFo8kY
-
 &lt;/pre&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-orgb941af8" class="outline-2"&gt;
-&lt;h2 id="orgb941af8"&gt;End&lt;/h2&gt;
+&lt;div id="outline-container-orge542544" class="outline-2"&gt;
+&lt;h2 id="orge542544"&gt;End&lt;/h2&gt;
 &lt;/div&gt;</description><category>api</category><category>json</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/calling-a-json-api/</guid><pubDate>Sun, 04 Aug 2019 18:53:29 GMT</pubDate></item><item><title>Extracting Data From JSON</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#orgc589c7c"&gt;Beginning&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org75a3b2d"&gt;Beginning&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org0d718da"&gt;Imports&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org1da480e"&gt;Imports&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org21c2aca"&gt;Python&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org5b09150"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org6b2b81c"&gt;Python&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#orge511c4c"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org78ae5fb"&gt;Set Up&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#orgdaf8c7f"&gt;Set Up&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org7b6a504"&gt;The URLs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org3b63353"&gt;The Expected&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org6ff1f5f"&gt;The URLs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org7dab0aa"&gt;The Expected&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org5e33258"&gt;Middle&lt;/a&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org9ec9212"&gt;Middle&lt;/a&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org3bafdb5"&gt;The Sample&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org986f540"&gt;The Assignment&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#orga87c597"&gt;The Sample&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#orgd09098d"&gt;The Assignment&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org4d0c963"&gt;End&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/#org69bd47d"&gt;End&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-orgc589c7c" class="outline-2"&gt;
-&lt;h2 id="orgc589c7c"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgc589c7c"&gt;
+&lt;div id="outline-container-org75a3b2d" class="outline-2"&gt;
+&lt;h2 id="org75a3b2d"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org75a3b2d"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org0d718da" class="outline-3"&gt;
-&lt;h3 id="org0d718da"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org0d718da"&gt;
+&lt;div id="outline-container-org1da480e" class="outline-3"&gt;
+&lt;h3 id="org1da480e"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org1da480e"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org21c2aca" class="outline-4"&gt;
-&lt;h4 id="org21c2aca"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org21c2aca"&gt;
+&lt;div id="outline-container-org6b2b81c" class="outline-4"&gt;
+&lt;h4 id="org6b2b81c"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org6b2b81c"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;import json
 import urllib
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org5b09150" class="outline-4"&gt;
-&lt;h4 id="org5b09150"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org5b09150"&gt;
+&lt;div id="outline-container-orge511c4c" class="outline-4"&gt;
+&lt;h4 id="orge511c4c"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orge511c4c"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from expects import expect, equal
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org78ae5fb" class="outline-3"&gt;
-&lt;h3 id="org78ae5fb"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org78ae5fb"&gt;
+&lt;div id="outline-container-orgdaf8c7f" class="outline-3"&gt;
+&lt;h3 id="orgdaf8c7f"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgdaf8c7f"&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org7b6a504" class="outline-4"&gt;
-&lt;h4 id="org7b6a504"&gt;The URLs&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org7b6a504"&gt;
+&lt;div id="outline-container-org6ff1f5f" class="outline-4"&gt;
+&lt;h4 id="org6ff1f5f"&gt;The URLs&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org6ff1f5f"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;SAMPLE_URL = "http://py4e-data.dr-chuck.net/comments_42.json"
 ACTUAL_URL = "http://py4e-data.dr-chuck.net/comments_260445.json"
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org3b63353" class="outline-4"&gt;
-&lt;h4 id="org3b63353"&gt;The Expected&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org3b63353"&gt;
+&lt;div id="outline-container-org7dab0aa" class="outline-4"&gt;
+&lt;h4 id="org7dab0aa"&gt;The Expected&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org7dab0aa"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;SAMPLE_EXPECTED = 2553
 ACTUAL_EXPECTED_LAST_TWO_DIGITS = 94
 &lt;/pre&gt;&lt;/div&gt;
@@ -1738,9 +2471,9 @@ ACTUAL_EXPECTED_LAST_TWO_DIGITS = 94
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org5e33258" class="outline-2"&gt;
-&lt;h2 id="org5e33258"&gt;Middle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org5e33258"&gt;
+&lt;div id="outline-container-org9ec9212" class="outline-2"&gt;
+&lt;h2 id="org9ec9212"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org9ec9212"&gt;
 &lt;p&gt;
 We're going to pull a JSON blob and extract the "count" values and sum them. The data is structured with a single top-level key ("comments") which holds a list of dicts with "name" (name of the commenter) and "count" (the number of comments the commenter has made) values.
 &lt;/p&gt;
@@ -1765,9 +2498,9 @@ We're going to pull a JSON blob and extract the "count" values and sum them. The
     return total
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org3bafdb5" class="outline-3"&gt;
-&lt;h3 id="org3bafdb5"&gt;The Sample&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org3bafdb5"&gt;
+&lt;div id="outline-container-orga87c597" class="outline-3"&gt;
+&lt;h3 id="orga87c597"&gt;The Sample&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orga87c597"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;total = count(SAMPLE_URL)
 expect(total).to(equal(SAMPLE_EXPECTED))
 &lt;/pre&gt;&lt;/div&gt;
@@ -1779,9 +2512,9 @@ Comments:  2,553
 &lt;/pre&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id="outline-container-org986f540" class="outline-3"&gt;
-&lt;h3 id="org986f540"&gt;The Assignment&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org986f540"&gt;
+&lt;div id="outline-container-orgd09098d" class="outline-3"&gt;
+&lt;h3 id="orgd09098d"&gt;The Assignment&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgd09098d"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;total = count(ACTUAL_URL)
 expect(int(str(total)[-2:])).to(equal(ACTUAL_EXPECTED_LAST_TWO_DIGITS))
 &lt;/pre&gt;&lt;/div&gt;
@@ -1795,347 +2528,6 @@ Comments:  2,594
 &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id="outline-container-org4d0c963" class="outline-2"&gt;
-&lt;h2 id="org4d0c963"&gt;End&lt;/h2&gt;
-&lt;/div&gt;</description><category>json</category><category>web-scraping</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/</guid><pubDate>Sun, 04 Aug 2019 18:22:51 GMT</pubDate></item><item><title>Extracting Data From XML</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-xml/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
-&lt;h2&gt;Table of Contents&lt;/h2&gt;
-&lt;div id="text-table-of-contents"&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-xml/#orgede83d5"&gt;Beginning&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-xml/#org3167ad0"&gt;Imports&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-xml/#org6fffe74"&gt;Python&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-xml/#org6724468"&gt;Set Up&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-xml/#org9456c3d"&gt;The URLS&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-xml/#org3a4cd1a"&gt;The Expected&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-xml/#org40ca5db"&gt;Middle&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-xml/#org6c86865"&gt;Sample&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-xml/#org860d303"&gt;The Assignment&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-xml/#orge4cec79"&gt;End&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgede83d5" class="outline-2"&gt;
-&lt;h2 id="orgede83d5"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgede83d5"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org3167ad0" class="outline-3"&gt;
-&lt;h3 id="org3167ad0"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org3167ad0"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org6fffe74" class="outline-4"&gt;
-&lt;h4 id="org6fffe74"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org6fffe74"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from xml.etree import ElementTree
-import urllib
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org6724468" class="outline-3"&gt;
-&lt;h3 id="org6724468"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org6724468"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org9456c3d" class="outline-4"&gt;
-&lt;h4 id="org9456c3d"&gt;The URLS&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org9456c3d"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;SAMPLE_URL = "http://py4e-data.dr-chuck.net/comments_42.xml"
-ACTUAL_URL = "http://py4e-data.dr-chuck.net/comments_260444.xml"
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org3a4cd1a" class="outline-4"&gt;
-&lt;h4 id="org3a4cd1a"&gt;The Expected&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org3a4cd1a"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;SAMPLE_EXPECTED = 2553
-ACTUAL_EXPECTED_LAST_TWO_DIGITS = 34
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org40ca5db" class="outline-2"&gt;
-&lt;h2 id="org40ca5db"&gt;Middle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org40ca5db"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def get_counts(url: str) -&amp;gt; int:
-    """Get the sum of the 'count' tags 
-
-    Args:
-     url: URL to get the XML from
-
-    Returns:
-     sum of the count tags payloads
-    """
-    response = urllib.request.urlopen(url)
-    tree = ElementTree.fromstring(response.read())
-    total = 0
-    for index, count in enumerate(tree.findall(".//count")):
-	total += int(count.text)
-
-    print(f"Tags: {index + 1}")
-    print(f"Sum of Counts: {total}")
-    return total
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org6c86865" class="outline-3"&gt;
-&lt;h3 id="org6c86865"&gt;Sample&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org6c86865"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;total = get_counts(SAMPLE_URL)
-assert total == SAMPLE_EXPECTED
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Tags: 50
-Sum of Counts: 2553
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org860d303" class="outline-3"&gt;
-&lt;h3 id="org860d303"&gt;The Assignment&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org860d303"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;total =get_counts(ACTUAL_URL)
-assert int(str(total)[-2:]) == ACTUAL_EXPECTED_LAST_TWO_DIGITS
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Tags: 50
-Sum of Counts: 2634
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orge4cec79" class="outline-2"&gt;
-&lt;h2 id="orge4cec79"&gt;End&lt;/h2&gt;
-&lt;/div&gt;</description><category>data</category><category>xml</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-xml/</guid><pubDate>Sat, 03 Aug 2019 23:24:05 GMT</pubDate></item><item><title>Web Scraping Assignment 1</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
-&lt;h2&gt;Table of Contents&lt;/h2&gt;
-&lt;div id="text-table-of-contents"&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org419e5a1"&gt;Beginning&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org7e89448"&gt;Imports&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org3fcba4f"&gt;Python&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org72127b1"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org79aac5f"&gt;Setup&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org7ef2f98"&gt;The URLs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org3915553"&gt;The Expected&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org4dc1759"&gt;Middle&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#orgbb094ec"&gt;The Sample&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org2f0bc07"&gt;The Way I Would Do It&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org01b373f"&gt;The Assignment Way&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org411f09a"&gt;The Assignment&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org24ce9e9"&gt;Requests HTML&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org48797a9"&gt;Urllib&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/#org1489652"&gt;End&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org419e5a1" class="outline-2"&gt;
-&lt;h2 id="org419e5a1"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org419e5a1"&gt;
-&lt;p&gt;
-The goal of this exercise is to find all the &lt;code&gt;&amp;lt;span&amp;gt;&lt;/code&gt; tags on a page and sum the numbers they contain.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org7e89448" class="outline-3"&gt;
-&lt;h3 id="org7e89448"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org7e89448"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org3fcba4f" class="outline-4"&gt;
-&lt;h4 id="org3fcba4f"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org3fcba4f"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;urllib&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org72127b1" class="outline-4"&gt;
-&lt;h4 id="org72127b1"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org72127b1"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;bs4&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;BeautifulSoup&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;expects&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
-    &lt;span class="n"&gt;equal&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-    &lt;span class="n"&gt;expect&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-    &lt;span class="n"&gt;be_true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;requests_html&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;HTMLSession&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org79aac5f" class="outline-3"&gt;
-&lt;h3 id="org79aac5f"&gt;Setup&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org79aac5f"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org7ef2f98" class="outline-4"&gt;
-&lt;h4 id="org7ef2f98"&gt;The URLs&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org7ef2f98"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;SAMPLE_URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;" http://py4e-data.dr-chuck.net/comments_42.html"&lt;/span&gt;
-&lt;span class="n"&gt;ACTUAL_URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"http://py4e-data.dr-chuck.net/comments_260442.html"&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org3915553" class="outline-4"&gt;
-&lt;h4 id="org3915553"&gt;The Expected&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org3915553"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;SAMPLE_EXPECTED&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;2553&lt;/span&gt;
-&lt;span class="n"&gt;ACTUAL_EXPECTED_LAST_DIGIT&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org4dc1759" class="outline-2"&gt;
-&lt;h2 id="org4dc1759"&gt;Middle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org4dc1759"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgbb094ec" class="outline-3"&gt;
-&lt;h3 id="orgbb094ec"&gt;The Sample&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgbb094ec"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org2f0bc07" class="outline-4"&gt;
-&lt;h4 id="org2f0bc07"&gt;The Way I Would Do It&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org2f0bc07"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;using_requests&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-    &lt;span class="sd"&gt;"""get the span total&lt;/span&gt;
-
-&lt;span class="sd"&gt;    Args:&lt;/span&gt;
-&lt;span class="sd"&gt;     url: The URL for the page&lt;/span&gt;
-
-&lt;span class="sd"&gt;    Returns:&lt;/span&gt;
-&lt;span class="sd"&gt;     the total sum&lt;/span&gt;
-&lt;span class="sd"&gt;    """&lt;/span&gt;
-    &lt;span class="n"&gt;session&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;HTMLSession&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-    &lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;session&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;expect&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ok&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;be_true&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;total&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
-
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;span&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;enumerate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;find&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"span"&lt;/span&gt;&lt;span class="p"&gt;)):&lt;/span&gt;
-	&lt;span class="n"&gt;total&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;span&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-    &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Count: {count + 1}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Sum: {total}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;total&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;total&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;using_requests&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SAMPLE_URL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;expect&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;total&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;equal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SAMPLE_EXPECTED&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Count: 50
-Sum: 2553
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org01b373f" class="outline-4"&gt;
-&lt;h4 id="org01b373f"&gt;The Assignment Way&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org01b373f"&gt;
-&lt;p&gt;
-For this kind of thing, using urllib isn't really much more work, I'm used to the older python 2 version which (maybe only seemed at the time) was more complicated to use.
-&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;using_urllib&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-    &lt;span class="sd"&gt;"""get the span total with urllib and beautiful soup&lt;/span&gt;
-
-&lt;span class="sd"&gt;    Args:&lt;/span&gt;
-&lt;span class="sd"&gt;     url: the URL for the page&lt;/span&gt;
-
-&lt;span class="sd"&gt;    Returns:&lt;/span&gt;
-&lt;span class="sd"&gt;     the total of the span contents&lt;/span&gt;
-&lt;span class="sd"&gt;    """&lt;/span&gt;
-    &lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;urllib&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;request&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;urlopen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;soup&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;BeautifulSoup&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt; &lt;span class="s2"&gt;"html.parser"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;total&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;span&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;enumerate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;soup&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;find_all&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"span"&lt;/span&gt;&lt;span class="p"&gt;)):&lt;/span&gt;
-	&lt;span class="n"&gt;total&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;span&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-    &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Count: {count + 1}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Sum: {total}"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;total&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;total&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;using_urllib&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SAMPLE_URL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;expect&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;total&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;equal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SAMPLE_EXPECTED&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Count: 50
-Sum: 2553
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org411f09a" class="outline-3"&gt;
-&lt;h3 id="org411f09a"&gt;The Assignment&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org411f09a"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org24ce9e9" class="outline-4"&gt;
-&lt;h4 id="org24ce9e9"&gt;Requests HTML&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org24ce9e9"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;total&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;using_requests&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ACTUAL_URL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;expect&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;total&lt;/span&gt;&lt;span class="p"&gt;)[&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]))&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;equal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ACTUAL_EXPECTED_LAST_DIGIT&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Count: 50
-Sum: 2305
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org48797a9" class="outline-4"&gt;
-&lt;h4 id="org48797a9"&gt;Urllib&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org48797a9"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;total&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;using_urllib&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ACTUAL_URL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;expect&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;total&lt;/span&gt;&lt;span class="p"&gt;)[&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]))&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;equal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ACTUAL_EXPECTED_LAST_DIGIT&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Count: 50
-Sum: 2305
-
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org1489652" class="outline-2"&gt;
-&lt;h2 id="org1489652"&gt;End&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org1489652"&gt;
-&lt;p&gt;
-Although I normally use &lt;code&gt;requests&lt;/code&gt; or &lt;code&gt;requests-html&lt;/code&gt;, I must say that the &lt;code&gt;urllib&lt;/code&gt; version with &lt;a href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/"&gt;BeautifulSoup&lt;/a&gt; for this particular exercise wasn't much different.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;</description><category>web-scraping</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/web-scraping-assignment-1/</guid><pubDate>Sat, 03 Aug 2019 19:07:56 GMT</pubDate></item></channel></rss>
+&lt;div id="outline-container-org69bd47d" class="outline-2"&gt;
+&lt;h2 id="org69bd47d"&gt;End&lt;/h2&gt;
+&lt;/div&gt;</description><category>json</category><category>web-scraping</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/web-scraping/extracting-data-from-json/</guid><pubDate>Sun, 04 Aug 2019 18:22:51 GMT</pubDate></item></channel></rss>
