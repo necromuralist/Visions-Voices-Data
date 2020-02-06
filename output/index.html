@@ -19,7 +19,7 @@
 </script>
 -->
 <script async src="javascript/p5.min.js" type="text/javascript"></script>
-<link href="/posts/tutorials/permutation-importance/" rel="prefetch" type="text/html">
+<link href="/posts/tutorials/exercise-in-permutation-importance/" rel="prefetch" type="text/html">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -48,6 +48,528 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/tutorials/exercise-in-permutation-importance/">Exercise in Permutation Importance</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/tutorials/exercise-in-permutation-importance/" rel="bookmark"><time class="published dt-published" datetime="2020-02-06T10:45:53-08:00" itemprop="datePublished" title="2020-02-06 10:45">2020-02-06 10:45</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#orgcb9f8bd">Beginning</a>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org4881f79">Imports</a>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org0be1854">From Python</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org3871139">From PyPi</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org2c9a78a">Others</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org424d03d">Set Up</a>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#orgdba759a">Plotting</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org00b58bb">The Environment</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org6ef664d">Table Printer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org95fcc13">Middle</a>
+<ul>
+<li>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org3a5e7a1">The Dataset</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#orge721e78">End</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#orgde61ec9">Raw</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgcb9f8bd">
+<h2 id="orgcb9f8bd">Beginning</h2>
+<div class="outline-text-2" id="text-orgcb9f8bd">
+<p>This is my re-do of the <a href="https://www.kaggle.com/learn/machine-learning-explainability">Machine Learning Explainability</a> Permutation Importance exercise on kaggle. It uses the data from the <a href="https://www.kaggle.com/c/new-york-city-taxi-fare-prediction/data">New York City Taxi Fare Prediction</a> dataset on kaggle.</p>
+</div>
+<div class="outline-3" id="outline-container-org4881f79">
+<h3 id="org4881f79">Imports</h3>
+<div class="outline-text-3" id="text-org4881f79"></div>
+<div class="outline-4" id="outline-container-org0be1854">
+<h4 id="org0be1854">From Python</h4>
+<div class="outline-text-4" id="text-org0be1854">
+<div class="highlight">
+<pre><span></span>from argparse import Namespace
+from functools import partial
+from pathlib import Path
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org3871139">
+<h4 id="org3871139">From PyPi</h4>
+<div class="outline-text-4" id="text-org3871139">
+<div class="highlight">
+<pre><span></span>from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from tabulate import tabulate
+
+import hvplot.pandas
+import pandas
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org2c9a78a">
+<h4 id="org2c9a78a">Others</h4>
+<div class="outline-text-4" id="text-org2c9a78a">
+<div class="highlight">
+<pre><span></span>from graeae import EmbedHoloviews, EnvironmentLoader
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org424d03d">
+<h3 id="org424d03d">Set Up</h3>
+<div class="outline-text-3" id="text-org424d03d"></div>
+<div class="outline-4" id="outline-container-orgdba759a">
+<h4 id="orgdba759a">Plotting</h4>
+<div class="outline-text-4" id="text-orgdba759a">
+<div class="highlight">
+<pre><span></span>SLUG = "exercise-in-permutation-importance"
+PATH = Path("../../files/posts/tutorials/")/SLUG
+Plot = Namespace(
+    width=1000,
+    height=800,
+    )
+Embed = partial(EmbedHoloviews, folder_path=PATH)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org00b58bb">
+<h4 id="org00b58bb">The Environment</h4>
+<div class="outline-text-4" id="text-org00b58bb">
+<div class="highlight">
+<pre><span></span>ENVIRONMENT = EnvironmentLoader()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org6ef664d">
+<h4 id="org6ef664d">Table Printer</h4>
+<div class="outline-text-4" id="text-org6ef664d">
+<div class="highlight">
+<pre><span></span>TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys")
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org95fcc13">
+<h2 id="org95fcc13">Middle</h2>
+<div class="outline-text-2" id="text-org95fcc13"></div>
+<div class="outline-4" id="outline-container-org3a5e7a1">
+<h4 id="org3a5e7a1">The Dataset</h4>
+<div class="outline-text-4" id="text-org3a5e7a1">
+<p>Since this is about permutation importance we're just going to load a subset and use previously discovered cleaning methods.</p>
+<div class="highlight">
+<pre><span></span>PATH = Path(ENVIRONMENT["NY-TAXI"]).expanduser()
+assert PATH.is_dir()
+data = pandas.read_csv(PATH/"train.csv", nrows=50000)
+print(TABLE(data.iloc[0].reset_index().rename(columns={"index": "Column", 0: "Value"}), showindex=False))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Column</th>
+<th class="org-right" scope="col">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">key</td>
+<td class="org-right">2009-06-15 17:26:21.0000001</td>
+</tr>
+<tr>
+<td class="org-left">fare_amount</td>
+<td class="org-right">4.5</td>
+</tr>
+<tr>
+<td class="org-left">pickup_datetime</td>
+<td class="org-right">2009-06-15 17:26:21 UTC</td>
+</tr>
+<tr>
+<td class="org-left">pickup_longitude</td>
+<td class="org-right">-73.844311</td>
+</tr>
+<tr>
+<td class="org-left">pickup_latitude</td>
+<td class="org-right">40.721319</td>
+</tr>
+<tr>
+<td class="org-left">dropoff_longitude</td>
+<td class="org-right">-73.84161</td>
+</tr>
+<tr>
+<td class="org-left">dropoff_latitude</td>
+<td class="org-right">40.712278000000005</td>
+</tr>
+<tr>
+<td class="org-left">passenger_count</td>
+<td class="org-right">1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="org-ul">
+<li><a id="orga3c16b6"></a>Trim Outliers<br>
+<div class="outline-text-5" id="text-orga3c16b6">
+<div class="highlight">
+<pre><span></span>print(TABLE(data.describe()))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">&nbsp;</th>
+<th class="org-right" scope="col">fare_amount</th>
+<th class="org-right" scope="col">pickup_longitude</th>
+<th class="org-right" scope="col">pickup_latitude</th>
+<th class="org-right" scope="col">dropoff_longitude</th>
+<th class="org-right" scope="col">dropoff_latitude</th>
+<th class="org-right" scope="col">passenger_count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">count</td>
+<td class="org-right">50000</td>
+<td class="org-right">50000</td>
+<td class="org-right">50000</td>
+<td class="org-right">50000</td>
+<td class="org-right">50000</td>
+<td class="org-right">50000</td>
+</tr>
+<tr>
+<td class="org-left">mean</td>
+<td class="org-right">11.3642</td>
+<td class="org-right">-72.5098</td>
+<td class="org-right">39.9338</td>
+<td class="org-right">-72.5046</td>
+<td class="org-right">39.9263</td>
+<td class="org-right">1.66784</td>
+</tr>
+<tr>
+<td class="org-left">std</td>
+<td class="org-right">9.68556</td>
+<td class="org-right">10.3939</td>
+<td class="org-right">6.22486</td>
+<td class="org-right">10.4076</td>
+<td class="org-right">6.01474</td>
+<td class="org-right">1.28919</td>
+</tr>
+<tr>
+<td class="org-left">min</td>
+<td class="org-right">-5</td>
+<td class="org-right">-75.4238</td>
+<td class="org-right">-74.0069</td>
+<td class="org-right">-84.6542</td>
+<td class="org-right">-74.0064</td>
+<td class="org-right">0</td>
+</tr>
+<tr>
+<td class="org-left">25%</td>
+<td class="org-right">6</td>
+<td class="org-right">-73.9921</td>
+<td class="org-right">40.7349</td>
+<td class="org-right">-73.9912</td>
+<td class="org-right">40.7344</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-left">50%</td>
+<td class="org-right">8.5</td>
+<td class="org-right">-73.9818</td>
+<td class="org-right">40.7527</td>
+<td class="org-right">-73.9801</td>
+<td class="org-right">40.7534</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-left">75%</td>
+<td class="org-right">12.5</td>
+<td class="org-right">-73.9671</td>
+<td class="org-right">40.7674</td>
+<td class="org-right">-73.9636</td>
+<td class="org-right">40.7682</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-left">max</td>
+<td class="org-right">200</td>
+<td class="org-right">40.7835</td>
+<td class="org-right">401.083</td>
+<td class="org-right">40.851</td>
+<td class="org-right">43.4152</td>
+<td class="org-right">6</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span>to_plot = data[[column for column in data.columns if "latitude" in column or "longitude" in column]]
+plot = to_plot.hvplot.box().opts(title="Column Box-Plots", width=Plot.width, height=Plot.height)
+Embed(plot=plot, file_name="column_box_plots")()
+</pre></div>
+<object data="/posts/tutorials/exercise-in-permutation-importance/column_box_plots.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>So you can see that there are negaive fares, which seems wrong, and a big spread for some of the values.</p>
+<p>This uses the pandas <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.query.html">query</a> method which let's you write slightly more readable code for boolean slicing.</p>
+<div class="highlight">
+<pre><span></span>data = data.query("pickup_latitude &gt; 40.7 and pickup_latitude &lt; 40.8 and " +
+                  "dropoff_latitude &gt; 40.7 and dropoff_latitude &lt; 40.8 and " +
+                  "pickup_longitude &gt; -74 and pickup_longitude &lt; -73.9 and " +
+                  "dropoff_longitude &gt; -74 and dropoff_longitude &lt; -73.9 and " +
+                  "fare_amount &gt; 0"
+                  )
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orge721e78">
+<h2 id="orge721e78">End</h2>
+</div>
+<div class="outline-2" id="outline-container-orgde61ec9">
+<h2 id="orgde61ec9">Raw</h2>
+<div class="outline-text-2" id="text-orgde61ec9">
+<pre class="example">
+data = data.query('pickup_latitude &gt; 40.7 and pickup_latitude &lt; 40.8 and ' +
+                  'dropoff_latitude &gt; 40.7 and dropoff_latitude &lt; 40.8 and ' +
+                  'pickup_longitude &gt; -74 and pickup_longitude &lt; -73.9 and ' +
+                  'dropoff_longitude &gt; -74 and dropoff_longitude &lt; -73.9 and ' +
+                  'fare_amount &gt; 0'
+                  )
+
+y = data.fare_amount
+
+base_features = ['pickup_longitude',
+                 'pickup_latitude',
+                 'dropoff_longitude',
+                 'dropoff_latitude',
+                 'passenger_count']
+
+X = data[base_features]
+
+
+train_X, val_X, train_y, val_y = train_test_split(X, y, random_state=1)
+first_model = RandomForestRegressor(n_estimators=50, random_state=1).fit(train_X, train_y)
+
+# Environment Set-Up for feedback system.
+from learntools.core import binder
+binder.bind(globals())
+from learntools.ml_explainability.ex2 import *
+print("Setup Complete")
+
+# show data
+print("Data sample:")
+data.head()
+
+
+# The following two cells may also be useful to understand the values in the training data:
+
+# In[ ]:
+
+
+train_X.describe()
+
+
+# In[ ]:
+
+
+train_y.describe()
+
+
+# ## Question 1
+# 
+# The first model uses the following features
+# - pickup_longitude
+# - pickup_latitude
+# - dropoff_longitude
+# - dropoff_latitude
+# - passenger_count
+# 
+# Before running any code... which variables seem potentially useful for predicting taxi fares? Do you think permutation importance will necessarily identify these features as important?
+# 
+# Once you've thought about it, run `q_1.solution()` below to see how you might think about this before running the code.
+
+# In[ ]:
+
+
+# Check your answer (Run this code cell to receive credit!)
+q_1.solution()
+
+
+# ## Question 2
+# 
+# Create a `PermutationImportance` object called `perm` to show the importances from `first_model`.  Fit it with the appropriate data and show the weights.
+# 
+# For your convenience, the code from the tutorial has been copied into a comment in this code cell.
+
+# In[ ]:
+
+
+import eli5
+from eli5.sklearn import PermutationImportance
+
+# Make a small change to the code below to use in this problem. 
+# perm = PermutationImportance(my_model, random_state=1).fit(val_X, val_y)
+
+# Check your answer
+q_2.check()
+
+# uncomment the following line to visualize your results
+# eli5.show_weights(perm, feature_names = val_X.columns.tolist())
+
+
+# Uncomment the lines below for a hint or to see the solution.
+
+# In[ ]:
+
+
+# q_2.hint()
+# q_2.solution()
+
+
+# ## Question 3
+# Before seeing these results, we might have expected each of the 4 directional features to be equally important.
+# 
+# But, on average, the latitude features matter more than the longititude features. Can you come up with any hypotheses for this?
+# 
+# After you've thought about it, check here for some possible explanations:
+
+# In[ ]:
+
+
+# Check your answer (Run this code cell to receive credit!)
+q_3.solution()
+
+
+# ## Question 4
+# 
+# Without detailed knowledge of New York City, it's difficult to rule out most hypotheses about why latitude features matter more than longitude.
+# 
+# A good next step is to disentangle the effect of being in certain parts of the city from the effect of total distance traveled.  
+# 
+# The code below creates new features for longitudinal and latitudinal distance. It then builds a model that adds these new features to those you already had.
+# 
+# Fill in two lines of code to calculate and show the importance weights with this new set of features. As usual, you can uncomment lines below to check your code, see a hint or get the solution.
+
+# In[ ]:
+
+
+# create new features
+data['abs_lon_change'] = abs(data.dropoff_longitude - data.pickup_longitude)
+data['abs_lat_change'] = abs(data.dropoff_latitude - data.pickup_latitude)
+
+features_2  = ['pickup_longitude',
+               'pickup_latitude',
+               'dropoff_longitude',
+               'dropoff_latitude',
+               'abs_lat_change',
+               'abs_lon_change']
+
+X = data[features_2]
+new_train_X, new_val_X, new_train_y, new_val_y = train_test_split(X, y, random_state=1)
+second_model = RandomForestRegressor(n_estimators=30, random_state=1).fit(new_train_X, new_train_y)
+
+# Create a PermutationImportance object on second_model and fit it to new_val_X and new_val_y
+# Use a random_state of 1 for reproducible results that match the expected solution.
+perm2 = ____
+
+# show the weights for the permutation importance you just calculated
+____
+
+# Check your answer
+q_4.check()
+
+
+# How would you interpret these importance scores? Distance traveled seems far more important than any location effects. 
+# 
+# But the location still affects model predictions, and dropoff location now matters slightly more than pickup location. Do you have any hypotheses for why this might be? The techniques in the next lessons will help you` dive into this more.
+
+# In[ ]:
+
+
+# Check your answer (Run this code cell to receive credit!)
+q_4.solution()
+
+
+# ## Question 5
+# 
+# A colleague observes that the values for `abs_lon_change` and `abs_lat_change` are pretty small (all values are between -0.1 and 0.1), whereas other variables have larger values.  Do you think this could explain why those coordinates had larger permutation importance values in this case?  
+# 
+# Consider an alternative where you created and used a feature that was 100X as large for these features, and used that larger feature for training and importance calculations. Would this change the outputted permutaiton importance values?
+# 
+# Why or why not?
+# 
+# After you have thought about your answer, either try this experiment or look up the answer in the cell below.
+
+# In[ ]:
+
+
+# Check your answer (Run this code cell to receive credit!)
+q_5.solution()
+
+
+# ## Question 6
+# 
+# You've seen that the feature importance for latitudinal distance is greater than the importance of longitudinal distance. From this, can we conclude whether travelling a fixed latitudinal distance tends to be more expensive than traveling the same longitudinal distance?
+# 
+# Why or why not? Check your answer below.
+
+# In[ ]:
+
+
+# Check your answer (Run this code cell to receive credit!)
+q_6.solution()
+
+
+# ## Keep Going
+# 
+# Permutation importance is useful useful for debugging, understanding your model, and communicating a high-level overview from your model.  
+# 
+# Next, learn about **[partial dependence plots](https://www.kaggle.com/dansbecker/partial-plots)** to see **how** each feature affects predictions.
+# 
+
+# ---
+# **[Machine Learning Explainability Home Page](https://www.kaggle.com/learn/machine-learning-explainability)**
+# 
+# 
+# 
+# 
+# 
+# *Have questions or comments? Visit the [Learn Discussion forum](https://www.kaggle.com/learn-forum) to chat with other Learners.*
+
+</pre></div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/tutorials/permutation-importance/">Permutation Importance</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
@@ -59,48 +581,48 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/tutorials/permutation-importance/#org4e10308">Beginning</a>
+<li><a href="/posts/tutorials/permutation-importance/#orgd5d0d78">Beginning</a>
 <ul>
-<li><a href="/posts/tutorials/permutation-importance/#org944c4b8">Imports</a>
+<li><a href="/posts/tutorials/permutation-importance/#org55b4c8d">Imports</a>
 <ul>
-<li><a href="/posts/tutorials/permutation-importance/#org7625a5f">Python</a></li>
-<li><a href="/posts/tutorials/permutation-importance/#orgf001945">PyPi</a></li>
-<li><a href="/posts/tutorials/permutation-importance/#orgde3f10e">Others</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#org5c3e108">Python</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#org65c521a">PyPi</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#org6128290">Others</a></li>
 </ul>
 </li>
-<li><a href="/posts/tutorials/permutation-importance/#orgaef4e50">Set Up</a>
+<li><a href="/posts/tutorials/permutation-importance/#org7585672">Set Up</a>
 <ul>
-<li><a href="/posts/tutorials/permutation-importance/#org0a8e4db">Plotting</a></li>
-<li><a href="/posts/tutorials/permutation-importance/#org08e1cea">The Environment</a></li>
-<li><a href="/posts/tutorials/permutation-importance/#org84cc911">The Table Printer</a></li>
-<li><a href="/posts/tutorials/permutation-importance/#orgfc2f9d7">The Data</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/tutorials/permutation-importance/#org78fa31c">Middle</a>
-<ul>
-<li><a href="/posts/tutorials/permutation-importance/#orgd16a3f5">Looking at the Dataset</a>
-<ul>
-<li><a href="/posts/tutorials/permutation-importance/#org0fd89f8">The Target</a></li>
-</ul>
-</li>
-<li><a href="/posts/tutorials/permutation-importance/#org1c96a7e">The Features</a></li>
-<li><a href="/posts/tutorials/permutation-importance/#org1df2d09">Build and Train the Model</a></li>
-<li><a href="/posts/tutorials/permutation-importance/#orgd79f9a3">Permutation Importance</a>
-<ul>
-<li><a href="/posts/tutorials/permutation-importance/#org3b157c7">Plotting the Importance</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#org8b23551">Plotting</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#org05f2cbe">The Environment</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#orgc6cc998">The Table Printer</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#orgb5cada5">The Data</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="/posts/tutorials/permutation-importance/#orgc3cd38f">End</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#orgf6f08b4">Middle</a>
+<ul>
+<li><a href="/posts/tutorials/permutation-importance/#org0d948a3">Looking at the Dataset</a>
+<ul>
+<li><a href="/posts/tutorials/permutation-importance/#orgdf4f1a6">The Target</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/permutation-importance/#org69bada4">The Features</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#orgf2e6c6d">Build and Train the Model</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#org6fc105f">Permutation Importance</a>
+<ul>
+<li><a href="/posts/tutorials/permutation-importance/#org14e7c38">Plotting the Importance</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/permutation-importance/#orgef5c929">End</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org4e10308">
-<h2 id="org4e10308">Beginning</h2>
-<div class="outline-text-2" id="text-org4e10308">
+<div class="outline-2" id="outline-container-orgd5d0d78">
+<h2 id="orgd5d0d78">Beginning</h2>
+<div class="outline-text-2" id="text-orgd5d0d78">
 <p>This is some notes on the kaggle tutorial on <a href="https://www.kaggle.com/dansbecker/permutation-importance">Permutation Importance</a>. <i>Permutation Importance</i> is a form of feature selection where you ask - <i>If you randomly shuffle the values one column in the dataset and leave the others in place, how does this affect the performance of the model?</i>. The idea is that if the column is important, then shuffling the values should make the model perform worse, so you can measure how much it degrades after you shuffle each column and figure out which columns are contributing to the model. Here's the rough process:</p>
 <ol class="org-ol">
 <li>Start with a trained model and a labeled dataset.</li>
@@ -109,24 +631,24 @@
 <li>Restore the column and move on to the next column, repeating the steps until you have covered all the columns.</li>
 </ol>
 </div>
-<div class="outline-3" id="outline-container-org944c4b8">
-<h3 id="org944c4b8">Imports</h3>
-<div class="outline-text-3" id="text-org944c4b8"></div>
-<div class="outline-4" id="outline-container-org7625a5f">
-<h4 id="org7625a5f">Python</h4>
-<div class="outline-text-4" id="text-org7625a5f">
+<div class="outline-3" id="outline-container-org55b4c8d">
+<h3 id="org55b4c8d">Imports</h3>
+<div class="outline-text-3" id="text-org55b4c8d"></div>
+<div class="outline-4" id="outline-container-org5c3e108">
+<h4 id="org5c3e108">Python</h4>
+<div class="outline-text-4" id="text-org5c3e108">
 <div class="highlight">
 <pre><span></span>from functools import partial
 from pathlib import Path
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgf001945">
-<h4 id="orgf001945">PyPi</h4>
-<div class="outline-text-4" id="text-orgf001945"></div>
+<div class="outline-4" id="outline-container-org65c521a">
+<h4 id="org65c521a">PyPi</h4>
+<div class="outline-text-4" id="text-org65c521a"></div>
 <ul class="org-ul">
-<li><a id="org7439362"></a>eli5<br>
-<div class="outline-text-5" id="text-org7439362">
+<li><a id="org9886571"></a>eli5<br>
+<div class="outline-text-5" id="text-org9886571">
 <p><a href="https://eli5.readthedocs.io/en/latest/">eli5</a> (which is presumably short for <a href="https://www.dictionary.com/e/slang/eli5/">explain it like I'm five</a>) is a library to help with machine learning model debugging and visualization. You can read about the PermutationImportance class <a href="https://eli5.readthedocs.io/en/latest/autodocs/sklearn.html#eli5.sklearn.permutation_importance.PermutationImportance">here</a>.</p>
 <div class="highlight">
 <pre><span></span>from eli5.sklearn import PermutationImportance
@@ -134,8 +656,8 @@ import eli5
 </pre></div>
 </div>
 </li>
-<li><a id="orgf72ac86"></a>sklearn<br>
-<div class="outline-text-5" id="text-orgf72ac86">
+<li><a id="org6b3369d"></a>sklearn<br>
+<div class="outline-text-5" id="text-org6b3369d">
 <div class="highlight">
 <pre><span></span>from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
@@ -148,21 +670,21 @@ import pandas
 </li>
 </ul>
 </div>
-<div class="outline-4" id="outline-container-orgde3f10e">
-<h4 id="orgde3f10e">Others</h4>
-<div class="outline-text-4" id="text-orgde3f10e">
+<div class="outline-4" id="outline-container-org6128290">
+<h4 id="org6128290">Others</h4>
+<div class="outline-text-4" id="text-org6128290">
 <div class="highlight">
 <pre><span></span>from graeae import CountPercentage, EmbedHoloviews, EnvironmentLoader
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgaef4e50">
-<h3 id="orgaef4e50">Set Up</h3>
-<div class="outline-text-3" id="text-orgaef4e50"></div>
-<div class="outline-4" id="outline-container-org0a8e4db">
-<h4 id="org0a8e4db">Plotting</h4>
-<div class="outline-text-4" id="text-org0a8e4db">
+<div class="outline-3" id="outline-container-org7585672">
+<h3 id="org7585672">Set Up</h3>
+<div class="outline-text-3" id="text-org7585672"></div>
+<div class="outline-4" id="outline-container-org8b23551">
+<h4 id="org8b23551">Plotting</h4>
+<div class="outline-text-4" id="text-org8b23551">
 <div class="highlight">
 <pre><span></span>SLUG = "permutation-importance"
 PATH = Path("../../files/posts/tutorials/")/SLUG
@@ -170,25 +692,25 @@ Embed = partial(EmbedHoloviews, folder_path=PATH)
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org08e1cea">
-<h4 id="org08e1cea">The Environment</h4>
-<div class="outline-text-4" id="text-org08e1cea">
+<div class="outline-4" id="outline-container-org05f2cbe">
+<h4 id="org05f2cbe">The Environment</h4>
+<div class="outline-text-4" id="text-org05f2cbe">
 <div class="highlight">
 <pre><span></span>ENVIRONMENT = EnvironmentLoader()
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org84cc911">
-<h4 id="org84cc911">The Table Printer</h4>
-<div class="outline-text-4" id="text-org84cc911">
+<div class="outline-4" id="outline-container-orgc6cc998">
+<h4 id="orgc6cc998">The Table Printer</h4>
+<div class="outline-text-4" id="text-orgc6cc998">
 <div class="highlight">
 <pre><span></span>TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys", showindex=False)
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgfc2f9d7">
-<h4 id="orgfc2f9d7">The Data</h4>
-<div class="outline-text-4" id="text-orgfc2f9d7">
+<div class="outline-4" id="outline-container-orgb5cada5">
+<h4 id="orgb5cada5">The Data</h4>
+<div class="outline-text-4" id="text-orgb5cada5">
 <p>The dataset here is the <a href="https://www.kaggle.com/mathan/fifa-2018-match-statistics">Predict FIFA 2018 Man of the Match</a> dataset from kaggle.</p>
 <div class="highlight">
 <pre><span></span>path = Path(ENVIRONMENT["FIFA"]).expanduser()
@@ -198,12 +720,12 @@ data = pandas.read_csv(path)
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org78fa31c">
-<h2 id="org78fa31c">Middle</h2>
-<div class="outline-text-2" id="text-org78fa31c"></div>
-<div class="outline-3" id="outline-container-orgd16a3f5">
-<h3 id="orgd16a3f5">Looking at the Dataset</h3>
-<div class="outline-text-3" id="text-orgd16a3f5">
+<div class="outline-2" id="outline-container-orgf6f08b4">
+<h2 id="orgf6f08b4">Middle</h2>
+<div class="outline-text-2" id="text-orgf6f08b4"></div>
+<div class="outline-3" id="outline-container-org0d948a3">
+<h3 id="org0d948a3">Looking at the Dataset</h3>
+<div class="outline-text-3" id="text-org0d948a3">
 <div class="highlight">
 <pre><span></span>print(TABLE(data.sample().iloc[0].reset_index(), headers="Column Value".split()))
 </pre></div>
@@ -329,9 +851,9 @@ data = pandas.read_csv(path)
 </tbody>
 </table>
 </div>
-<div class="outline-4" id="outline-container-org0fd89f8">
-<h4 id="org0fd89f8">The Target</h4>
-<div class="outline-text-4" id="text-org0fd89f8">
+<div class="outline-4" id="outline-container-orgdf4f1a6">
+<h4 id="orgdf4f1a6">The Target</h4>
+<div class="outline-text-4" id="text-orgdf4f1a6">
 <p>The target is "Man of the Match".</p>
 <div class="highlight">
 <pre><span></span>CountPercentage(data["Man of the Match"])()
@@ -395,9 +917,9 @@ CountPercentage(data["Man of the Match"])()
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org1c96a7e">
-<h3 id="org1c96a7e">The Features</h3>
-<div class="outline-text-3" id="text-org1c96a7e">
+<div class="outline-3" id="outline-container-org69bada4">
+<h3 id="org69bada4">The Features</h3>
+<div class="outline-text-3" id="text-org69bada4">
 <div class="highlight">
 <pre><span></span>print(data.info())
 </pre></div>
@@ -468,17 +990,17 @@ x_train, x_validate, y_train, y_validate = train_test_split(
 * Yellow Card
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-org1df2d09">
-<h3 id="org1df2d09">Build and Train the Model</h3>
-<div class="outline-text-3" id="text-org1df2d09">
+<div class="outline-3" id="outline-container-orgf2e6c6d">
+<h3 id="orgf2e6c6d">Build and Train the Model</h3>
+<div class="outline-text-3" id="text-orgf2e6c6d">
 <div class="highlight">
 <pre><span></span>model = RandomForestClassifier(n_estimators=100, random_state=0).fit(x_train, y_train)
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgd79f9a3">
-<h3 id="orgd79f9a3">Permutation Importance</h3>
-<div class="outline-text-3" id="text-orgd79f9a3">
+<div class="outline-3" id="outline-container-org6fc105f">
+<h3 id="org6fc105f">Permutation Importance</h3>
+<div class="outline-text-3" id="text-org6fc105f">
 <p>As I noted previously, you can read about the <code>PermutationImportance</code> class <a href="https://eli5.readthedocs.io/en/latest/autodocs/sklearn.html#eli5.sklearn.permutation_importance.PermutationImportance">here</a>. If you read the documentation you'll see that you don't have to pass it a prefit model, and in some cases you don't want to (if you're using a hyper-parameter-search pipeline, say).</p>
 <div class="highlight">
 <pre><span></span>permutor = PermutationImportance(model, random_state=1).fit(x_validate, y_validate)
@@ -576,9 +1098,9 @@ print(TABLE(table))
 <p>The table is ranked from most important feature to least important (based on the accuracy after shuffling the column). Anything with 0 or less essenttially contributed nothing to the model. Although that doesn't mean that they might not be useful for more feature engineering.</p>
 <p>The data is for the team as a whole, not an individual, so the "Man of the Match" column is telling you if any player on the team was awarded the "Budweiser Man of the Match".</p>
 </div>
-<div class="outline-4" id="outline-container-org3b157c7">
-<h4 id="org3b157c7">Plotting the Importance</h4>
-<div class="outline-text-4" id="text-org3b157c7">
+<div class="outline-4" id="outline-container-org14e7c38">
+<h4 id="org14e7c38">Plotting the Importance</h4>
+<div class="outline-text-4" id="text-org14e7c38">
 <p>The numbers are okay, but let's take a look at a plot of the weights.</p>
 <div class="highlight">
 <pre><span></span>weights = table.Weight.str.split(expand=True)[0].astype(float)
@@ -594,9 +1116,9 @@ Embed(plot=plot, file_name="permutation_importance")()
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc3cd38f">
-<h2 id="orgc3cd38f">End</h2>
-<div class="outline-text-2" id="text-orgc3cd38f">
+<div class="outline-2" id="outline-container-orgef5c929">
+<h2 id="orgef5c929">End</h2>
+<div class="outline-text-2" id="text-orgef5c929">
 <p>So that's a quick look at getting a sense of the importance of a feature using <code>eli5</code> and permutation importance. There's a more in depth look at it on their site, but next is another look at it with a different data set.</p>
 </div>
 </div>
@@ -3321,165 +3843,6 @@ for index in range(len(ham)):
 </div>
 <div class="outline-2" id="outline-container-orgfd1ac03">
 <h2 id="orgfd1ac03">End</h2>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="/posts/web-scraping/calling-a-json-api/">Calling a JSON API</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="/posts/web-scraping/calling-a-json-api/" rel="bookmark"><time class="published dt-published" datetime="2019-08-04T11:53:29-07:00" itemprop="datePublished" title="2019-08-04 11:53">2019-08-04 11:53</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org82399df">Beginning</a>
-<ul>
-<li><a href="/posts/web-scraping/calling-a-json-api/#orgc979628">Imports</a>
-<ul>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org0ce9794">Python</a></li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org0cc3d69">PyPi</a></li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org28455d8">Set Up</a>
-<ul>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org0a30d04">URL</a></li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org2bbff95">Sample</a></li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org3dd109f">Actual</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org33c7380">Middle</a>
-<ul>
-<li><a href="/posts/web-scraping/calling-a-json-api/#orgc93ede2">The Sample</a></li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#org18d24d9">The Actual</a></li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/calling-a-json-api/#orgb941af8">End</a></li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org82399df">
-<h2 id="org82399df">Beginning</h2>
-<div class="outline-text-2" id="text-org82399df"></div>
-<div class="outline-3" id="outline-container-orgc979628">
-<h3 id="orgc979628">Imports</h3>
-<div class="outline-text-3" id="text-orgc979628"></div>
-<div class="outline-4" id="outline-container-org0ce9794">
-<h4 id="org0ce9794">Python</h4>
-<div class="outline-text-4" id="text-org0ce9794">
-<div class="highlight">
-<pre><span></span>from pprint import pprint
-import json
-import urllib
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org0cc3d69">
-<h4 id="org0cc3d69">PyPi</h4>
-<div class="outline-text-4" id="text-org0cc3d69">
-<div class="highlight">
-<pre><span></span>from expects import (
-    equal,
-    expect,
-    start_with,
-)
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org28455d8">
-<h3 id="org28455d8">Set Up</h3>
-<div class="outline-text-3" id="text-org28455d8"></div>
-<div class="outline-4" id="outline-container-org0a30d04">
-<h4 id="org0a30d04">URL</h4>
-<div class="outline-text-4" id="text-org0a30d04">
-<div class="highlight">
-<pre><span></span>API_KEY = 42
-API_URL = "http://py4e-data.dr-chuck.net/json?"
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org2bbff95">
-<h4 id="org2bbff95">Sample</h4>
-<div class="outline-text-4" id="text-org2bbff95">
-<div class="highlight">
-<pre><span></span>SAMPLE_LOCATION = "South Federal University"
-SAMPLE_PLACE_ID = "ChIJ9e_QQm0sDogRhUPatldEFxw"
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org3dd109f">
-<h4 id="org3dd109f">Actual</h4>
-<div class="outline-text-4" id="text-org3dd109f">
-<div class="highlight">
-<pre><span></span>ACTUAL_LOCATION = "Kazan Federal University"
-ACTUAL_PLACE_ID_STARTS_WITH = "ChIJGf9"
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org33c7380">
-<h2 id="org33c7380">Middle</h2>
-<div class="outline-text-2" id="text-org33c7380">
-<div class="highlight">
-<pre><span></span>def get_place_id(location: str) -&gt; str:
-    """Get the place ID for the location
-
-    Args:
-     location: place to look up
-
-    Returns:
-     the place ID for the location
-    """
-    parameters = {"address": location, "key": API_KEY}
-    request = API_URL + urllib.parse.urlencode(parameters)
-
-    with urllib.request.urlopen(request) as response:
-        data = json.loads(response.read().decode())
-        results = data["results"][0]
-        expect(data["status"]).to(equal("OK"))
-        place_id = results["place_id"]
-        print(f"Location: {location}")
-        print(f"Place ID: {place_id}")
-    return place_id
-</pre></div>
-</div>
-<div class="outline-3" id="outline-container-orgc93ede2">
-<h3 id="orgc93ede2">The Sample</h3>
-<div class="outline-text-3" id="text-orgc93ede2">
-<div class="highlight">
-<pre><span></span>place_id = get_place_id(SAMPLE_LOCATION)
-expect(SAMPLE_PLACE_ID).to(equal(place_id))
-</pre></div>
-<pre class="example">
-Location: South Federal University
-Place ID: ChIJ9e_QQm0sDogRhUPatldEFxw
-
-</pre></div>
-</div>
-<div class="outline-3" id="outline-container-org18d24d9">
-<h3 id="org18d24d9">The Actual</h3>
-<div class="outline-text-3" id="text-org18d24d9">
-<div class="highlight">
-<pre><span></span>place_id = get_place_id(ACTUAL_LOCATION)
-expect(place_id).to(start_with(ACTUAL_PLACE_ID_STARTS_WITH))
-</pre></div>
-<pre class="example">
-Location: Kazan Federal University
-Place ID: ChIJGf9kMxGtXkERIzwzBzFo8kY
-
-</pre></div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgb941af8">
-<h2 id="orgb941af8">End</h2>
 </div>
 </div>
 </article>
