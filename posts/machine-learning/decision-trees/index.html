@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="Looking at Decision Trees" name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Decision Trees | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/machine-learning/decision-trees/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="../../../assets/javascript/p5.min.js" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="/posts/libraries/snorkel/snorkel-data-labeling/" rel="prev" title="Snorkel Data Labeling" type="text/html">
+<link href="/posts/tutorials/permutation-importance/" rel="next" title="Permutation Importance" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Decision Trees" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/machine-learning/decision-trees/" property="og:url">
+<meta content="Looking at Decision Trees" property="og:description">
+<meta content="article" property="og:type">
+<meta content="2020-01-25T16:31:40-08:00" property="article:published_time">
+<meta content="trees" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="/archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="/categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="/rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="/pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"> <input name="k8" type="hidden" value="#444444"> <input name="k9" type="hidden" value="#D51920"> <input name="kt" type="hidden" value="h"> <input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"> <input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="/posts/machine-learning/decision-trees/index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href="/posts/machine-learning/decision-trees/">Decision Trees</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/machine-learning/decision-trees/" rel="bookmark"><time class="published dt-published" datetime="2020-01-25T16:31:40-08:00" itemprop="datePublished" title="2020-01-25 16:31">2020-01-25 16:31</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="/posts/machine-learning/decision-trees/index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/machine-learning/decision-trees/#org9c0461e">Beginning</a>
+<ul>
+<li><a href="/posts/machine-learning/decision-trees/#org63d4a46">Imports</a></li>
+<li><a href="/posts/machine-learning/decision-trees/#org6fbd5a2">Set Up</a></li>
+</ul>
+</li>
+<li><a href="/posts/machine-learning/decision-trees/#org47d3220">Splitting A Node</a>
+<ul>
+<li><a href="/posts/machine-learning/decision-trees/#orgc61a263">Entropy</a></li>
+<li><a href="/posts/machine-learning/decision-trees/#orge7b997f">Binary Splitting of Qualitative Attributes Using the Gini Index</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org9c0461e">
+<h2 id="org9c0461e">Beginning</h2>
+<div class="outline-text-2" id="text-org9c0461e"></div>
+<div class="outline-3" id="outline-container-org63d4a46">
+<h3 id="org63d4a46">Imports</h3>
+<div class="outline-text-3" id="text-org63d4a46"></div>
+<div class="outline-4" id="outline-container-org2c3df28">
+<h4 id="org2c3df28">Python</h4>
+<div class="outline-text-4" id="text-org2c3df28">
+<div class="highlight">
+<pre><span></span>from functools import partial
+from typing import Any
+from math import log2
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org168f1ac">
+<h4 id="org168f1ac">PyPi</h4>
+<div class="outline-text-4" id="text-org168f1ac">
+<div class="highlight">
+<pre><span></span>from expects import (
+    be_within,
+    expect,
+)
+from tabulate import tabulate
+import attr
+import pandas
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org6fbd5a2">
+<h3 id="org6fbd5a2">Set Up</h3>
+<div class="outline-text-3" id="text-org6fbd5a2">
+<div class="highlight">
+<pre><span></span>TABLE = partial(tabulate, headers="keys", tablefmt="orgtbl")
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org47d3220">
+<h2 id="org47d3220">Splitting A Node</h2>
+<div class="outline-text-2" id="text-org47d3220">
+<p>We choose which is the next node to split by checking the amount of information we would gain for each candidate node and picking the one that gives us the highest gain. We do this by measuring the <b>impurity</b> of the nodes, which is a measurement of how dissimilar the class labels are for a node.</p>
+</div>
+<div class="outline-3" id="outline-container-orgc61a263">
+<h3 id="orgc61a263">Entropy</h3>
+<div class="outline-text-3" id="text-orgc61a263">
+<p>One measure of "impurity" is <a href="https://www.wikiwand.com/en/Entropy_(information_theory)">entropy</a>, a measurement of the information associated with our nodes.</p>
+</div>
+<div class="outline-4" id="outline-container-orge91bf49">
+<h4 id="orge91bf49">Node Entropy</h4>
+<div class="outline-text-4" id="text-orge91bf49">
+<p>Here's where we'll calculate the entropy for a node.</p>
+<p>\[ Entropy = - \sum_{i=0}^{c-1} p_i(t)log_2 p_i(t) \]</p>
+<p>Where \(p_1(t)\) is the fraction of training data (<i>t</i>) that has the classification <i>i</i>. We can translate that to a python function.</p>
+<div class="highlight">
+<pre><span></span> def node_entropy(data: pandas.Series, debug: bool=False) -&gt; float:
+     """Calculate the entropy for a child node
+
+     Args:
+      data: target data filtered to match the child-node's class
+      debug: emit values
+
+     Returns:
+      entropy for this node
+     """
+     if debug:
+         print("calculating node-entropy")
+     total = len(data)
+     accumulated = 0
+     for classification in data.unique():
+         p = len(data[data == classification])/total
+         if debug:
+             print(f"\tclass: {classification}, p: {p} entropy: {p * log2(p)}")
+         accumulated += p * log2(p)
+     if debug:
+         print(f"Node Entropy: {accumulated}")
+     return -accumulated
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org01705f5">
+<h4 id="org01705f5">Entropy of a Node's Children</h4>
+<div class="outline-text-4" id="text-org01705f5">
+<p>We'll use the entropy formula to get the entropy for an indivdual node but to get the total contribution from the possible splits we'll take a weighted sum of the node entropies.</p>
+<p>\[ I(children) = \sum_{j=1}^k \frac{N(v_j)}{N} I(v_j) \]</p>
+<p>Where \(\frac{N(v_j)}{N}\) is the fraction of the child data in node <i>j</i> and \(I(v_j)\) is the entropy (Impurity) of node <i>j</i>.</p>
+<p>Once again, in python.</p>
+<div class="highlight">
+<pre><span></span>def children_impurity(data: pandas.DataFrame, column: str, target: str,
+                      impurity: object=node_entropy,
+            debug: bool=False) -&gt; float:
+    """Calculate the entropy for the parent of child nodes
+
+    Args:
+     data: the container for the values to check
+     column: the column to get the entropy
+     target: the target column
+     impurity: the function to calculate the impurity of the child
+     debug: whether to print some intermediate values
+
+    Returns:
+     entropy for the data
+    """
+    if debug:
+        print("Calculating entropy for child nodes")
+    total = len(data)
+    accumulator = 0
+    for classification in data[column].unique():
+        child = data[data[column] == classification][target]
+        if debug:
+            print(f"\tI_({classification}) = ({len(child)}/{total}) "
+                  f"x {impurity(child)}")
+        accumulator += (len(child)/total) * impurity(child)
+    if debug:
+        print(f"Child node entropy: {accumulator}")
+    return accumulator
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgcd3766a">
+<h4 id="orgcd3766a">Information Gain</h4>
+<div class="outline-text-4" id="text-orgcd3766a">
+<p>The measurement of how much is gained is the difference between a parent node and its children. \[ \Delta = I(parent) - I(children) \]</p>
+<div class="highlight">
+<pre><span></span> def information_gain(data: pandas.Series, column: str, target: str,
+                      debug: bool=False) -&gt; float:
+     """See how much entropy is removed using this node
+
+     Args:
+      data: source to check
+      column: name of the column representing the parent node
+      target: name of the column we are trying to predict
+      debug: emit messages
+     """
+     return node_entropy(data[target], debug=debug) - children_impurity(
+         data, column=column, target=target, debug=debug)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org387af7f">
+<h4 id="org387af7f">Home Loans</h4>
+<div class="outline-text-4" id="text-org387af7f">
+<p>To make this concrete we can look at a small dataset of people applying for a loan. We want to know if they are likely to default and we need to decide if we want our first split to be on whether they own a home or are married (we'll ignore income for this check because it's meant to illustrate splitting qualitative data).</p>
+<div class="highlight">
+<pre><span></span> @attr.s(auto_attribs=True, slots=True, frozen=True)
+ class LoanColumns:
+     owner: str = "Home Owner"
+     married: str = "Marital Status"
+     income: str = "Annual Income"
+     defaulted: str = "Defaulted"
+
+ LOANS = LoanColumns()
+</pre></div>
+<div class="highlight">
+<pre><span></span> loans = pandas.DataFrame({
+     LOANS.owner: [True, False, False, True, False, False, True, False, False, False],
+     LOANS.married: ["Single", "Married", "Single", "Married", "Divorced", "Single", "Divorced", "Single", "Married", "Single"],
+     LOANS.income: [125000, 100000, 70000, 120000, 95000, 60000, 220000, 85000, 75000, 90000],
+     LOANS.defaulted: [False, False, False, False, True, False, False, True, False, True],
+ })
+ print(TABLE(loans))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-right">
+<col class="org-left">
+<col class="org-left">
+<col class="org-right">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-right" scope="col">&nbsp;</th>
+<th class="org-left" scope="col">Home Owner</th>
+<th class="org-left" scope="col">Marital Status</th>
+<th class="org-right" scope="col">Annual Income</th>
+<th class="org-left" scope="col">Defaulted</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">0</td>
+<td class="org-left">True</td>
+<td class="org-left">Single</td>
+<td class="org-right">125000</td>
+<td class="org-left">False</td>
+</tr>
+<tr>
+<td class="org-right">1</td>
+<td class="org-left">False</td>
+<td class="org-left">Married</td>
+<td class="org-right">100000</td>
+<td class="org-left">False</td>
+</tr>
+<tr>
+<td class="org-right">2</td>
+<td class="org-left">False</td>
+<td class="org-left">Single</td>
+<td class="org-right">70000</td>
+<td class="org-left">False</td>
+</tr>
+<tr>
+<td class="org-right">3</td>
+<td class="org-left">True</td>
+<td class="org-left">Married</td>
+<td class="org-right">120000</td>
+<td class="org-left">False</td>
+</tr>
+<tr>
+<td class="org-right">4</td>
+<td class="org-left">False</td>
+<td class="org-left">Divorced</td>
+<td class="org-right">95000</td>
+<td class="org-left">True</td>
+</tr>
+<tr>
+<td class="org-right">5</td>
+<td class="org-left">False</td>
+<td class="org-left">Single</td>
+<td class="org-right">60000</td>
+<td class="org-left">False</td>
+</tr>
+<tr>
+<td class="org-right">6</td>
+<td class="org-left">True</td>
+<td class="org-left">Divorced</td>
+<td class="org-right">220000</td>
+<td class="org-left">False</td>
+</tr>
+<tr>
+<td class="org-right">7</td>
+<td class="org-left">False</td>
+<td class="org-left">Single</td>
+<td class="org-right">85000</td>
+<td class="org-left">True</td>
+</tr>
+<tr>
+<td class="org-right">8</td>
+<td class="org-left">False</td>
+<td class="org-left">Married</td>
+<td class="org-right">75000</td>
+<td class="org-left">False</td>
+</tr>
+<tr>
+<td class="org-right">9</td>
+<td class="org-left">False</td>
+<td class="org-left">Single</td>
+<td class="org-right">90000</td>
+<td class="org-left">True</td>
+</tr>
+</tbody>
+</table>
+<p>The first step is to calculate the entropy for the entire set using whether they defaulted or not as our classification.</p>
+<div class="highlight">
+<pre><span></span> impurity_parent = node_entropy(loans[LOANS.defaulted])
+ print(f"I_parent: {impurity_parent:0.3f}")
+
+ expect(impurity_parent).to(be_within(0.8812, 0.8813))
+</pre></div>
+<pre class="example">
+I_parent: 0.881
+</pre>
+<p>The next step is to figure out which of our two chosen attributes gives us the most information gain- whether the person was a Home Owner or their Marital Status. We could just look at which has a lower entropy, but the problem is stated so that we want to find the greatest difference between the class' entropy and the parent entropy instead.</p>
+</div>
+<ul class="org-ul">
+<li><a id="orgc66ffed"></a>Home Owners<br>
+<div class="outline-text-5" id="text-orgc66ffed">
+<p>We have two child nodes - one for homeowners and one for non-homeowners.</p>
+<div class="highlight">
+<pre><span></span> print(loans[loans[LOANS.owner]][LOANS.defaulted].value_counts())
+ print()
+ print(loans[~loans[LOANS.owner]][LOANS.defaulted].value_counts())
+</pre></div>
+<pre class="example">
+False    3
+Name: Defaulted, dtype: int64
+
+False    4
+True     3
+Name: Defaulted, dtype: int64
+</pre>
+<div class="highlight">
+<pre><span></span> impurity_home_owner = children_entropy(loans,
+                                        column=LOANS.owner,
+                                        target=LOANS.defaulted, debug=True)
+ print(f"{impurity_home_owner: 0.3f}")
+ expect(impurity_home_owner).to(be_within(0.689, 0.691))
+</pre></div>
+<pre class="example">
+Calculating entropy for child nodes
+        I_(True) = (3/10) x -0.0
+        I_(False) = (7/10) x 0.9852281360342515
+Child node entropy: 0.6896596952239761
+ 0.690
+</pre>
+<p>Odd that python allows negative zero-values… Now we can see what the information gain will be.</p>
+<div class="highlight">
+<pre><span></span> gain_home_owner = information_gain(loans, LOANS.owner, LOANS.defaulted)
+ print(f"Delta Home-Owner: {gain_home_owner: 0.3}")
+ expect(gain_home_owner).to(be_within(0.190, 0.19165))
+</pre></div>
+<pre class="example">
+Delta Home-Owner:  0.192
+</pre>
+<p>I seem to have precision differences with the book…</p>
+</div>
+</li>
+<li><a id="org75f0a02"></a>Married Applicants<br>
+<div class="outline-text-5" id="text-org75f0a02">
+<div class="highlight">
+<pre><span></span> gain_married = information_gain(loans, LOANS.married, LOANS.defaulted, debug=True)
+ print(f"Delta Married: {gain_married: 0.3f}")
+ expect(gain_married).to(be_within(0.194, 0.196))
+ choice = max(((gain_home_owner, LOANS.owner),
+               (gain_married, LOANS.married)))
+ print(f"Next Node: {choice}")
+</pre></div>
+<pre class="example">
+calculating node-entropy
+        class: False, p: 0.7 entropy: -0.3602012209808308
+        class: True, p: 0.3 entropy: -0.5210896782498619
+Node Entropy: -0.8812908992306927
+Calculating entropy for child nodes
+        I_(Single) = (5/10) x 0.9709505944546686
+        I_(Married) = (3/10) x -0.0
+        I_(Divorced) = (2/10) x 1.0
+Child node entropy: 0.6854752972273344
+Delta Married:  0.196
+Next Node: (0.19581560200335835, 'Marital Status')
+</pre>
+<p>Since we gain more information from checking whether someone was married or not, that would be the next node we would choose to split.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orge7b997f">
+<h3 id="orge7b997f">Binary Splitting of Qualitative Attributes Using the Gini Index</h3>
+<div class="outline-text-3" id="text-orge7b997f">
+<p>\[ \textit{Gini Index} = 1 - \sum_{i=0}^{c - 1} \]</p>
+<div class="highlight">
+<pre><span></span>def gini(data: pandas.Series) -&gt; float:
+    """Calculate the gini index for the data"""
+    total = len(data)
+    accumulator = 0
+    for classification in data.unique():
+        accumulator += (len(data[data==classification])/total)**2
+    return 1 - accumulator
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-org9702b3a">
+<h4 id="org9702b3a">Parent Impurity</h4>
+<div class="outline-text-4" id="text-org9702b3a">
+<p>First we get the gini index for the overall data.</p>
+<div class="highlight">
+<pre><span></span>parent_gini = gini(loans[LOANS.defaulted])
+print(f"I_parent = {parent_gini: 0.3f}")
+expect(parent_gini).to(be_within(0.420, 0.421))
+</pre></div>
+<pre class="example">
+I_parent =  0.420
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-org0d1620a">
+<h4 id="org0d1620a">Home Owner Impurity</h4>
+<div class="outline-text-4" id="text-org0d1620a">
+<p>Now the homeowner attribute.</p>
+<div class="highlight">
+<pre><span></span>homeowner_gini = children_impurity(loans, LOANS.owner, LOANS.defaulted, gini, debug=True)
+expect(homeowner_gini).to(be_within(0.342, 0.344))
+</pre></div>
+<pre class="example">
+Calculating entropy for child nodes
+        I_(True) = (3/10) x 0.0
+        I_(False) = (7/10) x 0.48979591836734704
+Child node entropy: 0.3428571428571429
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-orgd0b243d">
+<h4 id="orgd0b243d">Married Impurity</h4>
+<div class="outline-text-4" id="text-orgd0b243d">
+<p>This is different from the entropy case because we want to do binary splits but the marital status attribute has three values (<i>Single</i>, <i>Married</i>, and <i>Divorced</i>) so we need to use a different function that does each attribute against the other (or we could add columns which turn the marital status into a binary attribute, but this seems simpler).</p>
+<div class="highlight">
+<pre><span></span>def binary_gini(data: pandas.Series, column: str, target: str,
+                classification: object, debug: bool=False) -&gt; float:
+    """Calculate the gini value for the data using one against many
+
+    Args:
+     data: source with qualitative values
+     column: column with the classifications to test
+     target: column with the classifications to predict
+     classification: the classification to compare
+     debug: whether to emit messages
+    """
+    total = len(data)
+    classified = data[data[column] == classification]
+    others = data[data[column] != classification]
+    if debug:
+        print(f"N({classification}/N) I({classification}) = {len(classified)/total * gini(classified[target]):0.3f}")
+        print(f"N(!{classification}/N) I!({classification}) = {len(others)/total * gini(others[target]):0.3f}")
+        print(f"I({classification}) = {((len(classified)/total) * gini(classified[target]) + (len(others)/total) * gini(others[target])):0.3f}")
+    return ((len(classified)/total) * gini(classified[target])
+            + (len(others)/total) * gini(others[target]))
+</pre></div>
+<div class="highlight">
+<pre><span></span>@attr.s(auto_attribs=True, slots=True, frozen=True)
+class MaritalStatus:
+    single: str="Single"
+    married: str="Married"
+    divorced: str="Divorced"
+
+status = MaritalStatus()
+</pre></div>
+<div class="highlight">
+<pre><span></span>i_single = binary_gini(loans, LOANS.married, LOANS.defaulted, status.single,
+                       debug=True)
+print()
+i_married = binary_gini(loans, LOANS.married, LOANS.defaulted, status.married,
+                        debug=True)
+print()
+i_divorced = binary_gini(loans, LOANS.married, LOANS.defaulted,
+                         status.divorced, debug=True)
+expect(i_single).to(be_within(0.39, 0.41))
+expect(i_divorced).to(be_within(0.39, 0.41))
+expect(i_married).to(be_within(0.342, 0.344))
+</pre></div>
+<pre class="example">
+N(Single/N) I(Single) = 0.240
+N(!Single/N) I!(Single) = 0.160
+I(Single) = 0.400
+
+N(Married/N) I(Married) = 0.000
+N(!Married/N) I!(Married) = 0.343
+I(Married) = 0.343
+
+N(Divorced/N) I(Divorced) = 0.100
+N(!Divorced/N) I!(Divorced) = 0.300
+I(Divorced) = 0.400
+</pre>
+<div class="highlight">
+<pre><span></span>best = 0
+best_split = None
+for candidate, label in ((homeowner_gini, "Homeowner"),
+                         (i_single, "Single"),
+                         (i_married, "Married"),
+                         (i_divorced, "Divorced")):
+    delta = parent_gini - candidate
+    if delta &gt; best:
+        best = delta
+        best_split = label
+    print(f"Delta {label} = {delta:0.3f}")
+print(f"Best Split: {best_split}")
+</pre></div>
+<pre class="example">
+Delta Homeowner = 0.077
+Delta Single = 0.020
+Delta Married = 0.077
+Delta Divorced = 0.020
+Best Split: Homeowner
+</pre>
+<p>Either using Home Ownership or Whether someone is married would be the best candidates for the next split.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="/categories/trees/" rel="tag">trees</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="/posts/libraries/snorkel/snorkel-data-labeling/" rel="prev" title="Snorkel Data Labeling">Previous post</a></li>
+<li class="next"><a href="/posts/tutorials/permutation-importance/" rel="next" title="Permutation Importance">Next post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2020 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script> 
+</body>
+</html>
