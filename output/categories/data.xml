@@ -1,5 +1,1036 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data (Posts about data)</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description></description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/categories/data.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2019 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Sat, 28 Sep 2019 02:20:16 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>A First Look At Snorkel</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data (Posts about data)</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description></description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/categories/data.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Thu, 06 Feb 2020 00:50:47 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Snorkel Data Labeling</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#org7110700"&gt;Beginning&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#org1eea11a"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#org1367a1e"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#org695e908"&gt;Middle&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#org459bf62"&gt;Finding Labeling Functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#orgdaac3af"&gt;Using TextBlob with a Preprocessor&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#orgd7660b8"&gt;More Labeling Functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/#org99ea299"&gt;Adding a Spacy Preprocessor&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org7110700" class="outline-2"&gt;
+&lt;h2 id="org7110700"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org7110700"&gt;
+&lt;p&gt;
+This is a walk-through of the Snorkel &lt;a href="https://www.snorkel.org/use-cases/01-spam-tutorial"&gt;Snorkel Data Labeling&lt;/a&gt; tutorial.It uses the &lt;a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/"&gt;YouTube Spam Collection&lt;/a&gt; data set (downloaded from the &lt;a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection"&gt;UCI Machine Learning Repository&lt;/a&gt;). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns &lt;code&gt;COMMENT_ID&lt;/code&gt;, &lt;code&gt;AUTHOR&lt;/code&gt;, &lt;code&gt;DATE&lt;/code&gt;, &lt;code&gt;CONTENT&lt;/code&gt;, &lt;code&gt;CLASS&lt;/code&gt;. The tag represents whether it was considered &lt;i&gt;Spam&lt;/i&gt; or not, so we'll pretend it isn't there for most of this walk-through.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org1eea11a" class="outline-3"&gt;
+&lt;h3 id="org1eea11a"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org1eea11a"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org97bc1a0" class="outline-4"&gt;
+&lt;h4 id="org97bc1a0"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org97bc1a0"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from argparse import Namespace
+from functools import partial
+from pathlib import Path
+import re
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgc38d5c3" class="outline-4"&gt;
+&lt;h4 id="orgc38d5c3"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgc38d5c3"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from snorkel.analysis import get_label_buckets
+from snorkel.labeling import labeling_function, LabelingFunction, LFAnalysis, PandasLFApplier
+from snorkel.preprocess import preprocessor
+from snorkel.labeling.lf.nlp import nlp_labeling_function
+from sklearn.model_selection import train_test_split
+from tabulate import tabulate
+from textblob import TextBlob
+
+import pandas
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org1367a1e" class="outline-3"&gt;
+&lt;h3 id="org1367a1e"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org1367a1e"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org11e2015" class="outline-4"&gt;
+&lt;h4 id="org11e2015"&gt;The Tabulate Table&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org11e2015"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys")
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgb273a95" class="outline-4"&gt;
+&lt;h4 id="orgb273a95"&gt;Some Constants&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgb273a95"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Comment = Namespace(
+    is_ambiguous = -1,
+    is_ham = 0,
+    is_spam = 1
+)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Data = Namespace(
+    test_artist = "Shakira",
+    development_size = 200,
+    validation_size = 0.5,
+    random_seed = 666,
+)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Columns = Namespace(
+    comment = "CONTENT",
+    classification = "CLASS",
+    artist = "artist",
+)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org695e908" class="outline-2"&gt;
+&lt;h2 id="org695e908"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org695e908"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org1650a13" class="outline-4"&gt;
+&lt;h4 id="org1650a13"&gt;The Dataset&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1650a13"&gt;
+&lt;p&gt;
+The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a &lt;code&gt;artist&lt;/code&gt; column.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
+sets = []
+for name in path.glob("*.csv"):
+    artist = name.stem.split()[-1]
+    data = pandas.read_csv(name)
+    data["artist"] = artist
+    sets.append(data)
+    print(artist)
+data = pandas.concat(sets)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+KatyPerry
+LMFAO
+Eminem
+Shakira
+Psy
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org1c9ca1f" class="outline-4"&gt;
+&lt;h4 id="org1c9ca1f"&gt;Splitting the Set&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1c9ca1f"&gt;
+&lt;p&gt;
+The tutorial takes a slightly different approach from the one I previously took. Here's their four data-set splits:
+&lt;/p&gt;
+&lt;ul class="org-ul"&gt;
+&lt;li&gt;&lt;i&gt;train&lt;/i&gt;: Comments from the first four videos&lt;/li&gt;
+&lt;li&gt;&lt;i&gt;dev&lt;/i&gt;: 200 comments taken from &lt;i&gt;train&lt;/i&gt;&lt;/li&gt;
+&lt;li&gt;&lt;i&gt;valid &amp;amp; test&lt;/i&gt;: A 50-50 split of the last video (actually &lt;i&gt;Shakira&lt;/i&gt;, not &lt;i&gt;Psy&lt;/i&gt; as listed above)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;test = data[data.artist==Data.test_artist]
+train = data[data.artist != Data.test_artist]
+train, development = train_test_split(train, test_size=Data.development_size)
+
+validation, test = train_test_split(test, test_size=Data.validation_size)
+print(f"Training: {train.shape}")
+print(f"Development: {development.shape}")
+print(f"Validation: {validation.shape}")
+print(f"Testing: {test.shape}")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+Training: (1386, 6)
+Development: (200, 6)
+Validation: (185, 6)
+Testing: (185, 6)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org459bf62" class="outline-3"&gt;
+&lt;h3 id="org459bf62"&gt;Finding Labeling Functions&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org459bf62"&gt;
+&lt;p&gt;
+The place to start is with the development set - it's labeled (although in this case the training set is as well, but pretend it isn't) and we can inspect it to get ideas.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(development.sample(random_state=Data.random_seed)[[Columns.comment, Columns.classification]])
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+                                               CONTENT  CLASS
+216  Lol...I dunno how this joke gets a lot of like...      0
+&lt;/pre&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;spam = development[development[Columns.classification]==Comment.is_spam]
+for count in range(10):
+    print(spam.sample(random_state=count).iloc[0][Columns.comment])
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+I #votekatyperry for the 2014 MTV #VMA Best Lyric Video! See who's in the  lead and vote:  http://on.mtv.com/Ut15kX﻿
+LIKE AND SUBSCRIB IF YOU WATCH IN 2015 ;)﻿
+ HI IM 14 YEAR RAPPER SUPPORT ME GUY AND CHECK OUT MY CHANNEL AND CHECK OUT MY SONG YOU MIGHT LIKE IT ALSO FOLLOW ME IN TWITTER @McAshim for follow back.
+LIKE AND SUBSCRIB IF YOU WATCH IN 2015 ;)﻿
+HAPPY BIRTHDAY KATY :) http://giphy.com/gifs/birthday-flowers-happy-gw3JY2uqiaXKaQXS/fullscreen  (That´s not me)﻿
+plz check out fablife / welcome to fablife for diys and challenges so plz  subscribe thx!﻿
+CHECK OUT MY CHANNEL BOYS AND GIRLS ;)
+HAPPY BIRTHDAY KATY :) http://giphy.com/gifs/birthday-flowers-happy-gw3JY2uqiaXKaQXS/fullscreen  (That´s not me)﻿
+*for 90&amp;amp;#39;s rap fans*  check out my Big Pun - &amp;amp;#39;Beware&amp;amp;#39; cover!  Likes n comments very much appreciated!
+Who&amp;amp;#39;s watching in 2015 Subscribe for me !﻿
+&lt;/pre&gt;
+
+&lt;p&gt;
+You can already see that the spam has people asking viewers to check out their sites.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org91909ee" class="outline-4"&gt;
+&lt;h4 id="org91909ee"&gt;Check vs Check Out&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org91909ee"&gt;
+&lt;p&gt;
+Let's see which one of the strings (&lt;i&gt;check&lt;/i&gt; or &lt;i&gt;check out&lt;/i&gt;) does better for us.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;ul class="org-ul"&gt;
+&lt;li&gt;&lt;a id="orgd403fd3"&gt;&lt;/a&gt;The Labeling Functions&lt;br&gt;
+&lt;div class="outline-text-5" id="text-orgd403fd3"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
+def check(row: pandas.Series) -&amp;gt; int:
+    """sees if the word 'check' is in the comment"""
+    return Comment.is_spam if "check" in row.CONTENT.lower() else Comment.is_ambiguous
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function()
+def check_out(row: pandas.Series) -&amp;gt; int:
+    """looks for phrase 'check out'"""
+    return Comment.is_spam if "check out" in row.CONTENT.lower() else Comment.is_ambiguous
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a id="orgc76c9b2"&gt;&lt;/a&gt;Applying the Functions&lt;br&gt;
+&lt;div class="outline-text-5" id="text-orgc76c9b2"&gt;
+&lt;p&gt;
+The next step is to create some Labeling Matrices using our labeling functions by applying them to our training and development sets. Since our data is stored using pandas, we'll use the &lt;code&gt;PandasLFApplier&lt;/code&gt;, but there are &lt;a href="https://snorkel.readthedocs.io/en/master/packages/labeling.html"&gt;other types available&lt;/a&gt; as well.
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;labeling_functions = [check, check_out]
+
+applier = PandasLFApplier(lfs=labeling_functions)
+train_labeling_matrix = applier.apply(df=train, progress_bar=False)
+development_labeling_matrix = applier.apply(df=development, progress_bar=False)
+print(f"Training Labeling Matrix: {train_labeling_matrix.shape}")
+print(f"Development Labeling Matrix: {development_labeling_matrix.shape}")
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+Training Labeling Matrix: (1386, 2)
+Development Labeling Matrix: (200, 2)
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+Each matrix has one column for each of our labeling functions (so two in this case) and one row for each of the rows in the set that the functions were applied to.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/li&gt;
+
+&lt;li&gt;&lt;a id="org94db4a7"&gt;&lt;/a&gt;Evaluating the Labeling Functions&lt;br&gt;
+&lt;div class="outline-text-5" id="text-org94db4a7"&gt;
+&lt;p&gt;
+Snorkel provides a &lt;a href="https://snorkel.readthedocs.io/en/master/packages/_autosummary/labeling/snorkel.labeling.LFAnalysis.html"&gt;LFAnalysis&lt;/a&gt; class to help you see how well the labeling functions do.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;analysis = LFAnalysis(L=train_labeling_matrix, lfs=labeling_functions)
+print(TABLE(analysis.lf_summary()))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
+
+
+&lt;colgroup&gt;
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope="col" class="org-left"&gt; &lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;j&lt;/th&gt;
+&lt;th scope="col" class="org-left"&gt;Polarity&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Coverage&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Overlaps&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Conflicts&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td class="org-left"&gt;check&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.257576&lt;/td&gt;
+&lt;td class="org-right"&gt;0.212843&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-left"&gt;check_out&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.212843&lt;/td&gt;
+&lt;td class="org-right"&gt;0.212843&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;
+This is what the table is giving us for each of the labeling functions:
+&lt;/p&gt;
+
+&lt;ul class="org-ul"&gt;
+&lt;li&gt;&lt;i&gt;j&lt;/i&gt; : I think this is just an index&lt;/li&gt;
+&lt;li&gt;&lt;i&gt;Polarity&lt;/i&gt;: The number of unique values the function puts out (other than -1, which is interpreted as an un-labeled row)&lt;/li&gt;
+&lt;li&gt;/Coverage: The fraction of the data-set that the function labeled&lt;/li&gt;
+&lt;li&gt;/Overlaps: The fraction of the data that the function labeled and at least one other function also labeled&lt;/li&gt;
+&lt;li&gt;&lt;i&gt;Conflicts&lt;/i&gt;: The fraction of the data that the function labeled something different from at least one other function&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;
+So it looks like &lt;code&gt;check&lt;/code&gt; covers slightly more than &lt;code&gt;check_out&lt;/code&gt;, and they don't disagree with each other at all. This makes sense when you consider that &lt;code&gt;check&lt;/code&gt; is a sub-string of &lt;code&gt;check out&lt;/code&gt; - we can guess that all the overlaps are cases where &lt;code&gt;check out&lt;/code&gt; were found in the comment.
+&lt;/p&gt;
+
+&lt;p&gt;
+We can also pass it a set of labels and it will see how well the functions did. In this case we have labels for all the rows, but in most cases we won't just for the development set so we'll use it here.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(TABLE(LFAnalysis(
+    L=development_labeling_matrix,
+    lfs=labeling_functions).lf_summary(Y=development.CLASS.values)))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
+
+
+&lt;colgroup&gt;
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope="col" class="org-left"&gt; &lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;j&lt;/th&gt;
+&lt;th scope="col" class="org-left"&gt;Polarity&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Coverage&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Overlaps&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Conflicts&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Correct&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Incorrect&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Emp. Acc.&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td class="org-left"&gt;check&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.26&lt;/td&gt;
+&lt;td class="org-right"&gt;0.225&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;49&lt;/td&gt;
+&lt;td class="org-right"&gt;3&lt;/td&gt;
+&lt;td class="org-right"&gt;0.942308&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-left"&gt;check_out&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.225&lt;/td&gt;
+&lt;td class="org-right"&gt;0.225&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;45&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;
+&lt;b&gt;&lt;b&gt;Note:&lt;/b&gt;&lt;/b&gt; The &lt;code&gt;LFAnalysis&lt;/code&gt; class works with &lt;code&gt;numpy&lt;/code&gt; arrays, so when I called the &lt;code&gt;lf_summary&lt;/code&gt; method I had to pass in the &lt;code&gt;values&lt;/code&gt; and not the &lt;code&gt;CLASS&lt;/code&gt; Series.
+&lt;/p&gt;
+
+&lt;p&gt;
+With our development set, the functions cover slightly less than before (as a fraction of the total), and although &lt;code&gt;check&lt;/code&gt; covers slightly more that &lt;code&gt;check_out&lt;/code&gt;, it also has some false-postives, so we'd have to decide if we care about getting all the spam or not accidentally labeling non-spam as spam.
+&lt;/p&gt;
+
+&lt;p&gt;
+We can also check which ones were mis-labeled to get a better idea of how off they were.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;buckets = get_label_buckets(development.CLASS.values, development_labeling_matrix[:, 0])
+for key, value in buckets.items():
+    print(key)
+    print(value)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+(0, -1)
+[  0   1   2   3   4   7   9  10  11  12  13  15  16  17  19  22  27  28
+  33  34  35  39  41  43  44  46  48  49  50  51  52  53  55  57  58  61
+  62  65  66  68  78  79  81  82  86  88  89  92  94  95  98  99 100 103
+ 104 105 107 108 112 113 114 120 121 122 123 124 125 128 129 131 133 135
+ 141 142 144 146 148 150 153 154 155 162 165 166 167 168 171 173 174 179
+ 182 183 184 190 191 195 196 197]
+(1, 1)
+[  5  14  23  25  29  36  40  42  45  59  67  69  71  73  74  75  76  77
+  80  83  87  90  91  93 101 109 110 116 117 126 127 134 138 139 140 143
+ 149 151 157 160 163 164 169 172 186 189 192 193 198]
+(1, -1)
+[  6   8  18  20  21  24  26  30  31  32  38  47  54  56  60  63  64  70
+  72  84  85  96  97 102 106 111 115 119 130 132 136 137 145 147 152 156
+ 158 159 161 175 176 177 178 180 181 185 187 188 194 199]
+(0, 1)
+[ 37 118 170]
+&lt;/pre&gt;
+
+&lt;p&gt;
+Buckets is a dict whose keys are tuples of (actual classes, predicted classes) and whose values are the indices of the rows matching the keys (so the key &lt;code&gt;(0, 1)&lt;/code&gt; returns the indices for rows where we labeled the comment as spam but it wasn't). Looking at the output you can see that the last key (0, 1) has the cases that we labeled as spam when they weren't, let's take a look at them.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;for comment in development.iloc[buckets[(Comment.is_ham, Comment.is_spam)]]["CONTENT"]:
+    print(comment)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+i turned it on mute as soon is i came on i just wanted to check the  views...﻿
+i check back often to help reach 2x10^9 views and I avoid watching Baby﻿
+Admit it you just came here to check the number of viewers ﻿
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+It's not obvious to me how you should handle those.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a id="org2b15e9b"&gt;&lt;/a&gt;Check Out But Not Check&lt;br&gt;
+&lt;div class="outline-text-5" id="text-org2b15e9b"&gt;
+&lt;p&gt;
+What are some training examples that &lt;code&gt;check&lt;/code&gt; labels but &lt;code&gt;check_out&lt;/code&gt; doesn't? We can check by feeding the columns from the labeling matrix for the &lt;code&gt;check&lt;/code&gt; and &lt;code&gt;check_out&lt;/code&gt; functions and see where &lt;code&gt;check_out&lt;/code&gt; abstained and &lt;code&gt;check&lt;/code&gt; didn't. I said earlier that the first argument to &lt;code&gt;get_label_buckets&lt;/code&gt; is the actual label, but really you can feed any two arrays and it will find give you the indices for the permutations of their row-values.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;buckets = get_label_buckets(train_labeling_matrix[:, 0], train_labeling_matrix[:, 1])
+sampled = train.iloc[buckets[(Comment.is_spam, Comment.is_ambiguous)]].sample(10, random_state=Data.random_seed)
+for sample in sampled.itertuples():
+    print(sample.CONTENT)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+Lil m !!!!! Check hi out!!!!! Does live the way you lie and many more ! Check it out!!! And subscribe
+https://soundcloud.com/artady please check my stuff; and make some feedback﻿
+Hey guys can you check my channel out plz. I do mine craft videos. Let's  shoot for 20 subs﻿
+┏━━━┓┏┓╋┏┓┏━━━┓┏━━━┓┏┓╋╋┏┓  ┃┏━┓┃┃┃╋┃┃┃┏━┓┃┗┓┏┓┃┃┗┓┏┛┃  ┃┗━━┓┃┗━┛┃┃┃╋┃┃╋┃┃┃┃┗┓┗┛┏  ┗━━┓┃┃┏━┓┃┃┗━┛┃╋┃┃┃┃╋┗┓┏┛  ┃┗━┛┃┃┃╋┃┃┃┏━┓┃┏┛┗┛┃╋╋┃┃  ┗━━━┛┗┛╋┗┛┗┛╋┗┛┗━━━┛╋╋┗┛ CHECK MY VIDEOS AND SUBSCRIBE AND LIKE PLZZ
+if you like raw talent, raw lyrics, straight real hip hop Everyone check my newest sound  Dizzy X - Got the Juice (Prod by. Drugs the Model Citizen)   COMMENT TELL ME WHAT YOU THINK  DONT BE LAZY!!!!  - 1/7 Prophetz﻿
+check it out free stuff for watching videos and filling surveys&amp;lt;br /&amp;gt;&amp;lt;br /&amp;gt;&amp;lt;a href="http://www.prizerebel.com/index.php?r=1446084"&amp;gt;http://www.prizerebel.com/index.php?r=1446084&amp;lt;/a&amp;gt;﻿
+Hey! I'm NERDY PEACH and I'm a new youtuber and it would mean THE ABSOLUTE  world to me if you could check 'em out! &amp;amp;lt;3  Hope you like them! =D﻿
+Check my first video out﻿
+http://tankionline.com#friend=cd92db3f4 great game check it out!﻿
+hi beaties! i made a new channel please go check it out and subscribe and  enjoy!﻿
+&lt;/pre&gt;
+
+&lt;p&gt;
+I'm going to deviate from the tutorial a little and create a regular expression to match any comment with "check" and not "view" to avoid cases where the commenter is saying that they're checking out how many views the video had.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;EXPRESSION = re.compile(r"check(?!.*view)")
+
+assert EXPRESSION.search("everyone please come check our newest song in memories of Martin Luther  King Jr.﻿")
+assert EXPRESSION.search("and u should.d check my channel and tell me what I should do next!﻿")
+assert not EXPRESSION.search("Admit it you just came here to check the number of viewers ﻿")
+
+@labeling_function()
+def re_check_out(row: pandas.Series) -&amp;gt; int:
+    """match cases with 'check' but not view"""
+    return Comment.is_spam if EXPRESSION.search(row.CONTENT.lower()) else Comment.is_ambiguous
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;labeling_functions = [check, check_out, re_check_out]
+applier = PandasLFApplier(lfs=labeling_functions)
+train_labeling_matrix = applier.apply(df=train, progress_bar=False)
+development_labeling_matrix = applier.apply(df=development, progress_bar=False)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;analysis = LFAnalysis(L=train_labeling_matrix, lfs=labeling_functions)
+print(TABLE(analysis.lf_summary()))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
+
+
+&lt;colgroup&gt;
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope="col" class="org-left"&gt; &lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;j&lt;/th&gt;
+&lt;th scope="col" class="org-left"&gt;Polarity&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Coverage&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Overlaps&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Conflicts&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td class="org-left"&gt;check&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.257576&lt;/td&gt;
+&lt;td class="org-right"&gt;0.248196&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-left"&gt;check_out&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.212843&lt;/td&gt;
+&lt;td class="org-right"&gt;0.212843&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-left"&gt;re_check_out&lt;/td&gt;
+&lt;td class="org-right"&gt;2&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.243146&lt;/td&gt;
+&lt;td class="org-right"&gt;0.243146&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;
+Our &lt;code&gt;re_check_out&lt;/code&gt; function has a little less coverage than &lt;code&gt;check&lt;/code&gt; as we'd expect, since it excludes reviews with "view" in them but it also covers a little more than &lt;code&gt;check_out&lt;/code&gt;.
+&lt;/p&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(TABLE(LFAnalysis(
+    L=development_labeling_matrix,
+    lfs=labeling_functions).lf_summary(Y=development.CLASS.values)))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
+
+
+&lt;colgroup&gt;
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope="col" class="org-left"&gt; &lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;j&lt;/th&gt;
+&lt;th scope="col" class="org-left"&gt;Polarity&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Coverage&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Overlaps&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Conflicts&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Correct&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Incorrect&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Emp. Acc.&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td class="org-left"&gt;check&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.26&lt;/td&gt;
+&lt;td class="org-right"&gt;0.245&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;49&lt;/td&gt;
+&lt;td class="org-right"&gt;3&lt;/td&gt;
+&lt;td class="org-right"&gt;0.942308&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-left"&gt;check_out&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.225&lt;/td&gt;
+&lt;td class="org-right"&gt;0.225&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;45&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-left"&gt;re_check_out&lt;/td&gt;
+&lt;td class="org-right"&gt;2&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.245&lt;/td&gt;
+&lt;td class="org-right"&gt;0.245&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;49&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;
+It looks like we were able to avoid the false-positives by adding our regular expression.
+&lt;/p&gt;
+
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;buckets = get_label_buckets(development_labeling_matrix[:, 0], development_labeling_matrix[:,2])
+for comment in development.iloc[buckets[(Comment.is_spam, Comment.is_ambiguous)]]["CONTENT"]:
+    print(comment)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+i turned it on mute as soon is i came on i just wanted to check the  views...﻿
+i check back often to help reach 2x10^9 views and I avoid watching Baby﻿
+Admit it you just came here to check the number of viewers ﻿
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+So it looks like we got rid of some false positives but also missed some spam by using the regular expression. We could probably grab more by searching for "my" as well.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgdaac3af" class="outline-3"&gt;
+&lt;h3 id="orgdaac3af"&gt;Using TextBlob with a Preprocessor&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgdaac3af"&gt;
+&lt;p&gt;
+Here we'll use text-blobs sentiment scorer to find comments that aren't spam. To do this we'll need to use snorkel's Preprocessor, which maps data using black-box functions.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@preprocessor(memoize=True)
+def textblob_sentiment(row: pandas.Series) -&amp;gt; pandas.Series:
+    """Add the polarity and subjectivity of the comment's sentiment
+
+    This adds two columns ('polarity' and 'subjectivity') based on the comment
+
+    """
+    blob = TextBlob(row.CONTENT)
+    row["polarity"] = blob.sentiment.polarity
+    row["subjectivity"] = blob.sentiment.subjectivity
+    return row
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+The &lt;code&gt;polarity&lt;/code&gt; is a value from -1.0 to 1.0 which reflects how negative or positive the text is believed to be. The &lt;code&gt;subjectivity&lt;/code&gt; is a value from 0.0 to 1.0 which reflects whether the text is objective or subjective - whether it is a statement of fact or opinion.
+&lt;/p&gt;
+
+&lt;p&gt;
+Now that we have the pre-processor we can use it with a labeling function.
+&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org34bd21b" class="outline-4"&gt;
+&lt;h4 id="org34bd21b"&gt;Polarity&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org34bd21b"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function(pre=[textblob_sentiment])
+def textblob_polarity(row: pandas.Series) -&amp;gt; int:
+    """decides if the comment is ham based on the polarity of the sentiment"""
+    return Comment.is_ham if row.polarity &amp;gt; 0.9 else Comment.is_ambiguous
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgfb221bc" class="outline-4"&gt;
+&lt;h4 id="orgfb221bc"&gt;Subjectivity&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgfb221bc"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@labeling_function(pre=[textblob_sentiment])
+def textblob_subjectivity(row: pandas.Series) -&amp;gt; int:
+    """decides if the comment is ham based on the subjectivity"""
+    return Comment.is_ham if row.subjectivity &amp;gt; 0.5 else Comment.is_ambiguous
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orga088176" class="outline-4"&gt;
+&lt;h4 id="orga088176"&gt;Analyzing the Performance&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orga088176"&gt;
+&lt;p&gt;
+Once again, now that we have labeling functions we need to analyze how well they do.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;labeling_functions = [textblob_polarity, textblob_subjectivity]
+applier = PandasLFApplier(lfs=labeling_functions)
+train_label_matrix = applier.apply(train, progress_bar=False)
+development_label_matrix = applier.apply(development, progress_bar=False)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(TABLE(LFAnalysis(train_label_matrix, labeling_functions).lf_summary()))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
+
+
+&lt;colgroup&gt;
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope="col" class="org-left"&gt; &lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;j&lt;/th&gt;
+&lt;th scope="col" class="org-left"&gt;Polarity&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Coverage&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Overlaps&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Conflicts&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td class="org-left"&gt;textblob_polarity&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-left"&gt;[0]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.033189&lt;/td&gt;
+&lt;td class="org-right"&gt;0.0122655&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-left"&gt;textblob_subjectivity&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;td class="org-left"&gt;[0]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.32684&lt;/td&gt;
+&lt;td class="org-right"&gt;0.0122655&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(TABLE(LFAnalysis(development_label_matrix, labeling_functions).lf_summary(Y=development.CLASS.values)))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
+
+
+&lt;colgroup&gt;
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope="col" class="org-left"&gt; &lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;j&lt;/th&gt;
+&lt;th scope="col" class="org-left"&gt;Polarity&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Coverage&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Overlaps&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Conflicts&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Correct&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Incorrect&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Emp. Acc.&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td class="org-left"&gt;textblob_polarity&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-left"&gt;[0]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.05&lt;/td&gt;
+&lt;td class="org-right"&gt;0.025&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;9&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;td class="org-right"&gt;0.9&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-left"&gt;textblob_subjectivity&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;td class="org-left"&gt;[0]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.3&lt;/td&gt;
+&lt;td class="org-right"&gt;0.025&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;32&lt;/td&gt;
+&lt;td class="org-right"&gt;28&lt;/td&gt;
+&lt;td class="org-right"&gt;0.533333&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;
+Subjectivity seems to have much better coverage, but it was also fairly inaccurate.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgd7660b8" class="outline-3"&gt;
+&lt;h3 id="orgd7660b8"&gt;More Labeling Functions&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgd7660b8"&gt;
+&lt;p&gt;
+We previously created a keyword-based labeling function for "check". Because using keywords is such a common thing Snorkel has a way to create them with a little less work than creating the labeling functions individually.
+&lt;/p&gt;
+
+&lt;p&gt;
+First we make a function that checks if any of a collection of keywords is in the comment.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def lookup_keyword(row: pandas.Series, keywords: list, label: int) -&amp;gt; int:
+    """check if any of the keywords are in the comment
+
+    Args:
+     row: the series with the Comment
+     keywords: collection of keywords indicating spam
+     label: what to return if the keyword is in the comment
+
+    Returns:
+     label if keyword in comment else -1
+    """
+    return label if any(keyword in row.CONTENT.lower() for keyword in keywords) else Comment.is_ambiguous
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Now we make the labeling-function creator that uses the &lt;code&gt;lookup_keyword&lt;/code&gt;.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;def make_keyword_labeling_function(keywords: list, label: int=Comment.is_spam) -&amp;gt; LabelingFunction:
+    """Makes LabelingFunction objects that check keywords"""
+    return LabelingFunction(
+	name=f"keyword_{keywords[0]}",
+	f=lookup_keyword,
+	resources=dict(keywords=keywords, label=label)
+    )
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;keyword_my = make_keyword_labeling_function(keywords=["my"])
+keyword_subscribe = make_keyword_labeling_function(keywords=["subscribe"])
+keyword_link = make_keyword_labeling_function(keywords=["http"])
+keyword_please = make_keyword_labeling_function(keywords=["please", "plz"])
+keyword_song = make_keyword_labeling_function(keywords=["song"], label=Comment.is_ham)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;labeling_functions = [
+    keyword_my,
+    keyword_subscribe,
+    keyword_link,
+    keyword_please,
+    keyword_song,
+]
+applier = PandasLFApplier(lfs=labeling_functions)
+train_label_matrix = applier.apply(train, progress_bar=False)
+development_label_matrix = applier.apply(development, progress_bar=False)
+print(TABLE(LFAnalysis(development_label_matrix, labeling_functions).lf_summary(Y=development.CLASS.values)))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
+
+
+&lt;colgroup&gt;
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-left"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope="col" class="org-left"&gt; &lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;j&lt;/th&gt;
+&lt;th scope="col" class="org-left"&gt;Polarity&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Coverage&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Overlaps&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Conflicts&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Correct&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Incorrect&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;Emp. Acc.&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td class="org-left"&gt;keyword_my&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.18&lt;/td&gt;
+&lt;td class="org-right"&gt;0.115&lt;/td&gt;
+&lt;td class="org-right"&gt;0.05&lt;/td&gt;
+&lt;td class="org-right"&gt;33&lt;/td&gt;
+&lt;td class="org-right"&gt;3&lt;/td&gt;
+&lt;td class="org-right"&gt;0.916667&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-left"&gt;keyword_subscribe&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.125&lt;/td&gt;
+&lt;td class="org-right"&gt;0.075&lt;/td&gt;
+&lt;td class="org-right"&gt;0.015&lt;/td&gt;
+&lt;td class="org-right"&gt;25&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-left"&gt;keyword_http&lt;/td&gt;
+&lt;td class="org-right"&gt;2&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.09&lt;/td&gt;
+&lt;td class="org-right"&gt;0.03&lt;/td&gt;
+&lt;td class="org-right"&gt;0.005&lt;/td&gt;
+&lt;td class="org-right"&gt;16&lt;/td&gt;
+&lt;td class="org-right"&gt;2&lt;/td&gt;
+&lt;td class="org-right"&gt;0.888889&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-left"&gt;keyword_please&lt;/td&gt;
+&lt;td class="org-right"&gt;3&lt;/td&gt;
+&lt;td class="org-left"&gt;[1]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.095&lt;/td&gt;
+&lt;td class="org-right"&gt;0.08&lt;/td&gt;
+&lt;td class="org-right"&gt;0.02&lt;/td&gt;
+&lt;td class="org-right"&gt;19&lt;/td&gt;
+&lt;td class="org-right"&gt;0&lt;/td&gt;
+&lt;td class="org-right"&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class="org-left"&gt;keyword_song&lt;/td&gt;
+&lt;td class="org-right"&gt;4&lt;/td&gt;
+&lt;td class="org-left"&gt;[0]&lt;/td&gt;
+&lt;td class="org-right"&gt;0.16&lt;/td&gt;
+&lt;td class="org-right"&gt;0.06&lt;/td&gt;
+&lt;td class="org-right"&gt;0.06&lt;/td&gt;
+&lt;td class="org-right"&gt;20&lt;/td&gt;
+&lt;td class="org-right"&gt;12&lt;/td&gt;
+&lt;td class="org-right"&gt;0.625&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;
+There are varying degrees of coveragen and accuracy with these. Interestingly, the &lt;code&gt;subscribe&lt;/code&gt; keyword was completely accurate and had pretty good coverage (compared to our check-out labelers).
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org99ea299" class="outline-3"&gt;
+&lt;h3 id="org99ea299"&gt;Adding a Spacy Preprocessor&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org99ea299"&gt;
+&lt;p&gt;
+The purpose of the pre-processors is to do a little feature engineering to add features that aren't in the original dataset but which can be derived from it. Becaues SpaCY is used so much for this, snorkel comes with a labeling function that adds a &lt;code&gt;doc&lt;/code&gt; attribute (you can also create it manually to get more control).
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;@nlp_labeling_function()
+def short_with_person(row: pandas.Series) -&amp;gt; int:
+    """Check if the comment is short and mentions a person"""
+    return (Comment.is_ham if (len(row.CONTENT) &amp;lt; 20 and any((entity.label_=="PERSON" for entity in row.dot.ents)))
+			       else Comment.is_ambiguous)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>data</category><category>exploration</category><category>snorkel</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/snorkel/snorkel-data-labeling/</guid><pubDate>Fri, 10 Jan 2020 01:07:33 GMT</pubDate></item><item><title>A First Look At Snorkel</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
