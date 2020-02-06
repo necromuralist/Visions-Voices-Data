@@ -1,0 +1,270 @@
+#+BEGIN_COMMENT
+.. title: Permutation Importance
+.. slug: permutation-importance
+.. date: 2020-02-05 12:33:20 UTC-08:00
+.. tags: kaggle,tutorial,feature importance
+.. category: Feature Selection
+.. link: 
+.. description: Selecting features using Permutation Importance.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 
+* Beginning
+  This is some notes on the kaggle tutorial on [[https://www.kaggle.com/dansbecker/permutation-importance][Permutation Importance]]. /Permutation Importance/ is a form of feature selection where you ask - /If you randomly shuffle the values one column in the dataset and leave the others in place, how does this affect the performance of the model?/. The idea is that if the column is important, then shuffling the values should make the model perform worse, so you can measure how much it degrades after you shuffle each column and figure out which columns are contributing to the model. Here's the rough process:
+
+ 1. Start with a trained model and a labeled dataset.
+ 2. Shuffle a single column
+ 3. Measure how much worse the model does predicting the target.
+ 4. Restore the column and move on to the next column, repeating the steps until you have covered all the columns.
+** Imports
+*** Python
+#+begin_src ipython :session importance :results none
+from functools import partial
+from pathlib import Path
+#+end_src
+*** PyPi
+**** eli5
+    [[https://eli5.readthedocs.io/en/latest/][eli5]] (which is presumably short for [[https://www.dictionary.com/e/slang/eli5/][explain it like I'm five]]) is a library to help with machine learning model debugging and visualization. You can read about the PermutationImportance class [[https://eli5.readthedocs.io/en/latest/autodocs/sklearn.html#eli5.sklearn.permutation_importance.PermutationImportance][here]].
+#+begin_src ipython :session importance :results none
+from eli5.sklearn import PermutationImportance
+import eli5
+#+end_src
+**** sklearn
+#+begin_src ipython :session importance :results none
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from tabulate import tabulate
+import hvplot.pandas
+import numpy
+import pandas
+#+end_src
+*** Others
+#+begin_src ipython :session importance :results none
+from graeae import CountPercentage, EmbedHoloviews, EnvironmentLoader
+#+end_src
+** Set Up
+*** Plotting
+#+begin_src ipython :session importance :results none
+SLUG = "permutation-importance"
+PATH = Path("../../files/posts/tutorials/")/SLUG
+Embed = partial(EmbedHoloviews, folder_path=PATH)
+#+end_src
+*** The Environment
+#+begin_src ipython :session importance :results none
+ENVIRONMENT = EnvironmentLoader()
+#+end_src
+*** The Table Printer
+#+begin_src ipython :session importance :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys", showindex=False)
+#+end_src
+*** The Data
+    The dataset here is the [[https://www.kaggle.com/mathan/fifa-2018-match-statistics][Predict FIFA 2018 Man of the Match]] dataset from kaggle.
+#+begin_src ipython :session importance :results none
+path = Path(ENVIRONMENT["FIFA"]).expanduser()
+data = pandas.read_csv(path)
+#+end_src
+* Middle
+** Looking at the Dataset
+#+begin_src ipython :session importance :results output raw :exports both
+print(TABLE(data.sample().iloc[0].reset_index(), headers="Column Value".split()))
+#+end_src
+
+#+RESULTS:
+| Column                 |       Value |
+|------------------------+-------------|
+| Date                   |  17-06-2018 |
+| Team                   |      Mexico |
+| Opponent               |     Germany |
+| Goal Scored            |           1 |
+| Ball Possession %      |          40 |
+| Attempts               |          12 |
+| On-Target              |           4 |
+| Off-Target             |           6 |
+| Blocked                |           2 |
+| Corners                |           1 |
+| Offsides               |           2 |
+| Free Kicks             |          11 |
+| Saves                  |           9 |
+| Pass Accuracy %        |          82 |
+| Passes                 |         281 |
+| Distance Covered (Kms) |         106 |
+| Fouls Committed        |          15 |
+| Yellow Card            |           2 |
+| Yellow & Red           |           0 |
+| Red                    |           0 |
+| Man of the Match       |          No |
+| 1st Goal               |        35.0 |
+| Round                  | Group Stage |
+| PSO                    |          No |
+| Goals in PSO           |           0 |
+| Own goals              |         nan |
+| Own goal Time          |         nan |
+
+*** The Target
+The target is "Man of the Match".
+#+begin_src ipython :session importance :results output raw :exports both
+CountPercentage(data["Man of the Match"])()
+#+end_src
+
+#+RESULTS:
+| Value | Count | Percent (%) |
+|-------+-------+-------------|
+| No    |    64 |       50.00 |
+| Yes   |    64 |       50.00 |
+
+Not a particularly large dataset, but we aren't really interested in it per-se but rather how to use permutation importance with it.
+
+We want it to be a True/False value rather than a string value so let's change it.
+
+#+begin_src ipython :session importance :results output raw :exports both
+data.loc[:, "Man of the Match"] = data["Man of the Match"] == "Yes"
+CountPercentage(data["Man of the Match"])()
+#+end_src
+
+#+RESULTS:
+| Value | Count | Percent (%) |
+|-------+-------+-------------|
+| True  |    64 |       50.00 |
+| False |    64 |       50.00 |
+** The Features
+#+begin_src ipython :session importance :results output :exports both
+print(data.info())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 128 entries, 0 to 127
+Data columns (total 27 columns):
+Date                      128 non-null object
+Team                      128 non-null object
+Opponent                  128 non-null object
+Goal Scored               128 non-null int64
+Ball Possession %         128 non-null int64
+Attempts                  128 non-null int64
+On-Target                 128 non-null int64
+Off-Target                128 non-null int64
+Blocked                   128 non-null int64
+Corners                   128 non-null int64
+Offsides                  128 non-null int64
+Free Kicks                128 non-null int64
+Saves                     128 non-null int64
+Pass Accuracy %           128 non-null int64
+Passes                    128 non-null int64
+Distance Covered (Kms)    128 non-null int64
+Fouls Committed           128 non-null int64
+Yellow Card               128 non-null int64
+Yellow & Red              128 non-null int64
+Red                       128 non-null int64
+Man of the Match          128 non-null bool
+1st Goal                  94 non-null float64
+Round                     128 non-null object
+PSO                       128 non-null object
+Goals in PSO              128 non-null int64
+Own goals                 12 non-null float64
+Own goal Time             12 non-null float64
+dtypes: bool(1), float64(3), int64(18), object(5)
+memory usage: 26.2+ KB
+None
+#+end_example
+
+As you can see there's both numeric and non-numeric columns. For illustration purposes let's use just the integer columns.
+
+#+begin_src ipython :session importance :results output :exports both
+columns = [column for column in data.columns if data[column].dtype == numpy.int64]
+for column in sorted(columns):
+    print(f" * {column}")
+X = data[columns]
+
+x_train, x_validate, y_train, y_validate = train_test_split(
+    X,
+    data["Man of the Match"], random_state=1)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+ ,* Attempts
+ ,* Ball Possession %
+ ,* Blocked
+ ,* Corners
+ ,* Distance Covered (Kms)
+ ,* Fouls Committed
+ ,* Free Kicks
+ ,* Goal Scored
+ ,* Goals in PSO
+ ,* Off-Target
+ ,* Offsides
+ ,* On-Target
+ ,* Pass Accuracy %
+ ,* Passes
+ ,* Red
+ ,* Saves
+ ,* Yellow & Red
+ ,* Yellow Card
+#+end_example
+** Build and Train the Model
+#+begin_src ipython :session importance :results none
+model = RandomForestClassifier(n_estimators=100, random_state=0).fit(x_train, y_train)
+#+end_src
+** Permutation Importance
+   As I noted previously, you can read about the =PermutationImportance= class [[https://eli5.readthedocs.io/en/latest/autodocs/sklearn.html#eli5.sklearn.permutation_importance.PermutationImportance][here]]. If you read the documentation you'll see that you don't have to pass it a prefit model, and in some cases you don't want to (if you're using a hyper-parameter-search pipeline, say).
+#+begin_src ipython :session importance :results none
+permutor = PermutationImportance(model, random_state=1).fit(x_validate, y_validate)
+#+end_src
+
+#+begin_src ipython :session importance :results output raw :exports both
+ipython_html = eli5.show_weights(permutor, feature_names=x_validate.columns.tolist())
+table = pandas.read_html(ipython_html.data)[0]
+print(TABLE(table))
+#+end_src
+
+#+RESULTS:
+| Weight            | Feature                |
+|-------------------+------------------------|
+| 0.1750  ± 0.0848  | Goal Scored            |
+| 0.0500  ± 0.0637  | Distance Covered (Kms) |
+| 0.0437  ± 0.0637  | Yellow Card            |
+| 0.0187  ± 0.0500  | Off-Target             |
+| 0.0187  ± 0.0637  | Free Kicks             |
+| 0.0187  ± 0.0637  | Fouls Committed        |
+| 0.0125  ± 0.0637  | Pass Accuracy %        |
+| 0.0125  ± 0.0306  | Blocked                |
+| 0.0063  ± 0.0612  | Saves                  |
+| 0.0063  ± 0.0250  | Ball Possession %      |
+| 0  ± 0.0000       | Red                    |
+| 0  ± 0.0000       | Yellow & Red           |
+| 0.0000  ± 0.0559  | On-Target              |
+| -0.0063  ± 0.0729 | Offsides               |
+| -0.0063  ± 0.0919 | Corners                |
+| -0.0063  ± 0.0250 | Goals in PSO           |
+| -0.0187  ± 0.0306 | Attempts               |
+| -0.0500  ± 0.0637 | Passes                 |
+
+The table is ranked from most important feature to least important (based on the accuracy after shuffling the column). Anything with 0 or less essenttially contributed nothing to the model. Although that doesn't mean that they might not be useful for more feature engineering.
+
+The data is for the team as a whole, not an individual, so the "Man of the Match" column is telling you if any player on the team was awarded the "Budweiser Man of the Match".
+*** Plotting the Importance
+    The numbers are okay, but let's take a look at a plot of the weights.
+#+begin_src ipython :session importance :results output raw :exports both
+weights = table.Weight.str.split(expand=True)[0].astype(float)
+table["weights"] = weights
+plot = table.hvplot.bar(x="Feature", y="weights").opts(
+    title="Permutation Importance (by Accuracy)",
+    width=1000, height=800, xrotation=45)
+Embed(plot=plot, file_name="permutation_importance")()
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="permutation_importance.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+* End
+
+So that's a quick look at getting a sense of the importance of a feature using =eli5= and permutation importance. There's a more in depth look at it on their site, but next is another look at it with a different data set.

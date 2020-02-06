@@ -19,7 +19,7 @@
 </script>
 -->
 <script async src="javascript/p5.min.js" type="text/javascript"></script>
-<link href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/" rel="prefetch" type="text/html">
+<link href="/posts/tutorials/permutation-importance/" rel="prefetch" type="text/html">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -48,83 +48,669 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
-<h1 class="p-name entry-title"><a class="u-url" href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/">Snorkel Example: Building a Spam Dataset</a></h1>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/tutorials/permutation-importance/">Permutation Importance</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/" rel="bookmark"><time class="published dt-published" datetime="2020-01-06T17:40:40-08:00" itemprop="datePublished" title="2020-01-06 17:40">2020-01-06 17:40</time></a></p>
+<p class="dateline"><a href="/posts/tutorials/permutation-importance/" rel="bookmark"><time class="published dt-published" datetime="2020-02-05T12:33:20-08:00" itemprop="datePublished" title="2020-02-05 12:33">2020-02-05 12:33</time></a></p>
 </div>
 </header>
 <div class="e-content entry-content">
-<div class="outline-2" id="outline-container-org888a73e">
-<h2 id="org888a73e">Beginning</h2>
-<div class="outline-text-2" id="text-org888a73e">
-<p>This is a walk-through of the Snorkel <a href="https://www.snorkel.org/get-started/">Get Started</a> tutorial which shows how you can use it to build a labeled dataset. It uses the <a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/">YouTube Spam Collection</a> data set (downloaded from the <a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection">UCI Machine Learning Repository</a>). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns <code>COMMENT_ID</code>, <code>AUTHOR</code>, <code>DATE</code>, <code>CONTENT</code>, <code>TAG</code>. The tag represents whether it was considered <i>Spam</i> or not, so we'll pretend it isn't there for most of this walk-through.</p>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/tutorials/permutation-importance/#org2980b13">Beginning</a>
+<ul>
+<li><a href="/posts/tutorials/permutation-importance/#org332fd68">Imports</a>
+<ul>
+<li><a href="/posts/tutorials/permutation-importance/#org5bab68c">Python</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#org441c3fa">PyPi</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#org73bc8f7">Others</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/permutation-importance/#orgab93a20">Set Up</a>
+<ul>
+<li><a href="/posts/tutorials/permutation-importance/#org96e8193">Plotting</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#org23e9a0d">The Environment</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#org1438cdc">The Table Printer</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#orgcc043b2">The Data</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/permutation-importance/#orgdceb032">Middle</a>
+<ul>
+<li><a href="/posts/tutorials/permutation-importance/#org1b05688">Looking at the Dataset</a>
+<ul>
+<li><a href="/posts/tutorials/permutation-importance/#orga20734f">The Target</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/permutation-importance/#org94fca60">The Features</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#org1d7aada">Build and Train the Model</a></li>
+<li><a href="/posts/tutorials/permutation-importance/#orgb58a7a6">Permutation Importance</a>
+<ul>
+<li><a href="/posts/tutorials/permutation-importance/#org826087f">Plotting the Importance</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/permutation-importance/#org98eda1b">End</a></li>
+</ul>
 </div>
-<div class="outline-3" id="outline-container-orga4d4166">
-<h3 id="orga4d4166">Imports</h3>
-<div class="outline-text-3" id="text-orga4d4166"></div>
-<div class="outline-4" id="outline-container-org2c87e08">
-<h4 id="org2c87e08">Python</h4>
-<div class="outline-text-4" id="text-org2c87e08">
+</div>
+<div class="outline-2" id="outline-container-org2980b13">
+<h2 id="org2980b13">Beginning</h2>
+<div class="outline-text-2" id="text-org2980b13">
+<p>This is some notes on the kaggle tutorial on <a href="https://www.kaggle.com/dansbecker/permutation-importance">Permutation Importance</a>. <i>Permutation Importance</i> is a form of feature selection where you ask - <i>If you randomly shuffle the values one column in the dataset and leave the others in place, how does this affect the performance of the model?</i>. The idea is that if the column is important, then shuffling the values should make the model perform worse, so you can measure how much it degrades after you shuffle each column and figure out which columns are contributing to the model. Here's the rough process:</p>
+<ol class="org-ol">
+<li>Start with a trained model and a labeled dataset.</li>
+<li>Shuffle a single column</li>
+<li>Measure how much worse the model does predicting the target.</li>
+<li>Restore the column and move on to the next column, repeating the steps until you have covered all the columns.</li>
+</ol>
+</div>
+<div class="outline-3" id="outline-container-org332fd68">
+<h3 id="org332fd68">Imports</h3>
+<div class="outline-text-3" id="text-org332fd68"></div>
+<div class="outline-4" id="outline-container-org5bab68c">
+<h4 id="org5bab68c">Python</h4>
+<div class="outline-text-4" id="text-org5bab68c">
+<div class="highlight">
+<pre><span></span>from functools import partial
+from pathlib import Path
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org441c3fa">
+<h4 id="org441c3fa">PyPi</h4>
+<div class="outline-text-4" id="text-org441c3fa"></div>
+<ul class="org-ul">
+<li><a id="org3bb7f24"></a>eli5<br>
+<div class="outline-text-5" id="text-org3bb7f24">
+<p><a href="https://eli5.readthedocs.io/en/latest/">eli5</a> is a library to help with machine learning model debugging and visualization. You can read about the PermutationImportance class <a href="https://eli5.readthedocs.io/en/latest/autodocs/sklearn.html#eli5.sklearn.permutation_importance.PermutationImportance">here</a>.</p>
+<div class="highlight">
+<pre><span></span>from eli5.sklearn import PermutationImportance
+import eli5
+</pre></div>
+</div>
+</li>
+<li><a id="orgf8dc424"></a>sklearn<br>
+<div class="outline-text-5" id="text-orgf8dc424">
+<div class="highlight">
+<pre><span></span>from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from tabulate import tabulate
+import hvplot.pandas
+import numpy
+import pandas
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="outline-4" id="outline-container-org73bc8f7">
+<h4 id="org73bc8f7">Others</h4>
+<div class="outline-text-4" id="text-org73bc8f7">
+<div class="highlight">
+<pre><span></span>from graeae import CountPercentage, EmbedHoloviews, EnvironmentLoader
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgab93a20">
+<h3 id="orgab93a20">Set Up</h3>
+<div class="outline-text-3" id="text-orgab93a20"></div>
+<div class="outline-4" id="outline-container-org96e8193">
+<h4 id="org96e8193">Plotting</h4>
+<div class="outline-text-4" id="text-org96e8193">
+<div class="highlight">
+<pre><span></span>SLUG = "permutation-importance"
+PATH = Path("../../files/posts/tutorials/")/SLUG
+Embed = partial(EmbedHoloviews, folder_path=PATH)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org23e9a0d">
+<h4 id="org23e9a0d">The Environment</h4>
+<div class="outline-text-4" id="text-org23e9a0d">
+<div class="highlight">
+<pre><span></span>ENVIRONMENT = EnvironmentLoader()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org1438cdc">
+<h4 id="org1438cdc">The Table Printer</h4>
+<div class="outline-text-4" id="text-org1438cdc">
+<div class="highlight">
+<pre><span></span>TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys", showindex=False)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgcc043b2">
+<h4 id="orgcc043b2">The Data</h4>
+<div class="outline-text-4" id="text-orgcc043b2">
+<p>The dataset here is the <a href="https://www.kaggle.com/mathan/fifa-2018-match-statistics">Predict FIFA 2018 Man of the Match</a> dataset from kaggle.</p>
+<div class="highlight">
+<pre><span></span>path = Path(ENVIRONMENT["FIFA"]).expanduser()
+data = pandas.read_csv(path)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgdceb032">
+<h2 id="orgdceb032">Middle</h2>
+<div class="outline-text-2" id="text-orgdceb032"></div>
+<div class="outline-3" id="outline-container-org1b05688">
+<h3 id="org1b05688">Looking at the Dataset</h3>
+<div class="outline-text-3" id="text-org1b05688">
+<div class="highlight">
+<pre><span></span>print(TABLE(data.sample().iloc[0].reset_index(), headers="Column Value".split()))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Column</th>
+<th class="org-right" scope="col">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Date</td>
+<td class="org-right">17-06-2018</td>
+</tr>
+<tr>
+<td class="org-left">Team</td>
+<td class="org-right">Mexico</td>
+</tr>
+<tr>
+<td class="org-left">Opponent</td>
+<td class="org-right">Germany</td>
+</tr>
+<tr>
+<td class="org-left">Goal Scored</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-left">Ball Possession %</td>
+<td class="org-right">40</td>
+</tr>
+<tr>
+<td class="org-left">Attempts</td>
+<td class="org-right">12</td>
+</tr>
+<tr>
+<td class="org-left">On-Target</td>
+<td class="org-right">4</td>
+</tr>
+<tr>
+<td class="org-left">Off-Target</td>
+<td class="org-right">6</td>
+</tr>
+<tr>
+<td class="org-left">Blocked</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-left">Corners</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-left">Offsides</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-left">Free Kicks</td>
+<td class="org-right">11</td>
+</tr>
+<tr>
+<td class="org-left">Saves</td>
+<td class="org-right">9</td>
+</tr>
+<tr>
+<td class="org-left">Pass Accuracy %</td>
+<td class="org-right">82</td>
+</tr>
+<tr>
+<td class="org-left">Passes</td>
+<td class="org-right">281</td>
+</tr>
+<tr>
+<td class="org-left">Distance Covered (Kms)</td>
+<td class="org-right">106</td>
+</tr>
+<tr>
+<td class="org-left">Fouls Committed</td>
+<td class="org-right">15</td>
+</tr>
+<tr>
+<td class="org-left">Yellow Card</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-left">Yellow & Red</td>
+<td class="org-right">0</td>
+</tr>
+<tr>
+<td class="org-left">Red</td>
+<td class="org-right">0</td>
+</tr>
+<tr>
+<td class="org-left">Man of the Match</td>
+<td class="org-right">No</td>
+</tr>
+<tr>
+<td class="org-left">1st Goal</td>
+<td class="org-right">35.0</td>
+</tr>
+<tr>
+<td class="org-left">Round</td>
+<td class="org-right">Group Stage</td>
+</tr>
+<tr>
+<td class="org-left">PSO</td>
+<td class="org-right">No</td>
+</tr>
+<tr>
+<td class="org-left">Goals in PSO</td>
+<td class="org-right">0</td>
+</tr>
+<tr>
+<td class="org-left">Own goals</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-left">Own goal Time</td>
+<td class="org-right">nan</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="outline-4" id="outline-container-orga20734f">
+<h4 id="orga20734f">The Target</h4>
+<div class="outline-text-4" id="text-orga20734f">
+<p>The target is "Man of the Match".</p>
+<div class="highlight">
+<pre><span></span>CountPercentage(data["Man of the Match"])()
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Value</th>
+<th class="org-right" scope="col">Count</th>
+<th class="org-right" scope="col">Percent (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">No</td>
+<td class="org-right">64</td>
+<td class="org-right">50.00</td>
+</tr>
+<tr>
+<td class="org-left">Yes</td>
+<td class="org-right">64</td>
+<td class="org-right">50.00</td>
+</tr>
+</tbody>
+</table>
+<p>Not a particularly large dataset, but we aren't really interested in it per-se but rather how to use permutation importance with it.</p>
+<p>We want it to be a True/False value rather than a string value so let's change it.</p>
+<div class="highlight">
+<pre><span></span>data.loc[:, "Man of the Match"] = data["Man of the Match"] == "Yes"
+CountPercentage(data["Man of the Match"])()
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Value</th>
+<th class="org-right" scope="col">Count</th>
+<th class="org-right" scope="col">Percent (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">True</td>
+<td class="org-right">64</td>
+<td class="org-right">50.00</td>
+</tr>
+<tr>
+<td class="org-left">False</td>
+<td class="org-right">64</td>
+<td class="org-right">50.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org94fca60">
+<h3 id="org94fca60">The Features</h3>
+<div class="outline-text-3" id="text-org94fca60">
+<div class="highlight">
+<pre><span></span>print(data.info())
+</pre></div>
+<pre class="example">
+&lt;class 'pandas.core.frame.DataFrame'&gt;
+RangeIndex: 128 entries, 0 to 127
+Data columns (total 27 columns):
+Date                      128 non-null object
+Team                      128 non-null object
+Opponent                  128 non-null object
+Goal Scored               128 non-null int64
+Ball Possession %         128 non-null int64
+Attempts                  128 non-null int64
+On-Target                 128 non-null int64
+Off-Target                128 non-null int64
+Blocked                   128 non-null int64
+Corners                   128 non-null int64
+Offsides                  128 non-null int64
+Free Kicks                128 non-null int64
+Saves                     128 non-null int64
+Pass Accuracy %           128 non-null int64
+Passes                    128 non-null int64
+Distance Covered (Kms)    128 non-null int64
+Fouls Committed           128 non-null int64
+Yellow Card               128 non-null int64
+Yellow & Red              128 non-null int64
+Red                       128 non-null int64
+Man of the Match          128 non-null bool
+1st Goal                  94 non-null float64
+Round                     128 non-null object
+PSO                       128 non-null object
+Goals in PSO              128 non-null int64
+Own goals                 12 non-null float64
+Own goal Time             12 non-null float64
+dtypes: bool(1), float64(3), int64(18), object(5)
+memory usage: 26.2+ KB
+None
+</pre>
+<p>As you can see there's both numeric and non-numeric columns. For illustration purposes let's use just the integer columns.</p>
+<div class="highlight">
+<pre><span></span>columns = [column for column in data.columns if data[column].dtype == numpy.int64]
+for column in sorted(columns):
+    print(f" * {column}")
+X = data[columns]
+
+x_train, x_validate, y_train, y_validate = train_test_split(
+    X,
+    data["Man of the Match"], random_state=1)
+</pre></div>
+<pre class="example">
+* Attempts
+* Ball Possession %
+* Blocked
+* Corners
+* Distance Covered (Kms)
+* Fouls Committed
+* Free Kicks
+* Goal Scored
+* Goals in PSO
+* Off-Target
+* Offsides
+* On-Target
+* Pass Accuracy %
+* Passes
+* Red
+* Saves
+* Yellow & Red
+* Yellow Card
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-org1d7aada">
+<h3 id="org1d7aada">Build and Train the Model</h3>
+<div class="outline-text-3" id="text-org1d7aada">
+<div class="highlight">
+<pre><span></span>model = RandomForestClassifier(n_estimators=100, random_state=0).fit(x_train, y_train)
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgb58a7a6">
+<h3 id="orgb58a7a6">Permutation Importance</h3>
+<div class="outline-text-3" id="text-orgb58a7a6">
+<p>As I noted previously, you can read about the <code>PermutationImportance</code> class <a href="https://eli5.readthedocs.io/en/latest/autodocs/sklearn.html#eli5.sklearn.permutation_importance.PermutationImportance">here</a>. If you read the documentation you'll see that you don't have to pass it a prefit model, and in some cases you don't want to (if you're using a hyper-parameter-search pipeline, say).</p>
+<div class="highlight">
+<pre><span></span>permutor = PermutationImportance(model, random_state=1).fit(x_validate, y_validate)
+</pre></div>
+<div class="highlight">
+<pre><span></span>ipython_html = eli5.show_weights(permutor, feature_names=x_validate.columns.tolist())
+table = pandas.read_html(ipython_html.data)[0]
+print(TABLE(table))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Weight</th>
+<th class="org-left" scope="col">Feature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">0.1750 ± 0.0848</td>
+<td class="org-left">Goal Scored</td>
+</tr>
+<tr>
+<td class="org-left">0.0500 ± 0.0637</td>
+<td class="org-left">Distance Covered (Kms)</td>
+</tr>
+<tr>
+<td class="org-left">0.0437 ± 0.0637</td>
+<td class="org-left">Yellow Card</td>
+</tr>
+<tr>
+<td class="org-left">0.0187 ± 0.0500</td>
+<td class="org-left">Off-Target</td>
+</tr>
+<tr>
+<td class="org-left">0.0187 ± 0.0637</td>
+<td class="org-left">Free Kicks</td>
+</tr>
+<tr>
+<td class="org-left">0.0187 ± 0.0637</td>
+<td class="org-left">Fouls Committed</td>
+</tr>
+<tr>
+<td class="org-left">0.0125 ± 0.0637</td>
+<td class="org-left">Pass Accuracy %</td>
+</tr>
+<tr>
+<td class="org-left">0.0125 ± 0.0306</td>
+<td class="org-left">Blocked</td>
+</tr>
+<tr>
+<td class="org-left">0.0063 ± 0.0612</td>
+<td class="org-left">Saves</td>
+</tr>
+<tr>
+<td class="org-left">0.0063 ± 0.0250</td>
+<td class="org-left">Ball Possession %</td>
+</tr>
+<tr>
+<td class="org-left">0 ± 0.0000</td>
+<td class="org-left">Red</td>
+</tr>
+<tr>
+<td class="org-left">0 ± 0.0000</td>
+<td class="org-left">Yellow & Red</td>
+</tr>
+<tr>
+<td class="org-left">0.0000 ± 0.0559</td>
+<td class="org-left">On-Target</td>
+</tr>
+<tr>
+<td class="org-left">-0.0063 ± 0.0729</td>
+<td class="org-left">Offsides</td>
+</tr>
+<tr>
+<td class="org-left">-0.0063 ± 0.0919</td>
+<td class="org-left">Corners</td>
+</tr>
+<tr>
+<td class="org-left">-0.0063 ± 0.0250</td>
+<td class="org-left">Goals in PSO</td>
+</tr>
+<tr>
+<td class="org-left">-0.0187 ± 0.0306</td>
+<td class="org-left">Attempts</td>
+</tr>
+<tr>
+<td class="org-left">-0.0500 ± 0.0637</td>
+<td class="org-left">Passes</td>
+</tr>
+</tbody>
+</table>
+<p>The table is ranked from most important feature to least important (based on the accuracy after shuffling the column). Anything with 0 or less essenttially contributed nothing to the model. Although that doesn't mean that they might not be useful for more feature engineering.</p>
+<p>The data is for the team as a whole, not an individual, so the "Man of the Match" column is telling you if any player on the team was awarded the "Budweiser Man of the Match".</p>
+</div>
+<div class="outline-4" id="outline-container-org826087f">
+<h4 id="org826087f">Plotting the Importance</h4>
+<div class="outline-text-4" id="text-org826087f">
+<p>The numbers are okay, but let's take a look at a plot of the weights.</p>
+<div class="highlight">
+<pre><span></span>weights = table.Weight.str.split(expand=True)[0].astype(float)
+table["weights"] = weights
+plot = table.hvplot.bar(x="Feature", y="weights").opts(
+    title="Permutation Importance (by Accuracy)",
+    width=1000, height=800, xrotation=45)
+Embed(plot=plot, file_name="permutation_importance")()
+</pre></div>
+<object data="/posts/tutorials/permutation-importance/permutation_importance.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org98eda1b">
+<h2 id="org98eda1b">End</h2>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/libraries/snorkel/snorkel-data-labeling/">Snorkel Data Labeling</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/libraries/snorkel/snorkel-data-labeling/" rel="bookmark"><time class="published dt-published" datetime="2020-01-09T17:07:33-08:00" itemprop="datePublished" title="2020-01-09 17:07">2020-01-09 17:07</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org7110700">Beginning</a>
+<ul>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org1eea11a">Imports</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org1367a1e">Set Up</a></li>
+</ul>
+</li>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org695e908">Middle</a>
+<ul>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org459bf62">Finding Labeling Functions</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#orgdaac3af">Using TextBlob with a Preprocessor</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#orgd7660b8">More Labeling Functions</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org99ea299">Adding a Spacy Preprocessor</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org7110700">
+<h2 id="org7110700">Beginning</h2>
+<div class="outline-text-2" id="text-org7110700">
+<p>This is a walk-through of the Snorkel <a href="https://www.snorkel.org/use-cases/01-spam-tutorial">Snorkel Data Labeling</a> tutorial.It uses the <a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/">YouTube Spam Collection</a> data set (downloaded from the <a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection">UCI Machine Learning Repository</a>). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns <code>COMMENT_ID</code>, <code>AUTHOR</code>, <code>DATE</code>, <code>CONTENT</code>, <code>CLASS</code>. The tag represents whether it was considered <i>Spam</i> or not, so we'll pretend it isn't there for most of this walk-through.</p>
+</div>
+<div class="outline-3" id="outline-container-org1eea11a">
+<h3 id="org1eea11a">Imports</h3>
+<div class="outline-text-3" id="text-org1eea11a"></div>
+<div class="outline-4" id="outline-container-org97bc1a0">
+<h4 id="org97bc1a0">Python</h4>
+<div class="outline-text-4" id="text-org97bc1a0">
 <div class="highlight">
 <pre><span></span>from argparse import Namespace
 from functools import partial
 from pathlib import Path
-import random
 import re
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgd1dc40d">
-<h4 id="orgd1dc40d">PyPi</h4>
-<div class="outline-text-4" id="text-orgd1dc40d">
+<div class="outline-4" id="outline-container-orgc38d5c3">
+<h4 id="orgc38d5c3">PyPi</h4>
+<div class="outline-text-4" id="text-orgc38d5c3">
 <div class="highlight">
-<pre><span></span>from nltk.corpus import wordnet
-from sklearn import metrics
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.linear_model import LogisticRegression
+<pre><span></span>from snorkel.analysis import get_label_buckets
+from snorkel.labeling import labeling_function, LabelingFunction, LFAnalysis, PandasLFApplier
+from snorkel.preprocess import preprocessor
+from snorkel.labeling.lf.nlp import nlp_labeling_function
 from sklearn.model_selection import train_test_split
-from snorkel.augmentation import ApplyOnePolicy, PandasTFApplier, transformation_function
-from snorkel.labeling import labeling_function, LabelModel, PandasLFApplier
-from snorkel.slicing import slicing_function
+from tabulate import tabulate
 from textblob import TextBlob
-import hvplot.pandas
-import nltk
+
 import pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgcfd3fa6">
-<h4 id="orgcfd3fa6">Others</h4>
-<div class="outline-text-4" id="text-orgcfd3fa6">
+</div>
+<div class="outline-3" id="outline-container-org1367a1e">
+<h3 id="org1367a1e">Set Up</h3>
+<div class="outline-text-3" id="text-org1367a1e"></div>
+<div class="outline-4" id="outline-container-org11e2015">
+<h4 id="org11e2015">The Tabulate Table</h4>
+<div class="outline-text-4" id="text-org11e2015">
 <div class="highlight">
-<pre><span></span>from graeae import CountPercentage, EmbedHoloviews
+<pre><span></span>TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys")
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgb273a95">
+<h4 id="orgb273a95">Some Constants</h4>
+<div class="outline-text-4" id="text-orgb273a95">
+<div class="highlight">
+<pre><span></span>Comment = Namespace(
+    is_ambiguous = -1,
+    is_ham = 0,
+    is_spam = 1
+)
+</pre></div>
+<div class="highlight">
+<pre><span></span>Data = Namespace(
+    test_artist = "Shakira",
+    development_size = 200,
+    validation_size = 0.5,
+    random_seed = 666,
+)
+</pre></div>
+<div class="highlight">
+<pre><span></span>Columns = Namespace(
+    comment = "CONTENT",
+    classification = "CLASS",
+    artist = "artist",
+)
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgde1db4f">
-<h3 id="orgde1db4f">Set Up</h3>
-<div class="outline-text-3" id="text-orgde1db4f"></div>
-<div class="outline-4" id="outline-container-org3402793">
-<h4 id="org3402793">The WordNet Corpus</h4>
-<div class="outline-text-4" id="text-org3402793">
-<div class="highlight">
-<pre><span></span>nltk.download("wordnet", quiet=True)
-</pre></div>
 </div>
-</div>
-<div class="outline-4" id="outline-container-orgd889079">
-<h4 id="orgd889079">Plotting</h4>
-<div class="outline-text-4" id="text-orgd889079">
-<div class="highlight">
-<pre><span></span>Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-orga0d256f">
-<h4 id="orga0d256f">The Dataset</h4>
-<div class="outline-text-4" id="text-orga0d256f">
+<div class="outline-2" id="outline-container-org695e908">
+<h2 id="org695e908">Middle</h2>
+<div class="outline-text-2" id="text-org695e908"></div>
+<div class="outline-4" id="outline-container-org1650a13">
+<h4 id="org1650a13">The Dataset</h4>
+<div class="outline-text-4" id="text-org1650a13">
 <p>The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a <code>artist</code> column.</p>
 <div class="highlight">
 <pre><span></span>path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
@@ -145,9 +731,850 @@ Shakira
 Psy
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-orgf7c88bd">
-<h4 id="orgf7c88bd">Splitting the Set</h4>
-<div class="outline-text-4" id="text-orgf7c88bd">
+<div class="outline-4" id="outline-container-org1c9ca1f">
+<h4 id="org1c9ca1f">Splitting the Set</h4>
+<div class="outline-text-4" id="text-org1c9ca1f">
+<p>The tutorial takes a slightly different approach from the one I previously took. Here's their four data-set splits:</p>
+<ul class="org-ul">
+<li><i>train</i>: Comments from the first four videos</li>
+<li><i>dev</i>: 200 comments taken from <i>train</i></li>
+<li><i>valid & test</i>: A 50-50 split of the last video (actually <i>Shakira</i>, not <i>Psy</i> as listed above)</li>
+</ul>
+<div class="highlight">
+<pre><span></span>test = data[data.artist==Data.test_artist]
+train = data[data.artist != Data.test_artist]
+train, development = train_test_split(train, test_size=Data.development_size)
+
+validation, test = train_test_split(test, test_size=Data.validation_size)
+print(f"Training: {train.shape}")
+print(f"Development: {development.shape}")
+print(f"Validation: {validation.shape}")
+print(f"Testing: {test.shape}")
+</pre></div>
+<pre class="example">
+Training: (1386, 6)
+Development: (200, 6)
+Validation: (185, 6)
+Testing: (185, 6)
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-org459bf62">
+<h3 id="org459bf62">Finding Labeling Functions</h3>
+<div class="outline-text-3" id="text-org459bf62">
+<p>The place to start is with the development set - it's labeled (although in this case the training set is as well, but pretend it isn't) and we can inspect it to get ideas.</p>
+<div class="highlight">
+<pre><span></span>print(development.sample(random_state=Data.random_seed)[[Columns.comment, Columns.classification]])
+</pre></div>
+<pre class="example">
+                                               CONTENT  CLASS
+216  Lol...I dunno how this joke gets a lot of like...      0
+</pre>
+<div class="highlight">
+<pre><span></span>spam = development[development[Columns.classification]==Comment.is_spam]
+for count in range(10):
+    print(spam.sample(random_state=count).iloc[0][Columns.comment])
+</pre></div>
+<pre class="example">
+I #votekatyperry for the 2014 MTV #VMA Best Lyric Video! See who's in the  lead and vote:  http://on.mtv.com/Ut15kX﻿
+LIKE AND SUBSCRIB IF YOU WATCH IN 2015 ;)﻿
+ HI IM 14 YEAR RAPPER SUPPORT ME GUY AND CHECK OUT MY CHANNEL AND CHECK OUT MY SONG YOU MIGHT LIKE IT ALSO FOLLOW ME IN TWITTER @McAshim for follow back.
+LIKE AND SUBSCRIB IF YOU WATCH IN 2015 ;)﻿
+HAPPY BIRTHDAY KATY :) http://giphy.com/gifs/birthday-flowers-happy-gw3JY2uqiaXKaQXS/fullscreen  (That´s not me)﻿
+plz check out fablife / welcome to fablife for diys and challenges so plz  subscribe thx!﻿
+CHECK OUT MY CHANNEL BOYS AND GIRLS ;)
+HAPPY BIRTHDAY KATY :) http://giphy.com/gifs/birthday-flowers-happy-gw3JY2uqiaXKaQXS/fullscreen  (That´s not me)﻿
+*for 90&amp;#39;s rap fans*  check out my Big Pun - &amp;#39;Beware&amp;#39; cover!  Likes n comments very much appreciated!
+Who&amp;#39;s watching in 2015 Subscribe for me !﻿
+</pre>
+<p>You can already see that the spam has people asking viewers to check out their sites.</p>
+</div>
+<div class="outline-4" id="outline-container-org91909ee">
+<h4 id="org91909ee">Check vs Check Out</h4>
+<div class="outline-text-4" id="text-org91909ee">
+<p>Let's see which one of the strings (<i>check</i> or <i>check out</i>) does better for us.</p>
+</div>
+<ul class="org-ul">
+<li><a id="orgd403fd3"></a>The Labeling Functions<br>
+<div class="outline-text-5" id="text-orgd403fd3">
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def check(row: pandas.Series) -&gt; int:
+    """sees if the word 'check' is in the comment"""
+    return Comment.is_spam if "check" in row.CONTENT.lower() else Comment.is_ambiguous
+</pre></div>
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def check_out(row: pandas.Series) -&gt; int:
+    """looks for phrase 'check out'"""
+    return Comment.is_spam if "check out" in row.CONTENT.lower() else Comment.is_ambiguous
+</pre></div>
+</div>
+</li>
+<li><a id="orgc76c9b2"></a>Applying the Functions<br>
+<div class="outline-text-5" id="text-orgc76c9b2">
+<p>The next step is to create some Labeling Matrices using our labeling functions by applying them to our training and development sets. Since our data is stored using pandas, we'll use the <code>PandasLFApplier</code>, but there are <a href="https://snorkel.readthedocs.io/en/master/packages/labeling.html">other types available</a> as well.</p>
+<div class="highlight">
+<pre><span></span>labeling_functions = [check, check_out]
+
+applier = PandasLFApplier(lfs=labeling_functions)
+train_labeling_matrix = applier.apply(df=train, progress_bar=False)
+development_labeling_matrix = applier.apply(df=development, progress_bar=False)
+print(f"Training Labeling Matrix: {train_labeling_matrix.shape}")
+print(f"Development Labeling Matrix: {development_labeling_matrix.shape}")
+</pre></div>
+<pre class="example">
+Training Labeling Matrix: (1386, 2)
+Development Labeling Matrix: (200, 2)
+</pre>
+<p>Each matrix has one column for each of our labeling functions (so two in this case) and one row for each of the rows in the set that the functions were applied to.</p>
+</div>
+</li>
+<li><a id="org94db4a7"></a>Evaluating the Labeling Functions<br>
+<div class="outline-text-5" id="text-org94db4a7">
+<p>Snorkel provides a <a href="https://snorkel.readthedocs.io/en/master/packages/_autosummary/labeling/snorkel.labeling.LFAnalysis.html">LFAnalysis</a> class to help you see how well the labeling functions do.</p>
+<div class="highlight">
+<pre><span></span>analysis = LFAnalysis(L=train_labeling_matrix, lfs=labeling_functions)
+print(TABLE(analysis.lf_summary()))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">&nbsp;</th>
+<th class="org-right" scope="col">j</th>
+<th class="org-left" scope="col">Polarity</th>
+<th class="org-right" scope="col">Coverage</th>
+<th class="org-right" scope="col">Overlaps</th>
+<th class="org-right" scope="col">Conflicts</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">check</td>
+<td class="org-right">0</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.257576</td>
+<td class="org-right">0.212843</td>
+<td class="org-right">0</td>
+</tr>
+<tr>
+<td class="org-left">check_out</td>
+<td class="org-right">1</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.212843</td>
+<td class="org-right">0.212843</td>
+<td class="org-right">0</td>
+</tr>
+</tbody>
+</table>
+<p>This is what the table is giving us for each of the labeling functions:</p>
+<ul class="org-ul">
+<li><i>j</i> : I think this is just an index</li>
+<li><i>Polarity</i>: The number of unique values the function puts out (other than -1, which is interpreted as an un-labeled row)</li>
+<li>/Coverage: The fraction of the data-set that the function labeled</li>
+<li>/Overlaps: The fraction of the data that the function labeled and at least one other function also labeled</li>
+<li><i>Conflicts</i>: The fraction of the data that the function labeled something different from at least one other function</li>
+</ul>
+<p>So it looks like <code>check</code> covers slightly more than <code>check_out</code>, and they don't disagree with each other at all. This makes sense when you consider that <code>check</code> is a sub-string of <code>check out</code> - we can guess that all the overlaps are cases where <code>check out</code> were found in the comment.</p>
+<p>We can also pass it a set of labels and it will see how well the functions did. In this case we have labels for all the rows, but in most cases we won't just for the development set so we'll use it here.</p>
+<div class="highlight">
+<pre><span></span>print(TABLE(LFAnalysis(
+    L=development_labeling_matrix,
+    lfs=labeling_functions).lf_summary(Y=development.CLASS.values)))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">&nbsp;</th>
+<th class="org-right" scope="col">j</th>
+<th class="org-left" scope="col">Polarity</th>
+<th class="org-right" scope="col">Coverage</th>
+<th class="org-right" scope="col">Overlaps</th>
+<th class="org-right" scope="col">Conflicts</th>
+<th class="org-right" scope="col">Correct</th>
+<th class="org-right" scope="col">Incorrect</th>
+<th class="org-right" scope="col">Emp. Acc.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">check</td>
+<td class="org-right">0</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.26</td>
+<td class="org-right">0.225</td>
+<td class="org-right">0</td>
+<td class="org-right">49</td>
+<td class="org-right">3</td>
+<td class="org-right">0.942308</td>
+</tr>
+<tr>
+<td class="org-left">check_out</td>
+<td class="org-right">1</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.225</td>
+<td class="org-right">0.225</td>
+<td class="org-right">0</td>
+<td class="org-right">45</td>
+<td class="org-right">0</td>
+<td class="org-right">1</td>
+</tr>
+</tbody>
+</table>
+<p><b>Note:</b> The <code>LFAnalysis</code> class works with <code>numpy</code> arrays, so when I called the <code>lf_summary</code> method I had to pass in the <code>values</code> and not the <code>CLASS</code> Series.</p>
+<p>With our development set, the functions cover slightly less than before (as a fraction of the total), and although <code>check</code> covers slightly more that <code>check_out</code>, it also has some false-postives, so we'd have to decide if we care about getting all the spam or not accidentally labeling non-spam as spam.</p>
+<p>We can also check which ones were mis-labeled to get a better idea of how off they were.</p>
+<div class="highlight">
+<pre><span></span>buckets = get_label_buckets(development.CLASS.values, development_labeling_matrix[:, 0])
+for key, value in buckets.items():
+    print(key)
+    print(value)
+</pre></div>
+<pre class="example">
+(0, -1)
+[  0   1   2   3   4   7   9  10  11  12  13  15  16  17  19  22  27  28
+  33  34  35  39  41  43  44  46  48  49  50  51  52  53  55  57  58  61
+  62  65  66  68  78  79  81  82  86  88  89  92  94  95  98  99 100 103
+ 104 105 107 108 112 113 114 120 121 122 123 124 125 128 129 131 133 135
+ 141 142 144 146 148 150 153 154 155 162 165 166 167 168 171 173 174 179
+ 182 183 184 190 191 195 196 197]
+(1, 1)
+[  5  14  23  25  29  36  40  42  45  59  67  69  71  73  74  75  76  77
+  80  83  87  90  91  93 101 109 110 116 117 126 127 134 138 139 140 143
+ 149 151 157 160 163 164 169 172 186 189 192 193 198]
+(1, -1)
+[  6   8  18  20  21  24  26  30  31  32  38  47  54  56  60  63  64  70
+  72  84  85  96  97 102 106 111 115 119 130 132 136 137 145 147 152 156
+ 158 159 161 175 176 177 178 180 181 185 187 188 194 199]
+(0, 1)
+[ 37 118 170]
+</pre>
+<p>Buckets is a dict whose keys are tuples of (actual classes, predicted classes) and whose values are the indices of the rows matching the keys (so the key <code>(0, 1)</code> returns the indices for rows where we labeled the comment as spam but it wasn't). Looking at the output you can see that the last key (0, 1) has the cases that we labeled as spam when they weren't, let's take a look at them.</p>
+<div class="highlight">
+<pre><span></span>for comment in development.iloc[buckets[(Comment.is_ham, Comment.is_spam)]]["CONTENT"]:
+    print(comment)
+</pre></div>
+<pre class="example">
+i turned it on mute as soon is i came on i just wanted to check the  views...﻿
+i check back often to help reach 2x10^9 views and I avoid watching Baby﻿
+Admit it you just came here to check the number of viewers ﻿
+</pre>
+<p>It's not obvious to me how you should handle those.</p>
+</div>
+</li>
+<li><a id="org2b15e9b"></a>Check Out But Not Check<br>
+<div class="outline-text-5" id="text-org2b15e9b">
+<p>What are some training examples that <code>check</code> labels but <code>check_out</code> doesn't? We can check by feeding the columns from the labeling matrix for the <code>check</code> and <code>check_out</code> functions and see where <code>check_out</code> abstained and <code>check</code> didn't. I said earlier that the first argument to <code>get_label_buckets</code> is the actual label, but really you can feed any two arrays and it will find give you the indices for the permutations of their row-values.</p>
+<div class="highlight">
+<pre><span></span>buckets = get_label_buckets(train_labeling_matrix[:, 0], train_labeling_matrix[:, 1])
+sampled = train.iloc[buckets[(Comment.is_spam, Comment.is_ambiguous)]].sample(10, random_state=Data.random_seed)
+for sample in sampled.itertuples():
+    print(sample.CONTENT)
+</pre></div>
+<pre class="example">
+Lil m !!!!! Check hi out!!!!! Does live the way you lie and many more ! Check it out!!! And subscribe
+https://soundcloud.com/artady please check my stuff; and make some feedback﻿
+Hey guys can you check my channel out plz. I do mine craft videos. Let's  shoot for 20 subs﻿
+┏━━━┓┏┓╋┏┓┏━━━┓┏━━━┓┏┓╋╋┏┓  ┃┏━┓┃┃┃╋┃┃┃┏━┓┃┗┓┏┓┃┃┗┓┏┛┃  ┃┗━━┓┃┗━┛┃┃┃╋┃┃╋┃┃┃┃┗┓┗┛┏  ┗━━┓┃┃┏━┓┃┃┗━┛┃╋┃┃┃┃╋┗┓┏┛  ┃┗━┛┃┃┃╋┃┃┃┏━┓┃┏┛┗┛┃╋╋┃┃  ┗━━━┛┗┛╋┗┛┗┛╋┗┛┗━━━┛╋╋┗┛ CHECK MY VIDEOS AND SUBSCRIBE AND LIKE PLZZ
+if you like raw talent, raw lyrics, straight real hip hop Everyone check my newest sound  Dizzy X - Got the Juice (Prod by. Drugs the Model Citizen)   COMMENT TELL ME WHAT YOU THINK  DONT BE LAZY!!!!  - 1/7 Prophetz﻿
+check it out free stuff for watching videos and filling surveys&lt;br /&gt;&lt;br /&gt;&lt;a href="http://www.prizerebel.com/index.php?r=1446084"&gt;http://www.prizerebel.com/index.php?r=1446084&lt;/a&gt;﻿
+Hey! I'm NERDY PEACH and I'm a new youtuber and it would mean THE ABSOLUTE  world to me if you could check 'em out! &amp;lt;3  Hope you like them! =D﻿
+Check my first video out﻿
+http://tankionline.com#friend=cd92db3f4 great game check it out!﻿
+hi beaties! i made a new channel please go check it out and subscribe and  enjoy!﻿
+</pre>
+<p>I'm going to deviate from the tutorial a little and create a regular expression to match any comment with "check" and not "view" to avoid cases where the commenter is saying that they're checking out how many views the video had.</p>
+<div class="highlight">
+<pre><span></span>EXPRESSION = re.compile(r"check(?!.*view)")
+
+assert EXPRESSION.search("everyone please come check our newest song in memories of Martin Luther  King Jr.﻿")
+assert EXPRESSION.search("and u should.d check my channel and tell me what I should do next!﻿")
+assert not EXPRESSION.search("Admit it you just came here to check the number of viewers ﻿")
+
+@labeling_function()
+def re_check_out(row: pandas.Series) -&gt; int:
+    """match cases with 'check' but not view"""
+    return Comment.is_spam if EXPRESSION.search(row.CONTENT.lower()) else Comment.is_ambiguous
+</pre></div>
+<div class="highlight">
+<pre><span></span>labeling_functions = [check, check_out, re_check_out]
+applier = PandasLFApplier(lfs=labeling_functions)
+train_labeling_matrix = applier.apply(df=train, progress_bar=False)
+development_labeling_matrix = applier.apply(df=development, progress_bar=False)
+</pre></div>
+<div class="highlight">
+<pre><span></span>analysis = LFAnalysis(L=train_labeling_matrix, lfs=labeling_functions)
+print(TABLE(analysis.lf_summary()))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">&nbsp;</th>
+<th class="org-right" scope="col">j</th>
+<th class="org-left" scope="col">Polarity</th>
+<th class="org-right" scope="col">Coverage</th>
+<th class="org-right" scope="col">Overlaps</th>
+<th class="org-right" scope="col">Conflicts</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">check</td>
+<td class="org-right">0</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.257576</td>
+<td class="org-right">0.248196</td>
+<td class="org-right">0</td>
+</tr>
+<tr>
+<td class="org-left">check_out</td>
+<td class="org-right">1</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.212843</td>
+<td class="org-right">0.212843</td>
+<td class="org-right">0</td>
+</tr>
+<tr>
+<td class="org-left">re_check_out</td>
+<td class="org-right">2</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.243146</td>
+<td class="org-right">0.243146</td>
+<td class="org-right">0</td>
+</tr>
+</tbody>
+</table>
+<p>Our <code>re_check_out</code> function has a little less coverage than <code>check</code> as we'd expect, since it excludes reviews with "view" in them but it also covers a little more than <code>check_out</code>.</p>
+<div class="highlight">
+<pre><span></span>print(TABLE(LFAnalysis(
+    L=development_labeling_matrix,
+    lfs=labeling_functions).lf_summary(Y=development.CLASS.values)))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">&nbsp;</th>
+<th class="org-right" scope="col">j</th>
+<th class="org-left" scope="col">Polarity</th>
+<th class="org-right" scope="col">Coverage</th>
+<th class="org-right" scope="col">Overlaps</th>
+<th class="org-right" scope="col">Conflicts</th>
+<th class="org-right" scope="col">Correct</th>
+<th class="org-right" scope="col">Incorrect</th>
+<th class="org-right" scope="col">Emp. Acc.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">check</td>
+<td class="org-right">0</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.26</td>
+<td class="org-right">0.245</td>
+<td class="org-right">0</td>
+<td class="org-right">49</td>
+<td class="org-right">3</td>
+<td class="org-right">0.942308</td>
+</tr>
+<tr>
+<td class="org-left">check_out</td>
+<td class="org-right">1</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.225</td>
+<td class="org-right">0.225</td>
+<td class="org-right">0</td>
+<td class="org-right">45</td>
+<td class="org-right">0</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-left">re_check_out</td>
+<td class="org-right">2</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.245</td>
+<td class="org-right">0.245</td>
+<td class="org-right">0</td>
+<td class="org-right">49</td>
+<td class="org-right">0</td>
+<td class="org-right">1</td>
+</tr>
+</tbody>
+</table>
+<p>It looks like we were able to avoid the false-positives by adding our regular expression.</p>
+<div class="highlight">
+<pre><span></span>buckets = get_label_buckets(development_labeling_matrix[:, 0], development_labeling_matrix[:,2])
+for comment in development.iloc[buckets[(Comment.is_spam, Comment.is_ambiguous)]]["CONTENT"]:
+    print(comment)
+</pre></div>
+<pre class="example">
+i turned it on mute as soon is i came on i just wanted to check the  views...﻿
+i check back often to help reach 2x10^9 views and I avoid watching Baby﻿
+Admit it you just came here to check the number of viewers ﻿
+</pre>
+<p>So it looks like we got rid of some false positives but also missed some spam by using the regular expression. We could probably grab more by searching for "my" as well.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgdaac3af">
+<h3 id="orgdaac3af">Using TextBlob with a Preprocessor</h3>
+<div class="outline-text-3" id="text-orgdaac3af">
+<p>Here we'll use text-blobs sentiment scorer to find comments that aren't spam. To do this we'll need to use snorkel's Preprocessor, which maps data using black-box functions.</p>
+<div class="highlight">
+<pre><span></span>@preprocessor(memoize=True)
+def textblob_sentiment(row: pandas.Series) -&gt; pandas.Series:
+    """Add the polarity and subjectivity of the comment's sentiment
+
+    This adds two columns ('polarity' and 'subjectivity') based on the comment
+
+    """
+    blob = TextBlob(row.CONTENT)
+    row["polarity"] = blob.sentiment.polarity
+    row["subjectivity"] = blob.sentiment.subjectivity
+    return row
+</pre></div>
+<p>The <code>polarity</code> is a value from -1.0 to 1.0 which reflects how negative or positive the text is believed to be. The <code>subjectivity</code> is a value from 0.0 to 1.0 which reflects whether the text is objective or subjective - whether it is a statement of fact or opinion.</p>
+<p>Now that we have the pre-processor we can use it with a labeling function.</p>
+</div>
+<div class="outline-4" id="outline-container-org34bd21b">
+<h4 id="org34bd21b">Polarity</h4>
+<div class="outline-text-4" id="text-org34bd21b">
+<div class="highlight">
+<pre><span></span>@labeling_function(pre=[textblob_sentiment])
+def textblob_polarity(row: pandas.Series) -&gt; int:
+    """decides if the comment is ham based on the polarity of the sentiment"""
+    return Comment.is_ham if row.polarity &gt; 0.9 else Comment.is_ambiguous
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgfb221bc">
+<h4 id="orgfb221bc">Subjectivity</h4>
+<div class="outline-text-4" id="text-orgfb221bc">
+<div class="highlight">
+<pre><span></span>@labeling_function(pre=[textblob_sentiment])
+def textblob_subjectivity(row: pandas.Series) -&gt; int:
+    """decides if the comment is ham based on the subjectivity"""
+    return Comment.is_ham if row.subjectivity &gt; 0.5 else Comment.is_ambiguous
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orga088176">
+<h4 id="orga088176">Analyzing the Performance</h4>
+<div class="outline-text-4" id="text-orga088176">
+<p>Once again, now that we have labeling functions we need to analyze how well they do.</p>
+<div class="highlight">
+<pre><span></span>labeling_functions = [textblob_polarity, textblob_subjectivity]
+applier = PandasLFApplier(lfs=labeling_functions)
+train_label_matrix = applier.apply(train, progress_bar=False)
+development_label_matrix = applier.apply(development, progress_bar=False)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(TABLE(LFAnalysis(train_label_matrix, labeling_functions).lf_summary()))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">&nbsp;</th>
+<th class="org-right" scope="col">j</th>
+<th class="org-left" scope="col">Polarity</th>
+<th class="org-right" scope="col">Coverage</th>
+<th class="org-right" scope="col">Overlaps</th>
+<th class="org-right" scope="col">Conflicts</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">textblob_polarity</td>
+<td class="org-right">0</td>
+<td class="org-left">[0]</td>
+<td class="org-right">0.033189</td>
+<td class="org-right">0.0122655</td>
+<td class="org-right">0</td>
+</tr>
+<tr>
+<td class="org-left">textblob_subjectivity</td>
+<td class="org-right">1</td>
+<td class="org-left">[0]</td>
+<td class="org-right">0.32684</td>
+<td class="org-right">0.0122655</td>
+<td class="org-right">0</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span>print(TABLE(LFAnalysis(development_label_matrix, labeling_functions).lf_summary(Y=development.CLASS.values)))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">&nbsp;</th>
+<th class="org-right" scope="col">j</th>
+<th class="org-left" scope="col">Polarity</th>
+<th class="org-right" scope="col">Coverage</th>
+<th class="org-right" scope="col">Overlaps</th>
+<th class="org-right" scope="col">Conflicts</th>
+<th class="org-right" scope="col">Correct</th>
+<th class="org-right" scope="col">Incorrect</th>
+<th class="org-right" scope="col">Emp. Acc.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">textblob_polarity</td>
+<td class="org-right">0</td>
+<td class="org-left">[0]</td>
+<td class="org-right">0.05</td>
+<td class="org-right">0.025</td>
+<td class="org-right">0</td>
+<td class="org-right">9</td>
+<td class="org-right">1</td>
+<td class="org-right">0.9</td>
+</tr>
+<tr>
+<td class="org-left">textblob_subjectivity</td>
+<td class="org-right">1</td>
+<td class="org-left">[0]</td>
+<td class="org-right">0.3</td>
+<td class="org-right">0.025</td>
+<td class="org-right">0</td>
+<td class="org-right">32</td>
+<td class="org-right">28</td>
+<td class="org-right">0.533333</td>
+</tr>
+</tbody>
+</table>
+<p>Subjectivity seems to have much better coverage, but it was also fairly inaccurate.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgd7660b8">
+<h3 id="orgd7660b8">More Labeling Functions</h3>
+<div class="outline-text-3" id="text-orgd7660b8">
+<p>We previously created a keyword-based labeling function for "check". Because using keywords is such a common thing Snorkel has a way to create them with a little less work than creating the labeling functions individually.</p>
+<p>First we make a function that checks if any of a collection of keywords is in the comment.</p>
+<div class="highlight">
+<pre><span></span>def lookup_keyword(row: pandas.Series, keywords: list, label: int) -&gt; int:
+    """check if any of the keywords are in the comment
+
+    Args:
+     row: the series with the Comment
+     keywords: collection of keywords indicating spam
+     label: what to return if the keyword is in the comment
+
+    Returns:
+     label if keyword in comment else -1
+    """
+    return label if any(keyword in row.CONTENT.lower() for keyword in keywords) else Comment.is_ambiguous
+</pre></div>
+<p>Now we make the labeling-function creator that uses the <code>lookup_keyword</code>.</p>
+<div class="highlight">
+<pre><span></span>def make_keyword_labeling_function(keywords: list, label: int=Comment.is_spam) -&gt; LabelingFunction:
+    """Makes LabelingFunction objects that check keywords"""
+    return LabelingFunction(
+        name=f"keyword_{keywords[0]}",
+        f=lookup_keyword,
+        resources=dict(keywords=keywords, label=label)
+    )
+</pre></div>
+<div class="highlight">
+<pre><span></span>keyword_my = make_keyword_labeling_function(keywords=["my"])
+keyword_subscribe = make_keyword_labeling_function(keywords=["subscribe"])
+keyword_link = make_keyword_labeling_function(keywords=["http"])
+keyword_please = make_keyword_labeling_function(keywords=["please", "plz"])
+keyword_song = make_keyword_labeling_function(keywords=["song"], label=Comment.is_ham)
+</pre></div>
+<div class="highlight">
+<pre><span></span>labeling_functions = [
+    keyword_my,
+    keyword_subscribe,
+    keyword_link,
+    keyword_please,
+    keyword_song,
+]
+applier = PandasLFApplier(lfs=labeling_functions)
+train_label_matrix = applier.apply(train, progress_bar=False)
+development_label_matrix = applier.apply(development, progress_bar=False)
+print(TABLE(LFAnalysis(development_label_matrix, labeling_functions).lf_summary(Y=development.CLASS.values)))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">&nbsp;</th>
+<th class="org-right" scope="col">j</th>
+<th class="org-left" scope="col">Polarity</th>
+<th class="org-right" scope="col">Coverage</th>
+<th class="org-right" scope="col">Overlaps</th>
+<th class="org-right" scope="col">Conflicts</th>
+<th class="org-right" scope="col">Correct</th>
+<th class="org-right" scope="col">Incorrect</th>
+<th class="org-right" scope="col">Emp. Acc.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">keyword_my</td>
+<td class="org-right">0</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.18</td>
+<td class="org-right">0.115</td>
+<td class="org-right">0.05</td>
+<td class="org-right">33</td>
+<td class="org-right">3</td>
+<td class="org-right">0.916667</td>
+</tr>
+<tr>
+<td class="org-left">keyword_subscribe</td>
+<td class="org-right">1</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.125</td>
+<td class="org-right">0.075</td>
+<td class="org-right">0.015</td>
+<td class="org-right">25</td>
+<td class="org-right">0</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-left">keyword_http</td>
+<td class="org-right">2</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.09</td>
+<td class="org-right">0.03</td>
+<td class="org-right">0.005</td>
+<td class="org-right">16</td>
+<td class="org-right">2</td>
+<td class="org-right">0.888889</td>
+</tr>
+<tr>
+<td class="org-left">keyword_please</td>
+<td class="org-right">3</td>
+<td class="org-left">[1]</td>
+<td class="org-right">0.095</td>
+<td class="org-right">0.08</td>
+<td class="org-right">0.02</td>
+<td class="org-right">19</td>
+<td class="org-right">0</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-left">keyword_song</td>
+<td class="org-right">4</td>
+<td class="org-left">[0]</td>
+<td class="org-right">0.16</td>
+<td class="org-right">0.06</td>
+<td class="org-right">0.06</td>
+<td class="org-right">20</td>
+<td class="org-right">12</td>
+<td class="org-right">0.625</td>
+</tr>
+</tbody>
+</table>
+<p>There are varying degrees of coveragen and accuracy with these. Interestingly, the <code>subscribe</code> keyword was completely accurate and had pretty good coverage (compared to our check-out labelers).</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org99ea299">
+<h3 id="org99ea299">Adding a Spacy Preprocessor</h3>
+<div class="outline-text-3" id="text-org99ea299">
+<p>The purpose of the pre-processors is to do a little feature engineering to add features that aren't in the original dataset but which can be derived from it. Becaues SpaCY is used so much for this, snorkel comes with a labeling function that adds a <code>doc</code> attribute (you can also create it manually to get more control).</p>
+<div class="highlight">
+<pre><span></span>@nlp_labeling_function()
+def short_with_person(row: pandas.Series) -&gt; int:
+    """Check if the comment is short and mentions a person"""
+    return (Comment.is_ham if (len(row.CONTENT) &lt; 20 and any((entity.label_=="PERSON" for entity in row.dot.ents)))
+                               else Comment.is_ambiguous)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/">Snorkel Example: Building a Spam Dataset</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/" rel="bookmark"><time class="published dt-published" datetime="2020-01-06T17:40:40-08:00" itemprop="datePublished" title="2020-01-06 17:40">2020-01-06 17:40</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org89a3c47">Beginning</a>
+<ul>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org7968733">Imports</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgdb7cb96">Set Up</a></li>
+</ul>
+</li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org9480efd">Middle</a>
+<ul>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org13e9910">Labeling Functions</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org6de3899">Data Augmentation</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org4799114">Slicing</a></li>
+</ul>
+</li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org9899a6d">End</a>
+<ul>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org0072178">Train A Classifier</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org89a3c47">
+<h2 id="org89a3c47">Beginning</h2>
+<div class="outline-text-2" id="text-org89a3c47">
+<p>This is a walk-through of the Snorkel <a href="https://www.snorkel.org/get-started/">Get Started</a> tutorial which shows how you can use it to build a labeled dataset. It uses the <a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/">YouTube Spam Collection</a> data set (downloaded from the <a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection">UCI Machine Learning Repository</a>). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns <code>COMMENT_ID</code>, <code>AUTHOR</code>, <code>DATE</code>, <code>CONTENT</code>, <code>TAG</code>. The tag represents whether it was considered <i>Spam</i> or not, so we'll pretend it isn't there for most of this walk-through.</p>
+</div>
+<div class="outline-3" id="outline-container-org7968733">
+<h3 id="org7968733">Imports</h3>
+<div class="outline-text-3" id="text-org7968733"></div>
+<div class="outline-4" id="outline-container-org3420f0c">
+<h4 id="org3420f0c">Python</h4>
+<div class="outline-text-4" id="text-org3420f0c">
+<div class="highlight">
+<pre><span></span>from argparse import Namespace
+from functools import partial
+from pathlib import Path
+import random
+import re
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgc91dc97">
+<h4 id="orgc91dc97">PyPi</h4>
+<div class="outline-text-4" id="text-orgc91dc97">
+<div class="highlight">
+<pre><span></span>from nltk.corpus import wordnet
+from sklearn import metrics
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from snorkel.augmentation import ApplyOnePolicy, PandasTFApplier, transformation_function
+from snorkel.labeling import labeling_function, LabelModel, PandasLFApplier
+from snorkel.slicing import slicing_function
+from textblob import TextBlob
+import hvplot.pandas
+import nltk
+import pandas
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org0ccb75a">
+<h4 id="org0ccb75a">Others</h4>
+<div class="outline-text-4" id="text-org0ccb75a">
+<div class="highlight">
+<pre><span></span>from graeae import CountPercentage, EmbedHoloviews
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgdb7cb96">
+<h3 id="orgdb7cb96">Set Up</h3>
+<div class="outline-text-3" id="text-orgdb7cb96"></div>
+<div class="outline-4" id="outline-container-org140b22d">
+<h4 id="org140b22d">The WordNet Corpus</h4>
+<div class="outline-text-4" id="text-org140b22d">
+<div class="highlight">
+<pre><span></span>nltk.download("wordnet", quiet=True)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org0ee993b">
+<h4 id="org0ee993b">Plotting</h4>
+<div class="outline-text-4" id="text-org0ee993b">
+<div class="highlight">
+<pre><span></span>Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org0e59cdc">
+<h4 id="org0e59cdc">The Dataset</h4>
+<div class="outline-text-4" id="text-org0e59cdc">
+<p>The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a <code>artist</code> column.</p>
+<div class="highlight">
+<pre><span></span>path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
+sets = []
+for name in path.glob("*.csv"):
+    artist = name.stem.split()[-1]
+    data = pandas.read_csv(name)
+    data["artist"] = artist
+    sets.append(data)
+    print(artist)
+data = pandas.concat(sets)
+</pre></div>
+<pre class="example">
+KatyPerry
+LMFAO
+Eminem
+Shakira
+Psy
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-org91c7de7">
+<h4 id="org91c7de7">Splitting the Set</h4>
+<div class="outline-text-4" id="text-org91c7de7">
 <div class="highlight">
 <pre><span></span>train, test = train_test_split(data)
 print(train.shape)
@@ -188,14 +1615,18 @@ Embed(plot=plot, file_name="comments_by_artist_and_class")()
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org668f898">
-<h3 id="org668f898">Labeling Functions</h3>
-<div class="outline-text-3" id="text-org668f898">
+</div>
+<div class="outline-2" id="outline-container-org9480efd">
+<h2 id="org9480efd">Middle</h2>
+<div class="outline-text-2" id="text-org9480efd"></div>
+<div class="outline-3" id="outline-container-org13e9910">
+<h3 id="org13e9910">Labeling Functions</h3>
+<div class="outline-text-3" id="text-org13e9910">
 <p>Labeling functions output a label for values in the training set.</p>
 </div>
-<div class="outline-4" id="outline-container-org2e61d21">
-<h4 id="org2e61d21">Labels</h4>
-<div class="outline-text-4" id="text-org2e61d21">
+<div class="outline-4" id="outline-container-orgb63ee9a">
+<h4 id="orgb63ee9a">Labels</h4>
+<div class="outline-text-4" id="text-orgb63ee9a">
 <div class="highlight">
 <pre><span></span>Label = Namespace(
     abstain = -1,
@@ -206,9 +1637,9 @@ Embed(plot=plot, file_name="comments_by_artist_and_class")()
 <p>The actual data-set only has spam/not-spam classes, but the Snorkel tutorial adds the <code>abstain</code> class as well. Each function is going to be passed a row from the training dataframe, so the class name you use has to match it.</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgfcf4da0">
-<h4 id="orgfcf4da0">Keyword Matching</h4>
-<div class="outline-text-4" id="text-orgfcf4da0">
+<div class="outline-4" id="outline-container-orgee81dc8">
+<h4 id="orgee81dc8">Keyword Matching</h4>
+<div class="outline-text-4" id="text-orgee81dc8">
 <div class="highlight">
 <pre><span></span>@labeling_function()
 def labeling_by_keyword(comment: pandas.Series) -&gt; int:
@@ -224,9 +1655,9 @@ def labeling_by_keyword(comment: pandas.Series) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org581d49f">
-<h4 id="org581d49f">Regular Expressions</h4>
-<div class="outline-text-4" id="text-org581d49f">
+<div class="outline-4" id="outline-container-org3828297">
+<h4 id="org3828297">Regular Expressions</h4>
+<div class="outline-text-4" id="text-org3828297">
 <div class="highlight">
 <pre><span></span>@labeling_function()
 def label_check_out(comment) -&gt; int:
@@ -235,9 +1666,9 @@ def label_check_out(comment) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgd0041dc">
-<h4 id="orgd0041dc">Short Comments</h4>
-<div class="outline-text-4" id="text-orgd0041dc">
+<div class="outline-4" id="outline-container-org397666a">
+<h4 id="org397666a">Short Comments</h4>
+<div class="outline-text-4" id="text-org397666a">
 <div class="highlight">
 <pre><span></span>@labeling_function()
 def label_short_comment(comment) -&gt; int:
@@ -246,9 +1677,9 @@ def label_short_comment(comment) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org115ae08">
-<h4 id="org115ae08">Positive Comments</h4>
-<div class="outline-text-4" id="text-org115ae08">
+<div class="outline-4" id="outline-container-orgd454a3d">
+<h4 id="orgd454a3d">Positive Comments</h4>
+<div class="outline-text-4" id="text-orgd454a3d">
 <p>Here we'll use <a href="https://textblob.readthedocs.io/en/dev/">textblob</a> to try and decide on whether a comment is positive (textblob uses <a href="https://www.clips.uantwerpen.be/pattern">pattern</a> to decide on the polarity.)</p>
 <div class="highlight">
 <pre><span></span>@labeling_function()
@@ -258,9 +1689,9 @@ def label_positive_comment(comment) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org35dcf7b">
-<h4 id="org35dcf7b">Combining the Functions and Cleaning the Labels</h4>
-<div class="outline-text-4" id="text-org35dcf7b">
+<div class="outline-4" id="outline-container-orgeea7f75">
+<h4 id="orgeea7f75">Combining the Functions and Cleaning the Labels</h4>
+<div class="outline-text-4" id="text-orgeea7f75">
 <p>First I'll create a list of the labeling functions so that we can pass it to the label-applier class.</p>
 <div class="highlight">
 <pre><span></span>labeling_functions = [labeling_by_keyword, label_check_out, label_short_comment, label_positive_comment]
@@ -292,9 +1723,9 @@ for column in label_frame.columns:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org0cd4381">
-<h4 id="org0cd4381">Training the Label Model</h4>
-<div class="outline-text-4" id="text-org0cd4381">
+<div class="outline-4" id="outline-container-org6cd1648">
+<h4 id="org6cd1648">Training the Label Model</h4>
+<div class="outline-text-4" id="text-org6cd1648">
 <div class="highlight">
 <pre><span></span>label_model = LabelModel(cardinality=2, verbose=True)
 label_model.fit(label_matrix, n_epochs=500, log_freq=50, seed=0)
@@ -349,14 +1780,14 @@ print(f"{matched/len(train): .2f}")
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org732c7fd">
-<h3 id="org732c7fd">Data Augmentation</h3>
-<div class="outline-text-3" id="text-org732c7fd">
+<div class="outline-3" id="outline-container-org6de3899">
+<h3 id="org6de3899">Data Augmentation</h3>
+<div class="outline-text-3" id="text-org6de3899">
 <p>We're going to create new entries in the data by randomly replacing words with their synonyms.</p>
 </div>
-<div class="outline-4" id="outline-container-orgd606c51">
-<h4 id="orgd606c51">Synonym Lookup Function</h4>
-<div class="outline-text-4" id="text-orgd606c51">
+<div class="outline-4" id="outline-container-orgc686f43">
+<h4 id="orgc686f43">Synonym Lookup Function</h4>
+<div class="outline-text-4" id="text-orgc686f43">
 <div class="highlight">
 <pre><span></span>def synonyms_for(word: str) -&gt; list:
     """get synonyms for word"""
@@ -365,9 +1796,9 @@ print(f"{matched/len(train): .2f}")
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org8e8b67d">
-<h4 id="org8e8b67d">The Transformation Function</h4>
-<div class="outline-text-4" id="text-org8e8b67d">
+<div class="outline-4" id="outline-container-org98d2a72">
+<h4 id="org98d2a72">The Transformation Function</h4>
+<div class="outline-text-4" id="text-org98d2a72">
 <div class="highlight">
 <pre><span></span>@transformation_function()
 def replace_word_with_synonym(comment: pandas.Series) -&gt; pandas.Series:
@@ -416,9 +1847,9 @@ print(f"{len(train):,}")
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org8a6f1e5">
-<h3 id="org8a6f1e5">Slicing</h3>
-<div class="outline-text-3" id="text-org8a6f1e5">
+<div class="outline-3" id="outline-container-org4799114">
+<h3 id="org4799114">Slicing</h3>
+<div class="outline-text-3" id="text-org4799114">
 <p>A <i>slice</i> is a subset of the data - in this case we want to identify slices that might be more important than others. In this case we're going to assume that we've identified that short links are more likely to be malicious, so we want to be more aware of them.</p>
 <div class="highlight">
 <pre><span></span>@slicing_function()
@@ -435,9 +1866,13 @@ def short_link(comment: pandas.Series) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgccd254a">
-<h3 id="orgccd254a">Train A Classifier</h3>
-<div class="outline-text-3" id="text-orgccd254a">
+</div>
+<div class="outline-2" id="outline-container-org9899a6d">
+<h2 id="org9899a6d">End</h2>
+<div class="outline-text-2" id="text-org9899a6d"></div>
+<div class="outline-3" id="outline-container-org0072178">
+<h3 id="org0072178">Train A Classifier</h3>
+<div class="outline-text-3" id="text-org0072178">
 <div class="highlight">
 <pre><span></span>training_text = train_augmented.CONTENT.tolist()
 vectorizer = CountVectorizer(ngram_range=(1, 2))
@@ -470,9 +1905,9 @@ print(f"{sum(development.CLASS == development.predicted)/len(development):.2f}")
 weighted avg       0.53      0.54      0.53       367
 
 </pre></div>
-<div class="outline-4" id="outline-container-org20e9639">
-<h4 id="org20e9639">Training on the Original Labels</h4>
-<div class="outline-text-4" id="text-org20e9639">
+<div class="outline-4" id="outline-container-org898d8b7">
+<h4 id="org898d8b7">Training on the Original Labels</h4>
+<div class="outline-text-4" id="text-org898d8b7">
 <div class="highlight">
 <pre><span></span>vectorizer = CountVectorizer(ngram_range=(1, 2))
 x_train = vectorizer.fit_transform(train.CONTENT)
@@ -1689,357 +3124,6 @@ Comments:  2,594
 </div>
 <div class="outline-2" id="outline-container-org4d0c963">
 <h2 id="org4d0c963">End</h2>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="/posts/web-scraping/extracting-data-from-xml/">Extracting Data From XML</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="/posts/web-scraping/extracting-data-from-xml/" rel="bookmark"><time class="published dt-published" datetime="2019-08-03T16:24:05-07:00" itemprop="datePublished" title="2019-08-03 16:24">2019-08-03 16:24</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#orgede83d5">Beginning</a>
-<ul>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org3167ad0">Imports</a>
-<ul>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org6fffe74">Python</a></li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org6724468">Set Up</a>
-<ul>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org9456c3d">The URLS</a></li>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org3a4cd1a">The Expected</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org40ca5db">Middle</a>
-<ul>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org6c86865">Sample</a></li>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#org860d303">The Assignment</a></li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/extracting-data-from-xml/#orge4cec79">End</a></li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgede83d5">
-<h2 id="orgede83d5">Beginning</h2>
-<div class="outline-text-2" id="text-orgede83d5"></div>
-<div class="outline-3" id="outline-container-org3167ad0">
-<h3 id="org3167ad0">Imports</h3>
-<div class="outline-text-3" id="text-org3167ad0"></div>
-<div class="outline-4" id="outline-container-org6fffe74">
-<h4 id="org6fffe74">Python</h4>
-<div class="outline-text-4" id="text-org6fffe74">
-<div class="highlight">
-<pre><span></span>from xml.etree import ElementTree
-import urllib
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org6724468">
-<h3 id="org6724468">Set Up</h3>
-<div class="outline-text-3" id="text-org6724468"></div>
-<div class="outline-4" id="outline-container-org9456c3d">
-<h4 id="org9456c3d">The URLS</h4>
-<div class="outline-text-4" id="text-org9456c3d">
-<div class="highlight">
-<pre><span></span>SAMPLE_URL = "http://py4e-data.dr-chuck.net/comments_42.xml"
-ACTUAL_URL = "http://py4e-data.dr-chuck.net/comments_260444.xml"
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org3a4cd1a">
-<h4 id="org3a4cd1a">The Expected</h4>
-<div class="outline-text-4" id="text-org3a4cd1a">
-<div class="highlight">
-<pre><span></span>SAMPLE_EXPECTED = 2553
-ACTUAL_EXPECTED_LAST_TWO_DIGITS = 34
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org40ca5db">
-<h2 id="org40ca5db">Middle</h2>
-<div class="outline-text-2" id="text-org40ca5db">
-<div class="highlight">
-<pre><span></span>def get_counts(url: str) -&gt; int:
-    """Get the sum of the 'count' tags 
-
-    Args:
-     url: URL to get the XML from
-
-    Returns:
-     sum of the count tags payloads
-    """
-    response = urllib.request.urlopen(url)
-    tree = ElementTree.fromstring(response.read())
-    total = 0
-    for index, count in enumerate(tree.findall(".//count")):
-        total += int(count.text)
-
-    print(f"Tags: {index + 1}")
-    print(f"Sum of Counts: {total}")
-    return total
-</pre></div>
-</div>
-<div class="outline-3" id="outline-container-org6c86865">
-<h3 id="org6c86865">Sample</h3>
-<div class="outline-text-3" id="text-org6c86865">
-<div class="highlight">
-<pre><span></span>total = get_counts(SAMPLE_URL)
-assert total == SAMPLE_EXPECTED
-</pre></div>
-<pre class="example">
-Tags: 50
-Sum of Counts: 2553
-
-</pre></div>
-</div>
-<div class="outline-3" id="outline-container-org860d303">
-<h3 id="org860d303">The Assignment</h3>
-<div class="outline-text-3" id="text-org860d303">
-<div class="highlight">
-<pre><span></span>total =get_counts(ACTUAL_URL)
-assert int(str(total)[-2:]) == ACTUAL_EXPECTED_LAST_TWO_DIGITS
-</pre></div>
-<pre class="example">
-Tags: 50
-Sum of Counts: 2634
-
-</pre></div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orge4cec79">
-<h2 id="orge4cec79">End</h2>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="/posts/web-scraping/web-scraping-assignment-1/">Web Scraping Assignment 1</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="/posts/web-scraping/web-scraping-assignment-1/" rel="bookmark"><time class="published dt-published" datetime="2019-08-03T12:07:56-07:00" itemprop="datePublished" title="2019-08-03 12:07">2019-08-03 12:07</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org419e5a1">Beginning</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org7e89448">Imports</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org3fcba4f">Python</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org72127b1">PyPi</a></li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org79aac5f">Setup</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org7ef2f98">The URLs</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org3915553">The Expected</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org4dc1759">Middle</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#orgbb094ec">The Sample</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org2f0bc07">The Way I Would Do It</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org01b373f">The Assignment Way</a></li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org411f09a">The Assignment</a>
-<ul>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org24ce9e9">Requests HTML</a></li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org48797a9">Urllib</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/web-scraping/web-scraping-assignment-1/#org1489652">End</a></li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org419e5a1">
-<h2 id="org419e5a1">Beginning</h2>
-<div class="outline-text-2" id="text-org419e5a1">
-<p>The goal of this exercise is to find all the <code>&lt;span&gt;</code> tags on a page and sum the numbers they contain.</p>
-</div>
-<div class="outline-3" id="outline-container-org7e89448">
-<h3 id="org7e89448">Imports</h3>
-<div class="outline-text-3" id="text-org7e89448"></div>
-<div class="outline-4" id="outline-container-org3fcba4f">
-<h4 id="org3fcba4f">Python</h4>
-<div class="outline-text-4" id="text-org3fcba4f">
-<div class="highlight">
-<pre><span></span><span class="kn">import</span> <span class="nn">urllib</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org72127b1">
-<h4 id="org72127b1">PyPi</h4>
-<div class="outline-text-4" id="text-org72127b1">
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
-<span class="kn">from</span> <span class="nn">expects</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">equal</span><span class="p">,</span>
-    <span class="n">expect</span><span class="p">,</span>
-    <span class="n">be_true</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span> <span class="nn">requests_html</span> <span class="kn">import</span> <span class="n">HTMLSession</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org79aac5f">
-<h3 id="org79aac5f">Setup</h3>
-<div class="outline-text-3" id="text-org79aac5f"></div>
-<div class="outline-4" id="outline-container-org7ef2f98">
-<h4 id="org7ef2f98">The URLs</h4>
-<div class="outline-text-4" id="text-org7ef2f98">
-<div class="highlight">
-<pre><span></span><span class="n">SAMPLE_URL</span> <span class="o">=</span> <span class="s2">" http://py4e-data.dr-chuck.net/comments_42.html"</span>
-<span class="n">ACTUAL_URL</span> <span class="o">=</span> <span class="s2">"http://py4e-data.dr-chuck.net/comments_260442.html"</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org3915553">
-<h4 id="org3915553">The Expected</h4>
-<div class="outline-text-4" id="text-org3915553">
-<div class="highlight">
-<pre><span></span><span class="n">SAMPLE_EXPECTED</span> <span class="o">=</span> <span class="mi">2553</span>
-<span class="n">ACTUAL_EXPECTED_LAST_DIGIT</span> <span class="o">=</span> <span class="mi">5</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org4dc1759">
-<h2 id="org4dc1759">Middle</h2>
-<div class="outline-text-2" id="text-org4dc1759"></div>
-<div class="outline-3" id="outline-container-orgbb094ec">
-<h3 id="orgbb094ec">The Sample</h3>
-<div class="outline-text-3" id="text-orgbb094ec"></div>
-<div class="outline-4" id="outline-container-org2f0bc07">
-<h4 id="org2f0bc07">The Way I Would Do It</h4>
-<div class="outline-text-4" id="text-org2f0bc07">
-<div class="highlight">
-<pre><span></span><span class="k">def</span> <span class="nf">using_requests</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">"""get the span total</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">     url: The URL for the page</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">     the total sum</span>
-<span class="sd">    """</span>
-    <span class="n">session</span> <span class="o">=</span> <span class="n">HTMLSession</span><span class="p">()</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">ok</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">be_true</span><span class="p">)</span>
-    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
-
-    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">span</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">"span"</span><span class="p">)):</span>
-        <span class="n">total</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">span</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
-
-    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Count: {count + 1}"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Sum: {total}"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">total</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="n">total</span> <span class="o">=</span> <span class="n">using_requests</span><span class="p">(</span><span class="n">SAMPLE_URL</span><span class="p">)</span>
-<span class="n">expect</span><span class="p">(</span><span class="n">total</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">equal</span><span class="p">(</span><span class="n">SAMPLE_EXPECTED</span><span class="p">))</span>
-</pre></div>
-<pre class="example">
-Count: 50
-Sum: 2553
-
-</pre></div>
-</div>
-<div class="outline-4" id="outline-container-org01b373f">
-<h4 id="org01b373f">The Assignment Way</h4>
-<div class="outline-text-4" id="text-org01b373f">
-<p>For this kind of thing, using urllib isn't really much more work, I'm used to the older python 2 version which (maybe only seemed at the time) was more complicated to use.</p>
-<div class="highlight">
-<pre><span></span><span class="k">def</span> <span class="nf">using_urllib</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">"""get the span total with urllib and beautiful soup</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">     url: the URL for the page</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">     the total of the span contents</span>
-<span class="sd">    """</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="s2">"html.parser"</span><span class="p">)</span>
-    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">span</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">"span"</span><span class="p">)):</span>
-        <span class="n">total</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">span</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
-
-    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Count: {count + 1}"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Sum: {total}"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">total</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="n">total</span> <span class="o">=</span> <span class="n">using_urllib</span><span class="p">(</span><span class="n">SAMPLE_URL</span><span class="p">)</span>
-<span class="n">expect</span><span class="p">(</span><span class="n">total</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">equal</span><span class="p">(</span><span class="n">SAMPLE_EXPECTED</span><span class="p">))</span>
-</pre></div>
-<pre class="example">
-Count: 50
-Sum: 2553
-
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org411f09a">
-<h3 id="org411f09a">The Assignment</h3>
-<div class="outline-text-3" id="text-org411f09a"></div>
-<div class="outline-4" id="outline-container-org24ce9e9">
-<h4 id="org24ce9e9">Requests HTML</h4>
-<div class="outline-text-4" id="text-org24ce9e9">
-<div class="highlight">
-<pre><span></span><span class="n">total</span> <span class="o">=</span> <span class="n">using_requests</span><span class="p">(</span><span class="n">ACTUAL_URL</span><span class="p">)</span>
-<span class="n">expect</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">total</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">equal</span><span class="p">(</span><span class="n">ACTUAL_EXPECTED_LAST_DIGIT</span><span class="p">))</span>
-</pre></div>
-<pre class="example">
-Count: 50
-Sum: 2305
-
-</pre></div>
-</div>
-<div class="outline-4" id="outline-container-org48797a9">
-<h4 id="org48797a9">Urllib</h4>
-<div class="outline-text-4" id="text-org48797a9">
-<div class="highlight">
-<pre><span></span><span class="n">total</span> <span class="o">=</span> <span class="n">using_urllib</span><span class="p">(</span><span class="n">ACTUAL_URL</span><span class="p">)</span>
-<span class="n">expect</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">total</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">equal</span><span class="p">(</span><span class="n">ACTUAL_EXPECTED_LAST_DIGIT</span><span class="p">))</span>
-</pre></div>
-<pre class="example">
-Count: 50
-Sum: 2305
-
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org1489652">
-<h2 id="org1489652">End</h2>
-<div class="outline-text-2" id="text-org1489652">
-<p>Although I normally use <code>requests</code> or <code>requests-html</code>, I must say that the <code>urllib</code> version with <a href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/">BeautifulSoup</a> for this particular exercise wasn't much different.</p>
-</div>
 </div>
 </div>
 </article>
