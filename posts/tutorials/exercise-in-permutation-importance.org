@@ -16,23 +16,115 @@
 * Beginning
   This is my re-do of the [[https://www.kaggle.com/learn/machine-learning-explainability][Machine Learning Explainability]] Permutation Importance exercise on kaggle. It uses the data from the [[https://www.kaggle.com/c/new-york-city-taxi-fare-prediction/data][New York City Taxi Fare Prediction]] dataset on kaggle.
 ** Imports
+*** From Python
+#+BEGIN_SRC ipython :session permutation :results none
+from argparse import Namespace
+from functools import partial
+from pathlib import Path
+#+end_src
 *** From PyPi
 #+BEGIN_SRC ipython :session permutation :results none
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
+from tabulate import tabulate
 
+import hvplot.pandas
 import pandas
 #+END_SRC
+*** Others
+#+BEGIN_SRC ipython :session permutation :results none
+from graeae import EmbedHoloviews, EnvironmentLoader
+#+end_src
+** Set Up
+*** Plotting
+#+BEGIN_SRC ipython :session permutation :results none
+SLUG = "exercise-in-permutation-importance"
+PATH = Path("../../files/posts/tutorials/")/SLUG
+Plot = Namespace(
+    width=1000,
+    height=800,
+    )
+Embed = partial(EmbedHoloviews, folder_path=PATH)
+#+end_src
+*** The Environment
+#+BEGIN_SRC ipython :session permutation :results none
+ENVIRONMENT = EnvironmentLoader()
+#+end_src
+*** Table Printer
+#+BEGIN_SRC ipython :session permutation :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys")
+#+end_src
 * Middle
+*** The Dataset
+    Since this is about permutation importance we're just going to load a subset and use previously discovered cleaning methods.
+
+#+BEGIN_SRC ipython :session permutation :results output raw :exports both
+PATH = Path(ENVIRONMENT["NY-TAXI"]).expanduser()
+assert PATH.is_dir()
+data = pandas.read_csv(PATH/"train.csv", nrows=50000)
+print(TABLE(data.iloc[0].reset_index().rename(columns={"index": "Column", 0: "Value"}), showindex=False))
+#+end_src
+
+#+RESULTS:
+| Column            |                       Value |
+|-------------------+-----------------------------|
+| key               | 2009-06-15 17:26:21.0000001 |
+| fare_amount       |                         4.5 |
+| pickup_datetime   |     2009-06-15 17:26:21 UTC |
+| pickup_longitude  |                  -73.844311 |
+| pickup_latitude   |                   40.721319 |
+| dropoff_longitude |                   -73.84161 |
+| dropoff_latitude  |          40.712278000000005 |
+| passenger_count   |                           1 |
+
+**** Trim Outliers
+#+BEGIN_SRC ipython :session permutation :results output raw :exports both
+print(TABLE(data.describe()))
+#+END_SRC
+
+#+RESULTS:
+|       | fare_amount | pickup_longitude | pickup_latitude | dropoff_longitude | dropoff_latitude | passenger_count |
+|-------+-------------+------------------+-----------------+-------------------+------------------+-----------------|
+| count |       50000 |            50000 |           50000 |             50000 |            50000 |           50000 |
+| mean  |     11.3642 |         -72.5098 |         39.9338 |          -72.5046 |          39.9263 |         1.66784 |
+| std   |     9.68556 |          10.3939 |         6.22486 |           10.4076 |          6.01474 |         1.28919 |
+| min   |          -5 |         -75.4238 |        -74.0069 |          -84.6542 |         -74.0064 |               0 |
+| 25%   |           6 |         -73.9921 |         40.7349 |          -73.9912 |          40.7344 |               1 |
+| 50%   |         8.5 |         -73.9818 |         40.7527 |          -73.9801 |          40.7534 |               1 |
+| 75%   |        12.5 |         -73.9671 |         40.7674 |          -73.9636 |          40.7682 |               2 |
+| max   |         200 |          40.7835 |         401.083 |            40.851 |          43.4152 |               6 |
+
+#+BEGIN_SRC ipython :session permutation :results output raw :exports both
+to_plot = data[[column for column in data.columns if "latitude" in column or "longitude" in column]]
+plot = to_plot.hvplot.box().opts(title="Column Box-Plots", width=Plot.width, height=Plot.height)
+Embed(plot=plot, file_name="column_box_plots")()
+#+END_SRC
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="column_box_plots.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+So you can see that there are negaive fares, which seems wrong, and a big spread for some of the values.
+
+     This uses the pandas [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.query.html][query]] method which let's you write slightly more readable code for boolean slicing.
+
+#+BEGIN_SRC ipython :session permutation :results output :exports both
+data = data.query("pickup_latitude > 40.7 and pickup_latitude < 40.8 and " +
+                  "dropoff_latitude > 40.7 and dropoff_latitude < 40.8 and " +
+                  "pickup_longitude > -74 and pickup_longitude < -73.9 and " +
+                  "dropoff_longitude > -74 and dropoff_longitude < -73.9 and " +
+                  "fare_amount > 0"
+                  )
+#+END_SRC
+
+
 * End
 * Raw
 #+BEGIN_EXAMPLE
-
-# Loading data, dividing, modeling and EDA below
-data = pd.read_csv('../input/new-york-city-taxi-fare-prediction/train.csv', nrows=50000)
-
-# Remove data with extreme outlier coordinates or negative fares
 data = data.query('pickup_latitude > 40.7 and pickup_latitude < 40.8 and ' +
                   'dropoff_latitude > 40.7 and dropoff_latitude < 40.8 and ' +
                   'pickup_longitude > -74 and pickup_longitude < -73.9 and ' +
