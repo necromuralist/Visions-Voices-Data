@@ -48,6 +48,149 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/web-scraping/extracting-data-from-json/">Extracting Data From JSON</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/web-scraping/extracting-data-from-json/" rel="bookmark"><time class="published dt-published" datetime="2019-08-04T11:22:51-07:00" itemprop="datePublished" title="2019-08-04 11:22">2019-08-04 11:22</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#orgc589c7c">Beginning</a>
+<ul>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org0d718da">Imports</a>
+<ul>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org21c2aca">Python</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org5b09150">PyPi</a></li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org78ae5fb">Set Up</a>
+<ul>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org7b6a504">The URLs</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org3b63353">The Expected</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org5e33258">Middle</a>
+<ul>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org3bafdb5">The Sample</a></li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org986f540">The Assignment</a></li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/extracting-data-from-json/#org4d0c963">End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc589c7c">
+<h2 id="orgc589c7c">Beginning</h2>
+<div class="outline-text-2" id="text-orgc589c7c"></div>
+<div class="outline-3" id="outline-container-org0d718da">
+<h3 id="org0d718da">Imports</h3>
+<div class="outline-text-3" id="text-org0d718da"></div>
+<div class="outline-4" id="outline-container-org21c2aca">
+<h4 id="org21c2aca">Python</h4>
+<div class="outline-text-4" id="text-org21c2aca">
+<div class="highlight">
+<pre><span></span>import json
+import urllib
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org5b09150">
+<h4 id="org5b09150">PyPi</h4>
+<div class="outline-text-4" id="text-org5b09150">
+<div class="highlight">
+<pre><span></span>from expects import expect, equal
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org78ae5fb">
+<h3 id="org78ae5fb">Set Up</h3>
+<div class="outline-text-3" id="text-org78ae5fb"></div>
+<div class="outline-4" id="outline-container-org7b6a504">
+<h4 id="org7b6a504">The URLs</h4>
+<div class="outline-text-4" id="text-org7b6a504">
+<div class="highlight">
+<pre><span></span>SAMPLE_URL = "http://py4e-data.dr-chuck.net/comments_42.json"
+ACTUAL_URL = "http://py4e-data.dr-chuck.net/comments_260445.json"
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org3b63353">
+<h4 id="org3b63353">The Expected</h4>
+<div class="outline-text-4" id="text-org3b63353">
+<div class="highlight">
+<pre><span></span>SAMPLE_EXPECTED = 2553
+ACTUAL_EXPECTED_LAST_TWO_DIGITS = 94
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org5e33258">
+<h2 id="org5e33258">Middle</h2>
+<div class="outline-text-2" id="text-org5e33258">
+<p>We're going to pull a JSON blob and extract the "count" values and sum them. The data is structured with a single top-level key ("comments") which holds a list of dicts with "name" (name of the commenter) and "count" (the number of comments the commenter has made) values.</p>
+<div class="highlight">
+<pre><span></span>def count(url: str) -&gt; int:
+    """Totals the comment counts
+
+    Args:
+     url: source of the JSON
+
+    Returns:
+     the total of the comment counts
+    """
+    response = urllib.request.urlopen(url)
+    data = json.loads(response.read())
+    total = 0
+    for index, commenter in enumerate(data["comments"]):
+        total += int(commenter["count"])
+
+    print(f"Comments: {index + 1}")
+    print(f"Comments: {total: ,}")
+    return total
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-org3bafdb5">
+<h3 id="org3bafdb5">The Sample</h3>
+<div class="outline-text-3" id="text-org3bafdb5">
+<div class="highlight">
+<pre><span></span>total = count(SAMPLE_URL)
+expect(total).to(equal(SAMPLE_EXPECTED))
+</pre></div>
+<pre class="example">
+Comments: 50
+Comments:  2,553
+
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-org986f540">
+<h3 id="org986f540">The Assignment</h3>
+<div class="outline-text-3" id="text-org986f540">
+<div class="highlight">
+<pre><span></span>total = count(ACTUAL_URL)
+expect(int(str(total)[-2:])).to(equal(ACTUAL_EXPECTED_LAST_TWO_DIGITS))
+</pre></div>
+<pre class="example">
+Comments: 50
+Comments:  2,594
+
+</pre></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org4d0c963">
+<h2 id="org4d0c963">End</h2>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/web-scraping/extracting-data-from-xml/">Extracting Data From XML</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>

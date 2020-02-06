@@ -1,0 +1,389 @@
+#+BEGIN_COMMENT
+.. title: Decision Trees
+.. slug: decision-trees
+.. date: 2020-01-25 16:31:40 UTC-08:00
+.. tags: trees
+.. category: Decision Trees
+.. link: 
+.. description: Looking at Decision Trees
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+* Beginning
+** Imports
+*** Python
+#+begin_src ipython :session trees :results none
+from functools import partial
+from typing import Any
+from math import log2
+#+end_src
+*** PyPi
+#+begin_src ipython :session trees :results none
+from expects import (
+    be_within,
+    expect,
+)
+from tabulate import tabulate
+import attr
+import pandas
+#+end_src
+** Set Up
+#+begin_src ipython :session trees :results none
+TABLE = partial(tabulate, headers="keys", tablefmt="orgtbl")
+#+end_src
+* Splitting A Node
+  We choose which is the next node to split by checking the amount of information we would gain for each candidate node and picking the one that gives us the highest gain. We do this by measuring the **impurity** of the nodes, which is a measurement of how dissimilar the class labels are for a node.
+** Entropy
+   One measure of "impurity" is [[https://www.wikiwand.com/en/Entropy_(information_theory)][entropy]], a measurement of the information associated with our nodes.
+
+*** Node Entropy
+    Here's where we'll calculate the entropy for a node.
+
+\[
+Entropy = - \sum_{i=0}^{c-1} p_i(t)log_2 p_i(t)
+\]
+   
+Where \(p_1(t)\) is the fraction of training data (/t/) that has the classification /i/. We can translate that to a python function.
+
+ #+begin_src ipython :session trees :results none
+def node_entropy(data: pandas.Series, debug: bool=False) -> float:
+    """Calculate the entropy for a child node
+
+    Args:
+     data: target data filtered to match the child-node's class
+     debug: emit values
+
+    Returns:
+     entropy for this node
+    """
+    if debug:
+        print("calculating node-entropy")
+    total = len(data)
+    accumulated = 0
+    for classification in data.unique():
+        p = len(data[data == classification])/total
+        if debug:
+            print(f"\tclass: {classification}, p: {p} entropy: {p * log2(p)}")
+        accumulated += p * log2(p)
+    if debug:
+        print(f"Node Entropy: {accumulated}")
+    return -accumulated
+ #+end_src
+
+*** Entropy of a Node's Children
+We'll use the entropy formula to get the entropy for an indivdual node but to get the total contribution from the possible splits we'll take a weighted sum of the node entropies.
+
+\[
+I(children) = \sum_{j=1}^k \frac{N(v_j)}{N} I(v_j)
+\]
+
+Where \(\frac{N(v_j)}{N}\) is the fraction of the child data in node /j/ and \(I(v_j)\) is the entropy (Impurity) of node /j/.
+
+Once again, in python.
+
+#+begin_src ipython :session trees :results none
+def children_impurity(data: pandas.DataFrame, column: str, target: str,
+                      impurity: object=node_entropy,
+            debug: bool=False) -> float:
+    """Calculate the entropy for the parent of child nodes
+
+    Args:
+     data: the container for the values to check
+     column: the column to get the entropy
+     target: the target column
+     impurity: the function to calculate the impurity of the child
+     debug: whether to print some intermediate values
+
+    Returns:
+     entropy for the data
+    """
+    if debug:
+        print("Calculating entropy for child nodes")
+    total = len(data)
+    accumulator = 0
+    for classification in data[column].unique():
+        child = data[data[column] == classification][target]
+        if debug:
+            print(f"\tI_({classification}) = ({len(child)}/{total}) "
+                  f"x {impurity(child)}")
+        accumulator += (len(child)/total) * impurity(child)
+    if debug:
+        print(f"Child node entropy: {accumulator}")
+    return accumulator
+ #+end_src
+
+*** Information Gain
+    The measurement of how much is gained is the difference between a parent node and its children.
+\[
+\Delta = I(parent) - I(children)
+\]
+
+ #+begin_src ipython :session trees :results none
+def information_gain(data: pandas.Series, column: str, target: str,
+                     debug: bool=False) -> float:
+    """See how much entropy is removed using this node
+
+    Args:
+     data: source to check
+     column: name of the column representing the parent node
+     target: name of the column we are trying to predict
+     debug: emit messages
+    """
+    return node_entropy(data[target], debug=debug) - children_impurity(
+        data, column=column, target=target, debug=debug)
+ #+end_src
+
+*** Home Loans
+    To make this concrete we can look at a small dataset of people applying for a loan. We want to know if they are likely to default and we need to decide if we want our first split to be on whether they own a home or are married (we'll ignore income for this check because it's meant to illustrate splitting qualitative data).
+
+ #+begin_src ipython :session trees :results none
+@attr.s(auto_attribs=True, slots=True, frozen=True)
+class LoanColumns:
+    owner: str = "Home Owner"
+    married: str = "Marital Status"
+    income: str = "Annual Income"
+    defaulted: str = "Defaulted"
+
+LOANS = LoanColumns()
+ #+end_src
+
+ #+begin_src ipython :session trees :results output raw :exports both
+loans = pandas.DataFrame({
+    LOANS.owner: [True, False, False, True, False, False, True, False, False, False],
+    LOANS.married: ["Single", "Married", "Single", "Married", "Divorced", "Single", "Divorced", "Single", "Married", "Single"],
+    LOANS.income: [125000, 100000, 70000, 120000, 95000, 60000, 220000, 85000, 75000, 90000],
+    LOANS.defaulted: [False, False, False, False, True, False, False, True, False, True],
+})
+print(TABLE(loans))
+ #+end_src
+
+ #+RESULTS:
+ |   | Home Owner | Marital Status | Annual Income | Defaulted |
+ |---+------------+----------------+---------------+-----------|
+ | 0 | True       | Single         |        125000 | False     |
+ | 1 | False      | Married        |        100000 | False     |
+ | 2 | False      | Single         |         70000 | False     |
+ | 3 | True       | Married        |        120000 | False     |
+ | 4 | False      | Divorced       |         95000 | True      |
+ | 5 | False      | Single         |         60000 | False     |
+ | 6 | True       | Divorced       |        220000 | False     |
+ | 7 | False      | Single         |         85000 | True      |
+ | 8 | False      | Married        |         75000 | False     |
+ | 9 | False      | Single         |         90000 | True      |
+
+The first step is to calculate the entropy for the entire set using whether they defaulted or not as our classification.
+
+ #+begin_src ipython :session trees :results output :exports both
+impurity_parent = node_entropy(loans[LOANS.defaulted])
+print(f"I_parent: {impurity_parent:0.3f}")
+
+expect(impurity_parent).to(be_within(0.8812, 0.8813))
+ #+end_src
+
+ #+RESULTS:
+ : I_parent: 0.881
+
+The next step is to figure out which of our two chosen attributes gives us the most information gain- whether the person was a Home Owner or their Marital Status. We could just look at which has a lower entropy, but the problem is stated so that we want to find the greatest difference between the class' entropy and the parent entropy instead.
+
+**** Home Owners
+     We have two child nodes - one for homeowners and one for non-homeowners.
+ #+begin_src ipython :session trees :results output :exports both
+print(loans[loans[LOANS.owner]][LOANS.defaulted].value_counts())
+print()
+print(loans[~loans[LOANS.owner]][LOANS.defaulted].value_counts())
+ #+end_src
+
+ #+RESULTS:
+ : False    3
+ : Name: Defaulted, dtype: int64
+ : 
+ : False    4
+ : True     3
+ : Name: Defaulted, dtype: int64
+
+ #+begin_src ipython :session trees :results output :exports both
+impurity_home_owner = children_entropy(loans,
+                                       column=LOANS.owner,
+                                       target=LOANS.defaulted, debug=True)
+print(f"{impurity_home_owner: 0.3f}")
+expect(impurity_home_owner).to(be_within(0.689, 0.691))
+ #+end_src
+
+ #+RESULTS:
+ : Calculating entropy for child nodes
+ : 	I_(True) = (3/10) x -0.0
+ : 	I_(False) = (7/10) x 0.9852281360342515
+ : Child node entropy: 0.6896596952239761
+ :  0.690
+
+ Odd that python allows negative zero-values... Now we can see what the information gain will be.
+
+ #+begin_src ipython :session trees :results output :exports both
+gain_home_owner = information_gain(loans, LOANS.owner, LOANS.defaulted)
+print(f"Delta Home-Owner: {gain_home_owner: 0.3}")
+expect(gain_home_owner).to(be_within(0.190, 0.19165))
+ #+end_src
+
+ #+RESULTS:
+ : Delta Home-Owner:  0.192
+
+ I seem to have precision differences with the book...
+**** Married Applicants
+
+ #+begin_src ipython :session trees :results output :exports both
+gain_married = information_gain(loans, LOANS.married, LOANS.defaulted, debug=True)
+print(f"Delta Married: {gain_married: 0.3f}")
+expect(gain_married).to(be_within(0.194, 0.196))
+choice = max(((gain_home_owner, LOANS.owner),
+              (gain_married, LOANS.married)))
+print(f"Next Node: {choice}")
+ #+end_src
+
+ #+RESULTS:
+ #+begin_example
+ calculating node-entropy
+         class: False, p: 0.7 entropy: -0.3602012209808308
+         class: True, p: 0.3 entropy: -0.5210896782498619
+ Node Entropy: -0.8812908992306927
+ Calculating entropy for child nodes
+         I_(Single) = (5/10) x 0.9709505944546686
+         I_(Married) = (3/10) x -0.0
+         I_(Divorced) = (2/10) x 1.0
+ Child node entropy: 0.6854752972273344
+ Delta Married:  0.196
+ Next Node: (0.19581560200335835, 'Marital Status')
+ #+end_example
+
+ Since we gain more information from checking whether someone was married or not, that would be the next node we would choose to split.
+** Binary Splitting of Qualitative Attributes Using the Gini Index
+\[
+\textit{Gini Index} = 1 - \sum_{i=0}^{c - 1}
+\]
+
+#+begin_src ipython :session trees :results none
+def gini(data: pandas.Series) -> float:
+    """Calculate the gini index for the data"""
+    total = len(data)
+    accumulator = 0
+    for classification in data.unique():
+        accumulator += (len(data[data==classification])/total)**2
+    return 1 - accumulator
+#+end_src
+
+*** Parent Impurity
+First we get the gini index for the overall data.
+
+#+begin_src ipython :session trees :results output :exports both
+parent_gini = gini(loans[LOANS.defaulted])
+print(f"I_parent = {parent_gini: 0.3f}")
+expect(parent_gini).to(be_within(0.420, 0.421))
+#+end_src
+
+#+RESULTS:
+: I_parent =  0.420
+
+*** Home Owner Impurity
+Now the homeowner attribute.
+
+#+begin_src ipython :session trees :results output :exports both
+homeowner_gini = children_impurity(loans, LOANS.owner, LOANS.defaulted, gini, debug=True)
+expect(homeowner_gini).to(be_within(0.342, 0.344))
+#+end_src
+
+#+RESULTS:
+: Calculating entropy for child nodes
+: 	I_(True) = (3/10) x 0.0
+: 	I_(False) = (7/10) x 0.48979591836734704
+: Child node entropy: 0.3428571428571429
+
+*** Married Impurity
+    This is different from the entropy case because we want to do binary splits but the marital status attribute has three values (/Single/, /Married/, and /Divorced/) so we need to use a different function that does each attribute against the other (or we could add columns which turn the marital status into a binary attribute, but this seems simpler).
+
+#+begin_src ipython :session trees :results none
+def binary_gini(data: pandas.Series, column: str, target: str,
+                classification: object, debug: bool=False) -> float:
+    """Calculate the gini value for the data using one against many
+
+    Args:
+     data: source with qualitative values
+     column: column with the classifications to test
+     target: column with the classifications to predict
+     classification: the classification to compare
+     debug: whether to emit messages
+    """
+    total = len(data)
+    classified = data[data[column] == classification]
+    others = data[data[column] != classification]
+    if debug:
+        print(f"N({classification}/N) I({classification}) = {len(classified)/total * gini(classified[target]):0.3f}")
+        print(f"N(!{classification}/N) I!({classification}) = {len(others)/total * gini(others[target]):0.3f}")
+        print(f"I({classification}) = {((len(classified)/total) * gini(classified[target]) + (len(others)/total) * gini(others[target])):0.3f}")
+    return ((len(classified)/total) * gini(classified[target])
+            + (len(others)/total) * gini(others[target]))
+#+end_src
+
+#+begin_src ipython :session trees :results none
+@attr.s(auto_attribs=True, slots=True, frozen=True)
+class MaritalStatus:
+    single: str="Single"
+    married: str="Married"
+    divorced: str="Divorced"
+
+status = MaritalStatus()
+#+end_src
+#+begin_src ipython :session trees :results output :exports both
+i_single = binary_gini(loans, LOANS.married, LOANS.defaulted, status.single,
+                       debug=True)
+print()
+i_married = binary_gini(loans, LOANS.married, LOANS.defaulted, status.married,
+                        debug=True)
+print()
+i_divorced = binary_gini(loans, LOANS.married, LOANS.defaulted,
+                         status.divorced, debug=True)
+expect(i_single).to(be_within(0.39, 0.41))
+expect(i_divorced).to(be_within(0.39, 0.41))
+expect(i_married).to(be_within(0.342, 0.344))
+#+end_src
+
+#+RESULTS:
+#+begin_example
+N(Single/N) I(Single) = 0.240
+N(!Single/N) I!(Single) = 0.160
+I(Single) = 0.400
+
+N(Married/N) I(Married) = 0.000
+N(!Married/N) I!(Married) = 0.343
+I(Married) = 0.343
+
+N(Divorced/N) I(Divorced) = 0.100
+N(!Divorced/N) I!(Divorced) = 0.300
+I(Divorced) = 0.400
+#+end_example
+
+#+begin_src ipython :session trees :results output :exports both
+best = 0
+best_split = None
+for candidate, label in ((homeowner_gini, "Homeowner"),
+                         (i_single, "Single"),
+                         (i_married, "Married"),
+                         (i_divorced, "Divorced")):
+    delta = parent_gini - candidate
+    if delta > best:
+        best = delta
+        best_split = label
+    print(f"Delta {label} = {delta:0.3f}")
+print(f"Best Split: {best_split}")
+#+end_src
+
+#+RESULTS:
+: Delta Homeowner = 0.077
+: Delta Single = 0.020
+: Delta Married = 0.077
+: Delta Divorced = 0.020
+: Best Split: Homeowner
+
+Either using Home Ownership or Whether someone is married would be the best candidates for the next split.
