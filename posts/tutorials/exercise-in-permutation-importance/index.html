@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="An exercise in Permutation Importance" name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Exercise in Permutation Importance | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/exercise-in-permutation-importance/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="../../../assets/javascript/p5.min.js" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="/posts/tutorials/permutation-importance/" rel="prev" title="Permutation Importance" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Exercise in Permutation Importance" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/exercise-in-permutation-importance/" property="og:url">
+<meta content="An exercise in Permutation Importance" property="og:description">
+<meta content="article" property="og:type">
+<meta content="2020-02-06T10:45:53-08:00" property="article:published_time">
+<meta content="feature selection" property="article:tag">
+<meta content="permutation importance" property="article:tag">
+<meta content="tutorial" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="/archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="/categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="/rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="/pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"> <input name="k8" type="hidden" value="#444444"> <input name="k9" type="hidden" value="#D51920"> <input name="kt" type="hidden" value="h"> <input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"> <input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="/posts/tutorials/exercise-in-permutation-importance/index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href="/posts/tutorials/exercise-in-permutation-importance/">Exercise in Permutation Importance</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/tutorials/exercise-in-permutation-importance/" rel="bookmark"><time class="published dt-published" datetime="2020-02-06T10:45:53-08:00" itemprop="datePublished" title="2020-02-06 10:45">2020-02-06 10:45</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="/posts/tutorials/exercise-in-permutation-importance/index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org3e80b33">Beginning</a>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org1030cb1">Imports</a>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org44c765a">From Python</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org37ee68e">From PyPi</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org9598414">Others</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#orgbbb1b9f">Set Up</a>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#orgc7a5d77">Plotting</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org7cfc68f">The Environment</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org178cbbd">Table Printer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org30bcf60">Middle</a>
+<ul>
+<li>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org53dd77b">The Dataset</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org9f33fd7">Set Up the Training and Test Sets</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#orga60fccb">Build and Train the Model</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#orgcf99b7c">Questions</a>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#orgaef2a22">Question 1</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org35dcd12">A New Model</a>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#orga23623d">Question 4</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#orgfce8593">Feature Engineering</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org0b43680">The Permutation Importance</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org3cd1249">Question 5</a></li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#org8c72d0f">Question 6</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/exercise-in-permutation-importance/#orge90b763">End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org3e80b33">
+<h2 id="org3e80b33">Beginning</h2>
+<div class="outline-text-2" id="text-org3e80b33">
+<p>This is my re-do of the <a href="https://www.kaggle.com/learn/machine-learning-explainability">Machine Learning Explainability</a> Permutation Importance exercise on kaggle. It uses the data from the <a href="https://www.kaggle.com/c/new-york-city-taxi-fare-prediction/data">New York City Taxi Fare Prediction</a> dataset on kaggle.</p>
+</div>
+<div class="outline-3" id="outline-container-org1030cb1">
+<h3 id="org1030cb1">Imports</h3>
+<div class="outline-text-3" id="text-org1030cb1"></div>
+<div class="outline-4" id="outline-container-org44c765a">
+<h4 id="org44c765a">From Python</h4>
+<div class="outline-text-4" id="text-org44c765a">
+<div class="highlight">
+<pre><span></span>from argparse import Namespace
+from functools import partial
+from pathlib import Path
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org37ee68e">
+<h4 id="org37ee68e">From PyPi</h4>
+<div class="outline-text-4" id="text-org37ee68e">
+<div class="highlight">
+<pre><span></span>from eli5.sklearn import PermutationImportance
+
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from tabulate import tabulate
+
+import eli5
+import hvplot.pandas
+import pandas
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org9598414">
+<h4 id="org9598414">Others</h4>
+<div class="outline-text-4" id="text-org9598414">
+<div class="highlight">
+<pre><span></span>from graeae import EmbedHoloviews, EnvironmentLoader
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgbbb1b9f">
+<h3 id="orgbbb1b9f">Set Up</h3>
+<div class="outline-text-3" id="text-orgbbb1b9f"></div>
+<div class="outline-4" id="outline-container-orgc7a5d77">
+<h4 id="orgc7a5d77">Plotting</h4>
+<div class="outline-text-4" id="text-orgc7a5d77">
+<div class="highlight">
+<pre><span></span>SLUG = "exercise-in-permutation-importance"
+PATH = Path("../../files/posts/tutorials/")/SLUG
+Plot = Namespace(
+    width=1000,
+    height=800,
+    )
+Embed = partial(EmbedHoloviews, folder_path=PATH)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org7cfc68f">
+<h4 id="org7cfc68f">The Environment</h4>
+<div class="outline-text-4" id="text-org7cfc68f">
+<div class="highlight">
+<pre><span></span>ENVIRONMENT = EnvironmentLoader()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org178cbbd">
+<h4 id="org178cbbd">Table Printer</h4>
+<div class="outline-text-4" id="text-org178cbbd">
+<div class="highlight">
+<pre><span></span>TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys", showindex=False)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org30bcf60">
+<h2 id="org30bcf60">Middle</h2>
+<div class="outline-text-2" id="text-org30bcf60"></div>
+<div class="outline-4" id="outline-container-org53dd77b">
+<h4 id="org53dd77b">The Dataset</h4>
+<div class="outline-text-4" id="text-org53dd77b">
+<p>Since this is about permutation importance we're just going to load a subset and use previously discovered cleaning methods.</p>
+<div class="highlight">
+<pre><span></span>PATH = Path(ENVIRONMENT["NY-TAXI"]).expanduser()
+assert PATH.is_dir()
+data = pandas.read_csv(PATH/"train.csv", nrows=50000)
+print(TABLE(data.iloc[0].reset_index().rename(columns={"index": "Column", 0: "Value"})))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Column</th>
+<th class="org-right" scope="col">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">key</td>
+<td class="org-right">2009-06-15 17:26:21.0000001</td>
+</tr>
+<tr>
+<td class="org-left">fare_amount</td>
+<td class="org-right">4.5</td>
+</tr>
+<tr>
+<td class="org-left">pickup_datetime</td>
+<td class="org-right">2009-06-15 17:26:21 UTC</td>
+</tr>
+<tr>
+<td class="org-left">pickup_longitude</td>
+<td class="org-right">-73.844311</td>
+</tr>
+<tr>
+<td class="org-left">pickup_latitude</td>
+<td class="org-right">40.721319</td>
+</tr>
+<tr>
+<td class="org-left">dropoff_longitude</td>
+<td class="org-right">-73.84161</td>
+</tr>
+<tr>
+<td class="org-left">dropoff_latitude</td>
+<td class="org-right">40.712278000000005</td>
+</tr>
+<tr>
+<td class="org-left">passenger_count</td>
+<td class="org-right">1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="org-ul">
+<li><a id="orgfd5b4b3"></a>Trim Outliers<br>
+<div class="outline-text-5" id="text-orgfd5b4b3">
+<div class="highlight">
+<pre><span></span>print(TABLE(data.describe(), showindex=True))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">&nbsp;</th>
+<th class="org-right" scope="col">fare_amount</th>
+<th class="org-right" scope="col">pickup_longitude</th>
+<th class="org-right" scope="col">pickup_latitude</th>
+<th class="org-right" scope="col">dropoff_longitude</th>
+<th class="org-right" scope="col">dropoff_latitude</th>
+<th class="org-right" scope="col">passenger_count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">count</td>
+<td class="org-right">50000</td>
+<td class="org-right">50000</td>
+<td class="org-right">50000</td>
+<td class="org-right">50000</td>
+<td class="org-right">50000</td>
+<td class="org-right">50000</td>
+</tr>
+<tr>
+<td class="org-left">mean</td>
+<td class="org-right">11.3642</td>
+<td class="org-right">-72.5098</td>
+<td class="org-right">39.9338</td>
+<td class="org-right">-72.5046</td>
+<td class="org-right">39.9263</td>
+<td class="org-right">1.66784</td>
+</tr>
+<tr>
+<td class="org-left">std</td>
+<td class="org-right">9.68556</td>
+<td class="org-right">10.3939</td>
+<td class="org-right">6.22486</td>
+<td class="org-right">10.4076</td>
+<td class="org-right">6.01474</td>
+<td class="org-right">1.28919</td>
+</tr>
+<tr>
+<td class="org-left">min</td>
+<td class="org-right">-5</td>
+<td class="org-right">-75.4238</td>
+<td class="org-right">-74.0069</td>
+<td class="org-right">-84.6542</td>
+<td class="org-right">-74.0064</td>
+<td class="org-right">0</td>
+</tr>
+<tr>
+<td class="org-left">25%</td>
+<td class="org-right">6</td>
+<td class="org-right">-73.9921</td>
+<td class="org-right">40.7349</td>
+<td class="org-right">-73.9912</td>
+<td class="org-right">40.7344</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-left">50%</td>
+<td class="org-right">8.5</td>
+<td class="org-right">-73.9818</td>
+<td class="org-right">40.7527</td>
+<td class="org-right">-73.9801</td>
+<td class="org-right">40.7534</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-left">75%</td>
+<td class="org-right">12.5</td>
+<td class="org-right">-73.9671</td>
+<td class="org-right">40.7674</td>
+<td class="org-right">-73.9636</td>
+<td class="org-right">40.7682</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-left">max</td>
+<td class="org-right">200</td>
+<td class="org-right">40.7835</td>
+<td class="org-right">401.083</td>
+<td class="org-right">40.851</td>
+<td class="org-right">43.4152</td>
+<td class="org-right">6</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span>to_plot = data[[column for column in data.columns if "latitude" in column or "longitude" in column]]
+plot = to_plot.hvplot.box().opts(title="Column Box-Plots", width=Plot.width, height=Plot.height)
+Embed(plot=plot, file_name="column_box_plots")()
+</pre></div>
+<object data="/posts/tutorials/exercise-in-permutation-importance/column_box_plots.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>So you can see that there are negative fares, which seems wrong, and some outliers.</p>
+<p>This uses the pandas <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.query.html">query</a> method which let's you write slightly more readable code for boolean slicing.</p>
+<div class="highlight">
+<pre><span></span>print(f"{len(data)}")
+data = data.query("pickup_latitude &gt; 40.7 and pickup_latitude &lt; 40.8 and " +
+                  "dropoff_latitude &gt; 40.7 and dropoff_latitude &lt; 40.8 and " +
+                  "pickup_longitude &gt; -74 and pickup_longitude &lt; -73.9 and " +
+                  "dropoff_longitude &gt; -74 and dropoff_longitude &lt; -73.9 and " +
+                  "fare_amount &gt; 0"
+                  )
+print(f"{len(data)}"
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="outline-4" id="outline-container-org9f33fd7">
+<h4 id="org9f33fd7">Set Up the Training and Test Sets</h4>
+<div class="outline-text-4" id="text-org9f33fd7">
+<div class="highlight">
+<pre><span></span>y = data.fare_amount
+base_features = ['pickup_longitude',
+                 'pickup_latitude',
+                 'dropoff_longitude',
+                 'dropoff_latitude',
+                 'passenger_count']
+
+X = data[base_features]
+x_train, x_validate, y_train, y_validate = train_test_split(X, y, random_state=1)
+
+print(f"{len(x_train):,}")
+print(f"{len(x_validate):,}")
+</pre></div>
+<pre class="example">
+23,466
+7,823
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-orga60fccb">
+<h3 id="orga60fccb">Build and Train the Model</h3>
+<div class="outline-text-3" id="text-orga60fccb">
+<div class="highlight">
+<pre><span></span>first_model = RandomForestRegressor(n_estimators=50, random_state=1).fit(x_train, y_train)
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgcf99b7c">
+<h3 id="orgcf99b7c">Questions</h3>
+<div class="outline-text-3" id="text-orgcf99b7c"></div>
+<div class="outline-4" id="outline-container-orgaef2a22">
+<h4 id="orgaef2a22">Question 1</h4>
+<div class="outline-text-4" id="text-orgaef2a22">
+<blockquote>
+<p>The first model uses the following features:</p>
+<ul class="org-ul">
+<li>pickup_longitude</li>
+<li>pickup_latitude</li>
+<li>dropoff_longitude</li>
+<li>dropoff_latitude</li>
+<li>passenger_count</li>
+</ul>
+<p>Before running any code… which variables seem potentially useful for predicting taxi fares? Do you think permutation importance will necessarily identify these features as important?</p>
+</blockquote>
+<p>I think that pickup and dropoff latitude might be important, since this would reflect where in the city the person was and wanted to go. Passenger count might make a difference as well, but I don't know if there's a greater charge for more people. Longitude might also be useful, but my guess would be that the North-South location is more indicative of the type of place you are in (uptown or downtown) and thus how far you have to travel (I have a vague notion that New York City is longer vertically than horizontally, but I don't know if this is true). This would be even more important if the fares change by location, but I don't know if that's the case.</p>
+<div class="highlight">
+<pre><span></span>permutor = PermutationImportance(first_model, random_state=1).fit(x_validate, y_validate)
+</pre></div>
+<div class="highlight">
+<pre><span></span>ipython_html = eli5.show_weights(permutor, feature_names=x_validate.columns.tolist())
+table = pandas.read_html(ipython_html.data)[0]
+print(TABLE(table))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Weight</th>
+<th class="org-left" scope="col">Feature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">0.8387 ± 0.0168</td>
+<td class="org-left">dropoff_latitude</td>
+</tr>
+<tr>
+<td class="org-left">0.8326 ± 0.0212</td>
+<td class="org-left">pickup_latitude</td>
+</tr>
+<tr>
+<td class="org-left">0.5947 ± 0.0432</td>
+<td class="org-left">pickup_longitude</td>
+</tr>
+<tr>
+<td class="org-left">0.5326 ± 0.0275</td>
+<td class="org-left">dropoff_longitude</td>
+</tr>
+<tr>
+<td class="org-left">-0.0022 ± 0.0014</td>
+<td class="org-left">passenger_count</td>
+</tr>
+</tbody>
+</table>
+<p>So it looks like latitude and longitude are important, with latitude a little more important than longitude and passenger count isn't important.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org35dcd12">
+<h3 id="org35dcd12">A New Model</h3>
+<div class="outline-text-3" id="text-org35dcd12"></div>
+<div class="outline-4" id="outline-container-orga23623d">
+<h4 id="orga23623d">Question 4</h4>
+<div class="outline-text-4" id="text-orga23623d">
+<blockquote>
+<p>Without detailed knowledge of New York City, it's difficult to rule out most hypotheses about why latitude features matter more than longitude.</p>
+<p>A good next step is to disentangle the effect of being in certain parts of the city from the effect of total distance traveled.</p>
+<p>The code below creates new features for longitudinal and latitudinal distance. It then builds a model that adds these new features to those you already had.</p>
+</blockquote>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgfce8593">
+<h4 id="orgfce8593">Feature Engineering</h4>
+<div class="outline-text-4" id="text-orgfce8593">
+<p>We're going to estimate the distance traveled by using the differences in latitude and longitude from the pickup to the dropoff. This should give us a taxicab-distance estimate.</p>
+<div class="highlight">
+<pre><span></span>data['absolute_change_longitude'] = abs(data.dropoff_longitude - data.pickup_longitude)
+data['absolute_change_latitude'] = abs(data.dropoff_latitude - data.pickup_latitude)
+
+features_2  = ['pickup_longitude',
+               'pickup_latitude',
+               'dropoff_longitude',
+               'dropoff_latitude',
+               'absolute_change_latitude',
+               'absolute_change_longitude']
+
+X = data[features_2]
+new_x_train, new_x_validate, new_y_train, new_y_validate = train_test_split(X, y, random_state=1)
+second_model = RandomForestRegressor(n_estimators=30, random_state=1).fit(new_x_train, new_y_train)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org0b43680">
+<h4 id="org0b43680">The Permutation Importance</h4>
+<div class="outline-text-4" id="text-org0b43680">
+<div class="highlight">
+<pre><span></span>permutor = PermutationImportance(second_model, random_state=1).fit(new_x_validate, new_y_validate)
+ipython_html = eli5.show_weights(permutor, feature_names=new_x_validate.columns.tolist())
+table = pandas.read_html(ipython_html.data)[0]
+print(TABLE(table))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Weight</th>
+<th class="org-left" scope="col">Feature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">0.5786 ± 0.0294</td>
+<td class="org-left">absolute_change_latitude</td>
+</tr>
+<tr>
+<td class="org-left">0.4469 ± 0.0509</td>
+<td class="org-left">absolute_change_longitude</td>
+</tr>
+<tr>
+<td class="org-left">0.0860 ± 0.0334</td>
+<td class="org-left">pickup_latitude</td>
+</tr>
+<tr>
+<td class="org-left">0.0735 ± 0.0114</td>
+<td class="org-left">dropoff_latitude</td>
+</tr>
+<tr>
+<td class="org-left">0.0735 ± 0.0101</td>
+<td class="org-left">dropoff_longitude</td>
+</tr>
+<tr>
+<td class="org-left">0.0609 ± 0.0067</td>
+<td class="org-left">pickup_longitude</td>
+</tr>
+</tbody>
+</table>
+<p>The distance traveled seems to be the most important feature for the fair, even more than the actual locations, probably because taxis charge by distance.</p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org3cd1249">
+<h4 id="org3cd1249">Question 5</h4>
+<div class="outline-text-4" id="text-org3cd1249">
+<div class="highlight">
+<pre><span></span>print(TABLE(new_x_train.sample(random_state=1).iloc[0].reset_index()))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">index</th>
+<th class="org-right" scope="col">31975</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">pickup_longitude</td>
+<td class="org-right">-73.9706</td>
+</tr>
+<tr>
+<td class="org-left">pickup_latitude</td>
+<td class="org-right">40.7613</td>
+</tr>
+<tr>
+<td class="org-left">dropoff_longitude</td>
+<td class="org-right">-73.9806</td>
+</tr>
+<tr>
+<td class="org-left">dropoff_latitude</td>
+<td class="org-right">40.7483</td>
+</tr>
+<tr>
+<td class="org-left">absolute_change_latitude</td>
+<td class="org-right">0.01302</td>
+</tr>
+<tr>
+<td class="org-left">absolute_change_longitude</td>
+<td class="org-right">0.010067</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span>print(new_x_validate.describe())
+</pre></div>
+<pre class="example">
+       pickup_longitude  pickup_latitude  dropoff_longitude  dropoff_latitude  \
+count       7823.000000      7823.000000        7823.000000       7823.000000   
+mean         -73.976957        40.756877         -73.975293         40.757591   
+std            0.014663         0.018064           0.015877          0.018669   
+min          -73.999977        40.700400         -73.999992         40.700293   
+25%          -73.988180        40.745044         -73.987078         40.746345   
+50%          -73.979933        40.757881         -73.978427         40.758602   
+75%          -73.968008        40.769486         -73.966296         40.770561   
+max          -73.900123        40.799865         -73.901790         40.799984   
+
+       absolute_change_latitude  absolute_change_longitude  
+count               7823.000000                7823.000000  
+mean                   0.015091                   0.013029  
+std                    0.012508                   0.011554  
+min                    0.000000                   0.000000  
+25%                    0.006089                   0.004968  
+50%                    0.011745                   0.010110  
+75%                    0.020781                   0.017798  
+max                    0.084413                   0.087337  
+</pre>
+<blockquote>
+<p>A colleague observes that the values for <code>absolute_change_longitude</code> and <code>absolute_change_latitude</code> are pretty small (all values are between -0.1 and 0.1), whereas other variables have larger values. Do you think this could explain why those coordinates had larger permutation importance values in this case?</p>
+<p>Consider an alternative where you created and used a feature that was 100X as large for these features, and used that larger feature for training and importance calculations. Would this change the outputted permutation importance values?</p>
+<p>Why or why not?</p>
+</blockquote>
+<div class="highlight">
+<pre><span></span>for column in ("pickup_longitude pickup_latitude dropoff_longitude "
+               "dropoff_latitude absolute_change_latitude "
+               "absolute_change_longitude").split():
+    print(f"{column}: {new_x_validate[column].max() - new_x_validate[column].min():0.3f}")
+</pre></div>
+<pre class="example">
+pickup_longitude: 0.100
+pickup_latitude: 0.099
+dropoff_longitude: 0.098
+dropoff_latitude: 0.100
+absolute_change_latitude: 0.084
+absolute_change_longitude: 0.087
+</pre>
+<p>Intuitively I would think that the difference in the scales would make a difference.</p>
+<div class="highlight">
+<pre><span></span>data["bigger_pickup_longitude"] = data.pickup_longitude * 100
+data["bigger_absolute_change_longitude"] = data.absolute_change_longitude * 100
+features_3  = ['pickup_longitude',
+               'pickup_latitude',
+               'dropoff_longitude',
+               'dropoff_latitude',
+               'absolute_change_latitude',
+               'absolute_change_longitude',
+               'bigger_pickup_longitude',
+               'bigger_absolute_change_longitude'
+               ]
+
+X = data[features_3]
+big_x_train, big_x_validate, big_y_train, big_y_validate = train_test_split(X, y, random_state=1)
+big_model = RandomForestRegressor(n_estimators=30, random_state=1).fit(big_x_train, big_y_train)
+</pre></div>
+<div class="highlight">
+<pre><span></span>permutor = PermutationImportance(big_model, random_state=1).fit(big_x_validate, big_y_validate)
+ipython_html = eli5.show_weights(permutor, feature_names=big_x_validate.columns.tolist())
+table = pandas.read_html(ipython_html.data)[0]
+print(TABLE(table))
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Weight</th>
+<th class="org-left" scope="col">Feature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">0.5939 ± 0.0578</td>
+<td class="org-left">absolute_change_latitude</td>
+</tr>
+<tr>
+<td class="org-left">0.2875 ± 0.0181</td>
+<td class="org-left">absolute_change_longitude</td>
+</tr>
+<tr>
+<td class="org-left">0.2084 ± 0.0166</td>
+<td class="org-left">bigger_absolute_change_longitude</td>
+</tr>
+<tr>
+<td class="org-left">0.0754 ± 0.0281</td>
+<td class="org-left">pickup_latitude</td>
+</tr>
+<tr>
+<td class="org-left">0.0717 ± 0.0075</td>
+<td class="org-left">dropoff_latitude</td>
+</tr>
+<tr>
+<td class="org-left">0.0648 ± 0.0119</td>
+<td class="org-left">dropoff_longitude</td>
+</tr>
+<tr>
+<td class="org-left">0.0460 ± 0.0125</td>
+<td class="org-left">bigger_pickup_longitude</td>
+</tr>
+<tr>
+<td class="org-left">0.0345 ± 0.0036</td>
+<td class="org-left">pickup_longitude</td>
+</tr>
+</tbody>
+</table>
+<p>Making the pickup longitude made it more important than the original, but it didn't change its ranking relative to the other features so I wouldn't say that the scale had an effect.</p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org8c72d0f">
+<h4 id="org8c72d0f">Question 6</h4>
+<div class="outline-text-4" id="text-org8c72d0f">
+<blockquote>
+<p>You've seen that the feature importance for latitudinal distance is greater than the importance of longitudinal distance. From this, can we conclude whether travelling a fixed latitudinal distance tends to be more expensive than traveling the same longitudinal distance?</p>
+</blockquote>
+<p>No, the feature importance indicates that it is useful in predicting fares, but it doesn't automatically mean that the fares will increase with the change in latitude. It might be the case that the change in longitude affects the cost of a change in latitude as well, so a fixed latitude distance might change depending on the longitude or latitude + longitude combination.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orge90b763">
+<h2 id="orge90b763">End</h2>
+<div class="outline-text-2" id="text-orge90b763">
+<p>The suggested next tutorial is about <a href="https://www.kaggle.com/dansbecker/partial-plots">Partial Dependence Plots</a>.</p>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="/categories/feature-selection/" rel="tag">feature selection</a></li>
+<li><a class="tag p-category" href="/categories/permutation-importance/" rel="tag">permutation importance</a></li>
+<li><a class="tag p-category" href="/categories/tutorial/" rel="tag">tutorial</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="/posts/tutorials/permutation-importance/" rel="prev" title="Permutation Importance">Previous post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2020 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script> 
+</body>
+</html>

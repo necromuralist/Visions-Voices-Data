@@ -48,6 +48,165 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/web-scraping/calling-a-json-api/">Calling a JSON API</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/web-scraping/calling-a-json-api/" rel="bookmark"><time class="published dt-published" datetime="2019-08-04T11:53:29-07:00" itemprop="datePublished" title="2019-08-04 11:53">2019-08-04 11:53</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org82399df">Beginning</a>
+<ul>
+<li><a href="/posts/web-scraping/calling-a-json-api/#orgc979628">Imports</a>
+<ul>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org0ce9794">Python</a></li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org0cc3d69">PyPi</a></li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org28455d8">Set Up</a>
+<ul>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org0a30d04">URL</a></li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org2bbff95">Sample</a></li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org3dd109f">Actual</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org33c7380">Middle</a>
+<ul>
+<li><a href="/posts/web-scraping/calling-a-json-api/#orgc93ede2">The Sample</a></li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#org18d24d9">The Actual</a></li>
+</ul>
+</li>
+<li><a href="/posts/web-scraping/calling-a-json-api/#orgb941af8">End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org82399df">
+<h2 id="org82399df">Beginning</h2>
+<div class="outline-text-2" id="text-org82399df"></div>
+<div class="outline-3" id="outline-container-orgc979628">
+<h3 id="orgc979628">Imports</h3>
+<div class="outline-text-3" id="text-orgc979628"></div>
+<div class="outline-4" id="outline-container-org0ce9794">
+<h4 id="org0ce9794">Python</h4>
+<div class="outline-text-4" id="text-org0ce9794">
+<div class="highlight">
+<pre><span></span>from pprint import pprint
+import json
+import urllib
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org0cc3d69">
+<h4 id="org0cc3d69">PyPi</h4>
+<div class="outline-text-4" id="text-org0cc3d69">
+<div class="highlight">
+<pre><span></span>from expects import (
+    equal,
+    expect,
+    start_with,
+)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org28455d8">
+<h3 id="org28455d8">Set Up</h3>
+<div class="outline-text-3" id="text-org28455d8"></div>
+<div class="outline-4" id="outline-container-org0a30d04">
+<h4 id="org0a30d04">URL</h4>
+<div class="outline-text-4" id="text-org0a30d04">
+<div class="highlight">
+<pre><span></span>API_KEY = 42
+API_URL = "http://py4e-data.dr-chuck.net/json?"
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org2bbff95">
+<h4 id="org2bbff95">Sample</h4>
+<div class="outline-text-4" id="text-org2bbff95">
+<div class="highlight">
+<pre><span></span>SAMPLE_LOCATION = "South Federal University"
+SAMPLE_PLACE_ID = "ChIJ9e_QQm0sDogRhUPatldEFxw"
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org3dd109f">
+<h4 id="org3dd109f">Actual</h4>
+<div class="outline-text-4" id="text-org3dd109f">
+<div class="highlight">
+<pre><span></span>ACTUAL_LOCATION = "Kazan Federal University"
+ACTUAL_PLACE_ID_STARTS_WITH = "ChIJGf9"
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org33c7380">
+<h2 id="org33c7380">Middle</h2>
+<div class="outline-text-2" id="text-org33c7380">
+<div class="highlight">
+<pre><span></span>def get_place_id(location: str) -&gt; str:
+    """Get the place ID for the location
+
+    Args:
+     location: place to look up
+
+    Returns:
+     the place ID for the location
+    """
+    parameters = {"address": location, "key": API_KEY}
+    request = API_URL + urllib.parse.urlencode(parameters)
+
+    with urllib.request.urlopen(request) as response:
+        data = json.loads(response.read().decode())
+        results = data["results"][0]
+        expect(data["status"]).to(equal("OK"))
+        place_id = results["place_id"]
+        print(f"Location: {location}")
+        print(f"Place ID: {place_id}")
+    return place_id
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-orgc93ede2">
+<h3 id="orgc93ede2">The Sample</h3>
+<div class="outline-text-3" id="text-orgc93ede2">
+<div class="highlight">
+<pre><span></span>place_id = get_place_id(SAMPLE_LOCATION)
+expect(SAMPLE_PLACE_ID).to(equal(place_id))
+</pre></div>
+<pre class="example">
+Location: South Federal University
+Place ID: ChIJ9e_QQm0sDogRhUPatldEFxw
+
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-org18d24d9">
+<h3 id="org18d24d9">The Actual</h3>
+<div class="outline-text-3" id="text-org18d24d9">
+<div class="highlight">
+<pre><span></span>place_id = get_place_id(ACTUAL_LOCATION)
+expect(place_id).to(start_with(ACTUAL_PLACE_ID_STARTS_WITH))
+</pre></div>
+<pre class="example">
+Location: Kazan Federal University
+Place ID: ChIJGf9kMxGtXkERIzwzBzFo8kY
+
+</pre></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgb941af8">
+<h2 id="orgb941af8">End</h2>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/web-scraping/extracting-data-from-json/">Extracting Data From JSON</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
