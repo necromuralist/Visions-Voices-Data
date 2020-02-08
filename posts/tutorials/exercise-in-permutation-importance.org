@@ -24,11 +24,14 @@ from pathlib import Path
 #+end_src
 *** From PyPi
 #+BEGIN_SRC ipython :session permutation :results none
+from eli5.sklearn import PermutationImportance
+
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
+import eli5
 import hvplot.pandas
 import pandas
 #+END_SRC
@@ -53,7 +56,7 @@ ENVIRONMENT = EnvironmentLoader()
 #+end_src
 *** Table Printer
 #+BEGIN_SRC ipython :session permutation :results none
-TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys")
+TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys", showindex=False)
 #+end_src
 * Middle
 *** The Dataset
@@ -63,7 +66,7 @@ TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys")
 PATH = Path(ENVIRONMENT["NY-TAXI"]).expanduser()
 assert PATH.is_dir()
 data = pandas.read_csv(PATH/"train.csv", nrows=50000)
-print(TABLE(data.iloc[0].reset_index().rename(columns={"index": "Column", 0: "Value"}), showindex=False))
+print(TABLE(data.iloc[0].reset_index().rename(columns={"index": "Column", 0: "Value"})))
 #+end_src
 
 #+RESULTS:
@@ -80,7 +83,7 @@ print(TABLE(data.iloc[0].reset_index().rename(columns={"index": "Column", 0: "Va
 
 **** Trim Outliers
 #+BEGIN_SRC ipython :session permutation :results output raw :exports both
-print(TABLE(data.describe()))
+print(TABLE(data.describe(), showindex=True))
 #+END_SRC
 
 #+RESULTS:
@@ -123,15 +126,9 @@ data = data.query("pickup_latitude > 40.7 and pickup_latitude < 40.8 and " +
 print(f"{len(data)}"
 #+END_SRC
 
-#+RESULTS:
-
-
-* End
-* Raw
-#+BEGIN_EXAMPLE
-
+*** Set Up the Training and Test Sets
+#+BEGIN_SRC ipython :session permutation :results output :exports both
 y = data.fare_amount
-
 base_features = ['pickup_longitude',
                  'pickup_latitude',
                  'dropoff_longitude',
@@ -139,195 +136,218 @@ base_features = ['pickup_longitude',
                  'passenger_count']
 
 X = data[base_features]
+x_train, x_validate, y_train, y_validate = train_test_split(X, y, random_state=1)
 
+print(f"{len(x_train):,}")
+print(f"{len(x_validate):,}")
+#+END_SRC
 
-train_X, val_X, train_y, val_y = train_test_split(X, y, random_state=1)
-first_model = RandomForestRegressor(n_estimators=50, random_state=1).fit(train_X, train_y)
+#+RESULTS:
+: 23,466
+: 7,823
+** Build and Train the Model
+#+BEGIN_SRC ipython :session permutation :results none
+first_model = RandomForestRegressor(n_estimators=50, random_state=1).fit(x_train, y_train)
+#+end_src
 
-# Environment Set-Up for feedback system.
-from learntools.core import binder
-binder.bind(globals())
-from learntools.ml_explainability.ex2 import *
-print("Setup Complete")
+** Questions
+*** Question 1
+#+begin_quote
+ The first model uses the following features:
+ - pickup_longitude
+ - pickup_latitude
+ - dropoff_longitude
+ - dropoff_latitude
+ - passenger_count
 
-# show data
-print("Data sample:")
-data.head()
+Before running any code... which variables seem potentially useful for predicting taxi fares? Do you think permutation importance will necessarily identify these features as important?
+#+end_quote
 
+I think that pickup and dropoff latitude might be important, since this would reflect where in the city the person was and wanted to go. Passenger count might make a difference as well, but I don't know if there's a greater charge for more people. Longitude might also be useful, but my guess would be that the North-South location is more indicative of the type of place you are in (uptown or downtown) and thus how far you have to travel (I have a vague notion that New York City is longer vertically than horizontally, but I don't know if this is true). This would be even more important if the fares change by location, but I don't know if that's the case.
 
-# The following two cells may also be useful to understand the values in the training data:
+#+BEGIN_SRC ipython :session permutation :results none
+permutor = PermutationImportance(first_model, random_state=1).fit(x_validate, y_validate)
+#+end_src
 
-# In[ ]:
+#+BEGIN_SRC ipython :session permutation :results output raw :exports both
+ipython_html = eli5.show_weights(permutor, feature_names=x_validate.columns.tolist())
+table = pandas.read_html(ipython_html.data)[0]
+print(TABLE(table))
+#+END_SRC
 
+#+RESULTS:
+| Weight            | Feature           |
+|-------------------+-------------------|
+| 0.8387  ± 0.0168  | dropoff_latitude  |
+| 0.8326  ± 0.0212  | pickup_latitude   |
+| 0.5947  ± 0.0432  | pickup_longitude  |
+| 0.5326  ± 0.0275  | dropoff_longitude |
+| -0.0022  ± 0.0014 | passenger_count   |
 
-train_X.describe()
+So it looks like latitude and longitude are important, with latitude a little more important than longitude and passenger count isn't important.
+** A New Model
+*** Question 4
+#+begin_quote
+Without detailed knowledge of New York City, it's difficult to rule out most hypotheses about why latitude features matter more than longitude.
 
+A good next step is to disentangle the effect of being in certain parts of the city from the effect of total distance traveled.  
 
-# In[ ]:
+The code below creates new features for longitudinal and latitudinal distance. It then builds a model that adds these new features to those you already had.
+#+end_quote
 
+*** Feature Engineering
+    We're going to estimate the distance traveled by using the differences in latitude and longitude from the pickup to the dropoff. This should give us a taxicab-distance estimate.
 
-train_y.describe()
-
-
-# ## Question 1
-# 
-# The first model uses the following features
-# - pickup_longitude
-# - pickup_latitude
-# - dropoff_longitude
-# - dropoff_latitude
-# - passenger_count
-# 
-# Before running any code... which variables seem potentially useful for predicting taxi fares? Do you think permutation importance will necessarily identify these features as important?
-# 
-# Once you've thought about it, run `q_1.solution()` below to see how you might think about this before running the code.
-
-# In[ ]:
-
-
-# Check your answer (Run this code cell to receive credit!)
-q_1.solution()
-
-
-# ## Question 2
-# 
-# Create a `PermutationImportance` object called `perm` to show the importances from `first_model`.  Fit it with the appropriate data and show the weights.
-# 
-# For your convenience, the code from the tutorial has been copied into a comment in this code cell.
-
-# In[ ]:
-
-
-import eli5
-from eli5.sklearn import PermutationImportance
-
-# Make a small change to the code below to use in this problem. 
-# perm = PermutationImportance(my_model, random_state=1).fit(val_X, val_y)
-
-# Check your answer
-q_2.check()
-
-# uncomment the following line to visualize your results
-# eli5.show_weights(perm, feature_names = val_X.columns.tolist())
-
-
-# Uncomment the lines below for a hint or to see the solution.
-
-# In[ ]:
-
-
-# q_2.hint()
-# q_2.solution()
-
-
-# ## Question 3
-# Before seeing these results, we might have expected each of the 4 directional features to be equally important.
-# 
-# But, on average, the latitude features matter more than the longititude features. Can you come up with any hypotheses for this?
-# 
-# After you've thought about it, check here for some possible explanations:
-
-# In[ ]:
-
-
-# Check your answer (Run this code cell to receive credit!)
-q_3.solution()
-
-
-# ## Question 4
-# 
-# Without detailed knowledge of New York City, it's difficult to rule out most hypotheses about why latitude features matter more than longitude.
-# 
-# A good next step is to disentangle the effect of being in certain parts of the city from the effect of total distance traveled.  
-# 
-# The code below creates new features for longitudinal and latitudinal distance. It then builds a model that adds these new features to those you already had.
-# 
-# Fill in two lines of code to calculate and show the importance weights with this new set of features. As usual, you can uncomment lines below to check your code, see a hint or get the solution.
-
-# In[ ]:
-
-
-# create new features
-data['abs_lon_change'] = abs(data.dropoff_longitude - data.pickup_longitude)
-data['abs_lat_change'] = abs(data.dropoff_latitude - data.pickup_latitude)
+#+BEGIN_SRC ipython :session permutation :results none
+data['absolute_change_longitude'] = abs(data.dropoff_longitude - data.pickup_longitude)
+data['absolute_change_latitude'] = abs(data.dropoff_latitude - data.pickup_latitude)
 
 features_2  = ['pickup_longitude',
                'pickup_latitude',
                'dropoff_longitude',
                'dropoff_latitude',
-               'abs_lat_change',
-               'abs_lon_change']
+               'absolute_change_latitude',
+               'absolute_change_longitude']
 
 X = data[features_2]
-new_train_X, new_val_X, new_train_y, new_val_y = train_test_split(X, y, random_state=1)
-second_model = RandomForestRegressor(n_estimators=30, random_state=1).fit(new_train_X, new_train_y)
+new_x_train, new_x_validate, new_y_train, new_y_validate = train_test_split(X, y, random_state=1)
+second_model = RandomForestRegressor(n_estimators=30, random_state=1).fit(new_x_train, new_y_train)
+#+end_src
 
-# Create a PermutationImportance object on second_model and fit it to new_val_X and new_val_y
-# Use a random_state of 1 for reproducible results that match the expected solution.
-perm2 = ____
+*** The Permutation Importance
+#+BEGIN_SRC ipython :session permutation :results output raw :exports both
+permutor = PermutationImportance(second_model, random_state=1).fit(new_x_validate, new_y_validate)
+ipython_html = eli5.show_weights(permutor, feature_names=new_x_validate.columns.tolist())
+table = pandas.read_html(ipython_html.data)[0]
+print(TABLE(table))
+#+END_SRC
 
-# show the weights for the permutation importance you just calculated
-____
+#+RESULTS:
+| Weight           | Feature                   |
+|------------------+---------------------------|
+| 0.5786  ± 0.0294 | absolute_change_latitude  |
+| 0.4469  ± 0.0509 | absolute_change_longitude |
+| 0.0860  ± 0.0334 | pickup_latitude           |
+| 0.0735  ± 0.0114 | dropoff_latitude          |
+| 0.0735  ± 0.0101 | dropoff_longitude         |
+| 0.0609  ± 0.0067 | pickup_longitude          |
 
-# Check your answer
-q_4.check()
+The distance traveled seems to be the most important feature for the fair, even more than the actual locations, probably because taxis charge by distance.
 
+*** Question 5
 
-# How would you interpret these importance scores? Distance traveled seems far more important than any location effects. 
-# 
-# But the location still affects model predictions, and dropoff location now matters slightly more than pickup location. Do you have any hypotheses for why this might be? The techniques in the next lessons will help you` dive into this more.
+#+BEGIN_SRC ipython :session permutation :results output raw :exports both
+print(TABLE(new_x_train.sample(random_state=1).iloc[0].reset_index()))
+#+END_SRC
 
-# In[ ]:
+#+RESULTS:
+| index                     |    31975 |
+|---------------------------+----------|
+| pickup_longitude          | -73.9706 |
+| pickup_latitude           |  40.7613 |
+| dropoff_longitude         | -73.9806 |
+| dropoff_latitude          |  40.7483 |
+| absolute_change_latitude  |  0.01302 |
+| absolute_change_longitude | 0.010067 |
 
+#+BEGIN_SRC ipython :session permutation :results output :exports both
+print(new_x_validate.describe())
+#+END_SRC
 
-# Check your answer (Run this code cell to receive credit!)
-q_4.solution()
+#+RESULTS:
+#+begin_example
+       pickup_longitude  pickup_latitude  dropoff_longitude  dropoff_latitude  \
+count       7823.000000      7823.000000        7823.000000       7823.000000   
+mean         -73.976957        40.756877         -73.975293         40.757591   
+std            0.014663         0.018064           0.015877          0.018669   
+min          -73.999977        40.700400         -73.999992         40.700293   
+25%          -73.988180        40.745044         -73.987078         40.746345   
+50%          -73.979933        40.757881         -73.978427         40.758602   
+75%          -73.968008        40.769486         -73.966296         40.770561   
+max          -73.900123        40.799865         -73.901790         40.799984   
 
+       absolute_change_latitude  absolute_change_longitude  
+count               7823.000000                7823.000000  
+mean                   0.015091                   0.013029  
+std                    0.012508                   0.011554  
+min                    0.000000                   0.000000  
+25%                    0.006089                   0.004968  
+50%                    0.011745                   0.010110  
+75%                    0.020781                   0.017798  
+max                    0.084413                   0.087337  
+#+end_example
 
-# ## Question 5
-# 
-# A colleague observes that the values for `abs_lon_change` and `abs_lat_change` are pretty small (all values are between -0.1 and 0.1), whereas other variables have larger values.  Do you think this could explain why those coordinates had larger permutation importance values in this case?  
-# 
-# Consider an alternative where you created and used a feature that was 100X as large for these features, and used that larger feature for training and importance calculations. Would this change the outputted permutaiton importance values?
-# 
-# Why or why not?
-# 
-# After you have thought about your answer, either try this experiment or look up the answer in the cell below.
+#+begin_quote
+ A colleague observes that the values for =absolute_change_longitude= and =absolute_change_latitude= are pretty small (all values are between -0.1 and 0.1), whereas other variables have larger values.  Do you think this could explain why those coordinates had larger permutation importance values in this case?  
 
-# In[ ]:
+Consider an alternative where you created and used a feature that was 100X as large for these features, and used that larger feature for training and importance calculations. Would this change the outputted permutation importance values?
 
+Why or why not?
+#+end_quote
 
-# Check your answer (Run this code cell to receive credit!)
-q_5.solution()
+#+BEGIN_SRC ipython :session permutation :results output :exports both
+for column in ("pickup_longitude pickup_latitude dropoff_longitude "
+               "dropoff_latitude absolute_change_latitude "
+               "absolute_change_longitude").split():
+    print(f"{column}: {new_x_validate[column].max() - new_x_validate[column].min():0.3f}")
+#+END_SRC
 
+#+RESULTS:
+: pickup_longitude: 0.100
+: pickup_latitude: 0.099
+: dropoff_longitude: 0.098
+: dropoff_latitude: 0.100
+: absolute_change_latitude: 0.084
+: absolute_change_longitude: 0.087
 
-# ## Question 6
-# 
-# You've seen that the feature importance for latitudinal distance is greater than the importance of longitudinal distance. From this, can we conclude whether travelling a fixed latitudinal distance tends to be more expensive than traveling the same longitudinal distance?
-# 
-# Why or why not? Check your answer below.
+Intuitively I would think that the difference in the scales would make a difference.
 
-# In[ ]:
+#+begin_src ipython :session permutation :results none
+data["bigger_pickup_longitude"] = data.pickup_longitude * 100
+data["bigger_absolute_change_longitude"] = data.absolute_change_longitude * 100
+features_3  = ['pickup_longitude',
+               'pickup_latitude',
+               'dropoff_longitude',
+               'dropoff_latitude',
+               'absolute_change_latitude',
+               'absolute_change_longitude',
+               'bigger_pickup_longitude',
+               'bigger_absolute_change_longitude'
+               ]
 
+X = data[features_3]
+big_x_train, big_x_validate, big_y_train, big_y_validate = train_test_split(X, y, random_state=1)
+big_model = RandomForestRegressor(n_estimators=30, random_state=1).fit(big_x_train, big_y_train)
+#+end_src
 
-# Check your answer (Run this code cell to receive credit!)
-q_6.solution()
+#+BEGIN_SRC ipython :session permutation :results output raw :exports both
+permutor = PermutationImportance(big_model, random_state=1).fit(big_x_validate, big_y_validate)
+ipython_html = eli5.show_weights(permutor, feature_names=big_x_validate.columns.tolist())
+table = pandas.read_html(ipython_html.data)[0]
+print(TABLE(table))
 
+#+END_SRC
 
-# ## Keep Going
-# 
-# Permutation importance is useful useful for debugging, understanding your model, and communicating a high-level overview from your model.  
-# 
-# Next, learn about **[partial dependence plots](https://www.kaggle.com/dansbecker/partial-plots)** to see **how** each feature affects predictions.
-# 
+#+RESULTS:
+| Weight           | Feature                          |
+|------------------+----------------------------------|
+| 0.5939  ± 0.0578 | absolute_change_latitude         |
+| 0.2875  ± 0.0181 | absolute_change_longitude        |
+| 0.2084  ± 0.0166 | bigger_absolute_change_longitude |
+| 0.0754  ± 0.0281 | pickup_latitude                  |
+| 0.0717  ± 0.0075 | dropoff_latitude                 |
+| 0.0648  ± 0.0119 | dropoff_longitude                |
+| 0.0460  ± 0.0125 | bigger_pickup_longitude          |
+| 0.0345  ± 0.0036 | pickup_longitude                 |
 
-# ---
-# **[Machine Learning Explainability Home Page](https://www.kaggle.com/learn/machine-learning-explainability)**
-# 
-# 
-# 
-# 
-# 
-# *Have questions or comments? Visit the [Learn Discussion forum](https://www.kaggle.com/learn-forum) to chat with other Learners.*
+Making the pickup longitude made it more important than the original, but it didn't change its ranking relative to the other features so I wouldn't say that the scale had an effect.
 
-#+END_EXAMPLE
+*** Question 6
+#+begin_quote
+You've seen that the feature importance for latitudinal distance is greater than the importance of longitudinal distance. From this, can we conclude whether travelling a fixed latitudinal distance tends to be more expensive than traveling the same longitudinal distance?
+#+end_quote
+
+No, the feature importance indicates that it is useful in predicting fares, but it doesn't automatically mean that the fares will increase with the change in latitude. It might be the case that the change in longitude affects the cost of a change in latitude as well, so a fixed latitude distance might change depending on the longitude or latitude + longitude combination.
+* End
+  The suggested next tutorial is about [[https://www.kaggle.com/dansbecker/partial-plots][Partial Dependence Plots]].
+
