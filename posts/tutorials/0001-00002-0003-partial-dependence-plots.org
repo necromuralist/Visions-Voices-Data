@@ -1,0 +1,218 @@
+#+BEGIN_COMMENT
+.. title: Partial Dependence Plots
+.. slug: partial-dependence-plots
+.. date: 2020-02-08 12:48:50 UTC-08:00
+.. tags: interpret,machine learning,visualization,tutorial
+.. category: Machine Learning
+.. link: 
+.. description: The Kaggle tutorial on Partial Dependence Plots.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 
+* Beginning
+** What is this about?
+  These are my notes/re-write of the [[https://www.kaggle.com/dansbecker/partial-plots][Partial Dependence Plots]] tutorial on kaggle. Partial Dependence Plots are a complement to Permutation Importance in that Permutation Importance can tell you which features are contributing to the model but don't tell you how features change with different inputs. Given that they have the word "Plot" in their name you can guess that this is a visualization method and since humans have a hard time visualizing things with more than three dimensions, using them requires selecting a subset of features (or maybe just one feature) to visualize at a time, so the fact that Permutation Importance ranks features by their contribution might come in handy in deciding which features to use.
+** How does it work?
+   In a simplistic view we might say that it takes input data and then repeatedly alters the values in our feature of choice, freezing the other values so that we can see how varying the feature changes the prediction. You can then repeat this for multiple rows of data and take the average prediction for each value of our feature.
+** Imports
+*** Python
+#+begin_src jupyter-python :session pdp :results none
+from pathlib import Path
+
+import os
+#+end_src
+*** PyPi
+#+begin_src jupyter-python :session pdp :results none
+from dotenv import load_dotenv
+from matplotlib import pyplot
+from pdpbox import pdp, get_dataset, info_plots
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import tree
+
+import graphviz
+import numpy
+import pandas
+#+end_src
+** Set Up
+*** Plotting
+#+begin_src jupyter-python :session pdp :results none
+SLUG = "partial-dependence-plots"
+OUTPUT_PATH = Path("../../files/posts/tutorials/")/SLUG
+#+end_src
+*** The Data
+#+begin_src jupyter-python :session pdp :results none
+path = Path("~/.env").expanduser()
+load_dotenv(path, override=True)
+data = pandas.read_csv(Path(os.getenv("FIFA-2018")).expanduser())
+#+end_src
+* Middle
+** A Decision Tree Model
+   The data is the same set from the Permutation Importance exercise (team data to predict whether one of them would become the /Budweiser Man of the Match/). Out initial model will be a shallow decision tree so that we can compare its structure to the plots.
+
+#+begin_src jupyter-python :session pdp :results none
+y = data["Man of the Match"] == "Yes"
+features = [column for column in data.columns if data[column].dtype == numpy.int64]
+X = data[features]
+
+x_train, x_validate, y_train, y_validate = train_test_split(X, y, random_state=1)
+
+tree_model = DecisionTreeClassifier(random_state=0, max_depth=5, min_samples_split=5).fit(x_train, y_train)
+#+end_src
+
+*** Visualizing the Decision Tree
+#+begin_src jupyter-python :session pdp :results output raw :exports both
+tree_graph = tree.export_graphviz(tree_model, out_file=None, feature_names=features)
+graph = graphviz.Source(tree_graph)
+output = "decision_tree.dot"
+graph.render(OUTPUT_PATH/output, format="png")
+print(f"[[file:{output}.png]]")
+#+end_src
+
+#+RESULTS:
+[[file:decision_tree.dot.png]]
+
+*** Partial Dependency Plot
+    To create the plot we can use the [[https://pdpbox.readthedocs.io/en/latest/][PDPBox library]].
+
+**** Create the Data to Plot
+#+begin_src jupyter-python :session pdp :results none
+FEATURE = "Goal Scored"
+pdp_goals = pdp.pdp_isolate(model=tree_model, dataset=x_validate,
+                            model_features=features, feature=FEATURE)
+#+end_src
+
+**** Plot It
+#+begin_src jupyter-python :session pdp :results output raw :exports both
+pdp.pdp_plot(pdp_goals, FEATURE)
+output = "pdp_goals_scored.png"
+pyplot.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+#+RESULTS:
+[[file:pdp_goals_scored.png]]
+
+
+Looking at the plot we can interpret it as saying that scoring that first goal is helpful in getting someone on the team the Man of the Match, but after that, more goals doesn't help. The PDPBox documentation has no real information about interpreting the output (or anything they provide, really), but according to the Kaggle tutorial the y-axis is the change in the prediction from the baseline as x changes.
+
+*** Distance Covered
+    We can also look at how much the distance the players cover on the field matters.
+#+begin_src jupyter-python :session pdp :results output raw :exports both
+FEATURE = "Distance Covered (Kms)"
+pdp_distance = pdp.pdp_isolate(model=tree_model, dataset=x_validate,
+                               model_features=features, feature=FEATURE)
+pdp.pdp_plot(pdp_distance, FEATURE)
+output = "pdp_distance.png"
+pyplot.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+#+RESULTS:
+[[file:pdp_distance.png]]
+
+It looks like there's one distance at which the probabilities increase and then going further doesn't matter.
+
+#+begin_src jupyter-python :session pdp :results output :exports both
+print(pdp_distance.feature_grids[3])
+#+end_src
+
+#+RESULTS:
+: 102.0
+
+So you want your team to cover at least 102 Kilometers, but covering more won't help you.
+** A Random Forest Model
+   The Decision Tree was useful because the simplicity made it easy to interpret, but an ensemble method like a Random Forest probably makes a better model so let's see what it reveals.
+
+#+begin_src jupyter-python :session pdp :results output raw :exports both
+forest = RandomForestClassifier(random_state=0).fit(x_train, y_train)
+
+FEATURE = "Goal Scored"
+pdp_goals = pdp.pdp_isolate(model=forest, dataset=x_validate,
+                            model_features=features, feature=FEATURE)
+pdp.pdp_plot(pdp_goals, FEATURE)
+output = "pdp_forest_goals_scored.png"
+pyplot.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+#+RESULTS:
+[[file:pdp_forest_goals_scored.png]]
+
+So, our random forest says that the greatest gain comes from the first goal, but there is in fact a greater probability as you increase the number of goals scored.
+
+What about distance covered?
+
+#+begin_src jupyter-python :session pdp :results output raw :exports both
+FEATURE = "Distance Covered (Kms)"
+pdp_distance = pdp.pdp_isolate(model=forest, dataset=x_validate,
+                               model_features=features, feature=FEATURE)
+pdp.pdp_plot(pdp_distance, FEATURE)
+output = "pdp_forest_distance.png"
+pyplot.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+#+RESULTS:
+[[file:pdp_forest_distance.png]]
+
+
+#+begin_src jupyter-python :session pdp :results output :exports both
+print(pdp_distance.feature_grids[pdp_distance.pdp.argmax()])
+#+end_src
+
+#+RESULTS:
+: 102.0
+
+Our forest says that, once again, covering 102 kilometers maximizes the probability, but in this case it appears that going beyond that actually decreases the probability that your team would have the man of the match.
+** 2D Partial Dependence Plots
+   Rather than plot a single feature against the probability of becoming the man of the match you can plot how two features interact to affect the probability.
+
+#+begin_src jupyter-python :session pdp :results output raw :exports both
+FEATURES = ["Goal Scored", "Distance Covered (Kms)"]
+interaction = pdp.pdp_interact(model=tree_model, dataset=x_validate,
+                               model_features=features,
+                               features=FEATURES)
+
+pdp.pdp_interact_plot(pdp_interact_out=interaction, feature_names=FEATURES,
+                      plot_type="contour")
+output = "goals_vs_distance.png"
+pyplot.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+#+RESULTS:
+[[file:goals_vs_distance.png]]
+
+*Note:* The version of PDPBox on pypi currently has a bug (as of February 8, 2020) that won't let you create the previous plot, install it from github instead.
+
+The plot shows a more succinct version of the two plots we had seen before - the optimal point for these two features is 1 goal and 102 Kms covered.
+
+*** Forest From the Trees
+    Let's re-run the same plot using the Random Forest instead of the Decision Tree.
+#+begin_src jupyter-python :session pdp :results output raw :exports both
+FEATURES = ["Goal Scored", "Distance Covered (Kms)"]
+interaction = pdp.pdp_interact(model=forest, dataset=x_validate,
+                               model_features=features,
+                               features=FEATURES)
+
+pdp.pdp_interact_plot(pdp_interact_out=interaction, feature_names=FEATURES,
+                      plot_type="contour")
+output = "forest_goals_vs_distance.png"
+pyplot.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+#+RESULTS:
+[[file:forest_goals_vs_distance.png]]
+
+The random forest suggests a slightly different scenario - here you want 2 gooalds and between 100 and 110 Kms (or thereabouts) covered to get the best probability.
+
+* End
+
+This showed how to use the PDPBox library to create Partial Dependence Plots to look at how input values for features affects the predicted outcomes. Unfortunately it looks like PDPBox might have been abandoned, but while it works it's a nice library.
