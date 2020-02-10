@@ -1,5 +1,167 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Mon, 10 Feb 2020 00:55:11 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Exercise In Partial Dependence Plots</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/exercise-in-partial-dependence-plots/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Mon, 10 Feb 2020 18:30:59 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>SHAP Values</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/#org5053af8"&gt;Beginning&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/#org43092de"&gt;Imports&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/#orgfc12349"&gt;Python&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/#orgf7562ad"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/#org7cc89ec"&gt;Others&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/#orgcb64a6f"&gt;Set Up&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/#orgc329407"&gt;The Timer&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/#org206d856"&gt;Environment&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/#org2af3be9"&gt;The Data&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/#org89b638c"&gt;A Single Row&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/#org001d690"&gt;Middle&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/#orge781fa2"&gt;End&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org5053af8" class="outline-2"&gt;
+&lt;h2 id="org5053af8"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org5053af8"&gt;
+&lt;p&gt;
+SHAP values interpret the impact of a certain value for a given feature when compared to the prediction you'd make if that feature instead took a baseline value. This helps us interpret predictions given specific values for our features. We'll do this using the &lt;a href="https://github.com/slundberg/shap"&gt;SHAP&lt;/a&gt; library, naturally.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org43092de" class="outline-3"&gt;
+&lt;h3 id="org43092de"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org43092de"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgfc12349" class="outline-4"&gt;
+&lt;h4 id="orgfc12349"&gt;Python&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgfc12349"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from pathlib import Path
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgf7562ad" class="outline-4"&gt;
+&lt;h4 id="orgf7562ad"&gt;PyPi&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgf7562ad"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;import numpy
+import pandas
+import shap
+
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.ensemble import RandomForestClassifier
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org7cc89ec" class="outline-4"&gt;
+&lt;h4 id="org7cc89ec"&gt;Others&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org7cc89ec"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from graeae import EnvironmentLoader, Timer
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgcb64a6f" class="outline-3"&gt;
+&lt;h3 id="orgcb64a6f"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgcb64a6f"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgc329407" class="outline-4"&gt;
+&lt;h4 id="orgc329407"&gt;The Timer&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgc329407"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;TIMER = Timer()
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org206d856" class="outline-4"&gt;
+&lt;h4 id="org206d856"&gt;Environment&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org206d856"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ENVIRONMENT = EnvironmentLoader()
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org2af3be9" class="outline-4"&gt;
+&lt;h4 id="org2af3be9"&gt;The Data&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2af3be9"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;data = pandas.read_csv(Path(ENVIRONMENT["FIFA-2018"]).expanduser())
+y = data["Man of the Match"] == "Yes"
+FEATURES = [column for column in data.columns if data[column].dtype == numpy.int64]
+X = data[FEATURES]
+x_train, x_validate, y_train, y_validate = train_test_split(X, y, random_state=1)
+
+
+model = RandomForestClassifier()
+
+estimators = list(range(50, 200, 10))
+max_depth = list(range(10, 100, 10)) + [None]
+
+grid = dict(n_estimators=estimators,
+	    max_depth=max_depth)
+search = RandomizedSearchCV(estimator=model,
+			    param_distributions=grid,
+			    n_iter=40,
+			    n_jobs=-1,
+			    random_state=1)
+with TIMER:
+    search.fit(x_train, y_train)
+first_model = search.best_estimator_
+print(f"CV Training R^2: {search.best_score_:0.2f}")
+print(f"Training R^2: {first_model.score(x_train, y_train): 0.2f}")
+print(f"Validation R^2: {first_model.score(x_validate, y_validate):0.2f}")
+print(search.best_params_)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+2020-02-09 18:27:26,574 graeae.timers.timer start: Started: 2020-02-09 18:27:26.574423
+2020-02-09 18:27:31,028 graeae.timers.timer end: Ended: 2020-02-09 18:27:31.028022
+2020-02-09 18:27:31,028 graeae.timers.timer end: Elapsed: 0:00:04.453599
+CV Training R^2: 0.70
+Training R^2:  1.00
+Validation R^2: 0.72
+{'n_estimators': 80, 'max_depth': 40}
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org89b638c" class="outline-3"&gt;
+&lt;h3 id="org89b638c"&gt;A Single Row&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org89b638c"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ROW = 5
+row_data = x_validate.iloc[ROW]
+row_data_matrix = row_data.values.reshape(1, -1)
+print(first_model.predict_proba(row_data_matrix))
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+[[0.325 0.675]]
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+This team has a 68% probability of having a player win the man of the match.
+&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;explainer = shap.TreeExplainer(first_model)
+shap_values = explainer.shap_values(row_data_matrix)
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;shap.initjs()
+shap.force_plot(explainer.expected_value[1], shap_values[1], row_data_matrix)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div id="outline-container-org001d690" class="outline-2"&gt;
+&lt;h2 id="org001d690"&gt;Middle&lt;/h2&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orge781fa2" class="outline-2"&gt;
+&lt;h2 id="orge781fa2"&gt;End&lt;/h2&gt;
+&lt;/div&gt;</description><category>interpret</category><category>machine learning</category><category>tutorial</category><category>visualization</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/</guid><pubDate>Mon, 10 Feb 2020 01:07:12 GMT</pubDate></item><item><title>Exercise In Partial Dependence Plots</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/exercise-in-partial-dependence-plots/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
@@ -4769,369 +4931,4 @@ In this case the Cohen's d and Hedges g look similar.
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description><category>dabest</category><category>visalization</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/</guid><pubDate>Mon, 16 Dec 2019 07:18:50 GMT</pubDate></item><item><title>A First Look At Snorkel</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
-&lt;h2&gt;Table of Contents&lt;/h2&gt;
-&lt;div id="text-table-of-contents"&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orge9daf90"&gt;Beginning&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orgb6187b9"&gt;Imports&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org5a4d26c"&gt;Python&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org3f24a07"&gt;PyPi&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org430fcde"&gt;Others&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org93ee95a"&gt;Set Up&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org2a4a5a5"&gt;Some Constants&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org7f8a1e9"&gt;The Plotting&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org44f8d52"&gt;The Data Set&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org973695b"&gt;Rename the Columns&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org0f08f4e"&gt;Middle&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org4d99c76"&gt;Setting Up the Training and Testing Sets&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#orgf2efbb5"&gt;Looking at the Data&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org853da44"&gt;Spam and Ham&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org54512f3"&gt;The Dates&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org4004a77"&gt;Some Samples&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org121ec30"&gt;Labeling Functions&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org6c32e7a"&gt;End&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/#org6800c08"&gt;Citations&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orge9daf90" class="outline-2"&gt;
-&lt;h2 id="orge9daf90"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orge9daf90"&gt;
-&lt;p&gt;
-This is a walk-through of Snorkel's &lt;a href="https://www.snorkel.org/get-started/"&gt;Get Started&lt;/a&gt; page.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgb6187b9" class="outline-3"&gt;
-&lt;h3 id="orgb6187b9"&gt;Imports&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgb6187b9"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org5a4d26c" class="outline-4"&gt;
-&lt;h4 id="org5a4d26c"&gt;Python&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org5a4d26c"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from argparse import Namespace
-from datetime import datetime
-from functools import partial
-from pathlib import Path
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org3f24a07" class="outline-4"&gt;
-&lt;h4 id="org3f24a07"&gt;PyPi&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org3f24a07"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from sklearn.model_selection import train_test_split
-import hvplot.pandas
-import pandas
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org430fcde" class="outline-4"&gt;
-&lt;h4 id="org430fcde"&gt;Others&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org430fcde"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;from graeae import CountPercentage, EmbedHoloviews
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org93ee95a" class="outline-3"&gt;
-&lt;h3 id="org93ee95a"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org93ee95a"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org2a4a5a5" class="outline-4"&gt;
-&lt;h4 id="org2a4a5a5"&gt;Some Constants&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org2a4a5a5"&gt;
-&lt;p&gt;
-There are two classes in the data set - &lt;i&gt;spam&lt;/i&gt; and &lt;i&gt;not spam&lt;/i&gt;, and for the labeling that we're going to do we also need a third value for the cases where the code can't give it a label.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;classified_as = Namespace(
-    not_spam = 0,
-    spam = 1,
-    unknown = -1,
-)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org7f8a1e9" class="outline-4"&gt;
-&lt;h4 id="org7f8a1e9"&gt;The Plotting&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org7f8a1e9"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;path = "../../files/posts/data/a-first-look-at-snorkel"
-Embed = partial(EmbedHoloviews, folder_path=path)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org44f8d52" class="outline-4"&gt;
-&lt;h4 id="org44f8d52"&gt;The Data Set&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org44f8d52"&gt;
-&lt;p&gt;
-This dataset is a set of comments taken from you-tube videos and hosted on &lt;a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/"&gt;this site&lt;/a&gt;. The comments are for music videos by five artists.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
-assert path.is_dir()
-
-parts = []
-for name in path.glob("*csv"):
-    data = pandas.read_csv(name)    
-    data["artist"] = name.name.split()[-1].split(".")[0]
-    parts.append(data)
-
-data = pandas.concat(parts)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org973695b" class="outline-4"&gt;
-&lt;h4 id="org973695b"&gt;Rename the Columns&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org973695b"&gt;
-&lt;p&gt;
-This just makes it easier for me since it matches my style.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Column = Namespace(
-    comment_id = "comment_id",
-    author = "author",
-    datetime = "datetime",
-    text = "text",
-    label = "label",
-    artist = "artist",
-)
-renames = {"COMMENT_ID": Column.comment_id,
-	   "AUTHOR": Column.author,
-	   "DATE": Column.datetime,
-	   "CONTENT": Column.text,
-	   "CLASS": Column.label}
-data = data.rename(columns=renames)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org0f08f4e" class="outline-2"&gt;
-&lt;h2 id="org0f08f4e"&gt;Middle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org0f08f4e"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org4d99c76" class="outline-3"&gt;
-&lt;h3 id="org4d99c76"&gt;Setting Up the Training and Testing Sets&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org4d99c76"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;x_train, x_test, y_train, y_test = train_test_split(data[Column.comment_id,
-							 Column.author,
-							 Column.datetime,
-							 Column.text,
-							 Column.artist],
-						    data[Column.label],
-						    test_size=0.2)
-x_train, x_dev, y_train, y_dev = train_test_split(x_train, y_train,
-						  test_size=0.1)
-x_test, x_validation, y_test, y_validation = train_test_split(x_test, y_test,
-							      test_size=0.1)
-
-print(f"Training Size: {len(x_train):,}")
-print(f"Development Size: {len(x_dev):,}")
-print(f"Validation Size: {len(x_validation):,}")
-print(f"Test Size: {len(x_test):,}")
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Training Size: 1,407
-Development Size: 157
-Validation Size: 40
-Test Size: 352
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgf2efbb5" class="outline-3"&gt;
-&lt;h3 id="orgf2efbb5"&gt;Looking at the Data&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgf2efbb5"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(x_dev.sample().iloc[0])
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-If I get 100 subscribers, I will summon Freddy Mercury's ghost to whipe  from the face of earth One Direction and Miley Cirus.﻿
-&lt;/pre&gt;
-
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(f"{len(data):,}")
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-1,956
-&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org853da44" class="outline-4"&gt;
-&lt;h4 id="org853da44"&gt;Spam and Ham&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org853da44"&gt;
-&lt;p&gt;
-There are two classes in the dataset - SPAM (1) and not-spam (0), sometimes called HAM.
-&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;counter = CountPercentage(data.label)
-counter()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
-
-
-&lt;colgroup&gt;
-&lt;col class="org-right"&gt;
-
-&lt;col class="org-left"&gt;
-
-&lt;col class="org-right"&gt;
-&lt;/colgroup&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th scope="col" class="org-right"&gt;Value&lt;/th&gt;
-&lt;th scope="col" class="org-left"&gt;Count&lt;/th&gt;
-&lt;th scope="col" class="org-right"&gt;Percent (%)&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td class="org-right"&gt;1&lt;/td&gt;
-&lt;td class="org-left"&gt;1,005&lt;/td&gt;
-&lt;td class="org-right"&gt;51.38&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td class="org-right"&gt;0&lt;/td&gt;
-&lt;td class="org-left"&gt;951&lt;/td&gt;
-&lt;td class="org-right"&gt;48.62&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grouped = data.groupby([Column.artist]).agg({Column.label: "sum", Column.comment_id: "count"}).reset_index().rename(
-    columns={Column.label: "spam", Column.comment_id: "total"})
-grouped["ham"] = grouped.total - grouped.spam
-plotter = grouped[[Column.artist, "spam", "ham"]]
-plot = plotter.hvplot.bar(x=Column.artist, stacked=True, legend=True,).opts(
-    title="Spam Counts",
-    width=1000, height=800)
-Embed(plot=plot, file_name="spam_counts")()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/spam_counts.html" style="width:100%" height="800"&gt;
-  &lt;p&gt;Figure Missing&lt;/p&gt;
-&lt;/object&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org54512f3" class="outline-4"&gt;
-&lt;h4 id="org54512f3"&gt;The Dates&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org54512f3"&gt;
-&lt;p&gt;
-I'll look at when the comments were made, just to see.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;print(len(data[data[Column.datetime].isna()]))
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-245
-&lt;/pre&gt;
-
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;with_date = data[~data[Column.datetime].isna()]
-with_date.loc[:, Column.datetime] = pandas.to_datetime(with_date[Column.datetime])
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;with_date.loc[:, "Month"] = with_date[Column.datetime].apply(lambda date: datetime(date.year, date.month, 1))
-group = with_date.groupby(["Month", Column.artist, Column.label]).agg(
-    {Column.comment_id: "count"}).reset_index().rename(
-	columns={Column.comment_id: "Count",
-		 Column.artist: "Artist"})
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;spam = group[group[Column.label] == classified_as.spam]
-ham = group[group[Column.label] == classified_as.not_spam]
-spam_plot = spam.hvplot(x="Month", y="Count", by="Artist", label="Spam")
-plot = spam_plot.opts(title="Monthly Spam By Artist", width=1000, height=800)
-Embed(plot=plot, file_name="monthly_spam_by_artist")()
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/monthly_spam_by_artist.html" style="width:100%" height="800"&gt;
-  &lt;p&gt;Figure Missing&lt;/p&gt;
-&lt;/object&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org4004a77" class="outline-4"&gt;
-&lt;h4 id="org4004a77"&gt;Some Samples&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org4004a77"&gt;
-&lt;/div&gt;
-&lt;ul class="org-ul"&gt;
-&lt;li&gt;&lt;a id="orgd416c09"&gt;&lt;/a&gt;SPAM&lt;br&gt;
-&lt;div class="outline-text-5" id="text-orgd416c09"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;spam = data[data[Column.label]==classified_as.spam].sample(5)
-for index in range(len(spam)):
-    print(f"({spam.iloc[index][Column.artist]}): {spam.iloc[index][Column.text]}")
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-(Eminem): Do you need more instagram followers or photo likes? Check out IGBlast.com and get em in minutes!
-(Eminem): Check out my channel im 15 year old rapper!
-(Shakira): Part 5. Comforter of the afflicted, pray for us Help of Christians, pray for us Queen of Angels, pray for us Queen of Patriarchs, pray for us Queen of Prophets, pray for us Queen of Apostles, pray for us Queen of Martyrs, pray for us Queen of Confessors, pray for us Queen of Virgins, pray for us Queen of all Saints, pray for us Queen conceived without original sin, pray for us Queen of the most holy Rosary, pray for us Queen of the family, pray for us Queen of peace, pray for us 
-(Eminem): Hey guys I&amp;amp;#39;m 87 cypher im 11 years old and Rap is my life I recently made my second album desire ep . please take a moment to check out my album on YouTube thank you very much for reading every like comment and subscription counts
-(Eminem): Check out this video on YouTube:﻿
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/li&gt;
-
-&lt;li&gt;&lt;a id="orga91282d"&gt;&lt;/a&gt;Ham&lt;br&gt;
-&lt;div class="outline-text-5" id="text-orga91282d"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ham = data[data[Column.label]==classified_as.not_spam].sample(5)
-for index in range(len(ham)):
-    print(f"({ham.iloc[index][Column.artist]}): {ham.iloc[index][Column.text]}")
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-(Eminem): charlieee :DDDD (Those who saw Lost only will understand)﻿
-(LMFAO): BEST PARTY SONG LITERALLY PARTY ROCK IS IN THE HOUSEE TONIGHT!!!!﻿
-(LMFAO): I like how the robot shuffles he shuffles good﻿
-(KatyPerry): ROAAAAARRRRRR 🐯🐯🐯﻿
-(Shakira): like me﻿
-&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org121ec30" class="outline-3"&gt;
-&lt;h3 id="org121ec30"&gt;Labeling Functions&lt;/h3&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org6c32e7a" class="outline-2"&gt;
-&lt;h2 id="org6c32e7a"&gt;End&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org6c32e7a"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org6800c08" class="outline-3"&gt;
-&lt;h3 id="org6800c08"&gt;Citations&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org6800c08"&gt;
-&lt;ul class="org-ul"&gt;
-&lt;li&gt;Alberto, T.C., Lochter J.V., Almeida, T.A. TubeSpam: Comment Spam Filtering on YouTube. Proceedings of the 14th IEEE International Conference on Machine Learning and Applications (ICMLA'15), 1-6, Miami, FL, USA, December, 2015. (preprint)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;</description><category>data</category><category>labeling</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/data/a-first-look-at-snorkel/</guid><pubDate>Thu, 26 Sep 2019 21:47:16 GMT</pubDate></item></channel></rss>
+&lt;/div&gt;</description><category>dabest</category><category>visalization</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/libraries/a-first-look-at-dabest/</guid><pubDate>Mon, 16 Dec 2019 07:18:50 GMT</pubDate></item></channel></rss>
