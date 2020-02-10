@@ -17,13 +17,13 @@
   This is my re-do of the [[https://www.kaggle.com/learn/machine-learning-explainability][Machine Learning Explainability]] Permutation Importance exercise on kaggle. It uses the data from the [[https://www.kaggle.com/c/new-york-city-taxi-fare-prediction/data][New York City Taxi Fare Prediction]] dataset on kaggle.
 ** Imports
 *** From Python
-#+BEGIN_SRC jupyter-python :session permutation :results none
+#+BEGIN_SRC python :session permutation :results none
 from argparse import Namespace
 from functools import partial
 from pathlib import Path
 #+end_src
 *** From PyPi
-#+BEGIN_SRC jupyter-python :session permutation :results none
+#+BEGIN_SRC python :session permutation :results none
 from eli5.sklearn import PermutationImportance
 
 from sklearn.ensemble import RandomForestRegressor
@@ -33,19 +33,20 @@ from tabulate import tabulate
 
 import eli5
 import hvplot.pandas
+import numpy
 import pandas
 #+END_SRC
 *** Others
-#+BEGIN_SRC jupyter-python :session permutation :results none
+#+BEGIN_SRC python :session permutation :results none
 from graeae import EmbedHoloviews, EnvironmentLoader, Timer
 #+end_src
 ** Set Up
 *** A Timer
-#+BEGIN_SRC jupyter-python :session permutation :results none
+#+BEGIN_SRC python :session permutation :results none
 TIMER = Timer()
 #+end_src
 *** Plotting
-#+BEGIN_SRC jupyter-python :session permutation :results none
+#+BEGIN_SRC python :session permutation :results none
 SLUG = "exercise-in-permutation-importance"
 PATH = Path("../../files/posts/tutorials/")/SLUG
 Plot = Namespace(
@@ -55,42 +56,44 @@ Plot = Namespace(
 Embed = partial(EmbedHoloviews, folder_path=PATH)
 #+end_src
 *** The Environment
-#+BEGIN_SRC jupyter-python :session permutation :results none
+#+BEGIN_SRC python :session permutation :results none
 ENVIRONMENT = EnvironmentLoader()
 #+end_src
 *** Table Printer
-#+BEGIN_SRC jupyter-python :session permutation :results none
+#+BEGIN_SRC python :session permutation :results none
 TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys", showindex=False)
 #+end_src
 * Middle
 *** The Dataset
     Since this is about permutation importance we're just going to load a subset (there are over five million rows in the dataset) and use previously discovered values to get rid of outliers.
 
-#+BEGIN_SRC jupyter-python :session permutation :results none
+#+BEGIN_SRC python :session permutation :results none
 ROWS = 5 * 10**4
 PATH = Path(ENVIRONMENT["NY-TAXI"]).expanduser()
 assert PATH.is_dir()
 data = pandas.read_csv(PATH/"train.csv", nrows=ROWS)
 #+end_src
 
-#+BEGIN_SRC jupyter-python :session permutation :results output :exports both
-print(TABLE(data.iloc[0].reset_index().rename(columns={"index": "Column", 0: "Value"})))
+#+BEGIN_SRC python :session permutation :results output raw :exports both
+print(TABLE(data.iloc[0].reset_index().rename(columns={
+    "index": "Column", 0: "Value"})))
 #+end_src
 
 #+RESULTS:
-| Column            | Value                       |
+| Column            |                       Value |
 |-------------------+-----------------------------|
 | key               | 2009-06-15 17:26:21.0000001 |
-| fare_amount       | 4.5                         |
-| pickup_datetime   | 2009-06-15 17:26:21 UTC     |
-| pickup_longitude  | -73.844311                  |
-| pickup_latitude   | 40.721319                   |
-| dropoff_longitude | -73.84161                   |
-| dropoff_latitude  | 40.712278000000005          |
-| passenger_count   | 1                           |
+| fare_amount       |                         4.5 |
+| pickup_datetime   |     2009-06-15 17:26:21 UTC |
+| pickup_longitude  |                  -73.844311 |
+| pickup_latitude   |                   40.721319 |
+| dropoff_longitude |                   -73.84161 |
+| dropoff_latitude  |          40.712278000000005 |
+| passenger_count   |                           1 |
+# Out[9]:
 
 **** Trim Outliers
-#+BEGIN_SRC jupyter-python :session permutation :results output raw :exports both
+#+BEGIN_SRC python :session permutation :results output raw :exports both
 print(TABLE(data.describe(), showindex=True))
 #+END_SRC
 
@@ -106,9 +109,12 @@ print(TABLE(data.describe(), showindex=True))
 | 75%   |      12.5     |           -73.9671 |          40.7674  |            -73.9636 |           40.7682  |           2       |
 | max   |     200       |            40.7835 |         401.083   |             40.851  |           43.4152  |           6       |
 
-#+BEGIN_SRC jupyter-python :session permutation :results output raw :exports both
-to_plot = data[[column for column in data.columns if "latitude" in column or "longitude" in column]]
-plot = to_plot.hvplot.box().opts(title="Column Box-Plots", width=Plot.width, height=Plot.height)
+#+BEGIN_SRC python :session permutation :results output raw :exports both
+to_plot = data[[column for column in data.columns
+                if "latitude" in column or "longitude" in column]]
+plot = to_plot.hvplot.box().opts(title="Column Box-Plots",
+                                 width=Plot.width,
+                                 height=Plot.height)
 Embed(plot=plot, file_name="column_box_plots")()
 #+END_SRC
 
@@ -123,7 +129,7 @@ So you can see that there are negative fares, which seems wrong, and some outlie
 
 This uses the pandas [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.query.html][query]] method which let's you write slightly more readable code for boolean slicing.
 
-#+BEGIN_SRC jupyter-python :session permutation :results output :exports both
+#+BEGIN_SRC python :session permutation :results output :exports both
 print(f"{len(data):,}")
 data = data.query("pickup_latitude > 40.7 and pickup_latitude < 40.8 and " +
                   "dropoff_latitude > 40.7 and dropoff_latitude < 40.8 and " +
@@ -139,7 +145,7 @@ print(f"{len(data):,}")
 : 31,289
 
 *** Set Up the Training and Test Sets
-#+BEGIN_SRC jupyter-python :session permutation :results output :exports both
+#+BEGIN_SRC python :session permutation :results output :exports both
 y = data.fare_amount
 base_features = ['pickup_longitude',
                  'pickup_latitude',
@@ -158,7 +164,7 @@ print(f"{len(x_validate):,}")
 : 23,466
 : 7,823
 ** Build and Train the Model
-#+begin_src jupyter-python :session permutation :results output :exports both
+#+begin_src python :session permutation :results output :exports both
 estimators = list(range(50, 200, 10))
 max_depth = list(range(10, 100, 10)) + [None]
 
@@ -181,15 +187,19 @@ print(search.best_params_)
 #+end_src
 
 #+RESULTS:
-: 2020-02-09 14:28:34,418 graeae.timers.timer start: Started: 2020-02-09 14:28:34.418069
-: /home/athena/.virtualenvs/Visions-Voices-Data/lib/python3.7/site-packages/joblib/externals/loky/process_executor.py:706: UserWarning: A worker stopped while some jobs were given to the executor. This can be caused by a too short worker timeout or by a memory leak.
-:   "timeout or by a memory leak.", UserWarning
-: 2020-02-09 14:34:20,498 graeae.timers.timer end: Ended: 2020-02-09 14:34:20.498920
-: 2020-02-09 14:34:20,500 graeae.timers.timer end: Elapsed: 0:05:46.080851
-: CV Training R^2: 0.45
-: Training R^2:  0.92
-: Validation R^2: 0.43
-: {'n_estimators': 180, 'max_depth': 50}
+#+begin_example
+2020-02-10 13:40:59,617 graeae.timers.timer start: Started: 2020-02-10 13:40:59.616742
+/home/brunhilde/.virtualenvs/Visions-Voices-Data/lib/python3.7/site-packages/sklearn/model_selection/_split.py:1978: FutureWarning: The default value of cv will change from 3 to 5 in version 0.22. Specify it explicitly to silence this warning.
+  warnings.warn(CV_WARNING, FutureWarning)
+/home/brunhilde/.virtualenvs/Visions-Voices-Data/lib/python3.7/site-packages/joblib/externals/loky/process_executor.py:706: UserWarning: A worker stopped while some jobs were given to the executor. This can be caused by a too short worker timeout or by a memory leak.
+  "timeout or by a memory leak.", UserWarning
+2020-02-10 13:42:04,387 graeae.timers.timer end: Ended: 2020-02-10 13:42:04.387425
+2020-02-10 13:42:04,390 graeae.timers.timer end: Elapsed: 0:01:04.770683
+CV Training R^2: 0.45
+Training R^2:  0.92
+Validation R^2: 0.42
+{'n_estimators': 170, 'max_depth': 70}
+#+end_example
 
 So it isn't really a great model, but we'll ignore that for now.
 
@@ -208,12 +218,15 @@ Before running any code... which variables seem potentially useful for predictin
 
 I think that pickup and dropoff latitude might be important, since this would reflect where in the city the person was and wanted to go. Passenger count might make a difference as well, but I don't know if there's a greater charge for more people. Longitude might also be useful, but my guess would be that the North-South location is more indicative of the type of place you are in (uptown or downtown) and thus how far you have to travel (I have a vague notion that New York City is longer vertically than horizontally, but I don't know if this is true). This would be even more important if the fares change by location, but I don't know if that's the case.
 
-#+BEGIN_SRC jupyter-python :session permutation :results none
-permutor = PermutationImportance(first_model, random_state=1).fit(x_validate, y_validate)
+#+BEGIN_SRC python :session permutation :results output :exports both
+with TIMER:
+    permutor = PermutationImportance(first_model, random_state=1).fit(
+        x_validate, y_validate)
 #+end_src
 
-#+BEGIN_SRC jupyter-python :session permutation :results output raw :exports both
-ipython_html = eli5.show_weights(permutor, feature_names=x_validate.columns.tolist())
+#+BEGIN_SRC python :session permutation :results output raw :exports both
+ipython_html = eli5.show_weights(permutor,
+                                 feature_names=x_validate.columns.tolist())
 table = pandas.read_html(ipython_html.data)[0]
 print(TABLE(table))
 #+END_SRC
@@ -241,9 +254,11 @@ The code below creates new features for longitudinal and latitudinal distance. I
 *** Feature Engineering
     We're going to estimate the distance traveled by using the differences in latitude and longitude from the pickup to the dropoff. This should give us a taxicab-distance estimate.
 
-#+BEGIN_SRC jupyter-python :session permutation :results output :exports both
-data['absolute_change_longitude'] = abs(data.dropoff_longitude - data.pickup_longitude)
-data['absolute_change_latitude'] = abs(data.dropoff_latitude - data.pickup_latitude)
+#+BEGIN_SRC python :session permutation :results output :exports both
+data['absolute_change_longitude'] = abs(
+    data.dropoff_longitude - data.pickup_longitude)
+data['absolute_change_latitude'] = abs(
+    data.dropoff_latitude - data.pickup_latitude)
 
 features_2  = ['pickup_longitude',
                'pickup_latitude',
@@ -253,7 +268,8 @@ features_2  = ['pickup_longitude',
                'absolute_change_longitude']
 
 X = data[features_2]
-new_x_train, new_x_validate, new_y_train, new_y_validate = train_test_split(X, y, random_state=1)
+new_x_train, new_x_validate, new_y_train, new_y_validate = train_test_split(
+    X, y, random_state=1)
 
 estimators = list(range(100, 250, 10))
 max_depth = list(range(10, 50, 10)) + [None]
@@ -264,7 +280,7 @@ search = RandomizedSearchCV(estimator=model,
                             random_state=1)
 with TIMER:
     search.fit(new_x_train, new_y_train)
-#second_model = RandomForestRegressor(n_estimators=30, random_state=1).fit(new_x_train, new_y_train)
+
 second_model = search.best_estimator_
 print(f"Mean Cross-Validation Training R^2: {search.best_score_:0.2f}")
 print(f"Training R^2: {second_model.score(new_x_train, new_y_train): 0.2f}")
@@ -274,19 +290,23 @@ print(search.best_params_)
 #+end_src
 
 #+RESULTS:
-: 2020-02-09 14:53:43,624 graeae.timers.timer start: Started: 2020-02-09 14:53:43.624798
-: 2020-02-09 14:55:36,920 graeae.timers.timer end: Ended: 2020-02-09 14:55:36.919979
-: 2020-02-09 14:55:36,920 graeae.timers.timer end: Elapsed: 0:01:53.295181
-: Mean Cross-Validation Training R^2: 0.49
+: 2020-02-10 13:42:52,104 graeae.timers.timer start: Started: 2020-02-10 13:42:52.104493
+: /home/brunhilde/.virtualenvs/Visions-Voices-Data/lib/python3.7/site-packages/sklearn/model_selection/_split.py:1978: FutureWarning: The default value of cv will change from 3 to 5 in version 0.22. Specify it explicitly to silence this warning.
+:   warnings.warn(CV_WARNING, FutureWarning)
+: 2020-02-10 13:43:24,554 graeae.timers.timer end: Ended: 2020-02-10 13:43:24.554581
+: 2020-02-10 13:43:24,556 graeae.timers.timer end: Elapsed: 0:00:32.450088
+: Mean Cross-Validation Training R^2: 0.48
 : Training R^2:  0.70
 : Validation R^2: 0.47
 : {'n_estimators': 190, 'max_depth': 10}
 
 Still a pretty bad model, but that's not the point, I guess.
 *** The Permutation Importance
-#+BEGIN_SRC jupyter-python :session permutation :results output raw :exports both
-permutor = PermutationImportance(second_model, random_state=1).fit(new_x_validate, new_y_validate)
-ipython_html = eli5.show_weights(permutor, feature_names=new_x_validate.columns.tolist())
+#+BEGIN_SRC python :session permutation :results output raw :exports both
+permutor = PermutationImportance(second_model, random_state=1).fit(
+    new_x_validate, new_y_validate)
+ipython_html = eli5.show_weights(permutor,
+                                 feature_names=new_x_validate.columns.tolist())
 table = pandas.read_html(ipython_html.data)[0]
 print(TABLE(table))
 #+END_SRC
@@ -294,19 +314,19 @@ print(TABLE(table))
 #+RESULTS:
 | Weight           | Feature                   |
 |------------------+---------------------------|
-| 0.5960  ± 0.0239 | absolute_change_latitude  |
-| 0.4362  ± 0.0438 | absolute_change_longitude |
-| 0.0310  ± 0.0175 | pickup_latitude           |
-| 0.0226  ± 0.0029 | dropoff_latitude          |
-| 0.0211  ± 0.0085 | dropoff_longitude         |
-| 0.0164  ± 0.0033 | pickup_longitude          |
+| 0.5976  ± 0.0306 | absolute_change_latitude  |
+| 0.4429  ± 0.0496 | absolute_change_longitude |
+| 0.0339  ± 0.0216 | pickup_latitude           |
+| 0.0232  ± 0.0032 | dropoff_latitude          |
+| 0.0214  ± 0.0068 | dropoff_longitude         |
+| 0.0159  ± 0.0055 | pickup_longitude          |
 
 The distance traveled seems to be the most important feature for the fare, even more than the actual locations, probably because taxis charge by distance.
 
 *** Question 5
     This question is about the scale of the parameters. Here's a sample.
 
-#+BEGIN_SRC jupyter-python :session permutation :results output raw :exports both
+#+BEGIN_SRC python :session permutation :results output raw :exports both
 print(TABLE(new_x_train.sample(random_state=1).iloc[0].reset_index()))
 #+END_SRC
 
@@ -321,7 +341,7 @@ print(TABLE(new_x_train.sample(random_state=1).iloc[0].reset_index()))
 | absolute_change_longitude | 0.010067 |
 
 And here's some statistics about each.
-#+BEGIN_SRC jupyter-python :session permutation :results output :exports both
+#+BEGIN_SRC python :session permutation :results output :exports both
 print(new_x_validate.describe())
 #+END_SRC
 
@@ -356,7 +376,7 @@ Consider an alternative where you created and used a feature that was 100X as la
 Why or why not?
 #+end_quote
 
-#+BEGIN_SRC jupyter-python :session permutation :results output :exports both
+#+BEGIN_SRC python :session permutation :results output :exports both
 for column in ("pickup_longitude pickup_latitude dropoff_longitude "
                "dropoff_latitude absolute_change_latitude "
                "absolute_change_longitude").split():
@@ -373,7 +393,7 @@ for column in ("pickup_longitude pickup_latitude dropoff_longitude "
 
 Intuitively I would think that the difference in the scales would make a difference.
 
-#+begin_src jupyter-python :session permutation :results output :exports both
+#+begin_src python :session permutation :results output :exports both
 data["bigger_pickup_longitude"] = data.pickup_longitude * 100
 data["bigger_absolute_change_longitude"] = data.absolute_change_longitude * 100
 features_3  = ['pickup_longitude',
@@ -387,7 +407,8 @@ features_3  = ['pickup_longitude',
                ]
 
 X = data[features_3]
-big_x_train, big_x_validate, big_y_train, big_y_validate = train_test_split(X, y, random_state=1)
+big_x_train, big_x_validate, big_y_train, big_y_validate = train_test_split(
+    X, y, random_state=1)
 model = RandomForestRegressor()
 search = RandomizedSearchCV(estimator=model,
                             param_distributions=grid,
@@ -414,9 +435,11 @@ print(search.best_params_)
 : Validation R^2: 0.47
 : {'n_estimators': 190, 'max_depth': 10}
 
-#+BEGIN_SRC jupyter-python :session permutation :results output raw :exports both
-permutor = PermutationImportance(big_model, random_state=1).fit(big_x_validate, big_y_validate)
-ipython_html = eli5.show_weights(permutor, feature_names=big_x_validate.columns.tolist())
+#+BEGIN_SRC python :session permutation :results output raw :exports both
+permutor = PermutationImportance(big_model, random_state=1).fit(
+    big_x_validate, big_y_validate)
+ipython_html = eli5.show_weights(permutor,
+                                 feature_names=big_x_validate.columns.tolist())
 table = pandas.read_html(ipython_html.data)[0]
 print(TABLE(table))
 #+END_SRC
@@ -441,6 +464,72 @@ You've seen that the feature importance for latitudinal distance is greater than
 #+end_quote
 
 No, the feature importance indicates that it is useful in predicting fares, but it doesn't automatically mean that the fares will increase with the change in latitude. It might be the case that the change in longitude affects the cost of a change in latitude as well, so a fixed latitude distance might change depending on the longitude or latitude + longitude combination.
+** Euclidean Distance
+   Instead of keeping latitudinal and longitudinal distances separate, what if we used the euclidean distance?
+
+#+BEGIN_SRC python :session permutation :results output :exports both
+data["euclidean_distance"] = numpy.sqrt(data.absolute_change_latitude**2
+                                        + data.absolute_change_longitude**2)
+features  = ['pickup_longitude',
+               'pickup_latitude',
+               'dropoff_longitude',
+               'dropoff_latitude',
+               'absolute_change_latitude',
+               'absolute_change_longitude',
+               "euclidean_distance",
+               ]
+
+X = data[features]
+euclid_x_train, euclid_x_validate, euclid_y_train, euclid_y_validate = train_test_split(X, y, random_state=1)
+model = RandomForestRegressor()
+search = RandomizedSearchCV(estimator=model,
+                            param_distributions=grid,
+                            n_jobs=-1,
+                            random_state=1)
+with TIMER:
+    search.fit(euclid_x_train, euclid_y_train)
+euclidean_model = search.best_estimator_
+print(f"Mean Cross-Validation Training R^2: {search.best_score_:0.2f}")
+print(f"Training R^2: {euclidean_model.score(euclid_x_train, euclid_y_train): 0.2f}")
+print("Validation R^2: "
+      f"{euclidean_model.score(euclid_x_validate, euclid_y_validate):0.2f}")
+print(search.best_params_)
+#+END_SRC
+
+#+RESULTS:
+: 2020-02-10 14:23:41,605 graeae.timers.timer start: Started: 2020-02-10 14:23:41.605310
+: /home/brunhilde/.virtualenvs/Visions-Voices-Data/lib/python3.7/site-packages/sklearn/model_selection/_split.py:1978: FutureWarning: The default value of cv will change from 3 to 5 in version 0.22. Specify it explicitly to silence this warning.
+:   warnings.warn(CV_WARNING, FutureWarning)
+: 2020-02-10 14:24:20,385 graeae.timers.timer end: Ended: 2020-02-10 14:24:20.385580
+: 2020-02-10 14:24:20,388 graeae.timers.timer end: Elapsed: 0:00:38.780270
+: Mean Cross-Validation Training R^2: 0.48
+: Training R^2:  0.74
+: Validation R^2: 0.48
+: {'n_estimators': 190, 'max_depth': 10}
+
+Interestingly, the training \(R^2\) score went down although there was a slight improvement in the validation \(R^2\).
+#+BEGIN_SRC python :session permutation :results output raw :exports both
+permutor = PermutationImportance(euclidean_model, random_state=1).fit(
+    euclid_x_validate, euclid_y_validate)
+ipython_html = eli5.show_weights(
+    permutor,
+    feature_names=euclid_x_validate.columns.tolist())
+table = pandas.read_html(ipython_html.data)[0]
+print(TABLE(table))
+#+END_SRC
+
+#+RESULTS:
+| Weight           | Feature                   |
+|------------------+---------------------------|
+| 1.3370  ± 0.0469 | euclidean_distance        |
+| 0.3031  ± 0.0076 | absolute_change_latitude  |
+| 0.1179  ± 0.0046 | absolute_change_longitude |
+| 0.0261  ± 0.0045 | dropoff_latitude          |
+| 0.0224  ± 0.0140 | dropoff_longitude         |
+| 0.0219  ± 0.0041 | pickup_longitude          |
+| 0.0183  ± 0.0051 | pickup_latitude           |
+
+According to the permutation importance, euclidean distance is much more important than the separate distances.
 * End
   The suggested next tutorial is about [[https://www.kaggle.com/dansbecker/partial-plots][Partial Dependence Plots]].
 
