@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="An exercise in Partial Dependence Plots." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Exercise In Partial Dependence Plots | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/exercise-in-partial-dependence-plots/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="../../../assets/javascript/p5.min.js" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="/posts/tutorials/partial-dependence-plots/" rel="prev" title="Partial Dependence Plots" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Exercise In Partial Dependence Plots" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/exercise-in-partial-dependence-plots/" property="og:url">
+<meta content="An exercise in Partial Dependence Plots." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2020-02-09T13:26:37-08:00" property="article:published_time">
+<meta content="interpret" property="article:tag">
+<meta content="machine learning" property="article:tag">
+<meta content="tutorial" property="article:tag">
+<meta content="visualization" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="/archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="/categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="/rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="/pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"> <input name="k8" type="hidden" value="#444444"> <input name="k9" type="hidden" value="#D51920"> <input name="kt" type="hidden" value="h"> <input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"> <input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="/posts/tutorials/exercise-in-partial-dependence-plots/index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href="/posts/tutorials/exercise-in-partial-dependence-plots/">Exercise In Partial Dependence Plots</a></h1>
+<div class="metadata">
+<p class="byline author vcard p-author h-card"><span class="byline-name fn p-name" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/tutorials/exercise-in-partial-dependence-plots/" rel="bookmark"><time class="published dt-published" datetime="2020-02-09T13:26:37-08:00" itemprop="datePublished" title="2020-02-09 13:26">2020-02-09 13:26</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="/posts/tutorials/exercise-in-partial-dependence-plots/index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#orgc4b9b92">Beginning</a>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#org28397e7">Imports</a>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#orge120f44">Python</a></li>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#orgc68d7c1">PyPi</a></li>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#orge329a31">Others</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#org8755954">Set Up</a>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#org11946ee">The Environment</a></li>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#org77f0ad0">The Timer</a></li>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#org29ef8e6">Plotting</a></li>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#org2cdbde9">The Data</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#orgc1a78ad">Middle</a>
+<ul>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#org9e2af56">The First Model</a></li>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#orgc97feb3">Question 1</a></li>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#org617fc19">Question 2</a></li>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#orgfc819a7">Question 3</a></li>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#orga8ada38">Question 4</a></li>
+<li><a href="/posts/tutorials/exercise-in-partial-dependence-plots/#org8fba01a">Question 5</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc4b9b92">
+<h2 id="orgc4b9b92">Beginning</h2>
+<div class="outline-text-2" id="text-orgc4b9b92">
+<p>This is my re-working of the Kaggle <a href="https://www.kaggle.com/learn/machine-learning-explainability">Machine Learning Explainability</a> exercise in Partial Dependece Plots. It uses data from the <a href="https://www.kaggle.com/c/new-york-city-taxi-fare-prediction">Taxi Fare Prediction</a> competition.</p>
+</div>
+<div class="outline-3" id="outline-container-org28397e7">
+<h3 id="org28397e7">Imports</h3>
+<div class="outline-text-3" id="text-org28397e7"></div>
+<div class="outline-4" id="outline-container-orge120f44">
+<h4 id="orge120f44">Python</h4>
+<div class="outline-text-4" id="text-orge120f44">
+<div class="highlight">
+<pre><span></span>from pathlib import Path
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgc68d7c1">
+<h4 id="orgc68d7c1">PyPi</h4>
+<div class="outline-text-4" id="text-orgc68d7c1">
+<div class="highlight">
+<pre><span></span>from matplotlib import pyplot
+from matplotlib.pyplot import rcParams
+from pdpbox import pdp
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+
+import pandas
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orge329a31">
+<h4 id="orge329a31">Others</h4>
+<div class="outline-text-4" id="text-orge329a31">
+<div class="highlight">
+<pre><span></span>from graeae import EnvironmentLoader, Timer
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org8755954">
+<h3 id="org8755954">Set Up</h3>
+<div class="outline-text-3" id="text-org8755954"></div>
+<div class="outline-4" id="outline-container-org11946ee">
+<h4 id="org11946ee">The Environment</h4>
+<div class="outline-text-4" id="text-org11946ee">
+<div class="highlight">
+<pre><span></span>ENVIRONMENT = EnvironmentLoader()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org77f0ad0">
+<h4 id="org77f0ad0">The Timer</h4>
+<div class="outline-text-4" id="text-org77f0ad0">
+<div class="highlight">
+<pre><span></span>TIMER = Timer()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org29ef8e6">
+<h4 id="org29ef8e6">Plotting</h4>
+<div class="outline-text-4" id="text-org29ef8e6">
+<div class="highlight">
+<pre><span></span>SLUG = "exercise-in-partial-dependence-plots"
+OUTPUT_PATH = Path("../../files/posts/tutorials/")/SLUG
+
+rcParams["figure.figsize"] = (6, 4)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org2cdbde9">
+<h4 id="org2cdbde9">The Data</h4>
+<div class="outline-text-4" id="text-org2cdbde9">
+<div class="highlight">
+<pre><span></span>ROWS = 5 * 10**4
+data = pandas.read_csv(Path(ENVIRONMENT["NY-TAXI"]).expanduser()/"train.csv",
+                       nrows=ROWS)
+data = data.query('pickup_latitude &gt; 40.7 and pickup_latitude &lt; 40.8 and ' +
+                  'dropoff_latitude &gt; 40.7 and dropoff_latitude &lt; 40.8 and ' +
+                  'pickup_longitude &gt; -74 and pickup_longitude &lt; -73.9 and ' +
+                  'dropoff_longitude &gt; -74 and dropoff_longitude &lt; -73.9 and ' +
+                  'fare_amount &gt; 0'
+                  )
+y = data.fare_amount
+base_features = ['pickup_longitude',
+                 'pickup_latitude',
+                 'dropoff_longitude',
+                 'dropoff_latitude']
+
+X = data[base_features]
+
+x_train, x_validate, y_train, y_validate = train_test_split(X, y, random_state=1)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc1a78ad">
+<h2 id="orgc1a78ad">Middle</h2>
+<div class="outline-text-2" id="text-orgc1a78ad"></div>
+<div class="outline-3" id="outline-container-org9e2af56">
+<h3 id="org9e2af56">The First Model</h3>
+<div class="outline-text-3" id="text-org9e2af56">
+<div class="highlight">
+<pre><span></span>first_model = RandomForestRegressor(n_estimators=180,
+                                    max_depth=50, random_state=1).fit(x_train, y_train)
+print(f"Training R^2: {first_model.score(x_train, y_train):0.2f}")
+print(f"Validation R^2: {first_model.score(x_validate, y_validate):0.2f}")
+</pre></div>
+<pre class="example">
+Training R^2: 0.92
+Validation R^2: 0.43
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-orgc97feb3">
+<h3 id="orgc97feb3">Question 1</h3>
+<div class="outline-text-3" id="text-orgc97feb3">
+<div class="highlight">
+<pre><span></span>FEATURE = 'pickup_longitude'
+pdp_dist = pdp.pdp_isolate(model=first_model,
+                           dataset=x_validate,
+                           model_features=base_features,
+                           feature=FEATURE)
+pdp.pdp_plot(pdp_dist, FEATURE)
+output = f"{FEATURE}_pdp_plot.png"
+pyplot.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+</pre></div>
+<pre class="example">
+[[file:pickup_longitude_pdp_plot.png]]
+</pre>
+<div class="figure">
+<p><img alt="eb446225f180346680b332c924342792de7e5135.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/.ob-jupyter/eb446225f180346680b332c924342792de7e5135.png"></p>
+</div>
+<p><img alt="pickup_longitude_pdp_plot.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/pickup_longitude_pdp_plot.png"><img alt="eb446225f180346680b332c924342792de7e5135.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/.ob-jupyter/eb446225f180346680b332c924342792de7e5135.png"></p>
+<blockquote>
+<p>Why does the partial dependence plot have this U-shape?</p>
+</blockquote>
+<p>At the extremes you have the locations that can potentially travel the furthest, creating the biggest fairs, but as you move to the center you reduce the amount you can possibly travel - although the change isn't symmetric so this isn't the only explanation, otherwise if it were then you would expect the two ends to have the highest values and the nadir to be at the halfway point (-73.95).</p>
+<blockquote>
+<p>Does your explanation suggest what shape to expect in the partial dependence plots for the other features?</p>
+<p>Create all other partial plots.</p>
+</blockquote>
+<div class="highlight">
+<pre><span></span>for FEATURE in base_features:
+    pdp_dist = pdp.pdp_isolate(model=first_model,
+                               dataset=x_validate,
+                               model_features=base_features,
+                               feature=FEATURE)
+    pdp.pdp_plot(pdp_dist, FEATURE)
+    output = f"{FEATURE}_pdp_plot.png"
+    pyplot.savefig(OUTPUT_PATH/output)
+    print(f"[[file:{output}]]")
+</pre></div>
+<pre class="example">
+[[file:pickup_longitude_pdp_plot.png]]
+[[file:pickup_latitude_pdp_plot.png]]
+[[file:dropoff_longitude_pdp_plot.png]]
+[[file:dropoff_latitude_pdp_plot.png]]
+</pre>
+<p><img alt="eb446225f180346680b332c924342792de7e5135.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/.ob-jupyter/eb446225f180346680b332c924342792de7e5135.png"> <img alt="f2c9b641a0b8f044729d15efd208f672e3ecb7c1.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/.ob-jupyter/f2c9b641a0b8f044729d15efd208f672e3ecb7c1.png"> <img alt="6334156ec3931ff43161785fde6f1f27a460bccd.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/.ob-jupyter/6334156ec3931ff43161785fde6f1f27a460bccd.png"> <img alt="4417e1dcc2d023ce83c886e006ce5de690bfe97b.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/.ob-jupyter/4417e1dcc2d023ce83c886e006ce5de690bfe97b.png"></p>
+<p><img alt="pickup_latitude_pdp_plot.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/pickup_latitude_pdp_plot.png"> <img alt="dropoff_longitude_pdp_plot.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/dropoff_longitude_pdp_plot.png"> <img alt="dropoff_latitude_pdp_plot.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/dropoff_latitude_pdp_plot.png"><img alt="eb446225f180346680b332c924342792de7e5135.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/.ob-jupyter/eb446225f180346680b332c924342792de7e5135.png"></p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org617fc19">
+<h3 id="org617fc19">Question 2</h3>
+<div class="outline-text-3" id="text-org617fc19">
+<p>Now you will run a 2D partial dependence plot. As a reminder, here is the code from the tutorial.</p>
+<p>Create a 2D plot for the features <code>pickup_longitude</code> and <code>dropoff_longitude</code>.</p>
+<div class="highlight">
+<pre><span></span>FEATURES = "pickup_longitude dropoff_longitude".split()
+interaction  =  pdp.pdp_interact(model=first_model,
+                                 dataset=x_validate,
+                                 model_features=base_features,
+                                 features=FEATURES)
+pdp.pdp_interact_plot(pdp_interact_out=interaction,
+                      feature_names=FEATURES, plot_type='contour')
+output = "longitude_interaction.png"
+pyplot.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+</pre></div>
+<pre class="example">
+[[file:longitude_interaction.png]]
+</pre>
+<div class="figure">
+<p><img alt="744ca56de862b725f3b5132f1c80c9bf41837026.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/.ob-jupyter/744ca56de862b725f3b5132f1c80c9bf41837026.png"></p>
+</div>
+<div class="figure">
+<p><img alt="longitude_interaction.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/longitude_interaction.png"></p>
+</div>
+<p>Our plot shows that the fares are highest at the top-left and bottom-right corners, as you might expect, since this would be the furthest distance from pickup to dropoff.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgfc819a7">
+<h3 id="orgfc819a7">Question 3</h3>
+<div class="outline-text-3" id="text-orgfc819a7">
+<blockquote>
+<p>Consider a ride starting at longitude -73.92 and ending at longitude -74. Using the graph from the last question, estimate how much money the rider would have saved if they'd started the ride at longitude -73.98 instead?</p>
+</blockquote>
+<p>I don't exactly agree with the interpretation given by the kaggle notebook. Looking at the plot, -73.92 to -74 appears to cost 27, while a -73.92 to -74 would cost 9 - but the notebook says that -73.92 to -74 costs 24. So I would say there would be a saving of 18 while the given answer is 15. To reconcile the difference (kind of) we might say that -73.92 to -74 costs 12, not 9 - it's not really easy to tell by the plot, in which case I would also say the savings is 15.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orga8ada38">
+<h3 id="orga8ada38">Question 4</h3>
+<div class="outline-text-3" id="text-orga8ada38">
+<blockquote>
+<p>In the PDP's you've seen so far, location features have primarily served as a proxy to capture distance traveled. In the permutation importance lessons, you added the features `abs_lon_change` and `abs_lat_change` as a more direct measure of distance.</p>
+<p>Create these features again here.</p>
+<p>After you run it, identify the most important difference between this partial dependence plot and the one you got without absolute value features. The code to generate the PDP without absolute value features is at the top of this code cell.</p>
+</blockquote>
+<div class="highlight">
+<pre><span></span>FEATURE = 'pickup_longitude'
+pdp_dist_original = pdp.pdp_isolate(model=first_model,
+                                    dataset=x_validate,
+                                    model_features=base_features,
+                                    feature=FEATURE)
+pdp.pdp_plot(pdp_dist_original, FEATURE)
+output = "pre_distance.png"
+pyplot.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+</pre></div>
+<p><img alt="pre_distance.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/pre_distance.png"><img alt="eb446225f180346680b332c924342792de7e5135.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/.ob-jupyter/eb446225f180346680b332c924342792de7e5135.png"></p>
+<div class="highlight">
+<pre><span></span>data['abs_lon_change'] = abs(data.pickup_longitude - data.dropoff_longitude)
+data['abs_lat_change'] = abs(data.pickup_latitude - data.dropoff_longitude)
+
+features_2  = ['pickup_longitude',
+               'pickup_latitude',
+               'dropoff_longitude',
+               'dropoff_latitude',
+               'abs_lat_change',
+               'abs_lon_change']
+
+X = data[features_2]
+new_x_train, new_x_validate, new_y_train, new_y_validate = train_test_split(X, y, random_state=1)
+
+estimators = list(range(50, 200, 10))
+max_depth = list(range(10, 100, 10)) + [None]
+
+grid = dict(n_estimators=estimators,
+            max_depth=max_depth)
+
+model = RandomForestRegressor()
+search = RandomizedSearchCV(estimator=model,
+                            param_distributions=grid,
+                            n_iter=40,
+                            n_jobs=-1,
+                            random_state=1)
+with TIMER:
+    search.fit(new_x_train, new_y_train)
+second_model = search.best_estimator_
+print(f"CV Training R^2: {search.best_score_:0.2f}")
+print(f"Training R^2: {first_model.score(x_train, y_train): 0.2f}")
+print(f"Validation R^2: {first_model.score(x_validate, y_validate):0.2f}")
+print(search.best_params_)
+</pre></div>
+<pre class="example">
+2020-02-09 17:36:14,915 graeae.timers.timer start: Started: 2020-02-09 17:36:14.915123
+2020-02-09 17:43:16,053 graeae.timers.timer end: Ended: 2020-02-09 17:43:16.053011
+2020-02-09 17:43:16,053 graeae.timers.timer end: Elapsed: 0:07:01.137888
+CV Training R^2: 0.46
+Training R^2:  0.92
+Validation R^2: 0.43
+{'n_estimators': 190, 'max_depth': 30}
+</pre>
+<div class="highlight">
+<pre><span></span>FEATURE = 'pickup_longitude'
+pdp_dist = pdp.pdp_isolate(model=second_model,
+                           dataset=new_x_validate,
+                           model_features=features_2,
+                           feature=FEATURE)
+
+pdp.pdp_plot(pdp_dist, FEATURE)
+output = "pickup_longitude_with_distance_added.png"
+pyplot.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+</pre></div>
+<p><img alt="pickup_longitude_with_distance_added.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/pickup_longitude_with_distance_added.png"><img alt="98c17657a972a412bc6d33619b6e23ee5818b884.png" src="/posts/tutorials/exercise-in-partial-dependence-plots/.ob-jupyter/98c17657a972a412bc6d33619b6e23ee5818b884.png"></p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org8fba01a">
+<h3 id="org8fba01a">Question 5</h3>
+<div class="outline-text-3" id="text-org8fba01a">
+<blockquote>
+<p>Consider a scenario where you have only 2 predictive features, which we will call `feat_A` and `feat_B`. Both features have minimum values of -1 and maximum values of 1. The partial dependence plot for `feat_A` increases steeply over its whole range, whereas the partial dependence plot for feature B increases at a slower rate (less steeply) over its whole range. Does this guarantee that `feat_A` will have a higher permutation importance than `feat_B`. Why or why not?</p>
+</blockquote>
+<p>It doesn't - the partial dependence plot shows how the predictions change based on the inputs, but it isn't the same thing as the feature importance - it might be the case that a few inputs create a large difference but most points don't, in which case the feature importance won't be very large.</p>
+</div>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="/categories/interpret/" rel="tag">interpret</a></li>
+<li><a class="tag p-category" href="/categories/machine-learning/" rel="tag">machine learning</a></li>
+<li><a class="tag p-category" href="/categories/tutorial/" rel="tag">tutorial</a></li>
+<li><a class="tag p-category" href="/categories/visualization/" rel="tag">visualization</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="/posts/tutorials/partial-dependence-plots/" rel="prev" title="Partial Dependence Plots">Previous post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2020 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script> 
+</body>
+</html>
