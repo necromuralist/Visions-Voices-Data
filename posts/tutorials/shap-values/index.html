@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="SHapley Additive exPlanations" name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>SHAP Values | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="../../../assets/javascript/p5.min.js" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="/posts/tutorials/exercise-in-partial-dependence-plots/" rel="prev" title="Exercise In Partial Dependence Plots" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="SHAP Values" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/shap-values/" property="og:url">
+<meta content="SHapley Additive exPlanations" property="og:description">
+<meta content="article" property="og:type">
+<meta content="2020-02-09T17:07:12-08:00" property="article:published_time">
+<meta content="interpret" property="article:tag">
+<meta content="machine learning" property="article:tag">
+<meta content="tutorial" property="article:tag">
+<meta content="visualization" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="/archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="/categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="/rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="/pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"> <input name="k8" type="hidden" value="#444444"> <input name="k9" type="hidden" value="#D51920"> <input name="kt" type="hidden" value="h"> <input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"> <input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="/posts/tutorials/shap-values/index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href="/posts/tutorials/shap-values/">SHAP Values</a></h1>
+<div class="metadata">
+<p class="byline author vcard p-author h-card"><span class="byline-name fn p-name" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/tutorials/shap-values/" rel="bookmark"><time class="published dt-published" datetime="2020-02-09T17:07:12-08:00" itemprop="datePublished" title="2020-02-09 17:07">2020-02-09 17:07</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="/posts/tutorials/shap-values/index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/tutorials/shap-values/#org5053af8">Beginning</a>
+<ul>
+<li><a href="/posts/tutorials/shap-values/#org43092de">Imports</a>
+<ul>
+<li><a href="/posts/tutorials/shap-values/#orgfc12349">Python</a></li>
+<li><a href="/posts/tutorials/shap-values/#orgf7562ad">PyPi</a></li>
+<li><a href="/posts/tutorials/shap-values/#org7cc89ec">Others</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/shap-values/#orgcb64a6f">Set Up</a>
+<ul>
+<li><a href="/posts/tutorials/shap-values/#orgc329407">The Timer</a></li>
+<li><a href="/posts/tutorials/shap-values/#org206d856">Environment</a></li>
+<li><a href="/posts/tutorials/shap-values/#org2af3be9">The Data</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/shap-values/#org89b638c">A Single Row</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/shap-values/#org001d690">Middle</a></li>
+<li><a href="/posts/tutorials/shap-values/#orge781fa2">End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org5053af8">
+<h2 id="org5053af8">Beginning</h2>
+<div class="outline-text-2" id="text-org5053af8">
+<p>SHAP values interpret the impact of a certain value for a given feature when compared to the prediction you'd make if that feature instead took a baseline value. This helps us interpret predictions given specific values for our features. We'll do this using the <a href="https://github.com/slundberg/shap">SHAP</a> library, naturally.</p>
+</div>
+<div class="outline-3" id="outline-container-org43092de">
+<h3 id="org43092de">Imports</h3>
+<div class="outline-text-3" id="text-org43092de"></div>
+<div class="outline-4" id="outline-container-orgfc12349">
+<h4 id="orgfc12349">Python</h4>
+<div class="outline-text-4" id="text-orgfc12349">
+<div class="highlight">
+<pre><span></span>from pathlib import Path
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgf7562ad">
+<h4 id="orgf7562ad">PyPi</h4>
+<div class="outline-text-4" id="text-orgf7562ad">
+<div class="highlight">
+<pre><span></span>import numpy
+import pandas
+import shap
+
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.ensemble import RandomForestClassifier
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org7cc89ec">
+<h4 id="org7cc89ec">Others</h4>
+<div class="outline-text-4" id="text-org7cc89ec">
+<div class="highlight">
+<pre><span></span>from graeae import EnvironmentLoader, Timer
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgcb64a6f">
+<h3 id="orgcb64a6f">Set Up</h3>
+<div class="outline-text-3" id="text-orgcb64a6f"></div>
+<div class="outline-4" id="outline-container-orgc329407">
+<h4 id="orgc329407">The Timer</h4>
+<div class="outline-text-4" id="text-orgc329407">
+<div class="highlight">
+<pre><span></span>TIMER = Timer()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org206d856">
+<h4 id="org206d856">Environment</h4>
+<div class="outline-text-4" id="text-org206d856">
+<div class="highlight">
+<pre><span></span>ENVIRONMENT = EnvironmentLoader()
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org2af3be9">
+<h4 id="org2af3be9">The Data</h4>
+<div class="outline-text-4" id="text-org2af3be9">
+<div class="highlight">
+<pre><span></span>data = pandas.read_csv(Path(ENVIRONMENT["FIFA-2018"]).expanduser())
+y = data["Man of the Match"] == "Yes"
+FEATURES = [column for column in data.columns if data[column].dtype == numpy.int64]
+X = data[FEATURES]
+x_train, x_validate, y_train, y_validate = train_test_split(X, y, random_state=1)
+
+
+model = RandomForestClassifier()
+
+estimators = list(range(50, 200, 10))
+max_depth = list(range(10, 100, 10)) + [None]
+
+grid = dict(n_estimators=estimators,
+            max_depth=max_depth)
+search = RandomizedSearchCV(estimator=model,
+                            param_distributions=grid,
+                            n_iter=40,
+                            n_jobs=-1,
+                            random_state=1)
+with TIMER:
+    search.fit(x_train, y_train)
+first_model = search.best_estimator_
+print(f"CV Training R^2: {search.best_score_:0.2f}")
+print(f"Training R^2: {first_model.score(x_train, y_train): 0.2f}")
+print(f"Validation R^2: {first_model.score(x_validate, y_validate):0.2f}")
+print(search.best_params_)
+</pre></div>
+<pre class="example">
+2020-02-09 18:27:26,574 graeae.timers.timer start: Started: 2020-02-09 18:27:26.574423
+2020-02-09 18:27:31,028 graeae.timers.timer end: Ended: 2020-02-09 18:27:31.028022
+2020-02-09 18:27:31,028 graeae.timers.timer end: Elapsed: 0:00:04.453599
+CV Training R^2: 0.70
+Training R^2:  1.00
+Validation R^2: 0.72
+{'n_estimators': 80, 'max_depth': 40}
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org89b638c">
+<h3 id="org89b638c">A Single Row</h3>
+<div class="outline-text-3" id="text-org89b638c">
+<div class="highlight">
+<pre><span></span>ROW = 5
+row_data = x_validate.iloc[ROW]
+row_data_matrix = row_data.values.reshape(1, -1)
+print(first_model.predict_proba(row_data_matrix))
+</pre></div>
+<pre class="example">
+[[0.325 0.675]]
+</pre>
+<p>This team has a 68% probability of having a player win the man of the match.</p>
+<div class="highlight">
+<pre><span></span>explainer = shap.TreeExplainer(first_model)
+shap_values = explainer.shap_values(row_data_matrix)
+</pre></div>
+<div class="highlight">
+<pre><span></span>shap.initjs()
+shap.force_plot(explainer.expected_value[1], shap_values[1], row_data_matrix)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org001d690">
+<h2 id="org001d690">Middle</h2>
+</div>
+<div class="outline-2" id="outline-container-orge781fa2">
+<h2 id="orge781fa2">End</h2>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="/categories/interpret/" rel="tag">interpret</a></li>
+<li><a class="tag p-category" href="/categories/machine-learning/" rel="tag">machine learning</a></li>
+<li><a class="tag p-category" href="/categories/tutorial/" rel="tag">tutorial</a></li>
+<li><a class="tag p-category" href="/categories/visualization/" rel="tag">visualization</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="/posts/tutorials/exercise-in-partial-dependence-plots/" rel="prev" title="Exercise In Partial Dependence Plots">Previous post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2020 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script> 
+</body>
+</html>
