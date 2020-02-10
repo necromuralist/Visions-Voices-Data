@@ -1,0 +1,107 @@
+#+BEGIN_COMMENT
+.. title: SHAP Values
+.. slug: shap-values
+.. date: 2020-02-09 17:07:12 UTC-08:00
+.. tags: interpret,machine learning,visualization,tutorial
+.. category: Machine Learning
+.. link: 
+.. description: SHapley Additive exPlanations
+.. type: text
+.. status: 
+.. updated: 
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 
+* Beginning
+  SHAP values interpret the impact of a certain value for a given feature when compared to the prediction you'd make if that feature instead took a baseline value. This helps us interpret predictions given specific values for our features. We'll do this using the [[https://github.com/slundberg/shap][SHAP]] library, naturally.
+** Imports
+*** Python
+#+begin_src jupyter-python :session shap :results none
+from pathlib import Path
+#+end_src
+*** PyPi
+#+begin_src jupyter-python :session shap :results none
+import numpy
+import pandas
+import shap
+
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.ensemble import RandomForestClassifier
+#+end_src
+*** Others
+#+begin_src jupyter-python :session shap :results none
+from graeae import EnvironmentLoader, Timer
+#+end_src
+** Set Up
+*** The Timer
+#+begin_src jupyter-python :session shap :results none
+TIMER = Timer()
+#+end_src
+*** Environment
+#+begin_src jupyter-python :session shap :results none
+ENVIRONMENT = EnvironmentLoader()
+#+end_src
+*** The Data
+#+begin_src jupyter-python :session shap :results output :exports both
+data = pandas.read_csv(Path(ENVIRONMENT["FIFA-2018"]).expanduser())
+y = data["Man of the Match"] == "Yes"
+FEATURES = [column for column in data.columns if data[column].dtype == numpy.int64]
+X = data[FEATURES]
+x_train, x_validate, y_train, y_validate = train_test_split(X, y, random_state=1)
+
+
+model = RandomForestClassifier()
+
+estimators = list(range(50, 200, 10))
+max_depth = list(range(10, 100, 10)) + [None]
+
+grid = dict(n_estimators=estimators,
+            max_depth=max_depth)
+search = RandomizedSearchCV(estimator=model,
+                            param_distributions=grid,
+                            n_iter=40,
+                            n_jobs=-1,
+                            random_state=1)
+with TIMER:
+    search.fit(x_train, y_train)
+first_model = search.best_estimator_
+print(f"CV Training R^2: {search.best_score_:0.2f}")
+print(f"Training R^2: {first_model.score(x_train, y_train): 0.2f}")
+print(f"Validation R^2: {first_model.score(x_validate, y_validate):0.2f}")
+print(search.best_params_)
+#+end_src
+
+#+RESULTS:
+: 2020-02-09 18:27:26,574 graeae.timers.timer start: Started: 2020-02-09 18:27:26.574423
+: 2020-02-09 18:27:31,028 graeae.timers.timer end: Ended: 2020-02-09 18:27:31.028022
+: 2020-02-09 18:27:31,028 graeae.timers.timer end: Elapsed: 0:00:04.453599
+: CV Training R^2: 0.70
+: Training R^2:  1.00
+: Validation R^2: 0.72
+: {'n_estimators': 80, 'max_depth': 40}
+
+** A Single Row
+#+begin_src jupyter-python :session shap :results output :exports both
+ROW = 5
+row_data = x_validate.iloc[ROW]
+row_data_matrix = row_data.values.reshape(1, -1)
+print(first_model.predict_proba(row_data_matrix))
+#+end_src
+
+#+RESULTS:
+: [[0.325 0.675]]
+
+This team has a 68% probability of having a player win the man of the match.
+#+begin_src jupyter-python :session shap :results none
+explainer = shap.TreeExplainer(first_model)
+shap_values = explainer.shap_values(row_data_matrix)
+#+end_src
+
+#+begin_src jupyter-python :session shap :results output :exports both
+shap.initjs()
+shap.force_plot(explainer.expected_value[1], shap_values[1], row_data_matrix)
+#+end_src
+
+
+* Middle
+* End
