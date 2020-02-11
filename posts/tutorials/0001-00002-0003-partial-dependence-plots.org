@@ -20,13 +20,13 @@
    In a simplistic view we might say that it takes input data and then repeatedly alters the values in our feature of choice, freezing the other values so that we can see how varying the feature changes the prediction. You can then repeat this for multiple rows of data and take the average prediction for each value of our feature.
 ** Imports
 *** Python
-#+begin_src jupyter-python :session pdp :results none
+#+begin_src python :session pdp :results none
 from pathlib import Path
 
 import os
 #+end_src
 *** PyPi
-#+begin_src jupyter-python :session pdp :results none
+#+begin_src python :session pdp :results none
 from dotenv import load_dotenv
 from matplotlib import pyplot
 from pdpbox import pdp, get_dataset, info_plots
@@ -41,12 +41,12 @@ import pandas
 #+end_src
 ** Set Up
 *** Plotting
-#+begin_src jupyter-python :session pdp :results none
+#+begin_src python :session pdp :results none
 SLUG = "partial-dependence-plots"
 OUTPUT_PATH = Path("../../files/posts/tutorials/")/SLUG
 #+end_src
 *** The Data
-#+begin_src jupyter-python :session pdp :results none
+#+begin_src python :session pdp :results none
 path = Path("~/.env").expanduser()
 load_dotenv(path, override=True)
 data = pandas.read_csv(Path(os.getenv("FIFA-2018")).expanduser())
@@ -55,7 +55,7 @@ data = pandas.read_csv(Path(os.getenv("FIFA-2018")).expanduser())
 ** A Decision Tree Model
    The data is the same set from the Permutation Importance exercise (team data to predict whether one of them would become the /Budweiser Man of the Match/). Out initial model will be a shallow decision tree so that we can compare its structure to the plots.
 
-#+begin_src jupyter-python :session pdp :results none
+#+begin_src python :session pdp :results none
 y = data["Man of the Match"] == "Yes"
 features = [column for column in data.columns if data[column].dtype == numpy.int64]
 X = data[features]
@@ -66,7 +66,7 @@ tree_model = DecisionTreeClassifier(random_state=0, max_depth=5, min_samples_spl
 #+end_src
 
 *** Visualizing the Decision Tree
-#+begin_src jupyter-python :session pdp :results output raw :exports both
+#+begin_src python :session pdp :results output raw :exports both
 tree_graph = tree.export_graphviz(tree_model, out_file=None, feature_names=features)
 graph = graphviz.Source(tree_graph)
 output = "decision_tree.dot"
@@ -81,14 +81,14 @@ print(f"[[file:{output}.png]]")
     To create the plot we can use the [[https://pdpbox.readthedocs.io/en/latest/][PDPBox library]].
 
 **** Create the Data to Plot
-#+begin_src jupyter-python :session pdp :results none
+#+begin_src python :session pdp :results none
 FEATURE = "Goal Scored"
 pdp_goals = pdp.pdp_isolate(model=tree_model, dataset=x_validate,
                             model_features=features, feature=FEATURE)
 #+end_src
 
 **** Plot It
-#+begin_src jupyter-python :session pdp :results output raw :exports both
+#+begin_src python :session pdp :results output raw :exports both
 pdp.pdp_plot(pdp_goals, FEATURE)
 output = "pdp_goals_scored.png"
 pyplot.savefig(OUTPUT_PATH/output)
@@ -103,7 +103,7 @@ Looking at the plot we can interpret it as saying that scoring that first goal i
 
 *** Distance Covered
     We can also look at how much the distance the players cover on the field matters.
-#+begin_src jupyter-python :session pdp :results output raw :exports both
+#+begin_src python :session pdp :results output raw :exports both
 FEATURE = "Distance Covered (Kms)"
 pdp_distance = pdp.pdp_isolate(model=tree_model, dataset=x_validate,
                                model_features=features, feature=FEATURE)
@@ -118,7 +118,7 @@ print(f"[[file:{output}]]")
 
 It looks like there's one distance at which the probabilities increase and then going further doesn't matter.
 
-#+begin_src jupyter-python :session pdp :results output :exports both
+#+begin_src python :session pdp :results output :exports both
 print(pdp_distance.feature_grids[3])
 #+end_src
 
@@ -129,7 +129,7 @@ So you want your team to cover at least 102 Kilometers, but covering more won't 
 ** A Random Forest Model
    The Decision Tree was useful because the simplicity made it easy to interpret, but an ensemble method like a Random Forest probably makes a better model so let's see what it reveals.
 
-#+begin_src jupyter-python :session pdp :results output raw :exports both
+#+begin_src python :session pdp :results output raw :exports both
 forest = RandomForestClassifier(random_state=0).fit(x_train, y_train)
 
 FEATURE = "Goal Scored"
@@ -148,7 +148,7 @@ So, our random forest says that the greatest gain comes from the first goal, but
 
 What about distance covered?
 
-#+begin_src jupyter-python :session pdp :results output raw :exports both
+#+begin_src python :session pdp :results output raw :exports both
 FEATURE = "Distance Covered (Kms)"
 pdp_distance = pdp.pdp_isolate(model=forest, dataset=x_validate,
                                model_features=features, feature=FEATURE)
@@ -162,7 +162,7 @@ print(f"[[file:{output}]]")
 [[file:pdp_forest_distance.png]]
 
 
-#+begin_src jupyter-python :session pdp :results output :exports both
+#+begin_src python :session pdp :results output :exports both
 print(pdp_distance.feature_grids[pdp_distance.pdp.argmax()])
 #+end_src
 
@@ -173,7 +173,7 @@ Our forest says that, once again, covering 102 kilometers maximizes the probabil
 ** 2D Partial Dependence Plots
    Rather than plot a single feature against the probability of becoming the man of the match you can plot how two features interact to affect the probability.
 
-#+begin_src jupyter-python :session pdp :results output raw :exports both
+#+begin_src python :session pdp :results output raw :exports both
 FEATURES = ["Goal Scored", "Distance Covered (Kms)"]
 interaction = pdp.pdp_interact(model=tree_model, dataset=x_validate,
                                model_features=features,
@@ -195,7 +195,7 @@ The plot shows a more succinct version of the two plots we had seen before - the
 
 *** Forest From the Trees
     Let's re-run the same plot using the Random Forest instead of the Decision Tree.
-#+begin_src jupyter-python :session pdp :results output raw :exports both
+#+begin_src python :session pdp :results output raw :exports both
 FEATURES = ["Goal Scored", "Distance Covered (Kms)"]
 interaction = pdp.pdp_interact(model=forest, dataset=x_validate,
                                model_features=features,
