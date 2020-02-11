@@ -17,12 +17,14 @@
 ** Imports
 *** Python
 #+begin_src jupyter-python :session shap :results none
+from argparse import Namespace
 from pathlib import Path
 #+end_src
 *** PyPi
 #+begin_src jupyter-python :session shap :results none
 import numpy
 import pandas
+import seaborn
 import shap
 
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
@@ -33,6 +35,25 @@ from sklearn.ensemble import RandomForestClassifier
 from graeae import EnvironmentLoader, Timer
 #+end_src
 ** Set Up
+*** Plotting
+#+begin_src jupyter-python :session shap :results none
+SLUG = "shap-values"
+OUTPUT_PATH = Path("../../files/posts/tutorials/")/SLUG
+#+end_src
+
+#+begin_src jupyter-python :session shap :results none
+get_ipython().run_line_magic('matplotlib', 'inline')
+get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
+seaborn.set(style="whitegrid",
+            rc={"axes.grid": False,
+                "xtick.labelsize": 10,
+                "ytick.labelsize": 10,
+                "font.size": 14,
+                "font.family": ["sans-serif"],
+                "font.sans-serif": ["Open Sans", "Latin Modern Sans", "Lato"],
+                "figure.figsize": (8, 6)},
+            font_scale=3)
+#+end_src
 *** The Timer
 #+begin_src jupyter-python :session shap :results none
 TIMER = Timer()
@@ -72,36 +93,94 @@ print(search.best_params_)
 #+end_src
 
 #+RESULTS:
-: 2020-02-09 18:27:26,574 graeae.timers.timer start: Started: 2020-02-09 18:27:26.574423
-: 2020-02-09 18:27:31,028 graeae.timers.timer end: Ended: 2020-02-09 18:27:31.028022
-: 2020-02-09 18:27:31,028 graeae.timers.timer end: Elapsed: 0:00:04.453599
-: CV Training R^2: 0.70
+: 2020-02-10 15:18:08,239 graeae.timers.timer start: Started: 2020-02-10 15:18:08.238681
+: The default value of cv will change from 3 to 5 in version 0.22. Specify it explicitly to silence this warning.
+: 2020-02-10 15:18:11,134 graeae.timers.timer end: Ended: 2020-02-10 15:18:11.134225
+: 2020-02-10 15:18:11,135 graeae.timers.timer end: Elapsed: 0:00:02.895544
+: CV Training R^2: 0.71
 : Training R^2:  1.00
-: Validation R^2: 0.72
-: {'n_estimators': 80, 'max_depth': 40}
+: Validation R^2: 0.69
+: {'n_estimators': 50, 'max_depth': 60}
 
 ** A Single Row
 #+begin_src jupyter-python :session shap :results output :exports both
 ROW = 5
 row_data = x_validate.iloc[ROW]
 row_data_matrix = row_data.values.reshape(1, -1)
+print(first_model.classes_)
 print(first_model.predict_proba(row_data_matrix))
 #+end_src
 
 #+RESULTS:
-: [[0.325 0.675]]
+: [False  True]
+: [[0.3 0.7]]
 
-This team has a 68% probability of having a player win the man of the match.
+The [[https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier.predict_proba][=predict_proba=]] method tells us the probability for the data for each class. So this team has a 70% chance that they do have a man of the match.
 #+begin_src jupyter-python :session shap :results none
 explainer = shap.TreeExplainer(first_model)
 shap_values = explainer.shap_values(row_data_matrix)
 #+end_src
 
 #+begin_src jupyter-python :session shap :results output :exports both
-shap.initjs()
-shap.force_plot(explainer.expected_value[1], shap_values[1], row_data_matrix)
+print(explainer.shap_values.__doc__)
 #+end_src
 
+#+RESULTS:
+#+begin_example
+ Estimate the SHAP values for a set of samples.
+
+        Parameters
+        ----------
+        X : numpy.array, pandas.DataFrame or catboost.Pool (for catboost)
+            A matrix of samples (# samples x # features) on which to explain the model's output.
+
+        y : numpy.array
+            An array of label values for each sample. Used when explaining loss functions.
+
+        tree_limit : None (default) or int
+            Limit the number of trees used by the model. By default None means no use the limit of the
+            original model, and -1 means no limit.
+
+        approximate : bool
+            Run fast, but only roughly approximate the Tree SHAP values. This runs a method
+            previously proposed by Saabas which only considers a single feature ordering. Take care
+            since this does not have the consistency guarantees of Shapley values and places too
+            much weight on lower splits in the tree.
+
+        check_additivity : bool
+            Run a validation check that the sum of the SHAP values equals the output of the model. This
+            check takes only a small amount of time, and will catch potential unforeseen errors.
+            Note that this check only runs right now when explaining the margin of the model.
+
+        Returns
+        -------
+        For models with a single output this returns a matrix of SHAP values
+        (# samples x # features). Each row sums to the difference between the model output for that
+        sample and the expected value of the model output (which is stored in the expected_value
+        attribute of the explainer when it is constant). For models with vector outputs this returns
+        a list of such matrices, one for each output.
+        
+#+end_example
+
+The array returned by the =shap_values= method has two rows - one for each of our target classes. In this case we're asking if a team had a man of the match so we'll just look at the second array.
+#+begin_src jupyter-python :session shap :results output raw :exports both
+shap.initjs()
+figure = shap.force_plot(explainer.expected_value[1],
+                         shap_values[1],
+                         row_data_matrix,
+                         feature_names=FEATURES,
+                         matplotlib=True, show=False)
+filename = "shap_one.png"
+figure.savefig(OUTPUT_PATH/filename)
+print(f"[[file:{filename}]]")
+#+end_src
+
+#+RESULTS:
+[[file:shap_one.png]]
 
 * Middle
 * End
+** See Also
+   - The [[https://shap.readthedocs.io/en/latest/][SHAP]] Documentation
+   - The [[https://github.com/slundberg/shap][SHAP github repository]]
+   - Lundberg SM, Lee SI. A unified approach to interpreting model predictions. InAdvances in neural information processing systems 2017 (pp. 4765-4774). ([[https://papers.nips.cc/paper/7062-a-unified-approach-to-interpreting-model-predicti][PDF Available Here]])
