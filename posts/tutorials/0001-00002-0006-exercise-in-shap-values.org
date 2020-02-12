@@ -11,64 +11,265 @@
 .. updated: 
 
 #+END_COMMENT
+* Beginning
+  This is the SHAP Exercise from the kaggle [[https://www.kaggle.com/learn/machine-learning-explainability][Machine Learing Explainability Tutorial]]. It's using the kaggle [[https://www.kaggle.com/dansbecker/hospital-readmissions][Hospital Readmissions]] dataset (I think).
+** The Scenario
+#+begin_quote
+A hospital has struggled with "readmissions," where they release a patient before the patient has recovered enough, and the patient returns with health complications. 
+
+The hospital wants your help identifying patients at highest risk of being readmitted. Doctors (rather than your model) will make the final decision about when to release each patient; but they hope your model will highlight issues the doctors should consider when releasing a patient.
+
+The hospital has given you relevant patient medical information.
+#+end_quote
+** Imports
+*** Python
+#+begin_src python :session shap :results none
+from functools import partial
+from pathlib import Path
+#+end_src
+*** PyPi
+#+begin_src python :session shap :results none
+from eli5.sklearn import PermutationImportance
+from pdpbox import pdp
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from tabulate import tabulate
+
+import eli5
+import pandas
+#+end_src
+*** Others
+#+begin_src python :session shap :results none
+from graeae import EnvironmentLoader, Timer
+#+end_src
+** Set Up
+*** The Table Printer
+#+begin_src python :session shap :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys", showindex=False)
+#+end_src
+*** The Timer
+#+begin_src python :session shap :results none
+TIMER = Timer()
+#+end_src
+*** The Environment
+#+begin_src python :session shap :results none
+ENVIRONMENT = EnvironmentLoader()
+#+end_src
+*** The Data
+#+begin_src python :session shap :results none
+PATH = Path(ENVIRONMENT["HOSPITAL-READMISSIONS"]).expanduser()
+assert PATH.is_file()
+data = pandas.read_csv(PATH)
+#+end_src
+* Middle
+** Looking At the Data
+
+#+begin_src python :session shap :results raw :exports both
+for column in sorted(data.columns):
+    print(f" - {column}")
+#+end_src
+
+#+RESULTS:
+ - A1Cresult_None
+ - acarbose_No
+ - acetohexamide_No
+ - age_[40-50)
+ - age_[50-60)
+ - age_[60-70)
+ - age_[70-80)
+ - age_[80-90)
+ - change_No
+ - chlorpropamide_No
+ - citoglipton_No
+ - diabetesMed_Yes
+ - diag_1_414
+ - diag_1_428
+ - diag_1_786
+ - diag_2_250
+ - diag_2_276
+ - diag_2_427
+ - diag_2_428
+ - diag_3_250
+ - diag_3_276
+ - diag_3_401
+ - diag_3_428
+ - examide_No
+ - gender_Female
+ - glimepiride-pioglitazone_No
+ - glimepiride_No
+ - glipizide-metformin_No
+ - glipizide_No
+ - glyburide-metformin_No
+ - glyburide_No
+ - insulin_No
+ - max_glu_serum_None
+ - medical_specialty_?
+ - medical_specialty_Cardiology
+ - medical_specialty_Emergency/Trauma
+ - medical_specialty_Family/GeneralPractice
+ - medical_specialty_InternalMedicine
+ - metformin-pioglitazone_No
+ - metformin-rosiglitazone_No
+ - metformin_No
+ - miglitol_No
+ - nateglinide_No
+ - num_lab_procedures
+ - num_medications
+ - num_procedures
+ - number_diagnoses
+ - number_emergency
+ - number_inpatient
+ - number_outpatient
+ - payer_code_?
+ - payer_code_BC
+ - payer_code_HM
+ - payer_code_MC
+ - payer_code_SP
+ - pioglitazone_No
+ - race_AfricanAmerican
+ - race_Caucasian
+ - readmitted
+ - repaglinide_No
+ - rosiglitazone_No
+ - time_in_hospital
+ - tolazamide_No
+ - tolbutamide_No
+ - troglitazone_No
+
+So there are a lot of columns.
+
+#+begin_quote
+Here are some quick hints at interpreting the field names:
+ 
+ - Your prediction target is `readmitted`
+ - Columns with the word `diag` indicate the diagnostic code of the illness or illnesses the patient was admitted with. For example, `diag_1_428` means the doctor said their first illness diagnosis is number "428".  What illness does 428 correspond to? You could look it up in a codebook, but without more medical background it wouldn't mean anything to you anyway.
+ - A column names like `glimepiride_No` mean the patient did not have the medicine `glimepiride`. If this feature had a value of False, then the patient did take the drug `glimepiride`
+ - Features whose names begin with `medical_specialty` describe the specialty of the doctor seeing the patient. The values in these fields are all `True` or `False`.
+** A Simple Model
+
+#+begin_quote
+You have built a simple model, but the doctors say they don't know how to evaluate a model, and they'd like you to show them some evidence the model is doing something in line with their medical intuition. Create any graphics or tables that will show them a quick overview of what the model is doing?
+
+They are very busy. So they want you to condense your model overview into just 1 or 2 graphics, rather than a long string of graphics.
+#+end_quote
+*** Set Up X and Y    
+#+begin_src python :session shap :results none
+y = data.readmitted
+TARGET = "readmitted"
+base_features = data.columns[data.columns != TARGET]
+
+X = data[base_features]
+#+end_src
+*** Split the Data
+
+#+begin_src python :session shap :results none
+x_train, x_validate, y_train, y_validate = train_test_split(X, y,
+                                                            random_state=1)
+#+end_src
+
+*** Train the Model
+#+begin_src python :session shap :results output :exports both
+with TIMER:
+    model_1 = RandomForestClassifier(n_estimators=30, random_state=1).fit(
+        x_train, y_train)
+
+print(f"Training R^2: {model_1.score(x_train, y_train): 0.2f}")
+print(f"Validation R^2: {model_1.score(x_validate, y_validate):0.2f}")
+#+end_src
+
+#+RESULTS:
+: 2020-02-11 15:30:19,152 graeae.timers.timer start: Started: 2020-02-11 15:30:19.152180
+: 2020-02-11 15:30:19,967 graeae.timers.timer end: Ended: 2020-02-11 15:30:19.966980
+: 2020-02-11 15:30:19,968 graeae.timers.timer end: Elapsed: 0:00:00.814800
+: Training R^2:  1.00
+: Validation R^2: 0.60
+
+#+begin_src python :session shap :results output :exports both
+model_2 = RandomForestClassifier()
+
+estimators = list(range(50, 300, 10))
+max_depth = list(range(10, 100, 10)) + [None]
+
+grid = dict(n_estimators=estimators,
+            max_depth=max_depth)
+search = RandomizedSearchCV(estimator=model_2,
+                            param_distributions=grid,
+                            n_iter=40,
+                            n_jobs=-1,
+                            random_state=1)
+with TIMER:
+    search.fit(x_train, y_train)
+first_model = search.best_estimator_
+print(f"CV Training R^2: {search.best_score_:0.2f}")
+print(f"Training R^2: {first_model.score(x_train, y_train): 0.2f}")
+print(f"Validation R^2: {first_model.score(x_validate, y_validate):0.2f}")
+print(search.best_params_)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+2020-02-11 15:31:11,536 graeae.timers.timer start: Started: 2020-02-11 15:31:11.535971
+/home/brunhilde/.virtualenvs/Visions-Voices-Data/lib/python3.7/site-packages/sklearn/model_selection/_split.py:1978: FutureWarning: The default value of cv will change from 3 to 5 in version 0.22. Specify it explicitly to silence this warning.
+  warnings.warn(CV_WARNING, FutureWarning)
+/home/brunhilde/.virtualenvs/Visions-Voices-Data/lib/python3.7/site-packages/joblib/externals/loky/process_executor.py:706: UserWarning: A worker stopped while some jobs were given to the executor. This can be caused by a too short worker timeout or by a memory leak.
+  "timeout or by a memory leak.", UserWarning
+2020-02-11 15:31:31,695 graeae.timers.timer end: Ended: 2020-02-11 15:31:31.695544
+2020-02-11 15:31:31,698 graeae.timers.timer end: Elapsed: 0:00:20.159573
+CV Training R^2: 0.63
+Training R^2:  0.70
+Validation R^2: 0.64
+{'n_estimators': 230, 'max_depth': 10}
+#+end_example
+
+We get a slight improvement with a much more complex model, but not a lot.
+
+*** Permutation Importance
+#+begin_src python :session shap :results output :exports both
+    permutor = PermutationImportance(first_model, random_state=1).fit(
+        x_validate, y_validate)
+ipython_html = eli5.show_weights(permutor,
+                                 feature_names=x_validate.columns.tolist())
+table = pandas.read_html(ipython_html.data)[0]
+print(TABLE(table))
+#+end_src
+
+#+RESULTS:
+| Weight           | Feature                            |
+|------------------+------------------------------------|
+| 0.0660  ± 0.0076 | number_inpatient                   |
+| 0.0108  ± 0.0058 | number_emergency                   |
+| 0.0078  ± 0.0060 | number_outpatient                  |
+| 0.0056  ± 0.0026 | number_diagnoses                   |
+| 0.0052  ± 0.0033 | num_medications                    |
+| 0.0031  ± 0.0018 | num_lab_procedures                 |
+| 0.0025  ± 0.0018 | medical_specialty_?                |
+| 0.0025  ± 0.0017 | diag_1_428                         |
+| 0.0024  ± 0.0026 | time_in_hospital                   |
+| 0.0023  ± 0.0021 | num_procedures                     |
+| 0.0021  ± 0.0021 | diabetesMed_Yes                    |
+| 0.0020  ± 0.0014 | age_[80-90)                        |
+| 0.0019  ± 0.0018 | payer_code_?                       |
+| 0.0016  ± 0.0016 | payer_code_BC                      |
+| 0.0015  ± 0.0017 | insulin_No                         |
+| 0.0014  ± 0.0018 | diag_3_401                         |
+| 0.0013  ± 0.0017 | metformin_No                       |
+| 0.0009  ± 0.0003 | diag_2_276                         |
+| 0.0009  ± 0.0015 | age_[60-70)                        |
+| 0.0008  ± 0.0008 | medical_specialty_Emergency/Trauma |
+| … 44 more …      | … 44 more …                        |
+
+
+The most important features weren't in the data description. What is =number_inpatient=?
+*** Partial Dependence Plot
+* End
+** Sources
+   - Lundberg, S.M., Erion, G., Chen, H. et al. From local explanations to global understanding with explainable AI for trees. Nat Mach Intell 2, 56–67 (2020). https://doi.org/10.1038/s42256-019-0138-9 ([[https://www.nature.com/articles/s42256-019-0138-9][TreeExplainer]])
+     - Lundberg, S.M., Nair, B., Vavilala, M.S. et al. Explainable machine-learning predictions for the prevention of hypoxaemia during surgery. Nat Biomed Eng 2, 749–760 (2018). https://doi.org/10.1038/s41551-018-0304-0 ([[https://www.nature.com/articles/s41551-018-0304-0][=force_plot=]])
 * Raw
 #+begin_example
-#!/usr/bin/env python
-# coding: utf-8
-
-# **[Machine Learning Explainability Home Page](https://www.kaggle.com/learn/machine-learning-explainability)**
-# 
-# ---
-# 
-
-# ## Set Up
-# 
-# At this point, you have enough tools to put together compelling solutions to real-world problems. You will ned to pick the right techniques for each part of the following data science scenario. Along the way, you'll use SHAP values along with your other insights tools.
-# 
-# **The questions below give you feedback on your work by using some checking code. Run the following cell to set up our feedback system.**
-
-# In[ ]:
-
-
-from learntools.ml_explainability.ex4 import *
-print("Setup Complete")
-
-
-# ## The Scenario
-# A hospital has struggled with "readmissions," where they release a patient before the patient has recovered enough, and the patient returns with health complications. 
-# 
-# The hospital wants your help identifying patients at highest risk of being readmitted. Doctors (rather than your model) will make the final decision about when to release each patient; but they hope your model will highlight issues the doctors should consider when releasing a patient.
-# 
-# The hospital has given you relevant patient medical information.  Here is a list of columns in the data:
-# 
-
-# In[ ]:
-
-
-import pandas as pd
-data = pd.read_csv('../input/hospital-readmissions/train.csv')
-data.columns
-
-
-# Here are some quick hints at interpreting the field names:
-# 
-# - Your prediction target is `readmitted`
-# - Columns with the word `diag` indicate the diagnostic code of the illness or illnesses the patient was admitted with. For example, `diag_1_428` means the doctor said their first illness diagnosis is number "428".  What illness does 428 correspond to? You could look it up in a codebook, but without more medical background it wouldn't mean anything to you anyway.
-# - A column names like `glimepiride_No` mean the patient did not have the medicine `glimepiride`. If this feature had a value of False, then the patient did take the drug `glimepiride`
-# - Features whose names begin with `medical_specialty` describe the specialty of the doctor seeing the patient. The values in these fields are all `True` or `False`.
-# 
-
 # ## Your Code Library
 # As you write code to work through this scenario, these code snippets from previous tutorials may be useful. You'll still need to modify them, but we've copied them here to save you from having to look them up.
 # 
-# **Calculate and show permutation importance:**
-# ```
-# import eli5
-# from eli5.sklearn import PermutationImportance
-# 
-# perm = PermutationImportance(my_model, random_state=1).fit(val_X, val_y)
-# eli5.show_weights(perm, feature_names = val_X.columns.tolist())
-# ```
 # 
 # **Calculate and show partial dependence plot:**
 # ```
@@ -96,30 +297,6 @@ data.columns
 # shap.force_plot(explainer.expected_value[0], shap_values[0], data_for_prediction)
 # ```
 # 
-# ## Step 1
-# You have built a simple model, but the doctors say they don't know how to evaluate a model, and they'd like you to show them some evidence the model is doing something in line with their medical intuition. Create any graphics or tables that will show them a quick overview of what the model is doing?
-# 
-# They are very busy. So they want you to condense your model overview into just 1 or 2 graphics, rather than a long string of graphics.
-# 
-# We'll start after the point where you've built a basic model. Just run the following cell to build the model called `my_model`.
-
-# In[ ]:
-
-
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-
-data = pd.read_csv('../input/hospital-readmissions/train.csv')
-
-y = data.readmitted
-
-base_features = [c for c in data.columns if c != "readmitted"]
-
-X = data[base_features]
-
-train_X, val_X, train_y, val_y = train_test_split(X, y, random_state=1)
-my_model = RandomForestClassifier(n_estimators=30, random_state=1).fit(train_X, train_y)
 
 
 # Now use the following cell to create the materials for the doctors.
