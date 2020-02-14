@@ -11,6 +11,7 @@
 .. updated: 
 
 #+END_COMMENT
+#+PROPERTY: header-args :session /run/user/1000/jupyter/kernel-64d18d35-ac76-454f-9a4c-ba609a04ecb6.json
 #+OPTIONS: ^:{}
 #+TOC: headlines 
 * Beginning
@@ -25,14 +26,14 @@ The hospital has given you relevant patient medical information.
 #+end_quote
 ** Imports
 *** Python
-#+begin_src python :session shap :results none
+#+begin_src python :results none
 from functools import partial
 from pathlib import Path
 
 import random
 #+end_src
 *** PyPi
-#+begin_src python :session shap :results none
+#+begin_src python :results none
 from eli5.sklearn import PermutationImportance
 from matplotlib import pyplot
 from pdpbox import pdp
@@ -45,31 +46,31 @@ import pandas
 import shap
 #+end_src
 *** Others
-#+begin_src python :session shap :results none
+#+begin_src python :results none
 from graeae import EnvironmentLoader, Timer
 #+end_src
 ** Set Up
 *** Plotting
-#+begin_src python :session shap :results none
+#+begin_src python :results none
 SLUG = "shap-values-exercise"
 OUTPUT_PATH = Path("../../files/posts/tutorials/")/SLUG
 if not OUTPUT_PATH.is_dir():
     OUTPUT_PATH.mkdir()
 #+end_src
 *** The Table Printer
-#+begin_src python :session shap :results none
+#+begin_src python :results none
 TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys", showindex=False)
 #+end_src
 *** The Timer
-#+begin_src python :session shap :results none
+#+begin_src python :results none
 TIMER = Timer()
 #+end_src
 *** The Environment
-#+begin_src python :session shap :results none
+#+begin_src python :results none
 ENVIRONMENT = EnvironmentLoader()
 #+end_src
 *** The Data
-#+begin_src python :session shap :results none
+#+begin_src python :results none
 PATH = Path(ENVIRONMENT["HOSPITAL-READMISSIONS"]).expanduser()
 assert PATH.is_file()
 data = pandas.read_csv(PATH)
@@ -77,12 +78,13 @@ data = pandas.read_csv(PATH)
 * Middle
 ** Looking At the Data
 
-#+begin_src python :session shap :results raw :exports both
+#+begin_src python :results raw :exports both
 for column in sorted(data.columns):
     print(f" - {column}")
 #+end_src
 
 #+RESULTS:
+#+begin_example
  - A1Cresult_None
  - acarbose_No
  - acetohexamide_No
@@ -148,18 +150,20 @@ for column in sorted(data.columns):
  - tolazamide_No
  - tolbutamide_No
  - troglitazone_No
+#+end_example
 
 So there are a lot of columns.
 
 #+begin_quote
 Here are some quick hints at interpreting the field names:
  
- - Your prediction target is `readmitted`
- - Columns with the word `diag` indicate the diagnostic code of the illness or illnesses the patient was admitted with. For example, `diag_1_428` means the doctor said their first illness diagnosis is number "428".  What illness does 428 correspond to? You could look it up in a codebook, but without more medical background it wouldn't mean anything to you anyway.
- - A column names like `glimepiride_No` mean the patient did not have the medicine `glimepiride`. If this feature had a value of False, then the patient did take the drug `glimepiride`
- - Features whose names begin with `medical_specialty` describe the specialty of the doctor seeing the patient. The values in these fields are all `True` or `False`.
+ - Your prediction target is =readmitted=
+ - Columns with the word =diag= indicate the diagnostic code of the illness or illnesses the patient was admitted with. For example, =diag_1_428= means the doctor said their first illness diagnosis is number "428".  What illness does 428 correspond to? You could look it up in a codebook, but without more medical background it wouldn't mean anything to you anyway.
+ - A column names like =glimepiride_No= mean the patient did not have the medicine =glimepiride=. If this feature had a value of False, then the patient did take the drug =glimepiride=
+ - Features whose names begin with =medical_specialty= describe the specialty of the doctor seeing the patient. The values in these fields are all =True= or =False=.
+#+end_quote
 *** Set Up X and Y    
-#+begin_src python :session shap :results none
+#+begin_src python :results none
 y = data.readmitted
 TARGET = "readmitted"
 FEATURES = data.columns[data.columns != TARGET]
@@ -168,7 +172,7 @@ X = data[FEATURES]
 #+end_src
 *** Split the Data
 
-#+begin_src python :session shap :results none
+#+begin_src python :results none
 x_train, x_validate, y_train, y_validate = train_test_split(X, y,
                                                             random_state=1)
 #+end_src
@@ -181,7 +185,7 @@ You have built a simple model, but the doctors say they don't know how to evalua
 They are very busy. So they want you to condense your model overview into just 1 or 2 graphics, rather than a long string of graphics.
 #+end_quote
 *** Train the Model
-#+begin_src python :session shap :results output :exports both
+#+begin_src python :results output :exports both
 with TIMER:
     model_1 = RandomForestClassifier(n_estimators=30, random_state=1).fit(
         x_train, y_train)
@@ -191,13 +195,13 @@ print(f"Validation R^2: {model_1.score(x_validate, y_validate):0.2f}")
 #+end_src
 
 #+RESULTS:
-: 2020-02-12 17:05:51,779 graeae.timers.timer start: Started: 2020-02-12 17:05:51.779198
-: 2020-02-12 17:05:52,603 graeae.timers.timer end: Ended: 2020-02-12 17:05:52.603876
-: 2020-02-12 17:05:52,604 graeae.timers.timer end: Elapsed: 0:00:00.824678
+: 2020-02-13 18:21:09,099 graeae.timers.timer start: Started: 2020-02-13 18:21:09.099570
+: 2020-02-13 18:21:09,952 graeae.timers.timer end: Ended: 2020-02-13 18:21:09.952030
+: 2020-02-13 18:21:09,953 graeae.timers.timer end: Elapsed: 0:00:00.852460
 : Training R^2:  1.00
 : Validation R^2: 0.60
 
-#+begin_src python :session shap :results output :exports both
+#+begin_src python :results output :exports both
 model_2 = RandomForestClassifier()
 
 estimators = list(range(50, 300, 10))
@@ -220,9 +224,9 @@ print(search.best_params_)
 #+end_src
 
 #+RESULTS:
-: 2020-02-12 17:05:53,739 graeae.timers.timer start: Started: 2020-02-12 17:05:53.739771
-: 2020-02-12 17:06:14,551 graeae.timers.timer end: Ended: 2020-02-12 17:06:14.551487
-: 2020-02-12 17:06:14,553 graeae.timers.timer end: Elapsed: 0:00:20.811716
+: 2020-02-13 18:21:11,084 graeae.timers.timer start: Started: 2020-02-13 18:21:11.084466
+: 2020-02-13 18:21:30,262 graeae.timers.timer end: Ended: 2020-02-13 18:21:30.262479
+: 2020-02-13 18:21:30,265 graeae.timers.timer end: Elapsed: 0:00:19.178013
 : CV Training R^2: 0.63
 : Training R^2:  0.70
 : Validation R^2: 0.63
@@ -231,12 +235,12 @@ print(search.best_params_)
 We get a slight improvement with a much more complex model, but not a lot.
 
 *** Permutation Importance
-#+begin_src python :session shap :results none
+#+begin_src python :results none
 permutor = PermutationImportance(first_model, random_state=1).fit(
         x_validate, y_validate)
 #+end_src
 
-#+begin_src python :session shap :results raw :exports both
+#+begin_src python :results raw :exports both
 ipython_html = eli5.show_weights(permutor,
                                  feature_names=x_validate.columns.tolist())
 table = pandas.read_html(ipython_html.data)[0]
@@ -244,34 +248,36 @@ print(TABLE(table))
 #+end_src
 
 #+RESULTS:
-| Weight           | Feature                      |
-|------------------+------------------------------|
-| 0.0590  ± 0.0071 | number_inpatient             |
-| 0.0074  ± 0.0035 | number_emergency             |
-| 0.0061  ± 0.0046 | number_outpatient            |
-| 0.0035  ± 0.0033 | num_procedures               |
-| 0.0034  ± 0.0009 | num_lab_procedures           |
-| 0.0034  ± 0.0028 | number_diagnoses             |
-| 0.0028  ± 0.0044 | num_medications              |
-| 0.0025  ± 0.0023 | diag_1_428                   |
-| 0.0022  ± 0.0013 | payer_code_?                 |
-| 0.0020  ± 0.0021 | diabetesMed_Yes              |
-| 0.0019  ± 0.0008 | payer_code_MC                |
-| 0.0013  ± 0.0013 | medical_specialty_?          |
-| 0.0012  ± 0.0013 | diag_2_250                   |
-| 0.0010  ± 0.0004 | medical_specialty_Cardiology |
-| 0.0010  ± 0.0017 | age_[80-90)                  |
-| 0.0009  ± 0.0041 | time_in_hospital             |
-| 0.0007  ± 0.0012 | max_glu_serum_None           |
-| 0.0006  ± 0.0019 | payer_code_BC                |
-| 0.0005  ± 0.0025 | metformin_No                 |
-| 0.0005  ± 0.0009 | diag_1_786                   |
-| … 44 more …      | … 44 more …                  |
+#+begin_example
+| Weight           | Feature                            |
+|------------------+------------------------------------|
+| 0.0660  ± 0.0076 | number_inpatient                   |
+| 0.0097  ± 0.0055 | number_emergency                   |
+| 0.0052  ± 0.0051 | number_outpatient                  |
+| 0.0038  ± 0.0022 | number_diagnoses                   |
+| 0.0019  ± 0.0008 | payer_code_BC                      |
+| 0.0018  ± 0.0015 | diag_1_428                         |
+| 0.0016  ± 0.0007 | age_[80-90)                        |
+| 0.0016  ± 0.0008 | medical_specialty_?                |
+| 0.0013  ± 0.0016 | diabetesMed_Yes                    |
+| 0.0013  ± 0.0014 | diag_2_250                         |
+| 0.0012  ± 0.0029 | time_in_hospital                   |
+| 0.0012  ± 0.0010 | payer_code_HM                      |
+| 0.0009  ± 0.0024 | num_medications                    |
+| 0.0009  ± 0.0010 | A1Cresult_None                     |
+| 0.0008  ± 0.0008 | race_AfricanAmerican               |
+| 0.0007  ± 0.0012 | pioglitazone_No                    |
+| 0.0006  ± 0.0009 | age_[60-70)                        |
+| 0.0005  ± 0.0024 | num_procedures                     |
+| 0.0005  ± 0.0002 | acarbose_No                        |
+| 0.0004  ± 0.0007 | medical_specialty_Emergency/Trauma |
+| … 44 more …      | … 44 more …                        |
+#+end_example
 
 The most important features weren't in the data description. What is =number_inpatient=?
 *** Partial Dependence Plot
     Since the most important feature is the "number_inpatient" let's see how much it changes the re-admissions.
-#+begin_src python :session shap :results output :exports both
+#+begin_src python :results output :exports both
 FEATURE = "number_inpatient"
 pdp_dist = pdp.pdp_isolate(model=first_model,
                            dataset=x_validate,
@@ -286,13 +292,12 @@ print(f"[[file:{output}]]")
 #+RESULTS:
 :RESULTS:
 : [[file:number_inpatient_pdp_plot.png]]
-[[file:./.ob-jupyter/13c66e8a3df7d4a1b61ede215d8ae22a0cb76b49.png]]
+[[file:./.ob-jupyter/3feee58620355d5d698bc1e45c385ce66e2235cb.png]]
 :END:
-:RESULTS:
-[[file:number_inpatient_pdp_plot.png]]
+
 
 *** SHAP Values
-#+begin_src python :session shap :results output :exports both
+#+begin_src python :results output :exports both
 random.seed(0)
 ROW = random.randrange(len(x_validate))
 row_data = x_validate.iloc[ROW]
@@ -303,23 +308,23 @@ print(first_model.predict_proba(row_data_matrix))
 
 #+RESULTS:
 : [0 1]
-: [[0.53508258 0.46491742]]
+: [[0.53799494 0.46200506]]
 
-#+begin_src jupyter-python :session shap :results output :exports both
+#+begin_src jupyter-python :results output :exports both
 with TIMER:
     explainer = shap.TreeExplainer(first_model)
     shap_values = explainer.shap_values(row_data_matrix)
 #+end_src
 
 #+RESULTS:
-: 2020-02-12 17:06:38,792 graeae.timers.timer start: Started: 2020-02-12 17:06:38.792355
-: 2020-02-12 17:06:38,842 graeae.timers.timer end: Ended: 2020-02-12 17:06:38.842916
-: 2020-02-12 17:06:38,844 graeae.timers.timer end: Elapsed: 0:00:00.050561
+: 2020-02-13 18:21:52,043 graeae.timers.timer start: Started: 2020-02-13 18:21:52.043353
+: 2020-02-13 18:21:52,096 graeae.timers.timer end: Ended: 2020-02-13 18:21:52.096631
+: 2020-02-13 18:21:52,097 graeae.timers.timer end: Elapsed: 0:00:00.053278
 
-#+begin_src jupyter-python :session shap :results output raw :exports both
-DOESNT_READMIT = 0
-figure = shap.force_plot(explainer.expected_value[DOESNT_READMIT],
-                         shap_values[DOESNT_READMIT],
+#+begin_src jupyter-python :results output raw :exports both
+READMIT = 1
+figure = shap.force_plot(explainer.expected_value[READMIT],
+                         shap_values[READMIT],
                          row_data_matrix,
                          feature_names=FEATURES,
                          matplotlib=True, show=False)
@@ -330,10 +335,10 @@ print(f"[[file:{filename}]]")
 #+end_src
 
 #+RESULTS:
-[[file:shap_one.png]]
+: [[file:shap_one.png]]
 
 **** Try one where num_inpatients was 1
-#+begin_src python :session shap :results output :exports both
+#+begin_src python :results output :exports both
 row_data = x_validate[x_validate.number_inpatient==1].sample().iloc[0]
 row_data_matrix = row_data.values.reshape(1, -1)
 print(first_model.classes_)
@@ -342,13 +347,13 @@ print(first_model.predict_proba(row_data_matrix))
 
 #+RESULTS:
 : [0 1]
-: [[0.37769454 0.62230546]]
+: [[0.36378459 0.63621541]]
 
-#+begin_src python :session shap :results output raw :exports both
+#+begin_src python :results output raw :exports both
 explainer = shap.TreeExplainer(first_model)
 shap_values = explainer.shap_values(row_data_matrix)
-figure = shap.force_plot(explainer.expected_value[DOESNT_READMIT],
-                         shap_values[DOESNT_READMIT],
+figure = shap.force_plot(explainer.expected_value[READMIT],
+                         shap_values[READMIT],
                          row_data_matrix,
                          feature_names=FEATURES,
                          matplotlib=True, show=False)
@@ -359,10 +364,10 @@ print(f"[[file:{filename}]]")
 #+end_src
 
 #+RESULTS:
-[[file:shap_two.png]]
+: [[file:shap_two.png]]
 
 **** Try one where num_inpatients was 2
-#+begin_src python :session shap :results output :exports both
+#+begin_src python :results output :exports both
 INPATIENTS = 2
 row_data = x_validate[x_validate.number_inpatient==INPATIENTS].sample().iloc[0]
 row_data_matrix = row_data.values.reshape(1, -1)
@@ -372,15 +377,15 @@ print(first_model.predict_proba(row_data_matrix))
 
 #+RESULTS:
 : [0 1]
-: [[0.41654353 0.58345647]]
+: [[0.32613453 0.67386547]]
 
 The probability doesn't change much from 1.
 
-#+begin_src python :session shap :results output raw :exports both
+#+begin_src python :results output raw :exports both
 explainer = shap.TreeExplainer(first_model)
 shap_values = explainer.shap_values(row_data_matrix)
-figure = shap.force_plot(explainer.expected_value[DOESNT_READMIT],
-                         shap_values[DOESNT_READMIT],
+figure = shap.force_plot(explainer.expected_value[READMIT],
+                         shap_values[READMIT],
                          row_data_matrix,
                          feature_names=FEATURES,
                          matplotlib=True, show=False)
@@ -391,10 +396,10 @@ print(f"[[file:{filename}]]")
 #+end_src
 
 #+RESULTS:
-[[file:shap_three.png]]
+: [[file:shap_three.png]]
 
 **** Try one where num_inpatients was the Maximum
-#+begin_src python :session shap :results output :exports both
+#+begin_src python :results output :exports both
 INPATIENTS = x_validate.number_inpatient.max()
 row_data = x_validate[x_validate.number_inpatient==INPATIENTS].sample().iloc[0]
 row_data_matrix = row_data.values.reshape(1, -1)
@@ -404,13 +409,13 @@ print(first_model.predict_proba(row_data_matrix))
 
 #+RESULTS:
 : [0 1]
-: [[0.36620003 0.63379997]]
+: [[0.36204624 0.63795376]]
 
-#+begin_src python :session shap :results output raw :exports both
+#+begin_src python :results output raw :exports both
 explainer = shap.TreeExplainer(first_model)
 shap_values = explainer.shap_values(row_data_matrix)
-figure = shap.force_plot(explainer.expected_value[DOESNT_READMIT],
-                         shap_values[DOESNT_READMIT],
+figure = shap.force_plot(explainer.expected_value[READMIT],
+                         shap_values[READMIT],
                          row_data_matrix,
                          feature_names=FEATURES,
                          matplotlib=True, show=False)
@@ -421,12 +426,68 @@ print(f"[[file:{filename}]]")
 #+end_src
 
 #+RESULTS:
-[[file:shap_max.png]]
+: [[file:shap_max.png]]
 
 *** Time In Hospital
 #+begin_quote
- The doctors think it's a good sign that increasing the number of inpatient procedures leads to increased predictions.  But they can't tell from this plot whether that change in the plot is big or small. They'd like you to create something similar for `time_in_hospital` to see how that compares.
+ The doctors think it's a good sign that increasing the number of inpatient procedures leads to increased predictions.  But they can't tell from this plot whether that change in the plot is big or small. They'd like you to create something similar for =time_in_hospital= to see how that compares.
 #+end_quote
+
+#+begin_src python :results output :exports both
+FEATURE = "time_in_hospital"
+pdp_dist = pdp.pdp_isolate(model=first_model,
+                           dataset=x_validate,
+                           model_features=FEATURES,
+                           feature=FEATURE)
+pdp.pdp_plot(pdp_dist, FEATURE)
+output = f"{FEATURE}_pdp_plot.png"
+pyplot.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+: [[file:time_in_hospital_pdp_plot.png]]
+[[file:./.ob-jupyter/50c5ab63271935dafa68df65b3c34d8cd69781a8.png]]
+:END:
+
+
+
+
+
+
+
+#+begin_src python :results output :exports both
+# TIME_IN_HOSPITAL = x_validate.time_in_hospital.max()
+TIME_IN_HOSPITAL = 1
+row_data = x_validate[x_validate.number_inpatient==TIME_IN_HOSPITAL].sample().iloc[0]
+row_data_matrix = row_data.values.reshape(1, -1)
+print(first_model.classes_)
+print(first_model.predict_proba(row_data_matrix))
+#+end_src
+
+#+RESULTS:
+: [0 1]
+: [[0.47914526 0.52085474]]
+
+This one is predicted to be re-admitted.
+
+#+begin_src python :results output raw :exports both
+explainer = shap.TreeExplainer(first_model)
+shap_values = explainer.shap_values(row_data_matrix)
+figure = shap.force_plot(explainer.expected_value[READMIT],
+                         shap_values[READMIT],
+                         row_data_matrix,
+                         feature_names=FEATURES,
+                         matplotlib=True, show=False)
+filename = "shap_hospital_one.png"
+
+figure.savefig(OUTPUT_PATH/filename)
+print(f"[[file:{filename}]]")
+#+end_src
+
+#+RESULTS:
+: [[file:shap_hospital_one.png]]
 
 * End
 ** Sources
