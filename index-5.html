@@ -48,6 +48,716 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/">Snorkel Example: Building a Spam Dataset</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/" rel="bookmark"><time class="published dt-published" datetime="2020-01-06T17:40:40-08:00" itemprop="datePublished" title="2020-01-06 17:40">2020-01-06 17:40</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org40dd6b3">Beginning</a>
+<ul>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org16510b3">Imports</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org0578a38">Set Up</a></li>
+</ul>
+</li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orge91f516">Middle</a>
+<ul>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgb681313">Labeling Functions</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgadf32d2">Data Augmentation</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org6972c97">Slicing</a></li>
+</ul>
+</li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgc1745cb">End</a>
+<ul>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org977c939">Train A Classifier</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org40dd6b3">
+<h2 id="org40dd6b3">Beginning</h2>
+<div class="outline-text-2" id="text-org40dd6b3">
+<p>This is a walk-through of the Snorkel <a href="https://www.snorkel.org/get-started/">Get Started</a> tutorial which shows how you can use it to build a labeled dataset. It uses the <a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/">YouTube Spam Collection</a> data set (downloaded from the <a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection">UCI Machine Learning Repository</a>). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns <code>COMMENT_ID</code>, <code>AUTHOR</code>, <code>DATE</code>, <code>CONTENT</code>, <code>TAG</code>. The tag represents whether it was considered <i>Spam</i> or not, so we'll pretend it isn't there for most of this walk-through.</p>
+</div>
+<div class="outline-3" id="outline-container-org16510b3">
+<h3 id="org16510b3">Imports</h3>
+<div class="outline-text-3" id="text-org16510b3"></div>
+<div class="outline-4" id="outline-container-org21f74c2">
+<h4 id="org21f74c2">Python</h4>
+<div class="outline-text-4" id="text-org21f74c2">
+<div class="highlight">
+<pre><span></span>from argparse import Namespace
+from functools import partial
+from pathlib import Path
+import random
+import re
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orge277dd1">
+<h4 id="orge277dd1">PyPi</h4>
+<div class="outline-text-4" id="text-orge277dd1">
+<div class="highlight">
+<pre><span></span>from nltk.corpus import wordnet
+from sklearn import metrics
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from snorkel.augmentation import ApplyOnePolicy, PandasTFApplier, transformation_function
+from snorkel.labeling import labeling_function, LabelModel, PandasLFApplier
+from snorkel.slicing import slicing_function
+from textblob import TextBlob
+import hvplot.pandas
+import nltk
+import pandas
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgfdd7668">
+<h4 id="orgfdd7668">Others</h4>
+<div class="outline-text-4" id="text-orgfdd7668">
+<div class="highlight">
+<pre><span></span>from graeae import CountPercentage, EmbedHoloviews
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org0578a38">
+<h3 id="org0578a38">Set Up</h3>
+<div class="outline-text-3" id="text-org0578a38"></div>
+<div class="outline-4" id="outline-container-org0c57164">
+<h4 id="org0c57164">The WordNet Corpus</h4>
+<div class="outline-text-4" id="text-org0c57164">
+<div class="highlight">
+<pre><span></span>nltk.download("wordnet", quiet=True)
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org9832938">
+<h4 id="org9832938">Plotting</h4>
+<div class="outline-text-4" id="text-org9832938">
+<div class="highlight">
+<pre><span></span>Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org1824b8e">
+<h4 id="org1824b8e">The Dataset</h4>
+<div class="outline-text-4" id="text-org1824b8e">
+<p>The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a <code>artist</code> column.</p>
+<div class="highlight">
+<pre><span></span>path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
+sets = []
+for name in path.glob("*.csv"):
+    artist = name.stem.split()[-1]
+    data = pandas.read_csv(name)
+    data["artist"] = artist
+    sets.append(data)
+    print(artist)
+data = pandas.concat(sets)
+</pre></div>
+<pre class="example">
+KatyPerry
+LMFAO
+Eminem
+Shakira
+Psy
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-org8e6eafd">
+<h4 id="org8e6eafd">Splitting the Set</h4>
+<div class="outline-text-4" id="text-org8e6eafd">
+<div class="highlight">
+<pre><span></span>train, test = train_test_split(data)
+print(train.shape)
+print(test.shape)
+
+train, development = train_test_split(train)
+validation, test = train_test_split(test)
+print(train.shape)
+print(development.shape)
+print(validation.shape)
+print(test.shape)
+</pre></div>
+<pre class="example">
+(1467, 6)
+(489, 6)
+(1100, 6)
+(367, 6)
+(366, 6)
+(123, 6)
+</pre>
+<div class="highlight">
+<pre><span></span>grouped = train.groupby(["artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count").opts(title="Comments by Artist", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist")()
+</pre></div>
+<object data="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/comments_by_artist.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span>grouped = train.groupby(["artist", "CLASS"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "Count"})
+plot = grouped.hvplot.bar(x="artist", y="Count", by="CLASS").opts(title="Comments by Artist and Class", width=1000, height=800)
+Embed(plot=plot, file_name="comments_by_artist_and_class")()
+</pre></div>
+<object data="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/comments_by_artist_and_class.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>I said earlier that the spam/not-spam column was named tag, but its named <code>CLASS</code> here, I don't know where the switch came (it says <code>TAG</code> on the UCI page).</p>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orge91f516">
+<h2 id="orge91f516">Middle</h2>
+<div class="outline-text-2" id="text-orge91f516"></div>
+<div class="outline-3" id="outline-container-orgb681313">
+<h3 id="orgb681313">Labeling Functions</h3>
+<div class="outline-text-3" id="text-orgb681313">
+<p>Labeling functions output a label for values in the training set.</p>
+</div>
+<div class="outline-4" id="outline-container-org1b10309">
+<h4 id="org1b10309">Labels</h4>
+<div class="outline-text-4" id="text-org1b10309">
+<div class="highlight">
+<pre><span></span>Label = Namespace(
+    abstain = -1,
+    not_spam = 0,
+    spam = 1,
+)
+</pre></div>
+<p>The actual data-set only has spam/not-spam classes, but the Snorkel tutorial adds the <code>abstain</code> class as well. Each function is going to be passed a row from the training dataframe, so the class name you use has to match it.</p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgf83d267">
+<h4 id="orgf83d267">Keyword Matching</h4>
+<div class="outline-text-4" id="text-orgf83d267">
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def labeling_by_keyword(comment: pandas.Series) -&gt; int:
+    """Assume if the author refers to something he/she owns it's spam
+
+    Args: 
+     row with comment CONTENT
+
+    Returns:
+     label for the comment
+    """
+    return Label.spam if "my" in comment.CONTENT.lower() else Label.abstain
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org0c32df3">
+<h4 id="org0c32df3">Regular Expressions</h4>
+<div class="outline-text-4" id="text-org0c32df3">
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def label_check_out(comment) -&gt; int:
+    """check my/it/the out will be spam"""
+    return Label.spam if re.search(r"check.*out", comment.CONTENT, flags=re.I) else Label.abstain
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org9581112">
+<h4 id="org9581112">Short Comments</h4>
+<div class="outline-text-4" id="text-org9581112">
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def label_short_comment(comment) -&gt; int:
+    """if a comment is short it's probably not spam"""
+    return Label.not_spam if len(comment.CONTENT.split()) &lt; 5 else Label.abstain
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgd646779">
+<h4 id="orgd646779">Positive Comments</h4>
+<div class="outline-text-4" id="text-orgd646779">
+<p>Here we'll use <a href="https://textblob.readthedocs.io/en/dev/">textblob</a> to try and decide on whether a comment is positive (textblob uses <a href="https://www.clips.uantwerpen.be/pattern">pattern</a> to decide on the polarity.)</p>
+<div class="highlight">
+<pre><span></span>@labeling_function()
+def label_positive_comment(comment) -&gt; int:
+    """If a comment is positive, we'll accept it"""
+    return Label.not_spam if TextBlob(comment.CONTENT).sentiment.polarity &gt; 0.3 else Label.abstain
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgdedcedc">
+<h4 id="orgdedcedc">Combining the Functions and Cleaning the Labels</h4>
+<div class="outline-text-4" id="text-orgdedcedc">
+<p>First I'll create a list of the labeling functions so that we can pass it to the label-applier class.</p>
+<div class="highlight">
+<pre><span></span>labeling_functions = [labeling_by_keyword, label_check_out, label_short_comment, label_positive_comment]
+</pre></div>
+<p>Now create the applier.</p>
+<div class="highlight">
+<pre><span></span>applier = PandasLFApplier(labeling_functions)
+</pre></div>
+<p>Now create it.</p>
+<div class="highlight">
+<pre><span></span>label_matrix = applier.apply(train, progress_bar=False)
+
+print(label_matrix.shape)
+print(train.shape)
+</pre></div>
+<pre class="example">
+(1100, 4)
+(1100, 6)
+</pre>
+<p>The label-matrix has one row for each of the comments in our training set and one column for each of our labeling functions.</p>
+<div class="highlight">
+<pre><span></span>label_frame = pandas.DataFrame(label_matrix, columns=["keyword", "check_out", "short", "positive"])
+</pre></div>
+<div class="highlight">
+<pre><span></span>re_framed = {}
+
+for column in label_frame.columns:
+    re_framed[column] = 
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org2ec1c28">
+<h4 id="org2ec1c28">Training the Label Model</h4>
+<div class="outline-text-4" id="text-org2ec1c28">
+<div class="highlight">
+<pre><span></span>label_model = LabelModel(cardinality=2, verbose=True)
+label_model.fit(label_matrix, n_epochs=500, log_freq=50, seed=0)
+train["label"] = label_model.predict(L=label_matrix, tie_break_policy="abstain")
+</pre></div>
+<div class="highlight">
+<pre><span></span>grouped = train.groupby(["label", "artist"]).agg({"COMMENT_ID": "count"}).reset_index().rename(columns={"COMMENT_ID": "count"})
+plot = grouped.hvplot.bar(x="label", y="count", by="artist").opts(title="Label Counts", height=800, width=1000)
+Embed(plot=plot, file_name="label_counts")()
+</pre></div>
+<object data="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/label_counts.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>Most comments were labeled spam or not-spam, but some were abstained. In order to move on to the next section, we'll drop the rows where an opinion about the label was abstained.</p>
+<div class="highlight">
+<pre><span></span>train = train[train.label != Label.abstain]
+CountPercentage(train.label)()
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-right" scope="col">Value</th>
+<th class="org-right" scope="col">Count</th>
+<th class="org-right" scope="col">Percent (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">0</td>
+<td class="org-right">419</td>
+<td class="org-right">53.51</td>
+</tr>
+<tr>
+<td class="org-right">1</td>
+<td class="org-right">364</td>
+<td class="org-right">46.49</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span>matched = sum(train.label == train.CLASS)
+print(f"{matched/len(train): .2f}")
+</pre></div>
+<pre class="example">
+0.51
+</pre>
+<p>Of those that were matched, only a little more than half agree with the labels given by the dataset creators.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgadf32d2">
+<h3 id="orgadf32d2">Data Augmentation</h3>
+<div class="outline-text-3" id="text-orgadf32d2">
+<p>We're going to create new entries in the data by randomly replacing words with their synonyms.</p>
+</div>
+<div class="outline-4" id="outline-container-orgfab4241">
+<h4 id="orgfab4241">Synonym Lookup Function</h4>
+<div class="outline-text-4" id="text-orgfab4241">
+<div class="highlight">
+<pre><span></span>def synonyms_for(word: str) -&gt; list:
+    """get synonyms for word"""
+    lemmas = set().union(*[synset.lemmas() for synset in wordnet.synsets(word)])
+    return list(set(lemma.name().lower().replace("_" , " ") for lemma in lemmas) - {word})
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgb76b7ac">
+<h4 id="orgb76b7ac">The Transformation Function</h4>
+<div class="outline-text-4" id="text-orgb76b7ac">
+<div class="highlight">
+<pre><span></span>@transformation_function()
+def replace_word_with_synonym(comment: pandas.Series) -&gt; pandas.Series:
+    """Replace one of the words with a synonym
+
+    Args:
+     comment: row with a comment
+
+    Returns:
+     comment with a word replaced
+    """
+    tokens = comment.CONTENT.lower().split()
+    index = random.choice(range(len(tokens)))
+    synonyms = synonyms_for(tokens[index])
+    if synonyms:
+        comment.CONTENT = " ".join(tokens[:index] + [synonyms[0]] + tokens[index + 1 :])
+    return comment
+</pre></div>
+<div class="highlight">
+<pre><span></span>transform_policy = ApplyOnePolicy(n_per_original=2, keep_original=True)
+transform_applier = PandasTFApplier([replace_word_with_synonym], transform_policy)
+train_augmented = transform_applier.apply(train, progress_bar=False)
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(train_augmented[:3].CONTENT)
+</pre></div>
+<pre class="example">
+415           very good song:)﻿
+415    very respectable song:)﻿
+415           very good song:)﻿
+Name: CONTENT, dtype: object
+</pre>
+<p>Because it's random, we don't always end up with different content.</p>
+<div class="highlight">
+<pre><span></span>print(f"{len(train_augmented):,}")
+train_augmented = train_augmented.drop_duplicates(subset="CONTENT")
+print(f"{len(train_augmented):,}")
+print(f"{len(train):,}")
+</pre></div>
+<pre class="example">
+2,349
+1,357
+783
+</pre>
+<p>So we added some content.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org6972c97">
+<h3 id="org6972c97">Slicing</h3>
+<div class="outline-text-3" id="text-org6972c97">
+<p>A <i>slice</i> is a subset of the data - in this case we want to identify slices that might be more important than others. In this case we're going to assume that we've identified that short links are more likely to be malicious, so we want to be more aware of them.</p>
+<div class="highlight">
+<pre><span></span>@slicing_function()
+def short_link(comment: pandas.Series) -&gt; int:
+    """checks for shortened links in the comment
+
+    Args:
+     comment: row with comment in it
+
+    Returns:
+     1 if short-link detected, 0 otherwise
+    """
+    return int(bool(re.search(r"\w+\.ly", comment.CONTENT)))
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc1745cb">
+<h2 id="orgc1745cb">End</h2>
+<div class="outline-text-2" id="text-orgc1745cb"></div>
+<div class="outline-3" id="outline-container-org977c939">
+<h3 id="org977c939">Train A Classifier</h3>
+<div class="outline-text-3" id="text-org977c939">
+<div class="highlight">
+<pre><span></span>training_text = train_augmented.CONTENT.tolist()
+vectorizer = CountVectorizer(ngram_range=(1, 2))
+x_train = vectorizer.fit_transform(training_text)
+
+classifier = LogisticRegression(solver="lbfgs")
+classifier.fit(x_train, train_augmented.label.values)
+</pre></div>
+<div class="highlight">
+<pre><span></span>development_test = vectorizer.transform(development.CONTENT)
+development["predicted"] = classifier.predict(development_test)
+
+print(f"{sum(development.CLASS == development.predicted)/len(development):.2f}")
+</pre></div>
+<pre class="example">
+0.54
+</pre>
+<p>So our model is almost random.</p>
+<div class="highlight">
+<pre><span></span>print(metrics.classification_report(development.CLASS, development.predicted, target_names=["not spam", "spam"]))
+</pre></div>
+<pre class="example">
+              precision    recall  f1-score   support
+
+    not spam       0.56      0.61      0.58       194
+        spam       0.51      0.45      0.48       173
+
+    accuracy                           0.54       367
+   macro avg       0.53      0.53      0.53       367
+weighted avg       0.53      0.54      0.53       367
+
+</pre></div>
+<div class="outline-4" id="outline-container-orge97cffb">
+<h4 id="orge97cffb">Training on the Original Labels</h4>
+<div class="outline-text-4" id="text-orge97cffb">
+<div class="highlight">
+<pre><span></span>vectorizer = CountVectorizer(ngram_range=(1, 2))
+x_train = vectorizer.fit_transform(train.CONTENT)
+
+classifier = LogisticRegression(solver="lbfgs")
+classifier.fit(x_train, train.CLASS.values)
+
+development_test = vectorizer.transform(development.CONTENT)
+predicted = classifier.predict(development_test)
+
+print(metrics.classification_report(development.CLASS, predicted, target_names=["not spam", "spam"]))
+</pre></div>
+<pre class="example">
+              precision    recall  f1-score   support
+
+    not spam       0.91      0.97      0.94       194
+        spam       0.97      0.90      0.93       173
+
+    accuracy                           0.94       367
+   macro avg       0.94      0.94      0.94       367
+weighted avg       0.94      0.94      0.94       367
+
+</pre>
+<p>So our self-labeled data set really hurt the performance, but this was the Getting Started tutorial, so it was meant to be just a skimming of what the basic procedure is, hopefully tuning the labeling and transformations more would improve the performance.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/libraries/trying-out-dabest/">Trying out DABEST</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/libraries/trying-out-dabest/" rel="bookmark"><time class="published dt-published" datetime="2019-12-16T13:50:24-08:00" itemprop="datePublished" title="2019-12-16 13:50">2019-12-16 13:50</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/libraries/trying-out-dabest/#org27a196f">Beginning</a>
+<ul>
+<li><a href="/posts/libraries/trying-out-dabest/#org9d3e203">Imports</a></li>
+<li><a href="/posts/libraries/trying-out-dabest/#org07e536a">Set Up</a></li>
+</ul>
+</li>
+<li><a href="/posts/libraries/trying-out-dabest/#orgabbb33d">Middle</a>
+<ul>
+<li><a href="/posts/libraries/trying-out-dabest/#orga8af6cb">Petal Width</a></li>
+<li><a href="/posts/libraries/trying-out-dabest/#orgbcd0497">Hedge's G</a></li>
+<li><a href="/posts/libraries/trying-out-dabest/#org91c1a78">Cohen's D</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org27a196f">
+<h2 id="org27a196f">Beginning</h2>
+<div class="outline-text-2" id="text-org27a196f"></div>
+<div class="outline-3" id="outline-container-org9d3e203">
+<h3 id="org9d3e203">Imports</h3>
+<div class="outline-text-3" id="text-org9d3e203"></div>
+<div class="outline-4" id="outline-container-org6c3bc52">
+<h4 id="org6c3bc52">PyPi</h4>
+<div class="outline-text-4" id="text-org6c3bc52">
+<div class="highlight">
+<pre><span></span>from sklearn.datasets import load_iris
+import dabest
+import pandas
+import seaborn
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org07e536a">
+<h3 id="org07e536a">Set Up</h3>
+<div class="outline-text-3" id="text-org07e536a"></div>
+<div class="outline-4" id="outline-container-org7515a90">
+<h4 id="org7515a90">The Data Set</h4>
+<div class="outline-text-4" id="text-org7515a90">
+<div class="highlight">
+<pre><span></span>iris = load_iris()
+</pre></div>
+<div class="highlight">
+<pre><span></span>print(iris.DESCR)
+</pre></div>
+<pre class="example">
+Iris plants dataset
+--------------------
+
+**Data Set Characteristics:**
+
+    :Number of Instances: 150 (50 in each of three classes)
+    :Number of Attributes: 4 numeric, predictive attributes and the class
+    :Attribute Information:
+        - sepal length in cm
+        - sepal width in cm
+        - petal length in cm
+        - petal width in cm
+        - class:
+                - Iris-Setosa
+                - Iris-Versicolour
+                - Iris-Virginica
+                
+    :Summary Statistics:
+
+    ============== ==== ==== ======= ===== ====================
+                    Min  Max   Mean    SD   Class Correlation
+    ============== ==== ==== ======= ===== ====================
+    sepal length:   4.3  7.9   5.84   0.83    0.7826
+    sepal width:    2.0  4.4   3.05   0.43   -0.4194
+    petal length:   1.0  6.9   3.76   1.76    0.9490  (high!)
+    petal width:    0.1  2.5   1.20   0.76    0.9565  (high!)
+    ============== ==== ==== ======= ===== ====================
+
+    :Missing Attribute Values: None
+    :Class Distribution: 33.3% for each of 3 classes.
+    :Creator: R.A. Fisher
+    :Donor: Michael Marshall (MARSHALL%PLU@io.arc.nasa.gov)
+    :Date: July, 1988
+
+The famous Iris database, first used by Sir R.A. Fisher. The dataset is taken
+from Fisher's paper. Note that it's the same as in R, but not as in the UCI
+Machine Learning Repository, which has two wrong data points.
+
+This is perhaps the best known database to be found in the
+pattern recognition literature.  Fisher's paper is a classic in the field and
+is referenced frequently to this day.  (See Duda & Hart, for example.)  The
+data set contains 3 classes of 50 instances each, where each class refers to a
+type of iris plant.  One class is linearly separable from the other 2; the
+latter are NOT linearly separable from each other.
+
+.. topic:: References
+
+   - Fisher, R.A. "The use of multiple measurements in taxonomic problems"
+     Annual Eugenics, 7, Part II, 179-188 (1936); also in "Contributions to
+     Mathematical Statistics" (John Wiley, NY, 1950).
+   - Duda, R.O., & Hart, P.E. (1973) Pattern Classification and Scene Analysis.
+     (Q327.D83) John Wiley & Sons.  ISBN 0-471-22361-1.  See page 218.
+   - Dasarathy, B.V. (1980) "Nosing Around the Neighborhood: A New System
+     Structure and Classification Rule for Recognition in Partially Exposed
+     Environments".  IEEE Transactions on Pattern Analysis and Machine
+     Intelligence, Vol. PAMI-2, No. 1, 67-71.
+   - Gates, G.W. (1972) "The Reduced Nearest Neighbor Rule".  IEEE Transactions
+     on Information Theory, May 1972, 431-433.
+   - See also: 1988 MLC Proceedings, 54-64.  Cheeseman et al"s AUTOCLASS II
+     conceptual clustering system finds 3 classes in the data.
+   - Many, many more ...
+</pre>
+<div class="highlight">
+<pre><span></span>data = pandas.DataFrame(iris.data, columns=iris.feature_names)
+target = pandas.Series(iris.target)
+names = dict(zip(range(len(iris.target_names)), iris.target_names))
+data["species"] = target.map(names)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgabbb33d">
+<h2 id="orgabbb33d">Middle</h2>
+<div class="outline-text-2" id="text-orgabbb33d"></div>
+<div class="outline-3" id="outline-container-orga8af6cb">
+<h3 id="orga8af6cb">Petal Width</h3>
+<div class="outline-text-3" id="text-orga8af6cb">
+<div class="highlight">
+<pre><span></span>iris_dabest = dabest.load(data=data, x="species", y="petal width (cm)", idx=iris.target_names)
+iris_dabest.mean_diff.plot()
+</pre></div>
+<div class="figure">
+<p><img alt="petal_width.png" src="/posts/libraries/trying-out-dabest/petal_width.png"></p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgbcd0497">
+<h3 id="orgbcd0497">Hedge's G</h3>
+<div class="outline-text-3" id="text-orgbcd0497">
+<p><a href="https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/hedgeg.htm">Hedges G</a> is a measurement of effect size, similar to Cohen's d but with better properties when the samples are smaller or the sample sizes are different.</p>
+<div class="highlight">
+<pre><span></span>iris_dabest.hedges_g.plot()
+</pre></div>
+<div class="figure">
+<p><img alt="hedges_g.png" src="/posts/libraries/trying-out-dabest/hedges_g.png"></p>
+</div>
+<div class="highlight">
+<pre><span></span>print(iris_dabest.hedges_g)
+</pre></div>
+<pre class="example">
+DABEST v0.2.7
+=============
+             
+Good afternoon!
+The current time is Mon Dec 16 15:56:24 2019.
+
+The unpaired Hedges' g between setosa and versicolor is 6.76 [95%CI 5.71, 7.86].
+The two-sided p-value of the Mann-Whitney test is 2.28e-18.
+
+The unpaired Hedges' g between setosa and virginica is 8.49 [95%CI 7.08, 9.77].
+The two-sided p-value of the Mann-Whitney test is 2.43e-18.
+
+5000 bootstrap samples were taken; the confidence interval is bias-corrected and accelerated.
+The p-value(s) reported are the likelihood(s) of observing the effect size(s),
+if the null hypothesis of zero difference is true.
+
+To get the results of all valid statistical tests, use `.hedges_g.statistical_tests`
+</pre>
+<p>According to <a href="https://www.wikiwand.com/en/Effect_size">Wikipedia</a>, an effect size of 2 is "huge" so since the differences between the setosa and versicolor and setosa and virginica are 6.76 and 8.49 respectively, we might conclude that there is a significant difference between the petal width of the setosa and the other two species.</p>
+<p>I don't think that's really what this is meant for, but I just wanted to see how it works.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org91c1a78">
+<h3 id="org91c1a78">Cohen's D</h3>
+<div class="outline-text-3" id="text-org91c1a78">
+<div class="highlight">
+<pre><span></span>iris_dabest.cohens_d.plot()
+</pre></div>
+<div class="figure">
+<p><img alt="cohens_d.png" src="/posts/libraries/trying-out-dabest/cohens_d.png"></p>
+</div>
+<div class="highlight">
+<pre><span></span>print(iris_dabest.cohens_d)
+</pre></div>
+<pre class="example">
+DABEST v0.2.7
+=============
+             
+Good afternoon!
+The current time is Mon Dec 16 16:46:25 2019.
+
+The unpaired Cohen's d between setosa and versicolor is 6.82 [95%CI 5.76, 7.92].
+The two-sided p-value of the Mann-Whitney test is 2.28e-18.
+
+The unpaired Cohen's d between setosa and virginica is 8.56 [95%CI 7.13, 9.85].
+The two-sided p-value of the Mann-Whitney test is 2.43e-18.
+
+5000 bootstrap samples were taken; the confidence interval is bias-corrected and accelerated.
+The p-value(s) reported are the likelihood(s) of observing the effect size(s),
+if the null hypothesis of zero difference is true.
+
+To get the results of all valid statistical tests, use `.cohens_d.statistical_tests`
+</pre>
+<p>In this case the Cohen's d and Hedges g look similar.</p>
+</div>
+</div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/libraries/a-first-look-at-dabest/">A First Look At DABEST</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>

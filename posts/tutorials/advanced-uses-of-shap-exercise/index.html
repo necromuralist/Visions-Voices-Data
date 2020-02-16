@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="An exercise in more advanced SHAP interpretability." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Advanced Uses Of SHAP Exercise | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/advanced-uses-of-shap-exercise/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="../../../assets/javascript/p5.min.js" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="/posts/tutorials/advanced-uses-of-shap/" rel="prev" title="Advanced Uses Of SHAP" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Advanced Uses Of SHAP Exercise" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/advanced-uses-of-shap-exercise/" property="og:url">
+<meta content="An exercise in more advanced SHAP interpretability." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2020-02-14T20:03:29-08:00" property="article:published_time">
+<meta content="machine learning interpretability" property="article:tag">
+<meta content="shap" property="article:tag">
+<meta content="tutorial" property="article:tag">
+<meta content="visualization" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="/archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="/categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="/rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="/pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"> <input name="k8" type="hidden" value="#444444"> <input name="k9" type="hidden" value="#D51920"> <input name="kt" type="hidden" value="h"> <input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"> <input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="/posts/tutorials/advanced-uses-of-shap-exercise/index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href="/posts/tutorials/advanced-uses-of-shap-exercise/">Advanced Uses Of SHAP Exercise</a></h1>
+<div class="metadata">
+<p class="byline author vcard p-author h-card"><span class="byline-name fn p-name" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/tutorials/advanced-uses-of-shap-exercise/" rel="bookmark"><time class="published dt-published" datetime="2020-02-14T20:03:29-08:00" itemprop="datePublished" title="2020-02-14 20:03">2020-02-14 20:03</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="/posts/tutorials/advanced-uses-of-shap-exercise/index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#orgdc3c9b8">Beginning</a>
+<ul>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org9e83025">Imports</a>
+<ul>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#orga589cce">Python</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org437020e">PyPi</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org8fcfc85">Others</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#orgd8ea0c0">Set Up</a>
+<ul>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org868e469">Plotting</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org79ce9ef">The Timer</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org561bed3">The Environment</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#orgee3d425">The Data</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#orgc09f422">Middle</a>
+<ul>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#orgbb9b8bc">Build the Model</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org7bd49a3">Shap Values</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org084c5da">Summary Plot</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#orge57fb88">Question 1</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org829bd06">Question 2</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org02183bd">Question 3</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org51c0829">Question 4</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#orgf2f1892">Question 5</a></li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org95d8519">Question 6</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/advanced-uses-of-shap-exercise/#org2b97967">End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgdc3c9b8">
+<h2 id="orgdc3c9b8">Beginning</h2>
+<div class="outline-text-2" id="text-orgdc3c9b8">
+<p>This is my notes on the Advanced Uses of SHAP Exercise that's part of the <a href="https://www.kaggle.com/learn/machine-learning-explainability">Machine Learning Explainability</a> tutorial on kaggle.</p>
+</div>
+<div class="outline-3" id="outline-container-org9e83025">
+<h3 id="org9e83025">Imports</h3>
+<div class="outline-text-3" id="text-org9e83025"></div>
+<div class="outline-4" id="outline-container-orga589cce">
+<h4 id="orga589cce">Python</h4>
+<div class="outline-text-4" id="text-orga589cce">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org437020e">
+<h4 id="org437020e">PyPi</h4>
+<div class="outline-text-4" id="text-org437020e">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span><span class="p">,</span> <span class="n">RandomizedSearchCV</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+<span class="kn">import</span> <span class="nn">seaborn</span>
+<span class="kn">import</span> <span class="nn">shap</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org8fcfc85">
+<h4 id="org8fcfc85">Others</h4>
+<div class="outline-text-4" id="text-org8fcfc85">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EnvironmentLoader</span><span class="p">,</span> <span class="n">Timer</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgd8ea0c0">
+<h3 id="orgd8ea0c0">Set Up</h3>
+<div class="outline-text-3" id="text-orgd8ea0c0"></div>
+<div class="outline-4" id="outline-container-org868e469">
+<h4 id="org868e469">Plotting</h4>
+<div class="outline-text-4" id="text-org868e469">
+<div class="highlight">
+<pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"advanced-uses-of-shap-exercise"</span>
+<span class="n">OUTPUT_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/tutorials"</span><span class="p">)</span><span class="o">/</span><span class="n">SLUG</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">OUTPUT_PATH</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+    <span class="n">OUTPUT_PATH</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+
+<span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">run_line_magic</span><span class="p">(</span><span class="s1">'matplotlib'</span><span class="p">,</span> <span class="s1">'inline'</span><span class="p">)</span>
+<span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">run_line_magic</span><span class="p">(</span><span class="s1">'config'</span><span class="p">,</span> <span class="s2">"InlineBackend.figure_format = 'retina'"</span><span class="p">)</span>
+<span class="n">FIGURE_SIZE</span> <span class="o">=</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">seaborn</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s2">"whitegrid"</span><span class="p">,</span>
+            <span class="n">rc</span><span class="o">=</span><span class="p">{</span><span class="s2">"axes.grid"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"font.family"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"sans-serif"</span><span class="p">],</span>
+                <span class="s2">"font.sans-serif"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"Open Sans"</span><span class="p">,</span> <span class="s2">"Latin Modern Sans"</span><span class="p">,</span> <span class="s2">"Lato"</span><span class="p">],</span>
+                <span class="s2">"font.size"</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>
+                <span class="s2">"figure.figsize"</span><span class="p">:</span> <span class="n">FIGURE_SIZE</span><span class="p">},</span>
+            <span class="n">font_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org79ce9ef">
+<h4 id="org79ce9ef">The Timer</h4>
+<div class="outline-text-4" id="text-org79ce9ef">
+<div class="highlight">
+<pre><span></span><span class="n">TIMER</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org561bed3">
+<h4 id="org561bed3">The Environment</h4>
+<div class="outline-text-4" id="text-org561bed3">
+<div class="highlight">
+<pre><span></span><span class="n">ENVIRONMENT</span> <span class="o">=</span> <span class="n">EnvironmentLoader</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgee3d425">
+<h4 id="orgee3d425">The Data</h4>
+<div class="outline-text-4" id="text-orgee3d425">
+<p>Once again we're going to use the <a href="https://www.kaggle.com/dansbecker/hospital-readmissions">Medical Data and Hospital Readmissions</a> dataset from kaggle.</p>
+<div class="highlight">
+<pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">ENVIRONMENT</span><span class="p">[</span><span class="s2">"HOSPITAL-READMISSIONS"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</pre></div>
+<p>We are only going to use a subset of the features.</p>
+<div class="highlight">
+<pre><span></span><span class="n">FEATURES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">'A1Cresult_None'</span><span class="p">,</span>
+    <span class="s1">'diabetesMed_Yes'</span><span class="p">,</span>
+    <span class="s1">'diag_1_414'</span><span class="p">,</span> 
+    <span class="s1">'diag_1_428'</span><span class="p">,</span>
+    <span class="s1">'gender_Female'</span><span class="p">,</span>
+    <span class="s1">'medical_specialty_?'</span><span class="p">,</span>
+    <span class="s1">'num_lab_procedures'</span><span class="p">,</span> 
+    <span class="s1">'num_medications'</span><span class="p">,</span>
+    <span class="s1">'num_procedures'</span><span class="p">,</span>
+    <span class="s1">'number_diagnoses'</span><span class="p">,</span>
+    <span class="s1">'number_emergency'</span><span class="p">,</span> 
+    <span class="s1">'number_inpatient'</span><span class="p">,</span>
+    <span class="s1">'number_outpatient'</span><span class="p">,</span>
+    <span class="s1">'payer_code_?'</span><span class="p">,</span>
+    <span class="s1">'time_in_hospital'</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+<p>Now we'll split up the features and the target. According to the notebook some versions of shap don't work when you combine numeric and boolean types so we'll convert all the features to floats.</p>
+<div class="highlight">
+<pre><span></span><span class="n">X</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">FEATURES</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">Y</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">readmitted</span>
+</pre></div>
+<p>Now the training and validation split.</p>
+<div class="highlight">
+<pre><span></span><span class="n">x_train</span><span class="p">,</span> <span class="n">x_validation</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_validation</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc09f422">
+<h2 id="orgc09f422">Middle</h2>
+<div class="outline-text-2" id="text-orgc09f422"></div>
+<div class="outline-3" id="outline-container-orgbb9b8bc">
+<h3 id="orgbb9b8bc">Build the Model</h3>
+<div class="outline-text-3" id="text-orgbb9b8bc">
+<p>For some reason the notebook switches from a classifier to a regressor, even though this seems to be a classification problem. Since I don't have an explanation for it I'll try it using a classifier instead.</p>
+<div class="highlight">
+<pre><span></span><span class="c1"># model = RandomForestRegressor()</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">()</span>
+<span class="n">estimators</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">max_depth</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span> <span class="o">+</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+
+<span class="n">grid</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">estimators</span><span class="p">,</span>
+            <span class="n">max_depth</span><span class="o">=</span><span class="n">max_depth</span><span class="p">)</span>
+<span class="n">search</span> <span class="o">=</span> <span class="n">RandomizedSearchCV</span><span class="p">(</span><span class="n">estimator</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+                            <span class="n">param_distributions</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span>
+                            <span class="n">n_iter</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+                            <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                            <span class="n">random_state</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">TIMER</span><span class="p">:</span>
+    <span class="n">search</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">best_estimator_</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"CV Training Accuracy: </span><span class="si">{search.best_score_:0.2f}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Training Accuracy: {model.score(x_train, y_train): 0.2f}"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Validation Accuracy: {model.score(x_validation, y_validation):0.2f}"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">search</span><span class="o">.</span><span class="n">best_params_</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+CV Training Accuracy: 0.63
+Training Accuracy:  0.70
+Validation Accuracy: 0.63
+{'n_estimators': 140, 'max_depth': 10}
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-org7bd49a3">
+<h3 id="org7bd49a3">Shap Values</h3>
+<div class="outline-text-3" id="text-org7bd49a3">
+<div class="highlight">
+<pre><span></span><span class="n">READMITTED</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">explainer</span> <span class="o">=</span> <span class="n">shap</span><span class="o">.</span><span class="n">TreeExplainer</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="n">shap_values</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="n">shap_values</span><span class="p">(</span><span class="n">x_validation</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org084c5da">
+<h3 id="org084c5da">Summary Plot</h3>
+<div class="outline-text-3" id="text-org084c5da">
+<div class="highlight">
+<pre><span></span><span class="n">shap</span><span class="o">.</span><span class="n">summary_plot</span><span class="p">(</span><span class="n">shap_values</span><span class="p">[</span><span class="n">READMITTED</span><span class="p">],</span> <span class="n">x_validation</span><span class="p">)</span>
+<span class="n">figure</span> <span class="o">=</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+<span class="n">output</span> <span class="o">=</span> <span class="s2">"shap_summary.png"</span>
+<span class="c1">#figure.subplots_adjust(left=0.3)</span>
+<span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">OUTPUT_PATH</span><span class="o">/</span><span class="n">output</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[[file:</span><span class="si">{output}</span><span class="s2">]]"</span><span class="p">)</span>
+</pre></div>
+<div class="figure">
+<p><img alt="shap_summary.png" src="/posts/tutorials/advanced-uses-of-shap-exercise/shap_summary.png"></p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orge57fb88">
+<h3 id="orge57fb88">Question 1</h3>
+<div class="outline-text-3" id="text-orge57fb88">
+<blockquote>
+<p>Which of the following features has a bigger range of effects on predictions (i.e. larger difference between most positive and most negative effect)</p>
+<ul class="org-ul">
+<li><code>diag_1_428</code> or</li>
+<li><code>payer_code_?</code></li>
+</ul>
+</blockquote>
+<p><code>diag_1_428</code> appears to have a bigger spread than <code>payer_code</code>.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org829bd06">
+<h3 id="org829bd06">Question 2</h3>
+<div class="outline-text-3" id="text-org829bd06">
+<blockquote>
+<p>Do you believe the range of effects sizes (distance between smallest effect and largest effect) is a good indication of which feature will have a higher permutation importance? Why or why not?</p>
+<p>If the <b>range of effect sizes</b> measures something different from <b>permutation importance</b>: which is a better answer for the question "Which of these two features does the model say is more important for us to understand when discussing readmission risks in the population?"</p>
+<p>Run the following line after you've decided your answer.</p>
+</blockquote>
+<p>I don't think that the range of effect size is a good indication of which feature will have a higher permutation importance, because it just indicates the spread of the values, not their overall effect.</p>
+<p>I think that <code>diag_1_428</code> is more important because it has a higher <i>Feature Value</i> than <code>payer_code_?</code>.</p>
+<p><b>Note:</b> Although the question says "which of these two features does the model say is more important", the answer given is that permutation importance is a better measure of what's important to the model, since it's a robust measurement, while the range of effects is influenced by outliers.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org02183bd">
+<h3 id="org02183bd">Question 3</h3>
+<div class="outline-text-3" id="text-org02183bd">
+<blockquote>
+<p>Both <code>diag_1_428</code> and <code>payer_code_?</code> are binary variables, taking values of 0 or 1.</p>
+<p>From the graph, which do you think would typically have a bigger impact on predicted readmission risk:</p>
+<ul class="org-ul">
+<li>Changing <code>diag_1_428</code> from 0 to 1</li>
+<li>Changing <code>payer_code_?</code> from 0 to 1</li>
+</ul>
+</blockquote>
+<p>I think that changing <code>diag_1_428</code> to 1 would have a bigger impact, since the dots are more heavily right skewed for it than is the case with <code>payer_code_?</code>.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org51c0829">
+<h3 id="org51c0829">Question 4</h3>
+<div class="outline-text-3" id="text-org51c0829">
+<blockquote>
+<p>Some features (like <code>number_inpatient</code>) have reasonably clear separation between the blue and pink dots. Other variables like <code>num_lab_procedures</code> have blue and pink dots jumbled together, even though the SHAP values (or impacts on prediction) aren't all 0.</p>
+<p>What do you think you learn from the fact that <code>num_lab_procedures</code> has blue and pink dots jumbled together? Once you have your answer, run the line below to verify your solution.</p>
+</blockquote>
+<p>I think that this means that it is more difficult to make predictions based on the <code>num_lab_procedures</code> - there isn't a clear separation of outcomes based on the value of <code>num_lab_procedures</code>. The feature probably has interacting effects with other features.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgf2f1892">
+<h3 id="orgf2f1892">Question 5</h3>
+<div class="outline-text-3" id="text-orgf2f1892">
+<blockquote>
+<p>Consider the following SHAP contribution dependence plot.</p>
+<p>The x-axis shows <code>feature_of_interest</code> and the points are colored based on <code>other_feature</code>.</p>
+</blockquote>
+<div class="figure">
+<p><img alt="zFdHneM.png" src="https://i.imgur.com/zFdHneM.png"></p>
+</div>
+<blockquote>
+<p>Is there an interaction between <code>feature_of_interest</code> and <code>other_feature</code>?</p>
+<p>If so, does <code>feature_of_interest</code> have a more positive impact on predictions when <code>other_feature</code> is high or when <code>other_feature</code> is low?</p>
+</blockquote>
+<p>It looks like <code>feature_of_interest</code> has a more positive impart on predictions when the <code>other_feature</code> is high.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org95d8519">
+<h3 id="org95d8519">Question 6</h3>
+<div class="outline-text-3" id="text-org95d8519">
+<blockquote>
+<p>Both <b>num_medications</b> and <b>num_lab_procedures</b> share that jumbling of pink and blue dots.</p>
+<p>Aside from <code>num_medications</code> having effects of greater magnitude (both more positive and more negative), it's hard to see a meaningful difference between how these two features affect readmission risk. Create the SHAP dependence contribution plots for each variable, and describe what you think is different between how these two variables affect predictions.</p>
+</blockquote>
+<div class="highlight">
+<pre><span></span><span class="n">figure</span><span class="p">,</span> <span class="n">axe</span> <span class="o">=</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">FIGURE_SIZE</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="s2">"num_medications.png"</span>
+<span class="n">shap</span><span class="o">.</span><span class="n">dependence_plot</span><span class="p">(</span><span class="s2">"num_medications"</span><span class="p">,</span> <span class="n">shap_values</span><span class="p">[</span><span class="n">READMITTED</span><span class="p">],</span> <span class="n">x_validation</span><span class="p">,</span>
+                     <span class="n">ax</span><span class="o">=</span><span class="n">axe</span><span class="p">)</span>
+<span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">OUTPUT_PATH</span><span class="o">/</span><span class="n">output</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[[file:</span><span class="si">{output}</span><span class="s2">]]"</span><span class="p">)</span>
+</pre></div>
+<div class="figure">
+<p><img alt="num_medications.png" src="/posts/tutorials/advanced-uses-of-shap-exercise/num_medications.png"></p>
+</div>
+<div class="highlight">
+<pre><span></span><span class="n">figure</span><span class="p">,</span> <span class="n">axe</span> <span class="o">=</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">FIGURE_SIZE</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="s2">"num_lab_procedures.png"</span>
+<span class="n">shap</span><span class="o">.</span><span class="n">dependence_plot</span><span class="p">(</span><span class="s2">"num_lab_procedures"</span><span class="p">,</span> <span class="n">shap_values</span><span class="p">[</span><span class="n">READMITTED</span><span class="p">],</span> <span class="n">x_validation</span><span class="p">,</span>
+                     <span class="n">interaction_index</span><span class="o">=</span><span class="s2">"num_medications"</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axe</span><span class="p">)</span>
+<span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">OUTPUT_PATH</span><span class="o">/</span><span class="n">output</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[[file:</span><span class="si">{output}</span><span class="s2">]]"</span><span class="p">)</span>
+</pre></div>
+<div class="figure">
+<p><img alt="num_lab_procedures.png" src="/posts/tutorials/advanced-uses-of-shap-exercise/num_lab_procedures.png"></p>
+</div>
+<p>The <code>num_medications</code> value appears to peak at 20 and then after that the SHAP value starts to go down as <code>num_medications</code> goes up, while <code>num_lab_procedures</code> makes a more gradual climb but appears to not have this inverted-curve shape.</p>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org2b97967">
+<h2 id="org2b97967">End</h2>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="/categories/machine-learning-interpretability/" rel="tag">machine learning interpretability</a></li>
+<li><a class="tag p-category" href="/categories/shap/" rel="tag">shap</a></li>
+<li><a class="tag p-category" href="/categories/tutorial/" rel="tag">tutorial</a></li>
+<li><a class="tag p-category" href="/categories/visualization/" rel="tag">visualization</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="/posts/tutorials/advanced-uses-of-shap/" rel="prev" title="Advanced Uses Of SHAP">Previous post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2020 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script> 
+</body>
+</html>

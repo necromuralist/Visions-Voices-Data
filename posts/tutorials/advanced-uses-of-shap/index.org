@@ -1,0 +1,120 @@
+#+BEGIN_COMMENT
+.. title: Advanced Uses Of SHAP
+.. slug: advanced-uses-of-shap
+.. date: 2020-02-14 16:09:16 UTC-08:00
+.. tags: shap,visualization,tutorial,machine learning
+.. category: Machine Learning Interpretability
+.. link: 
+.. description: Using SHAP beyond single rows. 
+.. type: text
+.. status: 
+.. updated: 
+#+END_COMMENT
+#+PROPERTY: header-args :session /home/athena/.local/share/jupyter/runtime/kernel-a2a220c3-92f6-4fed-90bb-03c3b13bc91f.json
+#+OPTIONS: ^:{}
+#+TOC: headlines 
+* Beginning
+  This is a re-do of the Kaggle tutorial on [[https://www.kaggle.com/dansbecker/advanced-uses-of-shap-values][Advanced Uses of SHAP Values]]. SHAP values let us see how much a given feature changed our prediction for a given row of data, but it can also be used to look at groups of features to get a bigger picture look at our model. 
+** Imports
+*** Python
+#+begin_src python :results none
+from pathlib import Path
+#+end_src
+*** PyPi
+#+begin_src python :results none
+from matplotlib import pyplot
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+
+import numpy
+import pandas
+import seaborn
+import shap
+#+end_src
+*** Others
+#+begin_src python :results none
+from graeae import EnvironmentLoader
+#+end_src
+** Set Up
+*** Plotting
+#+begin_src python :results none
+SLUG = "advanced-uses-of-shap"
+OUTPUT_PATH = Path("../../files/posts/tutorials")/SLUG
+if not OUTPUT_PATH.is_dir():
+    OUTPUT_PATH.mkdir()
+
+get_ipython().run_line_magic('matplotlib', 'inline')
+get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
+FIGURE_SIZE = (20, 10)
+seaborn.set(style="whitegrid",
+            rc={"axes.grid": False,
+                "font.family": ["sans-serif"],
+                "font.sans-serif": ["Open Sans", "Latin Modern Sans", "Lato"],
+                "font.size": 22,
+                "figure.figsize": FIGURE_SIZE},
+            font_scale=1)
+#+end_src
+*** The Environment
+#+begin_src python :results none
+ENVIRONMENT = EnvironmentLoader()
+#+end_src
+*** The Dataset
+#+begin_src python :results none
+path = Path(ENVIRONMENT["FIFA-2018"]).expanduser()
+data = pandas.read_csv(path)
+
+y = data["Man of the Match"] == "Yes"
+
+FEATURES = [column for column in data.columns
+            if data[column].dtype == numpy.int64]
+x = data[FEATURES]
+x_train, x_validation, y_train, y_validation = train_test_split(
+    x, y, random_state=1)
+model = RandomForestClassifier(random_state=0).fit(x_train, y_train)
+#+end_src
+* Middle
+** Setup the SHAP Values
+#+begin_src python :results none
+explainer = shap.TreeExplainer(model)
+shap_values = explainer.shap_values(x_validation)
+#+end_src
+** Summary Plots
+   Like Permutation Importance, SHAP Summary Plots show you the relative importance of different features for your model, but unlike Permutation Importance, Summary Plots can show you how much more each feature influences the predictions.
+
+#+begin_src python :results ouput raw :exports both
+MAN_OF_THE_MATCH = 1
+shap.summary_plot(shap_values[MAN_OF_THE_MATCH], x_validation, show=False)
+figure = pyplot.gcf()
+# figure.set_size_inches(FIGURE_SIZE)
+output = "shap_summary.png"
+figure.subplots_adjust(left=0.3)
+figure.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+#+RESULTS:
+[[file:shap_summary.png]]
+
+As with permutation importance, Goal Scored was the most important feature, with a greater impact on not being the man of the match than being the man of the match. This looks sort of like a combination of Permutation importance and Partial Dependence Plots (PDP) except all in one place.
+** SHAP Dependence Contribution Plots
+   Dependence Contribution Plots work much like PDP plots except with more detail. Rather than showing you the means the Dependence Contribution Plot shows you the individual rows so you can get a sense of the shape of the outcomes.
+
+#+begin_src python :results output :exports both
+figure, axe = pyplot.subplots(figsize=FIGURE_SIZE)
+output = "ball_possession_dcp.png"
+shap.dependence_plot("Ball Possession %", shap_values[MAN_OF_THE_MATCH], x_validation,
+                     interaction_index="Goal Scored", ax=axe)
+figure.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+#+RESULTS:
+[[file:ball_possession_dcp.png]]
+
+Interestingly, our plot doesn't look like the one in the tutorial, we appear to have much fewer points and less spread in the values. But, anyway, the way to interpret this is as you move from left to right you are increasing the percentage of the time that a team had the ball, and as you move up, you are increasing the likelihood that the team had a man of the match. Additionally, the colors tell you how many goals the team scored. 
+
+Looking closer, it looks like the tutorial went with the entire dataset rather than just the validation set, probably because there are so few data points. While that does reveal a more interesting pattern, I'm not sure that that's what you would do, normally. 
+
+Anyway, this plot shows that having a very low ball possession percentage decreases the likelihood that you would have the man of the match and generally speaking as it goes up, so does the likelihood of having man of the match, although it seems to level off around 45%.
+
+* End
