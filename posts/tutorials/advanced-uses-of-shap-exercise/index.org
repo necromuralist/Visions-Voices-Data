@@ -1,0 +1,245 @@
+#+BEGIN_COMMENT
+.. title: Advanced Uses Of SHAP Exercise
+.. slug: advanced-uses-of-shap-exercise
+.. date: 2020-02-14 20:03:29 UTC-08:00
+.. tags: shap,tutorial,machine learning interpretability,visualization
+.. category: Visualization
+.. link: 
+.. description: An exercise in more advanced SHAP interpretability.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+PROPERTY: header-args :session /home/athena/.local/share/jupyter/runtime/kernel-f8b31e0c-7451-4253-80ee-c714b41d00d9.json
+#+OPTIONS: ^:{}
+#+TOC: headlines 
+* Beginning
+  This is my notes on the Advanced Uses of SHAP Exercise that's part of the [[https://www.kaggle.com/learn/machine-learning-explainability][Machine Learning Explainability]] tutorial on kaggle.
+** Imports
+*** Python
+#+begin_src python :results none
+from pathlib import Path
+#+end_src
+*** PyPi
+#+begin_src python :results none
+from matplotlib import pyplot
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+
+import numpy
+import pandas
+import seaborn
+import shap
+#+end_src
+*** Others
+#+begin_src python :results none
+from graeae import EnvironmentLoader, Timer
+#+end_src
+** Set Up
+*** Plotting
+#+begin_src python :results none
+SLUG = "advanced-uses-of-shap-exercise"
+OUTPUT_PATH = Path("../../files/posts/tutorials")/SLUG
+if not OUTPUT_PATH.is_dir():
+    OUTPUT_PATH.mkdir()
+
+get_ipython().run_line_magic('matplotlib', 'inline')
+get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
+FIGURE_SIZE = (20, 10)
+seaborn.set(style="whitegrid",
+            rc={"axes.grid": False,
+                "font.family": ["sans-serif"],
+                "font.sans-serif": ["Open Sans", "Latin Modern Sans", "Lato"],
+                "font.size": 22,
+                "figure.figsize": FIGURE_SIZE},
+            font_scale=1)
+#+end_src
+*** The Timer
+#+begin_src python :results none
+TIMER = Timer()
+#+end_src
+*** The Environment
+#+begin_src python :results none
+ENVIRONMENT = EnvironmentLoader()
+#+end_src
+*** The Data
+    Once again we're going to use the [[https://www.kaggle.com/dansbecker/hospital-readmissions][Medical Data and Hospital Readmissions]] dataset from kaggle.
+#+begin_src python :results none
+path = Path(ENVIRONMENT["HOSPITAL-READMISSIONS"]).expanduser()
+data = pandas.read_csv(path)
+#+end_src
+
+We are only going to use a subset of the features.
+
+#+begin_src python :results none
+FEATURES = [
+    'A1Cresult_None',
+    'diabetesMed_Yes',
+    'diag_1_414', 
+    'diag_1_428',
+    'gender_Female',
+    'medical_specialty_?',
+    'num_lab_procedures', 
+    'num_medications',
+    'num_procedures',
+    'number_diagnoses',
+    'number_emergency', 
+    'number_inpatient',
+    'number_outpatient',
+    'payer_code_?',
+    'time_in_hospital',
+]
+#+end_src
+
+Now we'll split up the features and the target. According to the notebook some versions of shap don't work when you combine numeric and boolean types so we'll convert all the features to floats.
+
+#+begin_src python :results none
+X = data[FEATURES].astype(float)
+Y = data.readmitted
+#+end_src
+Now the training and validation split.
+
+#+begin_src python :results none
+x_train, x_validation, y_train, y_validation = train_test_split(X, Y, random_state=1)
+#+end_src
+* Middle
+** Build the Model
+   For some reason the notebook switches from a classifier to a regressor, even though this seems to be a classification problem. Since I don't have an explanation for it I'll try it using a classifier instead.
+
+#+begin_src python :results output :exports both
+# model = RandomForestRegressor()
+model = RandomForestClassifier()
+estimators = list(range(30, 300, 10))
+max_depth = list(range(10, 100, 10)) + [None]
+
+grid = dict(n_estimators=estimators,
+            max_depth=max_depth)
+search = RandomizedSearchCV(estimator=model,
+                            param_distributions=grid,
+                            n_iter=40,
+                            n_jobs=-1,
+                            random_state=1)
+with TIMER:
+    search.fit(x_train, y_train)
+#+end_src
+
+#+begin_src python :results output :exports both
+model = search.best_estimator_
+print(f"CV Training Accuracy: {search.best_score_:0.2f}")
+print(f"Training Accuracy: {model.score(x_train, y_train): 0.2f}")
+print(f"Validation Accuracy: {model.score(x_validation, y_validation):0.2f}")
+print(search.best_params_)
+#+end_src
+
+#+RESULTS:
+: CV Training Accuracy: 0.63
+: Training Accuracy:  0.70
+: Validation Accuracy: 0.63
+: {'n_estimators': 140, 'max_depth': 10}
+** Shap Values
+#+begin_src python :results none
+READMITTED = 1
+explainer = shap.TreeExplainer(model)
+shap_values = explainer.shap_values(x_validation)
+#+end_src
+** Summary Plot
+
+#+begin_src python :results output :exports both
+shap.summary_plot(shap_values[READMITTED], x_validation)
+figure = pyplot.gcf()
+output = "shap_summary.png"
+#figure.subplots_adjust(left=0.3)
+figure.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+#+RESULTS:
+[[file:shap_summary.png]]
+
+** Question 1
+ #+begin_quote
+ Which of the following features has a bigger range of effects on predictions (i.e. larger difference between most positive and most negative effect)
+ - =diag_1_428= or
+ - =payer_code_?=
+ #+end_quote
+=diag_1_428= appears to have a bigger spread than =payer_code=.
+** Question 2
+#+begin_quote
+ Do you believe the range of effects sizes (distance between smallest effect and largest effect) is a good indication of which feature will have a higher permutation importance? Why or why not?  
+
+ If the **range of effect sizes** measures something different from **permutation importance**: which is a better answer for the question "Which of these two features does the model say is more important for us to understand when discussing readmission risks in the population?"
+
+ Run the following line after you've decided your answer.
+#+end_quote
+I don't think that the range of effect size is a good indication of which feature will have a higher permutation importance, because it just indicates the spread of the values, not their overall effect.
+
+I think that =diag_1_428= is more important because it has a higher /Feature Value/ than =payer_code_?=.
+
+**Note:** Although the question says "which of these two features does the model say is more important", the answer given is that permutation importance is a better measure of what's important to the model, since it's a robust measurement, while the range of effects is influenced by outliers.
+** Question 3
+
+#+begin_quote
+Both =diag_1_428= and =payer_code_?= are binary variables, taking values of 0 or 1.
+
+From the graph, which do you think would typically have a bigger impact on predicted readmission risk:
+ - Changing =diag_1_428= from 0 to 1
+ - Changing =payer_code_?= from 0 to 1 
+#+end_quote
+I think that changing =diag_1_428= to 1 would have a bigger impact, since the dots are more heavily right skewed for it than is the case with =payer_code_?=.
+** Question 4
+#+begin_quote
+Some features (like =number_inpatient=) have reasonably clear separation between the blue and pink dots. Other variables like =num_lab_procedures= have blue and pink dots jumbled together, even though the SHAP values (or impacts on prediction) aren't all 0.
+
+ What do you think you learn from the fact that =num_lab_procedures= has blue and pink dots jumbled together? Once you have your answer, run the line below to verify your solution.
+#+end_quote
+
+I think that this means that it is more difficult to make predictions based on the =num_lab_procedures= - there isn't a clear separation of outcomes based on the value of =num_lab_procedures=. The feature probably has interacting effects with other features.
+** Question 5
+#+begin_quote
+Consider the following SHAP contribution dependence plot. 
+
+ The x-axis shows =feature_of_interest= and the points are colored based on =other_feature=.
+#+end_quote
+[[https://i.imgur.com/zFdHneM.png]]
+#+begin_quote
+Is there an interaction between =feature_of_interest= and =other_feature=?  
+
+If so, does =feature_of_interest= have a more positive impact on predictions when =other_feature= is high or when =other_feature= is low?
+#+end_quote
+
+It looks like =feature_of_interest= has a more positive impart on predictions when the =other_feature= is high.
+
+** Question 6
+#+begin_quote
+Both **num_medications** and **num_lab_procedures** share that jumbling of pink and blue dots.
+
+ Aside from =num_medications= having effects of greater magnitude (both more positive and more negative), it's hard to see a meaningful difference between how these two features affect readmission risk.  Create the SHAP dependence contribution plots for each variable, and describe what you think is different between how these two variables affect predictions.
+#+end_quote
+
+#+begin_src python :results output raw :exports both
+figure, axe = pyplot.subplots(figsize=FIGURE_SIZE)
+output = "num_medications.png"
+shap.dependence_plot("num_medications", shap_values[READMITTED], x_validation,
+                     ax=axe)
+figure.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+[[file:num_medications.png]]
+
+
+#+begin_src python :results output raw :exports both
+figure, axe = pyplot.subplots(figsize=FIGURE_SIZE)
+output = "num_lab_procedures.png"
+shap.dependence_plot("num_lab_procedures", shap_values[READMITTED], x_validation,
+                     interaction_index="num_medications", ax=axe)
+figure.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+[[file:num_lab_procedures.png]]
+
+The =num_medications= value appears to peak at 20 and then after that the SHAP value starts to go down as =num_medications= goes up, while =num_lab_procedures= makes a more gradual climb but appears to not have this inverted-curve shape.
+* End
+
