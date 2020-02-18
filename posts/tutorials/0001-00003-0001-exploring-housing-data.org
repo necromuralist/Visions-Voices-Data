@@ -1,0 +1,279 @@
+#+BEGIN_COMMENT
+.. title: Exploring Housing Data
+.. slug: exploring-housing-data
+.. date: 2020-02-17 18:30:21 UTC-08:00
+.. tags: tutorial,exploration,kaggle
+.. category: Tutorial
+.. link: 
+.. description: Exploring housing data for Ames Iowa,
+.. type: text
+.. status: 
+.. updated: 
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 
+#+PROPERTY: header-args :session /home/athena/.local/share/jupyter/runtime/kernel-99a7792b-20da-452a-8623-d31ef7246de8.json
+* Beginning
+  This is a re-do of the kaggle [[https://www.kaggle.com/learn/intro-to-machine-learning][Intro to Machine Learning]] tutorial - Your First Machine Learning Model.
+** Imports
+*** Python
+#+begin_src python :results none
+from datetime import datetime
+from pathlib import Path
+#+end_src
+*** PyPi
+#+begin_src python :results none
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.ensemble import RandomForestRegressor
+
+import pandas
+#+end_src
+*** Others
+#+begin_src python :results none
+from graeae import EmbedHoloviews, EnvironmentLoader, Timer
+#+end_src
+** Set Up
+*** The Timer
+#+begin_src python :results none
+TIMER = Timer()
+#+end_src
+*** Environment
+#+begin_src python :results none
+ENVIRONMENT = EnvironmentLoader()
+#+end_src
+*** The Data
+#+begin_src python :results none
+data = pandas.read_csv(
+    Path(ENVIRONMENT["HOUSE-PRICES-IOWA"]).expanduser()/"train.csv")
+#+end_src
+* Middle
+** Step 1: Specify Prediction Target
+Select the target variable, which corresponds to the sales price. Save this to a new variable called `y`. You'll need to print a list of the columns to find the name of the column you need.
+
+#+begin_src python :results output :exports both
+for column in sorted(data.columns):
+    print(f"- {column}")
+#+end_src
+
+#+RESULTS:
+#+begin_example
+- 1stFlrSF
+- 2ndFlrSF
+- 3SsnPorch
+- Alley
+- BedroomAbvGr
+- BldgType
+- BsmtCond
+- BsmtExposure
+- BsmtFinSF1
+- BsmtFinSF2
+- BsmtFinType1
+- BsmtFinType2
+- BsmtFullBath
+- BsmtHalfBath
+- BsmtQual
+- BsmtUnfSF
+- CentralAir
+- Condition1
+- Condition2
+- Electrical
+- EnclosedPorch
+- ExterCond
+- ExterQual
+- Exterior1st
+- Exterior2nd
+- Fence
+- FireplaceQu
+- Fireplaces
+- Foundation
+- FullBath
+- Functional
+- GarageArea
+- GarageCars
+- GarageCond
+- GarageFinish
+- GarageQual
+- GarageType
+- GarageYrBlt
+- GrLivArea
+- HalfBath
+- Heating
+- HeatingQC
+- HouseStyle
+- Id
+- KitchenAbvGr
+- KitchenQual
+- LandContour
+- LandSlope
+- LotArea
+- LotConfig
+- LotFrontage
+- LotShape
+- LowQualFinSF
+- MSSubClass
+- MSZoning
+- MasVnrArea
+- MasVnrType
+- MiscFeature
+- MiscVal
+- MoSold
+- Neighborhood
+- OpenPorchSF
+- OverallCond
+- OverallQual
+- PavedDrive
+- PoolArea
+- PoolQC
+- RoofMatl
+- RoofStyle
+- SaleCondition
+- SalePrice
+- SaleType
+- ScreenPorch
+- Street
+- TotRmsAbvGrd
+- TotalBsmtSF
+- Utilities
+- WoodDeckSF
+- YearBuilt
+- YearRemodAdd
+- YrSold
+#+end_example
+#+begin_src python :results none
+Y = data.SalePrice
+#+end_src
+** Step 2: Create X
+#+begin_quote
+ Now you will create a DataFrame called `X` holding the predictive features.
+ 
+ Since you want only some columns from the original data, you'll first create a list with the names of the columns you want in `X`.
+ 
+ You'll use just the following columns in the list (you can copy and paste the whole list to save some typing, though you'll still need to add quotes):
+     * LotArea
+     * YearBuilt
+     * 1stFlrSF
+     * 2ndFlrSF
+     * FullBath
+     * BedroomAbvGr
+     * TotRmsAbvGrd
+#+end_quote
+
+#+begin_src python :results none
+FEATURES = [
+    "LotArea",
+    "YearBuilt",
+    "1stFlrSF",
+    "2ndFlrSF",
+    "FullBath",
+    "BedroomAbvGr",
+    "TotRmsAbvGrd",
+]
+X = data[FEATURES]
+#+end_src
+
+#+begin_src python :results none
+x_train, x_validate, y_train, y_validate = train_test_split(X, Y, random_state=1)
+#+end_src
+** Step 3: Specify and Fit Model
+#+begin_quote
+Create a =DecisionTreeRegressor= and save it as =iowa_model=. Ensure you've done the relevant import from sklearn to run this command.
+
+Then fit the model you just created using the data in =X= and =y= that you saved above.
+#+end_quote
+#+begin_src python :results output :exports both
+estimators = list(range(50, 200, 10))
+max_depth = list(range(10, 100, 10)) + [None]
+
+grid = dict(n_estimators=estimators,
+            max_depth=max_depth)
+
+model = RandomForestRegressor()
+search = RandomizedSearchCV(estimator=model,
+                            param_distributions=grid,
+                            n_iter=40,
+                            n_jobs=-1,
+                            random_state=1)
+with TIMER:
+    search.fit(x_train, y_train)
+model = search.best_estimator_
+print(f"CV Training R^2: {search.best_score_:0.2f}")
+print(f"Training R^2: {model.score(x_train, y_train): 0.2f}")
+print(f"Validation R^2: {model.score(x_validate, y_validate):0.2f}")
+print(search.best_params_)
+#+end_src
+
+#+RESULTS:
+: 2020-02-17 21:17:54,597 graeae.timers.timer start: Started: 2020-02-17 21:17:54.597037
+: 2020-02-17 21:18:05,067 graeae.timers.timer end: Ended: 2020-02-17 21:18:05.067365
+: 2020-02-17 21:18:05,068 graeae.timers.timer end: Elapsed: 0:00:10.470328
+: CV Training R^2: 0.77
+: Training R^2:  0.97
+: Validation R^2: 0.85
+: {'n_estimators': 100, 'max_depth': 30}
+
+* End
+* Raw
+#+begin_example
+
+
+____
+
+# Check your answer
+step_3.check()
+
+
+# In[ ]:
+
+
+# step_3.hint()
+# step_3.solution()
+
+
+# ## Step 4: Make Predictions
+# Make predictions with the model's `predict` command using `X` as the data. Save the results to a variable called `predictions`.
+
+# In[ ]:
+
+
+predictions = ____
+print(predictions)
+
+# Check your answer
+step_4.check()
+
+
+# In[ ]:
+
+
+# step_4.hint()
+# step_4.solution()
+
+
+# ## Think About Your Results
+# 
+# Use the `head` method to compare the top few predictions to the actual home values (in `y`) for those same homes. Anything surprising?
+# 
+
+# In[ ]:
+
+
+# You can write code in this cell
+
+
+# It's natural to ask how accurate the model's predictions will be and how you can improve that. That will be you're next step.
+# 
+# # Keep Going
+# 
+# You are ready for **[Model Validation](https://www.kaggle.com/dansbecker/model-validation).**
+# 
+
+# ---
+# **[Introduction to Machine Learning Home Page](https://www.kaggle.com/learn/intro-to-machine-learning)**
+# 
+# 
+# 
+# 
+# 
+# *Have questions or comments? Visit the [Learn Discussion forum](https://www.kaggle.com/learn-forum) to chat with other Learners.*
+
+#+end_example
