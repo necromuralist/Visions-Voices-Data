@@ -13,7 +13,7 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 
-#+PROPERTY: header-args :session /home/athena/.local/share/jupyter/runtime/kernel-a17ec546-5f56-464d-ae46-41c12ffe899e.json
+#+PROPERTY: header-args :session /run/user/1000/jupyter/kernel-02423713-83f7-4a07-bc52-7cb394caee86.json
 * Beginning
   This is the fourth part of kaggle's [[https://www.kaggle.com/learn/intro-to-machine-learning][Introduction to Machine Learning]] tutorial - Overfitting and Underfitting.
 ** Imports
@@ -63,107 +63,15 @@ data = pandas.read_csv(
     Path(ENVIRONMENT["HOUSE-PRICES-IOWA"]).expanduser()/"train.csv")
 #+end_src
 * Middle
-** Step 1: Specify Prediction Target
+** Preliminary 1: Specify Prediction Target
 Select the target variable, which corresponds to the sales price. Save this to a new variable called `y`. You'll need to print a list of the columns to find the name of the column you need.
-
-#+begin_src python :results output raw :exports both
-for column in sorted(data.columns):
-    print(f"- {column} ({data[column].dtype})")
-#+end_src
-
-#+RESULTS:
-#+begin_example
-- 1stFlrSF (int64)
-- 2ndFlrSF (int64)
-- 3SsnPorch (int64)
-- Alley (object)
-- BedroomAbvGr (int64)
-- BldgType (object)
-- BsmtCond (object)
-- BsmtExposure (object)
-- BsmtFinSF1 (int64)
-- BsmtFinSF2 (int64)
-- BsmtFinType1 (object)
-- BsmtFinType2 (object)
-- BsmtFullBath (int64)
-- BsmtHalfBath (int64)
-- BsmtQual (object)
-- BsmtUnfSF (int64)
-- CentralAir (object)
-- Condition1 (object)
-- Condition2 (object)
-- Electrical (object)
-- EnclosedPorch (int64)
-- ExterCond (object)
-- ExterQual (object)
-- Exterior1st (object)
-- Exterior2nd (object)
-- Fence (object)
-- FireplaceQu (object)
-- Fireplaces (int64)
-- Foundation (object)
-- FullBath (int64)
-- Functional (object)
-- GarageArea (int64)
-- GarageCars (int64)
-- GarageCond (object)
-- GarageFinish (object)
-- GarageQual (object)
-- GarageType (object)
-- GarageYrBlt (float64)
-- GrLivArea (int64)
-- HalfBath (int64)
-- Heating (object)
-- HeatingQC (object)
-- HouseStyle (object)
-- Id (int64)
-- KitchenAbvGr (int64)
-- KitchenQual (object)
-- LandContour (object)
-- LandSlope (object)
-- LotArea (int64)
-- LotConfig (object)
-- LotFrontage (float64)
-- LotShape (object)
-- LowQualFinSF (int64)
-- MSSubClass (int64)
-- MSZoning (object)
-- MasVnrArea (float64)
-- MasVnrType (object)
-- MiscFeature (object)
-- MiscVal (int64)
-- MoSold (int64)
-- Neighborhood (object)
-- OpenPorchSF (int64)
-- OverallCond (int64)
-- OverallQual (int64)
-- PavedDrive (object)
-- PoolArea (int64)
-- PoolQC (object)
-- RoofMatl (object)
-- RoofStyle (object)
-- SaleCondition (object)
-- SalePrice (int64)
-- SaleType (object)
-- ScreenPorch (int64)
-- Street (object)
-- TotRmsAbvGrd (int64)
-- TotalBsmtSF (int64)
-- Utilities (object)
-- WoodDeckSF (int64)
-- YearBuilt (int64)
-- YearRemodAdd (int64)
-- YrSold (int64)
-#+end_example
-
-That is a huge number of features.
 
 Our target is /SalePrice/.
 
 #+begin_src python :results none
 Y = data.SalePrice
 #+end_src
-** Step 2: Create X
+** Preliminary 2: Create X
 #+begin_quote
  Now you will create a DataFrame called `X` holding the predictive features.
  
@@ -197,7 +105,7 @@ Split up the data into training and validation sets.
 #+begin_src python :results none
 x_train, x_validate, y_train, y_validate = train_test_split(X, Y, random_state=1)
 #+end_src
-** Step 3: Specify and Fit Model
+** Preliminary 3: Specify and Fit Model
 *** A Linear Regression Model
     As a baseline, I'll fit a simple [[https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html][Linear Regression]] (ordinary-least-squares) model.
 #+begin_src python :results output :exports both
@@ -234,15 +142,15 @@ print(f"Validation R^2: {tree.score(x_validate, y_validate):0.2f}")
 #+RESULTS:
 : 0.54 (+/- 0.32)
 : Training R^2:  1.00
-: Validation R^2: 0.73
+: Validation R^2: 0.75
 
 So our linear regression actually does better than the tree does. It looks like the tree might be overfitting on the training data.
-** Make Some Predictions
+** Preliminary 4: Make Some Predictions
 #+begin_src python :results none
 tree_predict = tree.predict(x_validate)
 regression_predict = regression.predict(x_validate)
 #+end_src
-** Step 4: Calculate the Mean Absolute Error in Validation Data
+** Preliminary 5: Calculate the Mean Absolute Error in Validation Data
 #+begin_src python :results output :exports both
 tree_mae = mean_absolute_error(y_true=y_validate, y_pred=tree_predict)
 regression_mae = mean_absolute_error(y_true=y_validate, y_pred=regression_predict)
@@ -252,11 +160,10 @@ print(f"Regression MAE: {regression_mae: 0.2f}")
 #+end_src
 
 #+RESULTS:
-: Tree MAE:  29992.77
+: Tree MAE:  29371.52
 : Regression MAE:  27228.88
 
 The tree's error is a little higher than the regression line's.
-
 
 ** Step 1: Compare Different Tree Sizes
 #+begin_quote
@@ -310,88 +217,65 @@ print(source)
 
 Looking at the plot you can see that the error drops until you hit 100 nodes and then begins to rise again as it overfits the data with more nodes.
 
+Let's see how much this improves our model using \(r^2\).
 
-* Raw
-#+BEGIN_EXAMPLE:
+#+begin_src python :results output :exports both
+tree = DecisionTreeRegressor(max_leaf_nodes=best_tree_size)
+scores = cross_val_score(tree, x_train, y_train, cv=5)
+print(f"{scores.mean():0.2f} (+/- {2 * scores.std():0.2f})")
 
-# # Exercises
-# You could write the function =get_mae= yourself. For now, we'll supply it. This is the same function you read about in the previous lesson. Just run the cell below.
+tree = tree.fit(x_train, y_train)
+print(f"Training R^2: {tree.score(x_train, y_train): 0.2f}")
+print(f"Validation R^2: {tree.score(x_validate, y_validate):0.2f}")
 
-# In[ ]:
+#+end_src
 
+#+RESULTS:
+: 0.60 (+/- 0.26)
+: Training R^2:  0.93
+: Validation R^2: 0.76
 
-def get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y):
-    model = DecisionTreeRegressor(max_leaf_nodes=max_leaf_nodes, random_state=0)
-    model.fit(train_X, train_y)
-    preds_val = model.predict(val_X)
-    mae = mean_absolute_error(val_y, preds_val)
-    return(mae)
+We've improved it slightly, it's probably still overfitting the model but not as much.
 
+** Step 2: Fit Model Using All Data
+#+begin_quote
+ You know the best tree size. If you were going to deploy this model in practice, you would make it even more accurate by using all of the data and keeping that tree size.  That is, you don't need to hold out the validation data now that you've made all your modeling decisions.
+#+end_quote
 
-# ## Step 1: Compare Different Tree Sizes
-# Write a loop that tries the following values for *max_leaf_nodes* from a set of possible values.
-# 
-# Call the *get_mae* function on each value of max_leaf_nodes. Store the output in some way that allows you to select the value of =max_leaf_nodes= that gives the most accurate model on your data.
+#+begin_src python :results none
+final_model = DecisionTreeRegressor(max_leaf_nodes = best_tree_size)
+final_model.fit(X, Y)
+#+end_src
 
-# In[ ]:
+#+begin_src python :results none
+predictions_first = tree.predict(X)
+predictions_final = final_model.predict(X)
 
+x_y_tree = pandas.DataFrame(dict(predicted=predictions_first, actual=Y))
+x_y_line = pandas.DataFrame(dict(predicted=predictions_final, actual=Y))
+ideal = pandas.DataFrame(dict(x=Y, y=Y))
 
-candidate_max_leaf_nodes = [5, 25, 50, 100, 250, 500]
-# Write loop to find the ideal tree size from candidate_max_leaf_nodes
-_
+tree_plot = x_y_tree.hvplot.scatter(x="actual", y="predicted", label="Default")
+line_plot = x_y_line.hvplot.scatter(x="actual", y="predicted", label="Tuned")
+ideal_plot = ideal.hvplot(x="x", y="y")
+plot = (tree_plot * line_plot * ideal_plot).opts(title="Decision Tree Actual Vs Predictions",
+                                    width=Plot.width,
+                                    height=Plot.height)
+source = Embed(plot=plot, file_name="decision_tree_actual_vs_predicted")()
+#+end_src
 
-# Store the best value of max_leaf_nodes (it will be either 5, 25, 50, 100, 250 or 500)
-best_tree_size = ____
+#+begin_src python :results output html :exports both
+print(source)
+#+end_src
 
-# Check your answer
-step_1.check()
+#+RESULTS:
+#+begin_export html
+: <object type="text/html" data="decision_tree_actual_vs_predicted.html" style="width:100%" height=800>
+:   <p>Figure Missing</p>
+: </object>
+#+end_export
 
+The tuned model seems closer to the predicted.
 
-# In[ ]:
-
-
-# The lines below will show you a hint or the solution.
-# step_1.hint() 
-# step_1.solution()
-
-
-# ## Step 2: Fit Model Using All Data
-# You know the best tree size. If you were going to deploy this model in practice, you would make it even more accurate by using all of the data and keeping that tree size.  That is, you don't need to hold out the validation data now that you've made all your modeling decisions.
-
-# In[ ]:
-
-
-# Fill in argument to make optimal size and uncomment
-# final_model = DecisionTreeRegressor(____)
-
-# fit the final model and uncomment the next two lines
-# final_model.fit(____, ____)
-
-# Check your answer
-step_2.check()
-
-
-# In[ ]:
-
-
-# step_2.hint()
-# step_2.solution()
-
-
-# You've tuned this model and improved your results. But we are still using Decision Tree models, which are not very sophisticated by modern machine learning standards. In the next step you will learn to use Random Forests to improve your models even more.
-# 
-# # Keep Going
-# 
-# You are ready for **[Random Forests](https://www.kaggle.com/dansbecker/random-forests).**
-# 
-
-# ---
-# **[Introduction to Machine Learning Home Page](https://www.kaggle.com/learn/intro-to-machine-learning)**
-# 
-# 
-# 
-# 
-# 
-# *Have questions or comments? Visit the [Learn Discussion forum](https://www.kaggle.com/learn-forum) to chat with other Learners.*
-
-#+END_EXAMPLE
+* End
+  That's a basic way to tune hyperparameters to improve your model. But our decision tree still isn't doing as well as the regression line. Next up we'll try an ensemble method - Random Forests.
