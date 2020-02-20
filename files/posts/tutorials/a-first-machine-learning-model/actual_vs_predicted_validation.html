@@ -1,0 +1,835 @@
+
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-1.1.0.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.1.0.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-1.1.0.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-gl-1.1.0.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" type="text/javascript"></script>
+<script type="text/javascript">function HoloViewsWidget() {
+}
+
+HoloViewsWidget.prototype.init_slider = function(init_val){
+  if(this.load_json) {
+    this.from_json()
+  } else {
+    this.update_cache();
+  }
+}
+
+HoloViewsWidget.prototype.populate_cache = function(idx){
+  this.cache[idx].innerHTML = this.frames[idx];
+  if (this.embed) {
+    delete this.frames[idx];
+  }
+}
+
+HoloViewsWidget.prototype.process_error = function(msg){
+}
+
+HoloViewsWidget.prototype.from_json = function() {
+  var data_url = this.json_path + this.id + '.json';
+  $.getJSON(data_url, $.proxy(function(json_data) {
+    this.frames = json_data;
+    this.update_cache();
+    this.update(0);
+  }, this));
+}
+
+HoloViewsWidget.prototype.dynamic_update = function(current){
+  if (current === undefined) {
+    return
+  }
+  this.current = current;
+  if (this.comm) {
+    var msg = {comm_id: this.id+'_client', content: current}
+    this.comm.send(msg);
+  }
+}
+
+HoloViewsWidget.prototype.update_cache = function(force){
+  var frame_len = Object.keys(this.frames).length;
+  for (var i=0; i<frame_len; i++) {
+    if(!this.load_json || this.dynamic)  {
+      var frame = Object.keys(this.frames)[i];
+    } else {
+      var frame = i;
+    }
+    if(!(frame in this.cache) || force) {
+      if ((frame in this.cache) && force) { this.cache[frame].remove() }
+      var div = document.createElement("div");
+      var parent = document.getElementById("_anim_img"+this.id);
+      div.style.display = "none";
+      parent.appendChild(div)
+      this.cache[frame] = div;
+      var cache_id = "_anim_img"+this.id+"_"+frame;
+      this.populate_cache(frame);
+    }
+  }
+}
+
+HoloViewsWidget.prototype.update = function(current){
+  if(current in this.cache) {
+    for (var index in this.cache) {
+      this.cache[index].style.display = "none";
+    }
+    this.cache[current].style.display = "";
+    this.wait = false;
+  }
+}
+
+HoloViewsWidget.prototype.init_comms = function() {
+  var that = this
+  HoloViews.comm_manager.register_target(this.plot_id, this.id, function (msg) { that.msg_handler(msg) })
+  if (!this.cached || this.dynamic) {
+    function ack_callback(msg) {
+      var msg = msg.metadata;
+      var comm_id = msg.comm_id;
+      var comm_status = HoloViews.comm_status[comm_id];
+      if (that.queue.length > 0) {
+        that.time = Date.now();
+        that.dynamic_update(that.queue[that.queue.length-1]);
+        that.queue = [];
+      } else {
+        that.wait = false;
+      }
+      if ((msg.msg_type == "Ready") && msg.content) {
+        console.log("Python callback returned following output:", msg.content);
+      } else if (msg.msg_type == "Error") {
+        console.log("Python failed with the following traceback:", msg.traceback)
+      }
+    }
+    var comm = HoloViews.comm_manager.get_client_comm(this.plot_id, this.id+'_client', ack_callback);
+    return comm
+  }
+}
+
+HoloViewsWidget.prototype.msg_handler = function(msg) {
+  var metadata = msg.metadata;
+  if ((metadata.msg_type == "Ready")) {
+    if (metadata.content) {
+      console.log("Python callback returned following output:", metadata.content);
+    }
+	return;
+  } else if (metadata.msg_type == "Error") {
+    console.log("Python failed with the following traceback:", metadata.traceback)
+    return
+  }
+  this.process_msg(msg)
+}
+
+HoloViewsWidget.prototype.process_msg = function(msg) {
+}
+
+function SelectionWidget(frames, id, slider_ids, keyMap, dim_vals, notFound, load_json, mode, cached, json_path, dynamic, plot_id){
+  this.frames = frames;
+  this.id = id;
+  this.plot_id = plot_id;
+  this.slider_ids = slider_ids;
+  this.keyMap = keyMap
+  this.current_frame = 0;
+  this.current_vals = dim_vals;
+  this.load_json = load_json;
+  this.mode = mode;
+  this.notFound = notFound;
+  this.cached = cached;
+  this.dynamic = dynamic;
+  this.cache = {};
+  this.json_path = json_path;
+  this.init_slider(this.current_vals[0]);
+  this.queue = [];
+  this.wait = false;
+  if (!this.cached || this.dynamic) {
+    this.comm = this.init_comms();
+  }
+}
+
+SelectionWidget.prototype = new HoloViewsWidget;
+
+
+SelectionWidget.prototype.get_key = function(current_vals) {
+  var key = "(";
+  for (var i=0; i<this.slider_ids.length; i++)
+  {
+    var val = this.current_vals[i];
+    if (!(typeof val === 'string')) {
+      if (val % 1 === 0) { val = val.toFixed(1); }
+      else { val = val.toFixed(10); val = val.slice(0, val.length-1);}
+    }
+    key += "'" + val + "'";
+    if(i != this.slider_ids.length-1) { key += ', ';}
+    else if(this.slider_ids.length == 1) { key += ',';}
+  }
+  key += ")";
+  return this.keyMap[key];
+}
+
+SelectionWidget.prototype.set_frame = function(dim_val, dim_idx){
+  this.current_vals[dim_idx] = dim_val;
+  var key = this.current_vals;
+  if (!this.dynamic) {
+    key = this.get_key(key)
+  }
+  if (this.dynamic || !this.cached) {
+    if ((this.time !== undefined) && ((this.wait) && ((this.time + 10000) > Date.now()))) {
+      this.queue.push(key);
+      return
+    }
+    this.queue = [];
+    this.time = Date.now();
+    this.current_frame = key;
+    this.wait = true;
+    this.dynamic_update(key)
+  } else if (key !== undefined) {
+    this.update(key)
+  }
+}
+
+
+/* Define the ScrubberWidget class */
+function ScrubberWidget(frames, num_frames, id, interval, load_json, mode, cached, json_path, dynamic, plot_id){
+  this.slider_id = "_anim_slider" + id;
+  this.loop_select_id = "_anim_loop_select" + id;
+  this.id = id;
+  this.plot_id = plot_id;
+  this.interval = interval;
+  this.current_frame = 0;
+  this.direction = 0;
+  this.dynamic = dynamic;
+  this.timer = null;
+  this.load_json = load_json;
+  this.mode = mode;
+  this.cached = cached;
+  this.frames = frames;
+  this.cache = {};
+  this.length = num_frames;
+  this.json_path = json_path;
+  document.getElementById(this.slider_id).max = this.length - 1;
+  this.init_slider(0);
+  this.wait = false;
+  this.queue = [];
+  if (!this.cached || this.dynamic) {
+    this.comm = this.init_comms()
+  }
+}
+
+ScrubberWidget.prototype = new HoloViewsWidget;
+
+ScrubberWidget.prototype.set_frame = function(frame){
+  this.current_frame = frame;
+  var widget = document.getElementById(this.slider_id);
+  if (widget === null) {
+    this.pause_animation();
+    return
+  }
+  widget.value = this.current_frame;
+  if (this.dynamic || !this.cached) {
+    if ((this.time !== undefined) && ((this.wait) && ((this.time + 10000) > Date.now()))) {
+      this.queue.push(frame);
+      return
+    }
+    this.queue = [];
+    this.time = Date.now();
+    this.wait = true;
+    this.dynamic_update(frame)
+  } else {
+    this.update(frame)
+  }
+}
+
+ScrubberWidget.prototype.get_loop_state = function(){
+  var button_group = document[this.loop_select_id].state;
+  for (var i = 0; i < button_group.length; i++) {
+    var button = button_group[i];
+    if (button.checked) {
+      return button.value;
+    }
+  }
+  return undefined;
+}
+
+
+ScrubberWidget.prototype.next_frame = function() {
+  this.set_frame(Math.min(this.length - 1, this.current_frame + 1));
+}
+
+ScrubberWidget.prototype.previous_frame = function() {
+  this.set_frame(Math.max(0, this.current_frame - 1));
+}
+
+ScrubberWidget.prototype.first_frame = function() {
+  this.set_frame(0);
+}
+
+ScrubberWidget.prototype.last_frame = function() {
+  this.set_frame(this.length - 1);
+}
+
+ScrubberWidget.prototype.slower = function() {
+  this.interval /= 0.7;
+  if(this.direction > 0){this.play_animation();}
+  else if(this.direction < 0){this.reverse_animation();}
+}
+
+ScrubberWidget.prototype.faster = function() {
+  this.interval *= 0.7;
+  if(this.direction > 0){this.play_animation();}
+  else if(this.direction < 0){this.reverse_animation();}
+}
+
+ScrubberWidget.prototype.anim_step_forward = function() {
+  if(this.current_frame < this.length - 1){
+    this.next_frame();
+  }else{
+    var loop_state = this.get_loop_state();
+    if(loop_state == "loop"){
+      this.first_frame();
+    }else if(loop_state == "reflect"){
+      this.last_frame();
+      this.reverse_animation();
+    }else{
+      this.pause_animation();
+      this.last_frame();
+    }
+  }
+}
+
+ScrubberWidget.prototype.anim_step_reverse = function() {
+  if(this.current_frame > 0){
+    this.previous_frame();
+  } else {
+    var loop_state = this.get_loop_state();
+    if(loop_state == "loop"){
+      this.last_frame();
+    }else if(loop_state == "reflect"){
+      this.first_frame();
+      this.play_animation();
+    }else{
+      this.pause_animation();
+      this.first_frame();
+    }
+  }
+}
+
+ScrubberWidget.prototype.pause_animation = function() {
+  this.direction = 0;
+  if (this.timer){
+    clearInterval(this.timer);
+    this.timer = null;
+  }
+}
+
+ScrubberWidget.prototype.play_animation = function() {
+  this.pause_animation();
+  this.direction = 1;
+  var t = this;
+  if (!this.timer) this.timer = setInterval(function(){t.anim_step_forward();}, this.interval);
+}
+
+ScrubberWidget.prototype.reverse_animation = function() {
+  this.pause_animation();
+  this.direction = -1;
+  var t = this;
+  if (!this.timer) this.timer = setInterval(function(){t.anim_step_reverse();}, this.interval);
+}
+
+function extend(destination, source) {
+  for (var k in source) {
+    if (source.hasOwnProperty(k)) {
+      destination[k] = source[k];
+    }
+  }
+  return destination;
+}
+
+function update_widget(widget, values) {
+  if (widget.hasClass("ui-slider")) {
+    widget.slider('option', {
+      min: 0,
+      max: values.length-1,
+      dim_vals: values,
+      value: 0,
+      dim_labels: values
+    })
+    widget.slider('option', 'slide').call(widget, event, {value: 0})
+  } else {
+    widget.empty();
+    for (var i=0; i<values.length; i++){
+      widget.append($("<option>", {
+        value: i,
+        text: values[i]
+      }))
+    };
+    widget.data('values', values);
+    widget.data('value', 0);
+    widget.trigger("change");
+  };
+}
+
+function init_slider(id, plot_id, dim, values, next_vals, labels, dynamic, step, value, next_dim,
+                     dim_idx, delay, jQueryUI_CDN, UNDERSCORE_CDN) {
+  // Slider JS Block START
+  function loadcssfile(filename){
+    var fileref=document.createElement("link")
+    fileref.setAttribute("rel", "stylesheet")
+    fileref.setAttribute("type", "text/css")
+    fileref.setAttribute("href", filename)
+    document.getElementsByTagName("head")[0].appendChild(fileref)
+  }
+  loadcssfile("https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css");
+  /* Check if jQuery and jQueryUI have been loaded
+     otherwise load with require.js */
+  var jQuery = window.jQuery,
+    // check for old versions of jQuery
+    oldjQuery = jQuery && !!jQuery.fn.jquery.match(/^1\.[0-4](\.|$)/),
+    jquery_path = '',
+    paths = {},
+    noConflict;
+  var jQueryUI = jQuery.ui;
+  // check for jQuery
+  if (!jQuery || oldjQuery) {
+    // load if it's not available or doesn't meet min standards
+    paths.jQuery = jQuery;
+    noConflict = !!oldjQuery;
+  } else {
+    // register the current jQuery
+    define('jquery', [], function() { return jQuery; });
+  }
+  if (!jQueryUI) {
+    paths.jQueryUI = jQueryUI_CDN.slice(null, -3);
+  } else {
+    define('jQueryUI', [], function() { return jQuery.ui; });
+  }
+  paths.underscore = UNDERSCORE_CDN.slice(null, -3);
+  var jquery_require = {
+    paths: paths,
+    shim: {
+      "jQueryUI": {
+        exports:"$",
+        deps: ['jquery']
+      },
+      "underscore": {
+        exports: '_'
+      }
+    }
+  }
+  require.config(jquery_require);
+  require(["jQueryUI", "underscore"], function(jUI, _){
+    if (noConflict) $.noConflict(true);
+    var vals = values;
+    if (dynamic && vals.constructor === Array) {
+      var default_value = parseFloat(value);
+      var min = parseFloat(vals[0]);
+      var max = parseFloat(vals[vals.length-1]);
+      var wstep = step;
+      var wlabels = [default_value];
+      var init_label = default_value;
+    } else {
+      var min = 0;
+      if (dynamic) {
+        var max = Object.keys(vals).length - 1;
+        var init_label = labels[value];
+        var default_value = values[value];
+      } else {
+        var max = vals.length - 1;
+        var init_label = labels[value];
+        var default_value = value;
+      }
+      var wstep = 1;
+      var wlabels = labels;
+    }
+    function adjustFontSize(text) {
+      var width_ratio = (text.parent().width()/8)/text.val().length;
+      var size = Math.min(0.9, Math.max(0.6, width_ratio))+'em';
+      text.css('font-size', size);
+    }
+    var slider = $('#_anim_widget'+id+'_'+dim);
+    slider.slider({
+      animate: "fast",
+      min: min,
+      max: max,
+      step: wstep,
+      value: default_value,
+      dim_vals: vals,
+      dim_labels: wlabels,
+      next_vals: next_vals,
+      slide: function(event, ui) {
+        var vals = slider.slider("option", "dim_vals");
+        var next_vals = slider.slider("option", "next_vals");
+        var dlabels = slider.slider("option", "dim_labels");
+        if (dynamic) {
+          var dim_val = ui.value;
+          if (vals.constructor === Array) {
+            var label = ui.value;
+          } else {
+            var label = dlabels[ui.value];
+          }
+        } else {
+          var dim_val = vals[ui.value];
+          var label = dlabels[ui.value];
+        }
+        var text = $('#textInput'+id+'_'+dim);
+        text.val(label);
+        adjustFontSize(text);
+        HoloViews.index[plot_id].set_frame(dim_val, dim_idx);
+        if (Object.keys(next_vals).length > 0) {
+          var new_vals = next_vals[dim_val];
+          var next_widget = $('#_anim_widget'+id+'_'+next_dim);
+          update_widget(next_widget, new_vals);
+        }
+      }
+    });
+    slider.keypress(function(event) {
+      if (event.which == 80 || event.which == 112) {
+        var start = slider.slider("option", "value");
+        var stop =  slider.slider("option", "max");
+        for (var i=start; i<=stop; i++) {
+          var delay = i*delay;
+          $.proxy(function doSetTimeout(i) { setTimeout($.proxy(function() {
+            var val = {value:i};
+            slider.slider('value',i);
+            slider.slider("option", "slide")(null, val);
+          }, slider), delay);}, slider)(i);
+        }
+      }
+      if (event.which == 82 || event.which == 114) {
+        var start = slider.slider("option", "value");
+        var stop =  slider.slider("option", "min");
+        var count = 0;
+        for (var i=start; i>=stop; i--) {
+          var delay = count*delay;
+          count = count + 1;
+          $.proxy(function doSetTimeout(i) { setTimeout($.proxy(function() {
+            var val = {value:i};
+            slider.slider('value',i);
+            slider.slider("option", "slide")(null, val);
+          }, slider), delay);}, slider)(i);
+        }
+      }
+    });
+    var textInput = $('#textInput'+id+'_'+dim)
+    textInput.val(init_label);
+    adjustFontSize(textInput);
+  });
+}
+
+function init_dropdown(id, plot_id, dim, vals, value, next_vals, labels, next_dim, dim_idx, dynamic) {
+  var widget = $("#_anim_widget"+id+'_'+dim);
+  widget.data('values', vals)
+  for (var i=0; i<vals.length; i++){
+    if (dynamic) {
+      var val = vals[i];
+    } else {
+      var val = i;
+    }
+    widget.append($("<option>", {
+      value: val,
+      text: labels[i]
+    }));
+  };
+  widget.data("next_vals", next_vals);
+  widget.val(value);
+  widget.on('change', function(event, ui) {
+    if (dynamic) {
+      var dim_val = parseInt(this.value);
+    } else {
+      var dim_val = $.data(this, 'values')[this.value];
+    }
+    var next_vals = $.data(this, "next_vals");
+    if (Object.keys(next_vals).length > 0) {
+      var new_vals = next_vals[dim_val];
+      var next_widget = $('#_anim_widget'+id+'_'+next_dim);
+      update_widget(next_widget, new_vals);
+    }
+    var widgets = HoloViews.index[plot_id]
+    if (widgets) {
+      widgets.set_frame(dim_val, dim_idx);
+    }
+  });
+}
+
+
+if (window.HoloViews === undefined) {
+  window.HoloViews = {}
+  window.PyViz = window.HoloViews
+} else if (window.PyViz === undefined) {
+  window.PyViz = window.HoloViews
+}
+
+
+var _namespace = {
+  init_slider: init_slider,
+  init_dropdown: init_dropdown,
+  comms: {},
+  comm_status: {},
+  index: {},
+  plot_index: {},
+  kernels: {},
+  receivers: {}
+}
+
+for (var k in _namespace) {
+  if (!(k in window.HoloViews)) {
+    window.HoloViews[k] = _namespace[k];
+  }
+}
+
+// Define Bokeh specific subclasses
+function BokehSelectionWidget() {
+  SelectionWidget.apply(this, arguments);
+}
+
+function BokehScrubberWidget() {
+  ScrubberWidget.apply(this, arguments);
+}
+
+// Let them inherit from the baseclasses
+BokehSelectionWidget.prototype = Object.create(SelectionWidget.prototype);
+BokehScrubberWidget.prototype = Object.create(ScrubberWidget.prototype);
+
+// Define methods to override on widgets
+var BokehMethods = {
+  update_cache : function(){
+    for (var index in this.frames) {
+      this.frames[index] = JSON.parse(this.frames[index]);
+    }
+  },
+  update : function(current){
+    if (current === undefined) {
+      return;
+    }
+    var data = this.frames[current];
+    if (data !== undefined) {
+      if (data.root in HoloViews.plot_index) {
+        var doc = HoloViews.plot_index[data.root].model.document;
+      } else {
+        var doc = Bokeh.index[data.root].model.document;
+      }
+      doc.apply_json_patch(data.content);
+    }
+  },
+  init_comms: function() {
+    if (Bokeh.protocol !== undefined) {
+      this.receiver = new Bokeh.protocol.Receiver()
+    } else {
+      this.receiver = null;
+    }
+    return HoloViewsWidget.prototype.init_comms.call(this);
+  },
+  process_msg : function(msg) {
+    if (this.plot_id in HoloViews.plot_index) {
+      var doc = HoloViews.plot_index[this.plot_id].model.document;
+    } else {
+      var doc = Bokeh.index[this.plot_id].model.document;
+    }
+    if (this.receiver === null) { return }
+    var receiver = this.receiver;
+    if (msg.buffers.length > 0) {
+      receiver.consume(msg.buffers[0].buffer)
+    } else {
+      receiver.consume(msg.content.data)
+    }
+    const comm_msg = receiver.message;
+    if ((comm_msg != null) && (doc != null)) {
+      doc.apply_json_patch(comm_msg.content, comm_msg.buffers)
+    }
+  }
+}
+
+// Extend Bokeh widgets with backend specific methods
+extend(BokehSelectionWidget.prototype, BokehMethods);
+extend(BokehScrubberWidget.prototype, BokehMethods);
+
+window.HoloViews.BokehSelectionWidget = BokehSelectionWidget
+window.HoloViews.BokehScrubberWidget = BokehScrubberWidget
+</script>
+<script type="text/javascript">
+    function JupyterCommManager() {
+    }
+
+    JupyterCommManager.prototype.register_target = function(plot_id, comm_id, msg_handler) {
+      if (window.comm_manager || ((window.Jupyter !== undefined) && (Jupyter.notebook.kernel != null))) {
+        var comm_manager = window.comm_manager || Jupyter.notebook.kernel.comm_manager;
+        comm_manager.register_target(comm_id, function(comm) {
+          comm.on_msg(msg_handler);
+        });
+      } else if ((plot_id in window.PyViz.kernels) && (window.PyViz.kernels[plot_id])) {
+        window.PyViz.kernels[plot_id].registerCommTarget(comm_id, function(comm) {
+          comm.onMsg = msg_handler;
+        });
+      }
+    }
+
+    JupyterCommManager.prototype.get_client_comm = function(plot_id, comm_id, msg_handler) {
+      if (comm_id in window.PyViz.comms) {
+        return window.PyViz.comms[comm_id];
+      } else if (window.comm_manager || ((window.Jupyter !== undefined) && (Jupyter.notebook.kernel != null))) {
+        var comm_manager = window.comm_manager || Jupyter.notebook.kernel.comm_manager;
+        var comm = comm_manager.new_comm(comm_id, {}, {}, {}, comm_id);
+        if (msg_handler) {
+          comm.on_msg(msg_handler);
+        }
+      } else if ((plot_id in window.PyViz.kernels) && (window.PyViz.kernels[plot_id])) {
+        var comm = window.PyViz.kernels[plot_id].connectToComm(comm_id);
+        comm.open();
+        if (msg_handler) {
+          comm.onMsg = msg_handler;
+        }
+      }
+
+      window.PyViz.comms[comm_id] = comm;
+      return comm;
+    }
+
+    window.PyViz.comm_manager = new JupyterCommManager();
+    </script>
+
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-1.1.0.min.css">
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.1.0.min.css">
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-tables-1.1.0.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+<style>div.bk-hbox {
+    display: flex;
+    justify-content: center;
+}
+
+div.bk-hbox div.bk-plot {
+    padding: 8px;
+}
+
+div.bk-hbox div.bk-data-table {
+    padding: 20px;
+}
+
+div.hololayout {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+div.holoframe {
+  width: 75%;
+}
+
+div.holowell {
+  display: flex;
+  align-items: center;
+}
+
+form.holoform {
+  background-color: #fafafa;
+  border-radius: 5px;
+  overflow: hidden;
+  padding-left: 0.8em;
+  padding-right: 0.8em;
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  border: 1px solid #e3e3e3;
+}
+
+div.holowidgets {
+  padding-right: 0;
+  width: 25%;
+}
+
+div.holoslider {
+  min-height: 0 !important;
+  height: 0.8em;
+  width: 100%;
+}
+
+div.holoformgroup {
+  padding-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+div.hologroup {
+  padding-left: 0;
+  padding-right: 0.8em;
+  width: 100%;
+}
+
+.holoselect {
+  width: 92%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.holotext {
+  padding-left:  0.5em;
+  padding-right: 0;
+  width: 100%;
+}
+
+.holowidgets .ui-resizable-se {
+  visibility: hidden
+}
+
+.holoframe > .ui-resizable-se {
+  visibility: hidden
+}
+
+.holowidgets .ui-resizable-s {
+  visibility: hidden
+}
+
+
+/* CSS rules for noUISlider based slider used by JupyterLab extension  */
+
+.noUi-handle {
+  width: 20px !important;
+  height: 20px !important;
+  left: -5px !important;
+  top: -5px !important;
+}
+
+.noUi-handle:before, .noUi-handle:after {
+  visibility: hidden;
+  height: 0px;
+}
+
+.noUi-target {
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
+</style><div style='display: table; margin: 0 auto;'>
+
+
+
+
+
+
+  <div class="bk-root" id="a3fc3830-18c0-4a3a-a578-62817c3bac60" data-root-id="1268"></div>
+
+<script type="text/javascript">
+  (function(root) {
+  function embed_document(root) {
+    
+  var docs_json = {"12001304-469e-4b38-9f63-a851390c8c60":{"roots":{"references":[{"attributes":{"below":[{"id":"1277","type":"LinearAxis"}],"center":[{"id":"1281","type":"Grid"},{"id":"1286","type":"Grid"},{"id":"1318","type":"Legend"}],"left":[{"id":"1282","type":"LinearAxis"}],"margin":null,"min_border_bottom":10,"min_border_left":10,"min_border_right":10,"min_border_top":10,"plot_height":800,"plot_width":1000,"renderers":[{"id":"1310","type":"GlyphRenderer"},{"id":"1326","type":"GlyphRenderer"},{"id":"1343","type":"GlyphRenderer"}],"right":[{"id":"1318","type":"Legend"}],"sizing_mode":"fixed","title":{"id":"1269","type":"Title"},"toolbar":{"id":"1292","type":"Toolbar"},"x_range":{"id":"1263","type":"Range1d"},"x_scale":{"id":"1273","type":"LinearScale"},"y_range":{"id":"1264","type":"Range1d"},"y_scale":{"id":"1275","type":"LinearScale"}},"id":"1268","subtype":"Figure","type":"Plot"},{"attributes":{"click_policy":"mute","items":[{"id":"1319","type":"LegendItem"},{"id":"1336","type":"LegendItem"}],"location":[0,0]},"id":"1318","type":"Legend"},{"attributes":{"callback":null,"renderers":[{"id":"1310","type":"GlyphRenderer"},{"id":"1326","type":"GlyphRenderer"}],"tooltips":[["actual","@{actual}"],["predicted","@{predicted}"]]},"id":"1265","type":"HoverTool"},{"attributes":{"data_source":{"id":"1304","type":"ColumnDataSource"},"glyph":{"id":"1307","type":"Scatter"},"hover_glyph":null,"muted_glyph":{"id":"1309","type":"Scatter"},"nonselection_glyph":{"id":"1308","type":"Scatter"},"selection_glyph":null,"view":{"id":"1311","type":"CDSView"}},"id":"1310","type":"GlyphRenderer"},{"attributes":{"data_source":{"id":"1337","type":"ColumnDataSource"},"glyph":{"id":"1340","type":"Line"},"hover_glyph":null,"muted_glyph":{"id":"1342","type":"Line"},"nonselection_glyph":{"id":"1341","type":"Line"},"selection_glyph":null,"view":{"id":"1344","type":"CDSView"}},"id":"1343","type":"GlyphRenderer"},{"attributes":{},"id":"1334","type":"UnionRenderers"},{"attributes":{"callback":null,"end":755000.0,"reset_end":755000.0,"reset_start":40000.0,"start":40000.0,"tags":[[["predicted","predicted",null]]]},"id":"1264","type":"Range1d"},{"attributes":{"axis_label":"actual","bounds":"auto","formatter":{"id":"1300","type":"BasicTickFormatter"},"major_label_orientation":"horizontal","ticker":{"id":"1278","type":"BasicTicker"}},"id":"1277","type":"LinearAxis"},{"attributes":{"fill_alpha":{"value":0.2},"fill_color":{"value":"#ff7e0e"},"line_alpha":{"value":0.2},"line_color":{"value":"#ff7e0e"},"size":{"units":"screen","value":5.477225575051661},"x":{"field":"actual"},"y":{"field":"predicted"}},"id":"1325","type":"Scatter"},{"attributes":{},"id":"1287","type":"SaveTool"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b3"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b3"},"size":{"units":"screen","value":5.477225575051661},"x":{"field":"actual"},"y":{"field":"predicted"}},"id":"1308","type":"Scatter"},{"attributes":{"label":{"value":"Decision Tree"},"renderers":[{"id":"1310","type":"GlyphRenderer"}]},"id":"1319","type":"LegendItem"},{"attributes":{"source":{"id":"1320","type":"ColumnDataSource"}},"id":"1327","type":"CDSView"},{"attributes":{"line_alpha":0.2,"line_color":"#1f77b3","line_width":2,"x":{"field":"x"},"y":{"field":"y"}},"id":"1342","type":"Line"},{"attributes":{},"id":"1353","type":"UnionRenderers"},{"attributes":{"callback":null,"renderers":[{"id":"1343","type":"GlyphRenderer"}],"tooltips":[["x","@{x}"],["y","@{y}"]]},"id":"1267","type":"HoverTool"},{"attributes":{"callback":null,"data":{"actual":[231500,179500,122000,84500,142000,325624,285000,151000,195000,275000,175000,61000,174000,385000,230000,87000,125000,98600,260000,143000,124000,122500,236500,337500,76000,187000,128000,179000,485000,122500,106000,118000,127000,80000,153000,360000,132000,85500,262280,112000,131000,139000,87000,135000,181000,163500,116900,159895,244600,294000,97000,295000,120500,239500,194000,115000,119500,180000,118000,178000,167000,267000,82000,133900,167000,132500,135000,248000,160000,144500,200500,113000,354000,164000,170000,224000,163900,160000,466500,172500,193500,133000,137000,167500,196500,146000,159500,158000,189000,172500,194201,181000,115000,101800,100000,139000,115000,139000,156000,158000,172000,138000,125500,123000,134500,163000,169990,140000,140000,325000,157500,225000,107000,185500,239900,163990,201000,127000,172500,228000,117000,232600,403000,169500,151400,180000,370878,55993,207500,224500,280000,82000,137000,130500,73000,217000,625000,367294,230000,142000,115000,272000,176500,234000,40000,213500,126000,187100,200000,117500,176000,174000,97000,169000,154000,361919,85000,134000,96500,127000,60000,108480,151000,135000,99500,124000,177500,144000,119000,107500,254900,180500,222000,271000,181000,140000,158000,204750,135000,161500,128500,179540,143000,147000,280000,131500,253293,317000,210000,120000,110000,127000,106000,172500,166000,258000,213000,150000,158500,82500,212000,238000,158000,178000,328900,110000,185000,320000,315000,228950,180000,117000,176000,111250,297000,266000,130000,93500,186700,91000,745000,62383,172500,170000,119000,129900,210000,173000,164500,170000,125500,183000,103000,141500,315500,118858,290000,119000,104900,348000,374000,200100,132250,161500,131500,104000,132500,133000,170000,180000,130000,125000,186500,171500,100000,114500,173000,86000,320000,133000,220000,137900,224900,153500,115000,207500,113000,178400,140000,83000,197000,187500,81000,93500,197500,93000,106000,144000,220000,144900,139000,132000,149000,153500,263435,205000,132500,103200,249700,64500,83000,339750,145900,106250,164990,228500,193000,244000,159950,119000,160000,147000,134450,174000,144000,190000,160000,175000,135000,176000,168500,139000,102776,221500,148500,55000,281000,179900,182900,217500,195000,154000,124900,228000,125000,438780,160200,271000,113000,103600,119500,275000,250000,306000,168000,136905,128000,107000,341000,176000,224900,289000,79900,274000,109900,175000,166000,151000,264132,79500,241000,141000,377426,132000,141000,136500,205950,157000,93000,309000,187500,178000,125000,232000,135000],"predicted":{"__ndarray__":"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","dtype":"float64","shape":[365]}},"selected":{"id":"1321","type":"Selection"},"selection_policy":{"id":"1353","type":"UnionRenderers"}},"id":"1320","type":"ColumnDataSource"},{"attributes":{"callback":null,"end":745000.0,"reset_end":745000.0,"reset_start":40000.0,"start":40000.0,"tags":[[["actual","actual",null]]]},"id":"1263","type":"Range1d"},{"attributes":{"callback":null,"data":{"x":[231500,179500,122000,84500,142000,325624,285000,151000,195000,275000,175000,61000,174000,385000,230000,87000,125000,98600,260000,143000,124000,122500,236500,337500,76000,187000,128000,179000,485000,122500,106000,118000,127000,80000,153000,360000,132000,85500,262280,112000,131000,139000,87000,135000,181000,163500,116900,159895,244600,294000,97000,295000,120500,239500,194000,115000,119500,180000,118000,178000,167000,267000,82000,133900,167000,132500,135000,248000,160000,144500,200500,113000,354000,164000,170000,224000,163900,160000,466500,172500,193500,133000,137000,167500,196500,146000,159500,158000,189000,172500,194201,181000,115000,101800,100000,139000,115000,139000,156000,158000,172000,138000,125500,123000,134500,163000,169990,140000,140000,325000,157500,225000,107000,185500,239900,163990,201000,127000,172500,228000,117000,232600,403000,169500,151400,180000,370878,55993,207500,224500,280000,82000,137000,130500,73000,217000,625000,367294,230000,142000,115000,272000,176500,234000,40000,213500,126000,187100,200000,117500,176000,174000,97000,169000,154000,361919,85000,134000,96500,127000,60000,108480,151000,135000,99500,124000,177500,144000,119000,107500,254900,180500,222000,271000,181000,140000,158000,204750,135000,161500,128500,179540,143000,147000,280000,131500,253293,317000,210000,120000,110000,127000,106000,172500,166000,258000,213000,150000,158500,82500,212000,238000,158000,178000,328900,110000,185000,320000,315000,228950,180000,117000,176000,111250,297000,266000,130000,93500,186700,91000,745000,62383,172500,170000,119000,129900,210000,173000,164500,170000,125500,183000,103000,141500,315500,118858,290000,119000,104900,348000,374000,200100,132250,161500,131500,104000,132500,133000,170000,180000,130000,125000,186500,171500,100000,114500,173000,86000,320000,133000,220000,137900,224900,153500,115000,207500,113000,178400,140000,83000,197000,187500,81000,93500,197500,93000,106000,144000,220000,144900,139000,132000,149000,153500,263435,205000,132500,103200,249700,64500,83000,339750,145900,106250,164990,228500,193000,244000,159950,119000,160000,147000,134450,174000,144000,190000,160000,175000,135000,176000,168500,139000,102776,221500,148500,55000,281000,179900,182900,217500,195000,154000,124900,228000,125000,438780,160200,271000,113000,103600,119500,275000,250000,306000,168000,136905,128000,107000,341000,176000,224900,289000,79900,274000,109900,175000,166000,151000,264132,79500,241000,141000,377426,132000,141000,136500,205950,157000,93000,309000,187500,178000,125000,232000,135000],"y":[231500,179500,122000,84500,142000,325624,285000,151000,195000,275000,175000,61000,174000,385000,230000,87000,125000,98600,260000,143000,124000,122500,236500,337500,76000,187000,128000,179000,485000,122500,106000,118000,127000,80000,153000,360000,132000,85500,262280,112000,131000,139000,87000,135000,181000,163500,116900,159895,244600,294000,97000,295000,120500,239500,194000,115000,119500,180000,118000,178000,167000,267000,82000,133900,167000,132500,135000,248000,160000,144500,200500,113000,354000,164000,170000,224000,163900,160000,466500,172500,193500,133000,137000,167500,196500,146000,159500,158000,189000,172500,194201,181000,115000,101800,100000,139000,115000,139000,156000,158000,172000,138000,125500,123000,134500,163000,169990,140000,140000,325000,157500,225000,107000,185500,239900,163990,201000,127000,172500,228000,117000,232600,403000,169500,151400,180000,370878,55993,207500,224500,280000,82000,137000,130500,73000,217000,625000,367294,230000,142000,115000,272000,176500,234000,40000,213500,126000,187100,200000,117500,176000,174000,97000,169000,154000,361919,85000,134000,96500,127000,60000,108480,151000,135000,99500,124000,177500,144000,119000,107500,254900,180500,222000,271000,181000,140000,158000,204750,135000,161500,128500,179540,143000,147000,280000,131500,253293,317000,210000,120000,110000,127000,106000,172500,166000,258000,213000,150000,158500,82500,212000,238000,158000,178000,328900,110000,185000,320000,315000,228950,180000,117000,176000,111250,297000,266000,130000,93500,186700,91000,745000,62383,172500,170000,119000,129900,210000,173000,164500,170000,125500,183000,103000,141500,315500,118858,290000,119000,104900,348000,374000,200100,132250,161500,131500,104000,132500,133000,170000,180000,130000,125000,186500,171500,100000,114500,173000,86000,320000,133000,220000,137900,224900,153500,115000,207500,113000,178400,140000,83000,197000,187500,81000,93500,197500,93000,106000,144000,220000,144900,139000,132000,149000,153500,263435,205000,132500,103200,249700,64500,83000,339750,145900,106250,164990,228500,193000,244000,159950,119000,160000,147000,134450,174000,144000,190000,160000,175000,135000,176000,168500,139000,102776,221500,148500,55000,281000,179900,182900,217500,195000,154000,124900,228000,125000,438780,160200,271000,113000,103600,119500,275000,250000,306000,168000,136905,128000,107000,341000,176000,224900,289000,79900,274000,109900,175000,166000,151000,264132,79500,241000,141000,377426,132000,141000,136500,205950,157000,93000,309000,187500,178000,125000,232000,135000]},"selected":{"id":"1338","type":"Selection"},"selection_policy":{"id":"1355","type":"UnionRenderers"}},"id":"1337","type":"ColumnDataSource"},{"attributes":{"line_alpha":0.1,"line_color":"#1f77b3","line_width":2,"x":{"field":"x"},"y":{"field":"y"}},"id":"1341","type":"Line"},{"attributes":{"bottom_units":"screen","fill_alpha":{"value":0.5},"fill_color":{"value":"lightgrey"},"left_units":"screen","level":"overlay","line_alpha":{"value":1.0},"line_color":{"value":"black"},"line_dash":[4,4],"line_width":{"value":2},"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"1317","type":"BoxAnnotation"},{"attributes":{},"id":"1338","type":"Selection"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#ff7e0e"},"line_alpha":{"value":0.1},"line_color":{"value":"#ff7e0e"},"size":{"units":"screen","value":5.477225575051661},"x":{"field":"actual"},"y":{"field":"predicted"}},"id":"1324","type":"Scatter"},{"attributes":{},"id":"1275","type":"LinearScale"},{"attributes":{"grid_line_color":{"value":null},"ticker":{"id":"1278","type":"BasicTicker"}},"id":"1281","type":"Grid"},{"attributes":{"data_source":{"id":"1320","type":"ColumnDataSource"},"glyph":{"id":"1323","type":"Scatter"},"hover_glyph":null,"muted_glyph":{"id":"1325","type":"Scatter"},"nonselection_glyph":{"id":"1324","type":"Scatter"},"selection_glyph":null,"view":{"id":"1327","type":"CDSView"}},"id":"1326","type":"GlyphRenderer"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"1265","type":"HoverTool"},{"id":"1267","type":"HoverTool"},{"id":"1287","type":"SaveTool"},{"id":"1288","type":"PanTool"},{"id":"1289","type":"WheelZoomTool"},{"id":"1290","type":"BoxZoomTool"},{"id":"1291","type":"ResetTool"}]},"id":"1292","type":"Toolbar"},{"attributes":{},"id":"1288","type":"PanTool"},{"attributes":{},"id":"1273","type":"LinearScale"},{"attributes":{"axis_label":"predicted","bounds":"auto","formatter":{"id":"1302","type":"BasicTickFormatter"},"major_label_orientation":"horizontal","ticker":{"id":"1283","type":"BasicTicker"}},"id":"1282","type":"LinearAxis"},{"attributes":{"dimension":1,"grid_line_color":{"value":null},"ticker":{"id":"1283","type":"BasicTicker"}},"id":"1286","type":"Grid"},{"attributes":{"label":{"value":"Linear Regression"},"renderers":[{"id":"1326","type":"GlyphRenderer"}]},"id":"1336","type":"LegendItem"},{"attributes":{"fill_color":{"value":"#1f77b3"},"line_color":{"value":"#1f77b3"},"size":{"units":"screen","value":5.477225575051661},"x":{"field":"actual"},"y":{"field":"predicted"}},"id":"1307","type":"Scatter"},{"attributes":{"callback":null,"data":{"actual":[231500,179500,122000,84500,142000,325624,285000,151000,195000,275000,175000,61000,174000,385000,230000,87000,125000,98600,260000,143000,124000,122500,236500,337500,76000,187000,128000,179000,485000,122500,106000,118000,127000,80000,153000,360000,132000,85500,262280,112000,131000,139000,87000,135000,181000,163500,116900,159895,244600,294000,97000,295000,120500,239500,194000,115000,119500,180000,118000,178000,167000,267000,82000,133900,167000,132500,135000,248000,160000,144500,200500,113000,354000,164000,170000,224000,163900,160000,466500,172500,193500,133000,137000,167500,196500,146000,159500,158000,189000,172500,194201,181000,115000,101800,100000,139000,115000,139000,156000,158000,172000,138000,125500,123000,134500,163000,169990,140000,140000,325000,157500,225000,107000,185500,239900,163990,201000,127000,172500,228000,117000,232600,403000,169500,151400,180000,370878,55993,207500,224500,280000,82000,137000,130500,73000,217000,625000,367294,230000,142000,115000,272000,176500,234000,40000,213500,126000,187100,200000,117500,176000,174000,97000,169000,154000,361919,85000,134000,96500,127000,60000,108480,151000,135000,99500,124000,177500,144000,119000,107500,254900,180500,222000,271000,181000,140000,158000,204750,135000,161500,128500,179540,143000,147000,280000,131500,253293,317000,210000,120000,110000,127000,106000,172500,166000,258000,213000,150000,158500,82500,212000,238000,158000,178000,328900,110000,185000,320000,315000,228950,180000,117000,176000,111250,297000,266000,130000,93500,186700,91000,745000,62383,172500,170000,119000,129900,210000,173000,164500,170000,125500,183000,103000,141500,315500,118858,290000,119000,104900,348000,374000,200100,132250,161500,131500,104000,132500,133000,170000,180000,130000,125000,186500,171500,100000,114500,173000,86000,320000,133000,220000,137900,224900,153500,115000,207500,113000,178400,140000,83000,197000,187500,81000,93500,197500,93000,106000,144000,220000,144900,139000,132000,149000,153500,263435,205000,132500,103200,249700,64500,83000,339750,145900,106250,164990,228500,193000,244000,159950,119000,160000,147000,134450,174000,144000,190000,160000,175000,135000,176000,168500,139000,102776,221500,148500,55000,281000,179900,182900,217500,195000,154000,124900,228000,125000,438780,160200,271000,113000,103600,119500,275000,250000,306000,168000,136905,128000,107000,341000,176000,224900,289000,79900,274000,109900,175000,166000,151000,264132,79500,241000,141000,377426,132000,141000,136500,205950,157000,93000,309000,187500,178000,125000,232000,135000],"predicted":{"__ndarray__":"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","dtype":"float64","shape":[365]}},"selected":{"id":"1305","type":"Selection"},"selection_policy":{"id":"1334","type":"UnionRenderers"}},"id":"1304","type":"ColumnDataSource"},{"attributes":{"fill_color":{"value":"#ff7e0e"},"line_color":{"value":"#ff7e0e"},"size":{"units":"screen","value":5.477225575051661},"x":{"field":"actual"},"y":{"field":"predicted"}},"id":"1323","type":"Scatter"},{"attributes":{},"id":"1305","type":"Selection"},{"attributes":{},"id":"1283","type":"BasicTicker"},{"attributes":{"overlay":{"id":"1317","type":"BoxAnnotation"}},"id":"1290","type":"BoxZoomTool"},{"attributes":{"source":{"id":"1337","type":"ColumnDataSource"}},"id":"1344","type":"CDSView"},{"attributes":{},"id":"1302","type":"BasicTickFormatter"},{"attributes":{},"id":"1289","type":"WheelZoomTool"},{"attributes":{},"id":"1355","type":"UnionRenderers"},{"attributes":{"text":"Actual Vs Predictions (Validation Set)","text_color":{"value":"black"},"text_font_size":{"value":"12pt"}},"id":"1269","type":"Title"},{"attributes":{},"id":"1291","type":"ResetTool"},{"attributes":{"source":{"id":"1304","type":"ColumnDataSource"}},"id":"1311","type":"CDSView"},{"attributes":{"line_color":"#1f77b3","line_width":2,"x":{"field":"x"},"y":{"field":"y"}},"id":"1340","type":"Line"},{"attributes":{},"id":"1300","type":"BasicTickFormatter"},{"attributes":{},"id":"1321","type":"Selection"},{"attributes":{"fill_alpha":{"value":0.2},"fill_color":{"value":"#1f77b3"},"line_alpha":{"value":0.2},"line_color":{"value":"#1f77b3"},"size":{"units":"screen","value":5.477225575051661},"x":{"field":"actual"},"y":{"field":"predicted"}},"id":"1309","type":"Scatter"},{"attributes":{},"id":"1278","type":"BasicTicker"}],"root_ids":["1268"]},"title":"Bokeh Application","version":"1.1.0"}};
+  var render_items = [{"docid":"12001304-469e-4b38-9f63-a851390c8c60","roots":{"1268":"a3fc3830-18c0-4a3a-a578-62817c3bac60"}}];
+  root.Bokeh.embed.embed_items_notebook(docs_json, render_items);
+
+  }
+  if (root.Bokeh !== undefined) {
+    embed_document(root);
+  } else {
+    var attempts = 0;
+    var timer = setInterval(function(root) {
+      if (root.Bokeh !== undefined) {
+        embed_document(root);
+        clearInterval(timer);
+      }
+      attempts++;
+      if (attempts > 100) {
+        console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+        clearInterval(timer);
+      }
+    }, 10, root)
+  }
+})(window);
+</script>
+</div>
