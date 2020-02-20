@@ -13,7 +13,7 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 
-#+PROPERTY: header-args :session /run/user/1000/jupyter/kernel-02423713-83f7-4a07-bc52-7cb394caee86.json
+#+PROPERTY: header-args :session /home/athena/.local/share/jupyter/runtime/kernel-a17ec546-5f56-464d-ae46-41c12ffe899e.json
 * Beginning
   This is the fourth part of kaggle's [[https://www.kaggle.com/learn/intro-to-machine-learning][Introduction to Machine Learning]] tutorial - Overfitting and Underfitting.
 ** Imports
@@ -41,7 +41,7 @@ from graeae import EmbedHoloviews, EnvironmentLoader, Timer
 ** Set Up
 *** Plottting
 #+begin_src python :results none
-SLUG = "underfitting-and-overfitting-model"
+SLUG = "underfitting-and-overfitting-exercise"
 OUTPUT_PATH = Path("../../files/posts/tutorials/")/SLUG
 Embed = partial(EmbedHoloviews, folder_path=OUTPUT_PATH)
 Plot = Namespace(
@@ -232,7 +232,7 @@ print(f"Validation R^2: {tree.score(x_validate, y_validate):0.2f}")
 #+end_src
 
 #+RESULTS:
-: 0.54 (+/- 0.29)
+: 0.54 (+/- 0.32)
 : Training R^2:  1.00
 : Validation R^2: 0.73
 
@@ -252,7 +252,7 @@ print(f"Regression MAE: {regression_mae: 0.2f}")
 #+end_src
 
 #+RESULTS:
-: Tree MAE:  29914.81
+: Tree MAE:  29992.77
 : Regression MAE:  27228.88
 
 The tree's error is a little higher than the regression line's.
@@ -264,7 +264,6 @@ Write a loop that tries the following values for *max_leaf_nodes* from a set of 
  
 Call the *get_mae* function on each value of max_leaf_nodes. Store the output in some way that allows you to select the value of =max_leaf_nodes= that gives the most accurate model on your data.
 #+end_quote
-# In[ ]:
 
 #+begin_src python :results none
 def get_mae(max_leaf_nodes, train_X=x_train, val_X=x_validate, train_y=y_train, val_y=y_validate):
@@ -290,6 +289,26 @@ best_tree_size = best[1]
 #+RESULTS:
 : (27282.50803885739, 100)
 
+#+begin_src python :results none
+mae = pandas.DataFrame(dict(nodes=candidate_max_leaf_nodes, mae = [outcome[0] for outcome in outcomes]))
+plot = mae.hvplot(x="nodes", y="mae").opts(title="Node Mean Absolute Error",
+                                           width=Plot.width,
+                                           height=Plot.height)
+source = Embed(plot=plot, file_name="node_mean_absolute_error")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(source)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+: <object type="text/html" data="node_mean_absolute_error.html" style="width:100%" height=800>
+:   <p>Figure Missing</p>
+: </object>
+#+end_export
+
+Looking at the plot you can see that the error drops until you hit 100 nodes and then begins to rise again as it overfits the data with more nodes.
 
 
 * Raw
