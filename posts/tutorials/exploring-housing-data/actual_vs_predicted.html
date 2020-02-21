@@ -1,0 +1,833 @@
+
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-1.4.0.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.4.0.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-1.4.0.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-gl-1.4.0.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" type="text/javascript"></script>
+<script type="text/javascript">function HoloViewsWidget() {
+}
+
+HoloViewsWidget.prototype.init_slider = function(init_val){
+  if(this.load_json) {
+    this.from_json()
+  } else {
+    this.update_cache();
+  }
+}
+
+HoloViewsWidget.prototype.populate_cache = function(idx){
+  this.cache[idx].innerHTML = this.frames[idx];
+  if (this.embed) {
+    delete this.frames[idx];
+  }
+}
+
+HoloViewsWidget.prototype.process_error = function(msg){
+}
+
+HoloViewsWidget.prototype.from_json = function() {
+  var data_url = this.json_path + this.id + '.json';
+  $.getJSON(data_url, $.proxy(function(json_data) {
+    this.frames = json_data;
+    this.update_cache();
+    this.update(0);
+  }, this));
+}
+
+HoloViewsWidget.prototype.dynamic_update = function(current){
+  if (current === undefined) {
+    return
+  }
+  this.current = current;
+  if (this.comm) {
+    var msg = {comm_id: this.id+'_client', content: current}
+    this.comm.send(msg);
+  }
+}
+
+HoloViewsWidget.prototype.update_cache = function(force){
+  var frame_len = Object.keys(this.frames).length;
+  for (var i=0; i<frame_len; i++) {
+    if(!this.load_json || this.dynamic)  {
+      var frame = Object.keys(this.frames)[i];
+    } else {
+      var frame = i;
+    }
+    if(!(frame in this.cache) || force) {
+      if ((frame in this.cache) && force) { this.cache[frame].remove() }
+      var div = document.createElement("div");
+      var parent = document.getElementById("_anim_img"+this.id);
+      div.style.display = "none";
+      parent.appendChild(div)
+      this.cache[frame] = div;
+      var cache_id = "_anim_img"+this.id+"_"+frame;
+      this.populate_cache(frame);
+    }
+  }
+}
+
+HoloViewsWidget.prototype.update = function(current){
+  if(current in this.cache) {
+    for (var index in this.cache) {
+      this.cache[index].style.display = "none";
+    }
+    this.cache[current].style.display = "";
+    this.wait = false;
+  }
+}
+
+HoloViewsWidget.prototype.init_comms = function() {
+  var that = this
+  HoloViews.comm_manager.register_target(this.plot_id, this.id, function (msg) { that.msg_handler(msg) })
+  if (!this.cached || this.dynamic) {
+    function ack_callback(msg) {
+      var msg = msg.metadata;
+      var comm_id = msg.comm_id;
+      var comm_status = HoloViews.comm_status[comm_id];
+      if (that.queue.length > 0) {
+        that.time = Date.now();
+        that.dynamic_update(that.queue[that.queue.length-1]);
+        that.queue = [];
+      } else {
+        that.wait = false;
+      }
+      if ((msg.msg_type == "Ready") && msg.content) {
+        console.log("Python callback returned following output:", msg.content);
+      } else if (msg.msg_type == "Error") {
+        console.log("Python failed with the following traceback:", msg.traceback)
+      }
+    }
+    var comm = HoloViews.comm_manager.get_client_comm(this.plot_id, this.id+'_client', ack_callback);
+    return comm
+  }
+}
+
+HoloViewsWidget.prototype.msg_handler = function(msg) {
+  var metadata = msg.metadata;
+  if ((metadata.msg_type == "Ready")) {
+    if (metadata.content) {
+      console.log("Python callback returned following output:", metadata.content);
+    }
+	return;
+  } else if (metadata.msg_type == "Error") {
+    console.log("Python failed with the following traceback:", metadata.traceback)
+    return
+  }
+  this.process_msg(msg)
+}
+
+HoloViewsWidget.prototype.process_msg = function(msg) {
+}
+
+function SelectionWidget(frames, id, slider_ids, keyMap, dim_vals, notFound, load_json, mode, cached, json_path, dynamic, plot_id){
+  this.frames = frames;
+  this.id = id;
+  this.plot_id = plot_id;
+  this.slider_ids = slider_ids;
+  this.keyMap = keyMap
+  this.current_frame = 0;
+  this.current_vals = dim_vals;
+  this.load_json = load_json;
+  this.mode = mode;
+  this.notFound = notFound;
+  this.cached = cached;
+  this.dynamic = dynamic;
+  this.cache = {};
+  this.json_path = json_path;
+  this.init_slider(this.current_vals[0]);
+  this.queue = [];
+  this.wait = false;
+  if (!this.cached || this.dynamic) {
+    this.comm = this.init_comms();
+  }
+}
+
+SelectionWidget.prototype = new HoloViewsWidget;
+
+
+SelectionWidget.prototype.get_key = function(current_vals) {
+  var key = "(";
+  for (var i=0; i<this.slider_ids.length; i++)
+  {
+    var val = this.current_vals[i];
+    if (!(typeof val === 'string')) {
+      if (val % 1 === 0) { val = val.toFixed(1); }
+      else { val = val.toFixed(10); val = val.slice(0, val.length-1);}
+    }
+    key += "'" + val + "'";
+    if(i != this.slider_ids.length-1) { key += ', ';}
+    else if(this.slider_ids.length == 1) { key += ',';}
+  }
+  key += ")";
+  return this.keyMap[key];
+}
+
+SelectionWidget.prototype.set_frame = function(dim_val, dim_idx){
+  this.current_vals[dim_idx] = dim_val;
+  var key = this.current_vals;
+  if (!this.dynamic) {
+    key = this.get_key(key)
+  }
+  if (this.dynamic || !this.cached) {
+    if ((this.time !== undefined) && ((this.wait) && ((this.time + 10000) > Date.now()))) {
+      this.queue.push(key);
+      return
+    }
+    this.queue = [];
+    this.time = Date.now();
+    this.current_frame = key;
+    this.wait = true;
+    this.dynamic_update(key)
+  } else if (key !== undefined) {
+    this.update(key)
+  }
+}
+
+
+/* Define the ScrubberWidget class */
+function ScrubberWidget(frames, num_frames, id, interval, load_json, mode, cached, json_path, dynamic, plot_id){
+  this.slider_id = "_anim_slider" + id;
+  this.loop_select_id = "_anim_loop_select" + id;
+  this.id = id;
+  this.plot_id = plot_id;
+  this.interval = interval;
+  this.current_frame = 0;
+  this.direction = 0;
+  this.dynamic = dynamic;
+  this.timer = null;
+  this.load_json = load_json;
+  this.mode = mode;
+  this.cached = cached;
+  this.frames = frames;
+  this.cache = {};
+  this.length = num_frames;
+  this.json_path = json_path;
+  document.getElementById(this.slider_id).max = this.length - 1;
+  this.init_slider(0);
+  this.wait = false;
+  this.queue = [];
+  if (!this.cached || this.dynamic) {
+    this.comm = this.init_comms()
+  }
+}
+
+ScrubberWidget.prototype = new HoloViewsWidget;
+
+ScrubberWidget.prototype.set_frame = function(frame){
+  this.current_frame = frame;
+  var widget = document.getElementById(this.slider_id);
+  if (widget === null) {
+    this.pause_animation();
+    return
+  }
+  widget.value = this.current_frame;
+  if (this.dynamic || !this.cached) {
+    if ((this.time !== undefined) && ((this.wait) && ((this.time + 10000) > Date.now()))) {
+      this.queue.push(frame);
+      return
+    }
+    this.queue = [];
+    this.time = Date.now();
+    this.wait = true;
+    this.dynamic_update(frame)
+  } else {
+    this.update(frame)
+  }
+}
+
+ScrubberWidget.prototype.get_loop_state = function(){
+  var button_group = document[this.loop_select_id].state;
+  for (var i = 0; i < button_group.length; i++) {
+    var button = button_group[i];
+    if (button.checked) {
+      return button.value;
+    }
+  }
+  return undefined;
+}
+
+
+ScrubberWidget.prototype.next_frame = function() {
+  this.set_frame(Math.min(this.length - 1, this.current_frame + 1));
+}
+
+ScrubberWidget.prototype.previous_frame = function() {
+  this.set_frame(Math.max(0, this.current_frame - 1));
+}
+
+ScrubberWidget.prototype.first_frame = function() {
+  this.set_frame(0);
+}
+
+ScrubberWidget.prototype.last_frame = function() {
+  this.set_frame(this.length - 1);
+}
+
+ScrubberWidget.prototype.slower = function() {
+  this.interval /= 0.7;
+  if(this.direction > 0){this.play_animation();}
+  else if(this.direction < 0){this.reverse_animation();}
+}
+
+ScrubberWidget.prototype.faster = function() {
+  this.interval *= 0.7;
+  if(this.direction > 0){this.play_animation();}
+  else if(this.direction < 0){this.reverse_animation();}
+}
+
+ScrubberWidget.prototype.anim_step_forward = function() {
+  if(this.current_frame < this.length - 1){
+    this.next_frame();
+  }else{
+    var loop_state = this.get_loop_state();
+    if(loop_state == "loop"){
+      this.first_frame();
+    }else if(loop_state == "reflect"){
+      this.last_frame();
+      this.reverse_animation();
+    }else{
+      this.pause_animation();
+      this.last_frame();
+    }
+  }
+}
+
+ScrubberWidget.prototype.anim_step_reverse = function() {
+  if(this.current_frame > 0){
+    this.previous_frame();
+  } else {
+    var loop_state = this.get_loop_state();
+    if(loop_state == "loop"){
+      this.last_frame();
+    }else if(loop_state == "reflect"){
+      this.first_frame();
+      this.play_animation();
+    }else{
+      this.pause_animation();
+      this.first_frame();
+    }
+  }
+}
+
+ScrubberWidget.prototype.pause_animation = function() {
+  this.direction = 0;
+  if (this.timer){
+    clearInterval(this.timer);
+    this.timer = null;
+  }
+}
+
+ScrubberWidget.prototype.play_animation = function() {
+  this.pause_animation();
+  this.direction = 1;
+  var t = this;
+  if (!this.timer) this.timer = setInterval(function(){t.anim_step_forward();}, this.interval);
+}
+
+ScrubberWidget.prototype.reverse_animation = function() {
+  this.pause_animation();
+  this.direction = -1;
+  var t = this;
+  if (!this.timer) this.timer = setInterval(function(){t.anim_step_reverse();}, this.interval);
+}
+
+function extend(destination, source) {
+  for (var k in source) {
+    if (source.hasOwnProperty(k)) {
+      destination[k] = source[k];
+    }
+  }
+  return destination;
+}
+
+function update_widget(widget, values) {
+  if (widget.hasClass("ui-slider")) {
+    widget.slider('option', {
+      min: 0,
+      max: values.length-1,
+      dim_vals: values,
+      value: 0,
+      dim_labels: values
+    })
+    widget.slider('option', 'slide').call(widget, event, {value: 0})
+  } else {
+    widget.empty();
+    for (var i=0; i<values.length; i++){
+      widget.append($("<option>", {
+        value: i,
+        text: values[i]
+      }))
+    };
+    widget.data('values', values);
+    widget.data('value', 0);
+    widget.trigger("change");
+  };
+}
+
+function init_slider(id, plot_id, dim, values, next_vals, labels, dynamic, step, value, next_dim,
+                     dim_idx, delay, jQueryUI_CDN, UNDERSCORE_CDN) {
+  // Slider JS Block START
+  function loadcssfile(filename){
+    var fileref=document.createElement("link")
+    fileref.setAttribute("rel", "stylesheet")
+    fileref.setAttribute("type", "text/css")
+    fileref.setAttribute("href", filename)
+    document.getElementsByTagName("head")[0].appendChild(fileref)
+  }
+  loadcssfile("https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css");
+  /* Check if jQuery and jQueryUI have been loaded
+     otherwise load with require.js */
+  var jQuery = window.jQuery,
+    // check for old versions of jQuery
+    oldjQuery = jQuery && !!jQuery.fn.jquery.match(/^1\.[0-4](\.|$)/),
+    jquery_path = '',
+    paths = {},
+    noConflict;
+  var jQueryUI = jQuery.ui;
+  // check for jQuery
+  if (!jQuery || oldjQuery) {
+    // load if it's not available or doesn't meet min standards
+    paths.jQuery = jQuery;
+    noConflict = !!oldjQuery;
+  } else {
+    // register the current jQuery
+    define('jquery', [], function() { return jQuery; });
+  }
+  if (!jQueryUI) {
+    paths.jQueryUI = jQueryUI_CDN.slice(null, -3);
+  } else {
+    define('jQueryUI', [], function() { return jQuery.ui; });
+  }
+  paths.underscore = UNDERSCORE_CDN.slice(null, -3);
+  var jquery_require = {
+    paths: paths,
+    shim: {
+      "jQueryUI": {
+        exports:"$",
+        deps: ['jquery']
+      },
+      "underscore": {
+        exports: '_'
+      }
+    }
+  }
+  require.config(jquery_require);
+  require(["jQueryUI", "underscore"], function(jUI, _){
+    if (noConflict) $.noConflict(true);
+    var vals = values;
+    if (dynamic && vals.constructor === Array) {
+      var default_value = parseFloat(value);
+      var min = parseFloat(vals[0]);
+      var max = parseFloat(vals[vals.length-1]);
+      var wstep = step;
+      var wlabels = [default_value];
+      var init_label = default_value;
+    } else {
+      var min = 0;
+      if (dynamic) {
+        var max = Object.keys(vals).length - 1;
+        var init_label = labels[value];
+        var default_value = values[value];
+      } else {
+        var max = vals.length - 1;
+        var init_label = labels[value];
+        var default_value = value;
+      }
+      var wstep = 1;
+      var wlabels = labels;
+    }
+    function adjustFontSize(text) {
+      var width_ratio = (text.parent().width()/8)/text.val().length;
+      var size = Math.min(0.9, Math.max(0.6, width_ratio))+'em';
+      text.css('font-size', size);
+    }
+    var slider = $('#_anim_widget'+id+'_'+dim);
+    slider.slider({
+      animate: "fast",
+      min: min,
+      max: max,
+      step: wstep,
+      value: default_value,
+      dim_vals: vals,
+      dim_labels: wlabels,
+      next_vals: next_vals,
+      slide: function(event, ui) {
+        var vals = slider.slider("option", "dim_vals");
+        var next_vals = slider.slider("option", "next_vals");
+        var dlabels = slider.slider("option", "dim_labels");
+        if (dynamic) {
+          var dim_val = ui.value;
+          if (vals.constructor === Array) {
+            var label = ui.value;
+          } else {
+            var label = dlabels[ui.value];
+          }
+        } else {
+          var dim_val = vals[ui.value];
+          var label = dlabels[ui.value];
+        }
+        var text = $('#textInput'+id+'_'+dim);
+        text.val(label);
+        adjustFontSize(text);
+        HoloViews.index[plot_id].set_frame(dim_val, dim_idx);
+        if (Object.keys(next_vals).length > 0) {
+          var new_vals = next_vals[dim_val];
+          var next_widget = $('#_anim_widget'+id+'_'+next_dim);
+          update_widget(next_widget, new_vals);
+        }
+      }
+    });
+    slider.keypress(function(event) {
+      if (event.which == 80 || event.which == 112) {
+        var start = slider.slider("option", "value");
+        var stop =  slider.slider("option", "max");
+        for (var i=start; i<=stop; i++) {
+          var delay = i*delay;
+          $.proxy(function doSetTimeout(i) { setTimeout($.proxy(function() {
+            var val = {value:i};
+            slider.slider('value',i);
+            slider.slider("option", "slide")(null, val);
+          }, slider), delay);}, slider)(i);
+        }
+      }
+      if (event.which == 82 || event.which == 114) {
+        var start = slider.slider("option", "value");
+        var stop =  slider.slider("option", "min");
+        var count = 0;
+        for (var i=start; i>=stop; i--) {
+          var delay = count*delay;
+          count = count + 1;
+          $.proxy(function doSetTimeout(i) { setTimeout($.proxy(function() {
+            var val = {value:i};
+            slider.slider('value',i);
+            slider.slider("option", "slide")(null, val);
+          }, slider), delay);}, slider)(i);
+        }
+      }
+    });
+    var textInput = $('#textInput'+id+'_'+dim)
+    textInput.val(init_label);
+    adjustFontSize(textInput);
+  });
+}
+
+function init_dropdown(id, plot_id, dim, vals, value, next_vals, labels, next_dim, dim_idx, dynamic) {
+  var widget = $("#_anim_widget"+id+'_'+dim);
+  widget.data('values', vals)
+  for (var i=0; i<vals.length; i++){
+    if (dynamic) {
+      var val = vals[i];
+    } else {
+      var val = i;
+    }
+    widget.append($("<option>", {
+      value: val,
+      text: labels[i]
+    }));
+  };
+  widget.data("next_vals", next_vals);
+  widget.val(value);
+  widget.on('change', function(event, ui) {
+    if (dynamic) {
+      var dim_val = parseInt(this.value);
+    } else {
+      var dim_val = $.data(this, 'values')[this.value];
+    }
+    var next_vals = $.data(this, "next_vals");
+    if (Object.keys(next_vals).length > 0) {
+      var new_vals = next_vals[dim_val];
+      var next_widget = $('#_anim_widget'+id+'_'+next_dim);
+      update_widget(next_widget, new_vals);
+    }
+    var widgets = HoloViews.index[plot_id]
+    if (widgets) {
+      widgets.set_frame(dim_val, dim_idx);
+    }
+  });
+}
+
+
+if (window.HoloViews === undefined) {
+  window.HoloViews = {}
+  window.PyViz = window.HoloViews
+} else if (window.PyViz === undefined) {
+  window.PyViz = window.HoloViews
+}
+
+
+var _namespace = {
+  init_slider: init_slider,
+  init_dropdown: init_dropdown,
+  comms: {},
+  comm_status: {},
+  index: {},
+  plot_index: {},
+  kernels: {},
+  receivers: {}
+}
+
+for (var k in _namespace) {
+  if (!(k in window.HoloViews)) {
+    window.HoloViews[k] = _namespace[k];
+  }
+}
+
+// Define Bokeh specific subclasses
+function BokehSelectionWidget() {
+  SelectionWidget.apply(this, arguments);
+}
+
+function BokehScrubberWidget() {
+  ScrubberWidget.apply(this, arguments);
+}
+
+// Let them inherit from the baseclasses
+BokehSelectionWidget.prototype = Object.create(SelectionWidget.prototype);
+BokehScrubberWidget.prototype = Object.create(ScrubberWidget.prototype);
+
+// Define methods to override on widgets
+var BokehMethods = {
+  update_cache : function(){
+    for (var index in this.frames) {
+      this.frames[index] = JSON.parse(this.frames[index]);
+    }
+  },
+  update : function(current){
+    if (current === undefined) {
+      return;
+    }
+    var data = this.frames[current];
+    if (data !== undefined) {
+      if (data.root in HoloViews.plot_index) {
+        var doc = HoloViews.plot_index[data.root].model.document;
+      } else {
+        var doc = Bokeh.index[data.root].model.document;
+      }
+      doc.apply_json_patch(data.content);
+    }
+  },
+  init_comms: function() {
+    if (Bokeh.protocol !== undefined) {
+      this.receiver = new Bokeh.protocol.Receiver()
+    } else {
+      this.receiver = null;
+    }
+    return HoloViewsWidget.prototype.init_comms.call(this);
+  },
+  process_msg : function(msg) {
+    if (this.plot_id in HoloViews.plot_index) {
+      var doc = HoloViews.plot_index[this.plot_id].model.document;
+    } else {
+      var doc = Bokeh.index[this.plot_id].model.document;
+    }
+    if (this.receiver === null) { return }
+    var receiver = this.receiver;
+    if (msg.buffers.length > 0) {
+      receiver.consume(msg.buffers[0].buffer)
+    } else {
+      receiver.consume(msg.content.data)
+    }
+    const comm_msg = receiver.message;
+    if ((comm_msg != null) && (doc != null)) {
+      doc.apply_json_patch(comm_msg.content, comm_msg.buffers)
+    }
+  }
+}
+
+// Extend Bokeh widgets with backend specific methods
+extend(BokehSelectionWidget.prototype, BokehMethods);
+extend(BokehScrubberWidget.prototype, BokehMethods);
+
+window.HoloViews.BokehSelectionWidget = BokehSelectionWidget
+window.HoloViews.BokehScrubberWidget = BokehScrubberWidget
+</script>
+<script type="text/javascript">
+    function JupyterCommManager() {
+    }
+
+    JupyterCommManager.prototype.register_target = function(plot_id, comm_id, msg_handler) {
+      if (window.comm_manager || ((window.Jupyter !== undefined) && (Jupyter.notebook.kernel != null))) {
+        var comm_manager = window.comm_manager || Jupyter.notebook.kernel.comm_manager;
+        comm_manager.register_target(comm_id, function(comm) {
+          comm.on_msg(msg_handler);
+        });
+      } else if ((plot_id in window.PyViz.kernels) && (window.PyViz.kernels[plot_id])) {
+        window.PyViz.kernels[plot_id].registerCommTarget(comm_id, function(comm) {
+          comm.onMsg = msg_handler;
+        });
+      }
+    }
+
+    JupyterCommManager.prototype.get_client_comm = function(plot_id, comm_id, msg_handler) {
+      if (comm_id in window.PyViz.comms) {
+        return window.PyViz.comms[comm_id];
+      } else if (window.comm_manager || ((window.Jupyter !== undefined) && (Jupyter.notebook.kernel != null))) {
+        var comm_manager = window.comm_manager || Jupyter.notebook.kernel.comm_manager;
+        var comm = comm_manager.new_comm(comm_id, {}, {}, {}, comm_id);
+        if (msg_handler) {
+          comm.on_msg(msg_handler);
+        }
+      } else if ((plot_id in window.PyViz.kernels) && (window.PyViz.kernels[plot_id])) {
+        var comm = window.PyViz.kernels[plot_id].connectToComm(comm_id);
+        comm.open();
+        if (msg_handler) {
+          comm.onMsg = msg_handler;
+        }
+      }
+
+      window.PyViz.comms[comm_id] = comm;
+      return comm;
+    }
+
+    window.PyViz.comm_manager = new JupyterCommManager();
+    </script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+<style>div.bk-hbox {
+    display: flex;
+    justify-content: center;
+}
+
+div.bk-hbox div.bk-plot {
+    padding: 8px;
+}
+
+div.bk-hbox div.bk-data-table {
+    padding: 20px;
+}
+
+div.hololayout {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+div.holoframe {
+  width: 75%;
+}
+
+div.holowell {
+  display: flex;
+  align-items: center;
+}
+
+form.holoform {
+  background-color: #fafafa;
+  border-radius: 5px;
+  overflow: hidden;
+  padding-left: 0.8em;
+  padding-right: 0.8em;
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  border: 1px solid #e3e3e3;
+}
+
+div.holowidgets {
+  padding-right: 0;
+  width: 25%;
+}
+
+div.holoslider {
+  min-height: 0 !important;
+  height: 0.8em;
+  width: 100%;
+}
+
+div.holoformgroup {
+  padding-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+div.hologroup {
+  padding-left: 0;
+  padding-right: 0.8em;
+  width: 100%;
+}
+
+.holoselect {
+  width: 92%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.holotext {
+  padding-left:  0.5em;
+  padding-right: 0;
+  width: 100%;
+}
+
+.holowidgets .ui-resizable-se {
+  visibility: hidden
+}
+
+.holoframe > .ui-resizable-se {
+  visibility: hidden
+}
+
+.holowidgets .ui-resizable-s {
+  visibility: hidden
+}
+
+
+/* CSS rules for noUISlider based slider used by JupyterLab extension  */
+
+.noUi-handle {
+  width: 20px !important;
+  height: 20px !important;
+  left: -5px !important;
+  top: -5px !important;
+}
+
+.noUi-handle:before, .noUi-handle:after {
+  visibility: hidden;
+  height: 0px;
+}
+
+.noUi-target {
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
+</style><div style='display: table; margin: 0 auto;'>
+
+
+
+
+
+
+  <div class="bk-root" id="e6f7bad4-49bc-4cda-9923-c3fc9be2a756" data-root-id="1006"></div>
+
+<script type="text/javascript">
+  (function(root) {
+  function embed_document(root) {
+    
+  var docs_json = {"d729d846-3c04-4036-964e-332cf04d83ce":{"roots":{"references":[{"attributes":{"align":null,"below":[{"id":"1015","type":"LinearAxis"}],"center":[{"id":"1019","type":"Grid"},{"id":"1024","type":"Grid"},{"id":"1056","type":"Legend"}],"left":[{"id":"1020","type":"LinearAxis"}],"margin":null,"min_border_bottom":10,"min_border_left":10,"min_border_right":10,"min_border_top":10,"plot_height":800,"plot_width":1000,"renderers":[{"id":"1048","type":"GlyphRenderer"},{"id":"1064","type":"GlyphRenderer"},{"id":"1081","type":"GlyphRenderer"}],"right":[{"id":"1056","type":"Legend"}],"sizing_mode":"fixed","title":{"id":"1007","type":"Title"},"toolbar":{"id":"1030","type":"Toolbar"},"x_range":{"id":"1001","type":"Range1d"},"x_scale":{"id":"1011","type":"LinearScale"},"y_range":{"id":"1002","type":"Range1d"},"y_scale":{"id":"1013","type":"LinearScale"}},"id":"1006","subtype":"Figure","type":"Plot"},{"attributes":{},"id":"1027","type":"WheelZoomTool"},{"attributes":{},"id":"1092","type":"UnionRenderers"},{"attributes":{"data_source":{"id":"1075","type":"ColumnDataSource"},"glyph":{"id":"1078","type":"Line"},"hover_glyph":null,"muted_glyph":{"id":"1080","type":"Line"},"nonselection_glyph":{"id":"1079","type":"Line"},"selection_glyph":null,"view":{"id":"1082","type":"CDSView"}},"id":"1081","type":"GlyphRenderer"},{"attributes":{"overlay":{"id":"1055","type":"BoxAnnotation"}},"id":"1028","type":"BoxZoomTool"},{"attributes":{"label":{"value":"Decision Tree"},"renderers":[{"id":"1048","type":"GlyphRenderer"}]},"id":"1057","type":"LegendItem"},{"attributes":{"dimension":1,"grid_line_color":null,"ticker":{"id":"1021","type":"BasicTicker"}},"id":"1024","type":"Grid"},{"attributes":{},"id":"1059","type":"Selection"},{"attributes":{"text":"Actual Vs Predictions","text_color":{"value":"black"},"text_font_size":{"value":"12pt"}},"id":"1007","type":"Title"},{"attributes":{"line_alpha":0.1,"line_color":"#1f77b3","line_width":2,"x":{"field":"x"},"y":{"field":"y"}},"id":"1079","type":"Line"},{"attributes":{"fill_alpha":{"value":0.2},"fill_color":{"value":"#ff7e0e"},"line_alpha":{"value":0.2},"line_color":{"value":"#ff7e0e"},"size":{"units":"screen","value":5.477225575051661},"x":{"field":"actual"},"y":{"field":"predicted"}},"id":"1063","type":"Scatter"},{"attributes":{},"id":"1025","type":"SaveTool"},{"attributes":{},"id":"1076","type":"Selection"},{"attributes":{"fill_alpha":{"value":0.2},"fill_color":{"value":"#1f77b3"},"line_alpha":{"value":0.2},"line_color":{"value":"#1f77b3"},"size":{"units":"screen","value":5.477225575051661},"x":{"field":"actual"},"y":{"field":"predicted"}},"id":"1047","type":"Scatter"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b3"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b3"},"size":{"units":"screen","value":5.477225575051661},"x":{"field":"actual"},"y":{"field":"predicted"}},"id":"1046","type":"Scatter"},{"attributes":{"line_color":"#1f77b3","line_width":2,"x":{"field":"x"},"y":{"field":"y"}},"id":"1078","type":"Line"},{"attributes":{},"id":"1041","type":"BasicTickFormatter"},{"attributes":{"axis_label":"predicted","bounds":"auto","formatter":{"id":"1041","type":"BasicTickFormatter"},"major_label_orientation":"horizontal","ticker":{"id":"1021","type":"BasicTicker"}},"id":"1020","type":"LinearAxis"},{"attributes":{"grid_line_color":null,"ticker":{"id":"1016","type":"BasicTicker"}},"id":"1019","type":"Grid"},{"attributes":{"click_policy":"mute","items":[{"id":"1057","type":"LegendItem"},{"id":"1074","type":"LegendItem"}],"location":[0,0]},"id":"1056","type":"Legend"},{"attributes":{},"id":"1021","type":"BasicTicker"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#ff7e0e"},"line_alpha":{"value":0.1},"line_color":{"value":"#ff7e0e"},"size":{"units":"screen","value":5.477225575051661},"x":{"field":"actual"},"y":{"field":"predicted"}},"id":"1062","type":"Scatter"},{"attributes":{},"id":"1026","type":"PanTool"},{"attributes":{},"id":"1090","type":"UnionRenderers"},{"attributes":{"data_source":{"id":"1042","type":"ColumnDataSource"},"glyph":{"id":"1045","type":"Scatter"},"hover_glyph":null,"muted_glyph":{"id":"1047","type":"Scatter"},"nonselection_glyph":{"id":"1046","type":"Scatter"},"selection_glyph":null,"view":{"id":"1049","type":"CDSView"}},"id":"1048","type":"GlyphRenderer"},{"attributes":{"source":{"id":"1058","type":"ColumnDataSource"}},"id":"1065","type":"CDSView"},{"attributes":{"callback":null,"end":755000.0,"reset_end":755000.0,"reset_start":34900.0,"start":34900.0,"tags":[[["actual","actual",null]]]},"id":"1001","type":"Range1d"},{"attributes":{"fill_color":{"value":"#ff7e0e"},"line_color":{"value":"#ff7e0e"},"size":{"units":"screen","value":5.477225575051661},"x":{"field":"actual"},"y":{"field":"predicted"}},"id":"1061","type":"Scatter"},{"attributes":{},"id":"1016","type":"BasicTicker"},{"attributes":{"callback":null,"renderers":[{"id":"1048","type":"GlyphRenderer"},{"id":"1064","type":"GlyphRenderer"}],"tags":["hv_created"],"tooltips":[["actual","@{actual}"],["predicted","@{predicted}"]]},"id":"1003","type":"HoverTool"},{"attributes":{"line_alpha":0.2,"line_color":"#1f77b3","line_width":2,"x":{"field":"x"},"y":{"field":"y"}},"id":"1080","type":"Line"},{"attributes":{"source":{"id":"1042","type":"ColumnDataSource"}},"id":"1049","type":"CDSView"},{"attributes":{},"id":"1043","type":"Selection"},{"attributes":{"data_source":{"id":"1058","type":"ColumnDataSource"},"glyph":{"id":"1061","type":"Scatter"},"hover_glyph":null,"muted_glyph":{"id":"1063","type":"Scatter"},"nonselection_glyph":{"id":"1062","type":"Scatter"},"selection_glyph":null,"view":{"id":"1065","type":"CDSView"}},"id":"1064","type":"GlyphRenderer"},{"attributes":{"callback":null,"end":755000.0,"reset_end":755000.0,"reset_start":34900.0,"start":34900.0,"tags":[[["predicted","predicted",null]]]},"id":"1002","type":"Range1d"},{"attributes":{"callback":null,"data":{"actual":[208500,181500,223500,140000,250000,143000,307000,200000,129900,118000,129500,345000,144000,279500,157000,132000,149000,90000,159000,139000,325300,139400,230000,129900,154000,256300,134800,306000,207500,68500,40000,149350,179900,165500,277500,309000,145000,153000,109000,82000,160000,170000,144000,130250,141000,319900,239686,249700,113000,127000,177000,114500,110000,385000,130000,180500,172500,196500,438780,124900,158000,101000,202500,140000,219500,317000,180000,226000,80000,225000,244000,129500,185000,144900,107400,91000,135750,127000,136500,110000,193500,153500,245000,126500,168500,260000,174000,164500,85000,123600,109900,98600,163500,133900,204750,185000,214000,94750,83000,128950,205000,178000,118964,198900,169500,250000,100000,115000,115000,190000,136900,180000,383970,217000,259500,176000,139000,155000,320000,163990,180000,100000,136000,153900,181000,84500,128000,87000,155000,150000,226000,244000,150750,220000,180000,174000,143000,171000,230000,231500,115000,260000,166000,204000,125000,130000,105000,222500,141000,115000,122000,372402,190000,235000,125000,79000,109500,269500,254900,320000,162500,412500,220000,103200,152000,127500,190000,325624,183500,228000,128500,215000,239000,163000,184000,243000,211000,172500,501837,100000,177000,200100,120000,200000,127000,475000,173000,135000,153337,286000,315000,184000,192000,130000,127000,148500,311872,235000,104000,274900,140000,171500,112000,149000,110000,180500,143900,141000,277000,145000,98000,186000,252678,156000,161750,134450,210000,107000,311500,167240,204900,200000,179900,97000,386250,112000,290000,106000,125000,192500,148000,403000,94500,128200,216500,89500,185500,194500,318000,113000,262500,110500,79000,120000,205000,241500,137000,140000,180000,277000,76500,235000,173000,158000,145000,230000,207500,220000,231500,97000,176000,276000,151000,130000,73000,175500,185000,179500,120500,148000,266000,241500,290000,139000,124500,205000,201000,141000,415298,192000,228500,185000,207500,244600,179200,164700,159000,88000,122000,153575,233230,135900,131000,235000,167000,142500,152000,239000,175000,158500,157000,267000,205000,149900,295000,305900,225000,89500,82500,360000,165600,132000,119900,375000,178000,188500,260000,270000,260000,187500,342643,354000,301000,126175,242000,87000,324000,145250,214500,78000,119000,139000,284000,207000,192000,228950,377426,214000,202500,155000,202900,82000,87500,266000,85000,140200,151500,157500,154000,437154,318061,190000,95000,105900,140000,177500,173000,134000,130000,280000,156000,145000,198500,118000,190000,147000,159000,165000,132000,162000,172400,134432,125000,123000,219500,61000,148000,340000,394432,179000,127000,187750,213500,76000,240000,192000,81000,125000,191000,426000,119000,215000,106500,100000,109000,129000,123000,169500,67000,241000,245500,164990,108000,258000,168000,150000,115000,177000,280000,339750,60000,145000,222000,115000,228000,181134,149500,239000,126000,142000,206300,215000,113000,315000,139000,135000,275000,109008,195400,175000,85400,79900,122500,181000,81000,212000,116000,119000,90350,110000,555000,118000,162900,172500,210000,127500,190000,199900,119500,120000,110000,280000,204000,210000,188000,175500,98000,256000,161000,110000,263435,155000,62383,188700,124000,178740,167000,146500,250000,187000,212000,190000,148000,440000,251000,132500,208900,380000,297000,89471,326000,374000,155000,164000,132500,147000,156000,175000,160000,86000,115000,133000,172785,155000,91300,34900,430000,184000,130000,120000,113000,226700,140000,289000,147000,124500,215000,208300,161000,124500,164900,202665,129900,134000,96500,402861,158000,265000,211000,234000,106250,150000,159000,184750,315750,176000,132000,446261,86000,200624,175000,128000,107500,39300,178000,107500,188000,111250,158000,272000,315000,248000,213250,133000,179665,229000,210000,129500,125000,263000,140000,112500,255500,108000,284000,113000,141000,108000,175000,234000,121500,170000,108000,185000,268000,128000,325000,214000,316600,135960,142600,120000,224500,170000,139000,118500,145000,164500,146000,131500,181900,253293,118500,325000,133000,369900,130000,137000,143000,79500,185900,451950,138000,140000,110000,319000,114504,194201,217500,151000,275000,141000,220000,151000,221000,205000,152000,225000,359100,118500,313000,148000,261500,147000,75500,137500,183200,105500,314813,305000,67000,240000,135000,168500,165150,160000,139900,153000,135000,168500,124000,209500,82500,139400,144000,200000,60000,93000,85000,264561,274000,226000,345000,152000,370878,143250,98300,155000,155000,84500,205950,108000,191000,135000,350000,88000,145500,149000,97500,167000,197900,402000,110000,137500,423000,230500,129000,193500,168000,137500,173500,103600,165000,257500,140000,148500,87000,109500,372500,128500,143000,159434,173000,285000,221000,207500,227875,148800,392000,194700,141000,755000,335000,108480,141500,176000,89000,123500,138500,196000,312500,140000,361919,140000,213000,55000,302000,254000,179540,109900,52000,102776,189000,129000,130500,165000,159500,157000,341000,128500,275000,143000,124500,135000,320000,120500,222000,194500,110000,103000,236500,187500,222500,131400,108000,163000,93500,239900,179000,190000,132000,142000,179000,175000,180000,299800,236000,265979,260400,98000,96500,162000,217000,275500,156000,172500,212000,158900,179400,290000,127500,100000,215200,337000,270000,264132,196500,160000,216837,538000,134900,102000,107000,114500,395000,162000,221500,142500,144000,135000,176000,175900,187100,165500,128000,161500,139000,233000,107900,187500,160200,146800,269790,225000,194500,171000,143500,110000,485000,175000,200000,109900,189000,582933,118000,227680,135500,223500,159950,106000,181000,144500,55993,157900,116000,224900,137000,271000,155000,224000,183000,93000,225000,139500,232600,385000,109500,189000,185000,147400,166000,151000,237000,167000,139950,128000,153500,100000,144000,130500,140000,157500,174900,141000,153900,171000,213000,133500,240000,187000,131500,215000,164000,158000,170000,127000,147000,174000,152000,250000,189950,131500,152000,132500,250580,148500,248900,129000,169000,236000,109500,200500,116000,133000,66500,303477,132250,350000,148000,136500,157000,187500,178000,118500,100000,328900,145000,135500,268000,149500,122900,172500,154500,165000,118858,140000,106500,142953,611657,135000,110000,153000,180000,240000,125500,128000,255000,250000,131000,174000,154300,143500,88000,145000,173733,75000,35311,135000,238000,176500,201000,145900,169990,193000,207500,175000,285000,176000,236500,222000,201000,117500,320000,190000,242000,79900,184900,253000,239799,244400,150900,214000,150000,143000,137500,124900,143000,270000,192500,197500,129000,119900,133900,172000,127500,145000,124000,132000,185000,155000,116500,272000,155000,239000,214900,178900,160000,135000,37900,140000,135000,173000,99500,182000,167500,165000,85500,199900,110000,139000,178400,336000,159895,255900,126000,125000,117000,395192,195000,197000,348000,168000,187000,173900,337500,121600,136500,185000,91000,206000,82000,86000,232000,136905,181000,149900,163500,88000,240000,102000,135000,100000,165000,85000,119200,227000,203000,187500,160000,213490,176000,194000,87000,191000,287000,112500,167500,293077,105000,118000,160000,197000,310000,230000,119750,84000,315500,287000,97000,80000,155000,173000,196000,262280,278000,139600,556581,145000,115000,84900,176485,200141,165000,144500,255000,180000,185850,248000,335000,220000,213500,81000,90000,110500,154000,328000,178000,167900,151400,135000,135000,154000,91500,159500,194000,219500,170000,138800,155900,126000,145000,133000,192000,160000,187500,147000,83500,252000,137500,197000,92900,160000,136500,146000,129000,176432,127000,170000,128000,157000,60000,119500,135000,159500,106000,325000,179900,274725,181000,280000,188000,205000,129900,134500,117000,318000,184100,130000,140000,133700,118400,212900,112000,118000,163900,115000,174000,259000,215000,140000,135000,93500,117500,239500,169000,102000,119000,94000,196000,144000,139000,197500,424870,80000,80000,149000,180000,174500,116900,143000,124000,149900,230000,120500,201800,218000,179900,230000,235128,185000,146000,224000,129000,108959,194000,233170,245350,173000,235000,625000,171000,163000,171900,200500,239000,285000,119500,115000,154900,93000,250000,392500,745000,120000,186700,104900,95000,262000,195000,189000,168000,174000,125000,165000,158000,176000,219210,144000,178000,148000,116050,197900,117000,213000,153500,271900,107000,200000,140000,290000,189000,164000,113000,145000,134500,125000,112000,229456,80500,91500,115000,134000,143000,137900,184000,145000,214000,147000,367294,127000,190000,132500,101800,142000,130000,138887,175500,195000,142500,265900,224900,248328,170000,465000,230000,178000,186500,169900,129500,119000,244000,171750,130000,294000,165400,127500,301500,99900,190000,151000,181000,128900,161500,180500,181000,183900,122000,378500,381000,144000,260000,185750,137000,177000,139000,137000,162000,197900,237000,68400,227000,180000,150500,139000,169000,132500,143000,190000,278000,281000,180500,119500,107500,162900,115000,138500,155000,140000,160000,154000,225000,177500,290000,232000,130000,325000,202500,138000,147000,179200,335000,203000,302000,333168,119000,206900,295493,208900,275000,111000,156500,72500,190000,82500,147000,55000,79000,130500,256000,176500,227000,132500,100000,125500,125000,167900,135000,52500,200000,128500,123000,155000,228500,177000,155835,108500,262500,283463,215000,122000,200000,171000,134900,410000,235000,170000,110000,149900,177500,315000,189000,260000,104900,156932,144152,216000,193000,127000,144000,232000,105000,165500,274300,466500,250000,239000,91000,117000,83000,167500,58500,237500,157000,112000,105000,125500,250000,136000,377500,131000,235000,124000,123000,163000,246578,281213,160000,137500,138000,137450,120000,193000,193879,282922,105000,275000,133000,112000,125500,215000,230000,140000,90000,257000,207000,175900,122500,340000,124000,223000,179900,127500,136500,274970,144000,142000,271000,140000,119000,182900,192140,143750,64500,186500,160000,174000,120500,394617,149700,197000,191000,149300,310000,121000,179600,129000,157900,240000,112000,92000,136000,287090,145000,84500,185000,175000,210000,266500,142125,147500],"predicted":{"__ndarray__":"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","dtype":"float64","shape":[1460]}},"selected":{"id":"1043","type":"Selection"},"selection_policy":{"id":"1071","type":"UnionRenderers"}},"id":"1042","type":"ColumnDataSource"},{"attributes":{},"id":"1039","type":"BasicTickFormatter"},{"attributes":{"callback":null,"data":{"actual":[208500,181500,223500,140000,250000,143000,307000,200000,129900,118000,129500,345000,144000,279500,157000,132000,149000,90000,159000,139000,325300,139400,230000,129900,154000,256300,134800,306000,207500,68500,40000,149350,179900,165500,277500,309000,145000,153000,109000,82000,160000,170000,144000,130250,141000,319900,239686,249700,113000,127000,177000,114500,110000,385000,130000,180500,172500,196500,438780,124900,158000,101000,202500,140000,219500,317000,180000,226000,80000,225000,244000,129500,185000,144900,107400,91000,135750,127000,136500,110000,193500,153500,245000,126500,168500,260000,174000,164500,85000,123600,109900,98600,163500,133900,204750,185000,214000,94750,83000,128950,205000,178000,118964,198900,169500,250000,100000,115000,115000,190000,136900,180000,383970,217000,259500,176000,139000,155000,320000,163990,180000,100000,136000,153900,181000,84500,128000,87000,155000,150000,226000,244000,150750,220000,180000,174000,143000,171000,230000,231500,115000,260000,166000,204000,125000,130000,105000,222500,141000,115000,122000,372402,190000,235000,125000,79000,109500,269500,254900,320000,162500,412500,220000,103200,152000,127500,190000,325624,183500,228000,128500,215000,239000,163000,184000,243000,211000,172500,501837,100000,177000,200100,120000,200000,127000,475000,173000,135000,153337,286000,315000,184000,192000,130000,127000,148500,311872,235000,104000,274900,140000,171500,112000,149000,110000,180500,143900,141000,277000,145000,98000,186000,252678,156000,161750,134450,210000,107000,311500,167240,204900,200000,179900,97000,386250,112000,290000,106000,125000,192500,148000,403000,94500,128200,216500,89500,185500,194500,318000,113000,262500,110500,79000,120000,205000,241500,137000,140000,180000,277000,76500,235000,173000,158000,145000,230000,207500,220000,231500,97000,176000,276000,151000,130000,73000,175500,185000,179500,120500,148000,266000,241500,290000,139000,124500,205000,201000,141000,415298,192000,228500,185000,207500,244600,179200,164700,159000,88000,122000,153575,233230,135900,131000,235000,167000,142500,152000,239000,175000,158500,157000,267000,205000,149900,295000,305900,225000,89500,82500,360000,165600,132000,119900,375000,178000,188500,260000,270000,260000,187500,342643,354000,301000,126175,242000,87000,324000,145250,214500,78000,119000,139000,284000,207000,192000,228950,377426,214000,202500,155000,202900,82000,87500,266000,85000,140200,151500,157500,154000,437154,318061,190000,95000,105900,140000,177500,173000,134000,130000,280000,156000,145000,198500,118000,190000,147000,159000,165000,132000,162000,172400,134432,125000,123000,219500,61000,148000,340000,394432,179000,127000,187750,213500,76000,240000,192000,81000,125000,191000,426000,119000,215000,106500,100000,109000,129000,123000,169500,67000,241000,245500,164990,108000,258000,168000,150000,115000,177000,280000,339750,60000,145000,222000,115000,228000,181134,149500,239000,126000,142000,206300,215000,113000,315000,139000,135000,275000,109008,195400,175000,85400,79900,122500,181000,81000,212000,116000,119000,90350,110000,555000,118000,162900,172500,210000,127500,190000,199900,119500,120000,110000,280000,204000,210000,188000,175500,98000,256000,161000,110000,263435,155000,62383,188700,124000,178740,167000,146500,250000,187000,212000,190000,148000,440000,251000,132500,208900,380000,297000,89471,326000,374000,155000,164000,132500,147000,156000,175000,160000,86000,115000,133000,172785,155000,91300,34900,430000,184000,130000,120000,113000,226700,140000,289000,147000,124500,215000,208300,161000,124500,164900,202665,129900,134000,96500,402861,158000,265000,211000,234000,106250,150000,159000,184750,315750,176000,132000,446261,86000,200624,175000,128000,107500,39300,178000,107500,188000,111250,158000,272000,315000,248000,213250,133000,179665,229000,210000,129500,125000,263000,140000,112500,255500,108000,284000,113000,141000,108000,175000,234000,121500,170000,108000,185000,268000,128000,325000,214000,316600,135960,142600,120000,224500,170000,139000,118500,145000,164500,146000,131500,181900,253293,118500,325000,133000,369900,130000,137000,143000,79500,185900,451950,138000,140000,110000,319000,114504,194201,217500,151000,275000,141000,220000,151000,221000,205000,152000,225000,359100,118500,313000,148000,261500,147000,75500,137500,183200,105500,314813,305000,67000,240000,135000,168500,165150,160000,139900,153000,135000,168500,124000,209500,82500,139400,144000,200000,60000,93000,85000,264561,274000,226000,345000,152000,370878,143250,98300,155000,155000,84500,205950,108000,191000,135000,350000,88000,145500,149000,97500,167000,197900,402000,110000,137500,423000,230500,129000,193500,168000,137500,173500,103600,165000,257500,140000,148500,87000,109500,372500,128500,143000,159434,173000,285000,221000,207500,227875,148800,392000,194700,141000,755000,335000,108480,141500,176000,89000,123500,138500,196000,312500,140000,361919,140000,213000,55000,302000,254000,179540,109900,52000,102776,189000,129000,130500,165000,159500,157000,341000,128500,275000,143000,124500,135000,320000,120500,222000,194500,110000,103000,236500,187500,222500,131400,108000,163000,93500,239900,179000,190000,132000,142000,179000,175000,180000,299800,236000,265979,260400,98000,96500,162000,217000,275500,156000,172500,212000,158900,179400,290000,127500,100000,215200,337000,270000,264132,196500,160000,216837,538000,134900,102000,107000,114500,395000,162000,221500,142500,144000,135000,176000,175900,187100,165500,128000,161500,139000,233000,107900,187500,160200,146800,269790,225000,194500,171000,143500,110000,485000,175000,200000,109900,189000,582933,118000,227680,135500,223500,159950,106000,181000,144500,55993,157900,116000,224900,137000,271000,155000,224000,183000,93000,225000,139500,232600,385000,109500,189000,185000,147400,166000,151000,237000,167000,139950,128000,153500,100000,144000,130500,140000,157500,174900,141000,153900,171000,213000,133500,240000,187000,131500,215000,164000,158000,170000,127000,147000,174000,152000,250000,189950,131500,152000,132500,250580,148500,248900,129000,169000,236000,109500,200500,116000,133000,66500,303477,132250,350000,148000,136500,157000,187500,178000,118500,100000,328900,145000,135500,268000,149500,122900,172500,154500,165000,118858,140000,106500,142953,611657,135000,110000,153000,180000,240000,125500,128000,255000,250000,131000,174000,154300,143500,88000,145000,173733,75000,35311,135000,238000,176500,201000,145900,169990,193000,207500,175000,285000,176000,236500,222000,201000,117500,320000,190000,242000,79900,184900,253000,239799,244400,150900,214000,150000,143000,137500,124900,143000,270000,192500,197500,129000,119900,133900,172000,127500,145000,124000,132000,185000,155000,116500,272000,155000,239000,214900,178900,160000,135000,37900,140000,135000,173000,99500,182000,167500,165000,85500,199900,110000,139000,178400,336000,159895,255900,126000,125000,117000,395192,195000,197000,348000,168000,187000,173900,337500,121600,136500,185000,91000,206000,82000,86000,232000,136905,181000,149900,163500,88000,240000,102000,135000,100000,165000,85000,119200,227000,203000,187500,160000,213490,176000,194000,87000,191000,287000,112500,167500,293077,105000,118000,160000,197000,310000,230000,119750,84000,315500,287000,97000,80000,155000,173000,196000,262280,278000,139600,556581,145000,115000,84900,176485,200141,165000,144500,255000,180000,185850,248000,335000,220000,213500,81000,90000,110500,154000,328000,178000,167900,151400,135000,135000,154000,91500,159500,194000,219500,170000,138800,155900,126000,145000,133000,192000,160000,187500,147000,83500,252000,137500,197000,92900,160000,136500,146000,129000,176432,127000,170000,128000,157000,60000,119500,135000,159500,106000,325000,179900,274725,181000,280000,188000,205000,129900,134500,117000,318000,184100,130000,140000,133700,118400,212900,112000,118000,163900,115000,174000,259000,215000,140000,135000,93500,117500,239500,169000,102000,119000,94000,196000,144000,139000,197500,424870,80000,80000,149000,180000,174500,116900,143000,124000,149900,230000,120500,201800,218000,179900,230000,235128,185000,146000,224000,129000,108959,194000,233170,245350,173000,235000,625000,171000,163000,171900,200500,239000,285000,119500,115000,154900,93000,250000,392500,745000,120000,186700,104900,95000,262000,195000,189000,168000,174000,125000,165000,158000,176000,219210,144000,178000,148000,116050,197900,117000,213000,153500,271900,107000,200000,140000,290000,189000,164000,113000,145000,134500,125000,112000,229456,80500,91500,115000,134000,143000,137900,184000,145000,214000,147000,367294,127000,190000,132500,101800,142000,130000,138887,175500,195000,142500,265900,224900,248328,170000,465000,230000,178000,186500,169900,129500,119000,244000,171750,130000,294000,165400,127500,301500,99900,190000,151000,181000,128900,161500,180500,181000,183900,122000,378500,381000,144000,260000,185750,137000,177000,139000,137000,162000,197900,237000,68400,227000,180000,150500,139000,169000,132500,143000,190000,278000,281000,180500,119500,107500,162900,115000,138500,155000,140000,160000,154000,225000,177500,290000,232000,130000,325000,202500,138000,147000,179200,335000,203000,302000,333168,119000,206900,295493,208900,275000,111000,156500,72500,190000,82500,147000,55000,79000,130500,256000,176500,227000,132500,100000,125500,125000,167900,135000,52500,200000,128500,123000,155000,228500,177000,155835,108500,262500,283463,215000,122000,200000,171000,134900,410000,235000,170000,110000,149900,177500,315000,189000,260000,104900,156932,144152,216000,193000,127000,144000,232000,105000,165500,274300,466500,250000,239000,91000,117000,83000,167500,58500,237500,157000,112000,105000,125500,250000,136000,377500,131000,235000,124000,123000,163000,246578,281213,160000,137500,138000,137450,120000,193000,193879,282922,105000,275000,133000,112000,125500,215000,230000,140000,90000,257000,207000,175900,122500,340000,124000,223000,179900,127500,136500,274970,144000,142000,271000,140000,119000,182900,192140,143750,64500,186500,160000,174000,120500,394617,149700,197000,191000,149300,310000,121000,179600,129000,157900,240000,112000,92000,136000,287090,145000,84500,185000,175000,210000,266500,142125,147500],"predicted":{"__ndarray__":"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","dtype":"float64","shape":[1460]}},"selected":{"id":"1059","type":"Selection"},"selection_policy":{"id":"1090","type":"UnionRenderers"}},"id":"1058","type":"ColumnDataSource"},{"attributes":{"bottom_units":"screen","fill_alpha":{"value":0.5},"fill_color":{"value":"lightgrey"},"left_units":"screen","level":"overlay","line_alpha":{"value":1.0},"line_color":{"value":"black"},"line_dash":[4,4],"line_width":{"value":2},"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"1055","type":"BoxAnnotation"},{"attributes":{},"id":"1013","type":"LinearScale"},{"attributes":{"fill_color":{"value":"#1f77b3"},"line_color":{"value":"#1f77b3"},"size":{"units":"screen","value":5.477225575051661},"x":{"field":"actual"},"y":{"field":"predicted"}},"id":"1045","type":"Scatter"},{"attributes":{"callback":null,"data":{"x":[208500,181500,223500,140000,250000,143000,307000,200000,129900,118000,129500,345000,144000,279500,157000,132000,149000,90000,159000,139000,325300,139400,230000,129900,154000,256300,134800,306000,207500,68500,40000,149350,179900,165500,277500,309000,145000,153000,109000,82000,160000,170000,144000,130250,141000,319900,239686,249700,113000,127000,177000,114500,110000,385000,130000,180500,172500,196500,438780,124900,158000,101000,202500,140000,219500,317000,180000,226000,80000,225000,244000,129500,185000,144900,107400,91000,135750,127000,136500,110000,193500,153500,245000,126500,168500,260000,174000,164500,85000,123600,109900,98600,163500,133900,204750,185000,214000,94750,83000,128950,205000,178000,118964,198900,169500,250000,100000,115000,115000,190000,136900,180000,383970,217000,259500,176000,139000,155000,320000,163990,180000,100000,136000,153900,181000,84500,128000,87000,155000,150000,226000,244000,150750,220000,180000,174000,143000,171000,230000,231500,115000,260000,166000,204000,125000,130000,105000,222500,141000,115000,122000,372402,190000,235000,125000,79000,109500,269500,254900,320000,162500,412500,220000,103200,152000,127500,190000,325624,183500,228000,128500,215000,239000,163000,184000,243000,211000,172500,501837,100000,177000,200100,120000,200000,127000,475000,173000,135000,153337,286000,315000,184000,192000,130000,127000,148500,311872,235000,104000,274900,140000,171500,112000,149000,110000,180500,143900,141000,277000,145000,98000,186000,252678,156000,161750,134450,210000,107000,311500,167240,204900,200000,179900,97000,386250,112000,290000,106000,125000,192500,148000,403000,94500,128200,216500,89500,185500,194500,318000,113000,262500,110500,79000,120000,205000,241500,137000,140000,180000,277000,76500,235000,173000,158000,145000,230000,207500,220000,231500,97000,176000,276000,151000,130000,73000,175500,185000,179500,120500,148000,266000,241500,290000,139000,124500,205000,201000,141000,415298,192000,228500,185000,207500,244600,179200,164700,159000,88000,122000,153575,233230,135900,131000,235000,167000,142500,152000,239000,175000,158500,157000,267000,205000,149900,295000,305900,225000,89500,82500,360000,165600,132000,119900,375000,178000,188500,260000,270000,260000,187500,342643,354000,301000,126175,242000,87000,324000,145250,214500,78000,119000,139000,284000,207000,192000,228950,377426,214000,202500,155000,202900,82000,87500,266000,85000,140200,151500,157500,154000,437154,318061,190000,95000,105900,140000,177500,173000,134000,130000,280000,156000,145000,198500,118000,190000,147000,159000,165000,132000,162000,172400,134432,125000,123000,219500,61000,148000,340000,394432,179000,127000,187750,213500,76000,240000,192000,81000,125000,191000,426000,119000,215000,106500,100000,109000,129000,123000,169500,67000,241000,245500,164990,108000,258000,168000,150000,115000,177000,280000,339750,60000,145000,222000,115000,228000,181134,149500,239000,126000,142000,206300,215000,113000,315000,139000,135000,275000,109008,195400,175000,85400,79900,122500,181000,81000,212000,116000,119000,90350,110000,555000,118000,162900,172500,210000,127500,190000,199900,119500,120000,110000,280000,204000,210000,188000,175500,98000,256000,161000,110000,263435,155000,62383,188700,124000,178740,167000,146500,250000,187000,212000,190000,148000,440000,251000,132500,208900,380000,297000,89471,326000,374000,155000,164000,132500,147000,156000,175000,160000,86000,115000,133000,172785,155000,91300,34900,430000,184000,130000,120000,113000,226700,140000,289000,147000,124500,215000,208300,161000,124500,164900,202665,129900,134000,96500,402861,158000,265000,211000,234000,106250,150000,159000,184750,315750,176000,132000,446261,86000,200624,175000,128000,107500,39300,178000,107500,188000,111250,158000,272000,315000,248000,213250,133000,179665,229000,210000,129500,125000,263000,140000,112500,255500,108000,284000,113000,141000,108000,175000,234000,121500,170000,108000,185000,268000,128000,325000,214000,316600,135960,142600,120000,224500,170000,139000,118500,145000,164500,146000,131500,181900,253293,118500,325000,133000,369900,130000,137000,143000,79500,185900,451950,138000,140000,110000,319000,114504,194201,217500,151000,275000,141000,220000,151000,221000,205000,152000,225000,359100,118500,313000,148000,261500,147000,75500,137500,183200,105500,314813,305000,67000,240000,135000,168500,165150,160000,139900,153000,135000,168500,124000,209500,82500,139400,144000,200000,60000,93000,85000,264561,274000,226000,345000,152000,370878,143250,98300,155000,155000,84500,205950,108000,191000,135000,350000,88000,145500,149000,97500,167000,197900,402000,110000,137500,423000,230500,129000,193500,168000,137500,173500,103600,165000,257500,140000,148500,87000,109500,372500,128500,143000,159434,173000,285000,221000,207500,227875,148800,392000,194700,141000,755000,335000,108480,141500,176000,89000,123500,138500,196000,312500,140000,361919,140000,213000,55000,302000,254000,179540,109900,52000,102776,189000,129000,130500,165000,159500,157000,341000,128500,275000,143000,124500,135000,320000,120500,222000,194500,110000,103000,236500,187500,222500,131400,108000,163000,93500,239900,179000,190000,132000,142000,179000,175000,180000,299800,236000,265979,260400,98000,96500,162000,217000,275500,156000,172500,212000,158900,179400,290000,127500,100000,215200,337000,270000,264132,196500,160000,216837,538000,134900,102000,107000,114500,395000,162000,221500,142500,144000,135000,176000,175900,187100,165500,128000,161500,139000,233000,107900,187500,160200,146800,269790,225000,194500,171000,143500,110000,485000,175000,200000,109900,189000,582933,118000,227680,135500,223500,159950,106000,181000,144500,55993,157900,116000,224900,137000,271000,155000,224000,183000,93000,225000,139500,232600,385000,109500,189000,185000,147400,166000,151000,237000,167000,139950,128000,153500,100000,144000,130500,140000,157500,174900,141000,153900,171000,213000,133500,240000,187000,131500,215000,164000,158000,170000,127000,147000,174000,152000,250000,189950,131500,152000,132500,250580,148500,248900,129000,169000,236000,109500,200500,116000,133000,66500,303477,132250,350000,148000,136500,157000,187500,178000,118500,100000,328900,145000,135500,268000,149500,122900,172500,154500,165000,118858,140000,106500,142953,611657,135000,110000,153000,180000,240000,125500,128000,255000,250000,131000,174000,154300,143500,88000,145000,173733,75000,35311,135000,238000,176500,201000,145900,169990,193000,207500,175000,285000,176000,236500,222000,201000,117500,320000,190000,242000,79900,184900,253000,239799,244400,150900,214000,150000,143000,137500,124900,143000,270000,192500,197500,129000,119900,133900,172000,127500,145000,124000,132000,185000,155000,116500,272000,155000,239000,214900,178900,160000,135000,37900,140000,135000,173000,99500,182000,167500,165000,85500,199900,110000,139000,178400,336000,159895,255900,126000,125000,117000,395192,195000,197000,348000,168000,187000,173900,337500,121600,136500,185000,91000,206000,82000,86000,232000,136905,181000,149900,163500,88000,240000,102000,135000,100000,165000,85000,119200,227000,203000,187500,160000,213490,176000,194000,87000,191000,287000,112500,167500,293077,105000,118000,160000,197000,310000,230000,119750,84000,315500,287000,97000,80000,155000,173000,196000,262280,278000,139600,556581,145000,115000,84900,176485,200141,165000,144500,255000,180000,185850,248000,335000,220000,213500,81000,90000,110500,154000,328000,178000,167900,151400,135000,135000,154000,91500,159500,194000,219500,170000,138800,155900,126000,145000,133000,192000,160000,187500,147000,83500,252000,137500,197000,92900,160000,136500,146000,129000,176432,127000,170000,128000,157000,60000,119500,135000,159500,106000,325000,179900,274725,181000,280000,188000,205000,129900,134500,117000,318000,184100,130000,140000,133700,118400,212900,112000,118000,163900,115000,174000,259000,215000,140000,135000,93500,117500,239500,169000,102000,119000,94000,196000,144000,139000,197500,424870,80000,80000,149000,180000,174500,116900,143000,124000,149900,230000,120500,201800,218000,179900,230000,235128,185000,146000,224000,129000,108959,194000,233170,245350,173000,235000,625000,171000,163000,171900,200500,239000,285000,119500,115000,154900,93000,250000,392500,745000,120000,186700,104900,95000,262000,195000,189000,168000,174000,125000,165000,158000,176000,219210,144000,178000,148000,116050,197900,117000,213000,153500,271900,107000,200000,140000,290000,189000,164000,113000,145000,134500,125000,112000,229456,80500,91500,115000,134000,143000,137900,184000,145000,214000,147000,367294,127000,190000,132500,101800,142000,130000,138887,175500,195000,142500,265900,224900,248328,170000,465000,230000,178000,186500,169900,129500,119000,244000,171750,130000,294000,165400,127500,301500,99900,190000,151000,181000,128900,161500,180500,181000,183900,122000,378500,381000,144000,260000,185750,137000,177000,139000,137000,162000,197900,237000,68400,227000,180000,150500,139000,169000,132500,143000,190000,278000,281000,180500,119500,107500,162900,115000,138500,155000,140000,160000,154000,225000,177500,290000,232000,130000,325000,202500,138000,147000,179200,335000,203000,302000,333168,119000,206900,295493,208900,275000,111000,156500,72500,190000,82500,147000,55000,79000,130500,256000,176500,227000,132500,100000,125500,125000,167900,135000,52500,200000,128500,123000,155000,228500,177000,155835,108500,262500,283463,215000,122000,200000,171000,134900,410000,235000,170000,110000,149900,177500,315000,189000,260000,104900,156932,144152,216000,193000,127000,144000,232000,105000,165500,274300,466500,250000,239000,91000,117000,83000,167500,58500,237500,157000,112000,105000,125500,250000,136000,377500,131000,235000,124000,123000,163000,246578,281213,160000,137500,138000,137450,120000,193000,193879,282922,105000,275000,133000,112000,125500,215000,230000,140000,90000,257000,207000,175900,122500,340000,124000,223000,179900,127500,136500,274970,144000,142000,271000,140000,119000,182900,192140,143750,64500,186500,160000,174000,120500,394617,149700,197000,191000,149300,310000,121000,179600,129000,157900,240000,112000,92000,136000,287090,145000,84500,185000,175000,210000,266500,142125,147500],"y":[208500,181500,223500,140000,250000,143000,307000,200000,129900,118000,129500,345000,144000,279500,157000,132000,149000,90000,159000,139000,325300,139400,230000,129900,154000,256300,134800,306000,207500,68500,40000,149350,179900,165500,277500,309000,145000,153000,109000,82000,160000,170000,144000,130250,141000,319900,239686,249700,113000,127000,177000,114500,110000,385000,130000,180500,172500,196500,438780,124900,158000,101000,202500,140000,219500,317000,180000,226000,80000,225000,244000,129500,185000,144900,107400,91000,135750,127000,136500,110000,193500,153500,245000,126500,168500,260000,174000,164500,85000,123600,109900,98600,163500,133900,204750,185000,214000,94750,83000,128950,205000,178000,118964,198900,169500,250000,100000,115000,115000,190000,136900,180000,383970,217000,259500,176000,139000,155000,320000,163990,180000,100000,136000,153900,181000,84500,128000,87000,155000,150000,226000,244000,150750,220000,180000,174000,143000,171000,230000,231500,115000,260000,166000,204000,125000,130000,105000,222500,141000,115000,122000,372402,190000,235000,125000,79000,109500,269500,254900,320000,162500,412500,220000,103200,152000,127500,190000,325624,183500,228000,128500,215000,239000,163000,184000,243000,211000,172500,501837,100000,177000,200100,120000,200000,127000,475000,173000,135000,153337,286000,315000,184000,192000,130000,127000,148500,311872,235000,104000,274900,140000,171500,112000,149000,110000,180500,143900,141000,277000,145000,98000,186000,252678,156000,161750,134450,210000,107000,311500,167240,204900,200000,179900,97000,386250,112000,290000,106000,125000,192500,148000,403000,94500,128200,216500,89500,185500,194500,318000,113000,262500,110500,79000,120000,205000,241500,137000,140000,180000,277000,76500,235000,173000,158000,145000,230000,207500,220000,231500,97000,176000,276000,151000,130000,73000,175500,185000,179500,120500,148000,266000,241500,290000,139000,124500,205000,201000,141000,415298,192000,228500,185000,207500,244600,179200,164700,159000,88000,122000,153575,233230,135900,131000,235000,167000,142500,152000,239000,175000,158500,157000,267000,205000,149900,295000,305900,225000,89500,82500,360000,165600,132000,119900,375000,178000,188500,260000,270000,260000,187500,342643,354000,301000,126175,242000,87000,324000,145250,214500,78000,119000,139000,284000,207000,192000,228950,377426,214000,202500,155000,202900,82000,87500,266000,85000,140200,151500,157500,154000,437154,318061,190000,95000,105900,140000,177500,173000,134000,130000,280000,156000,145000,198500,118000,190000,147000,159000,165000,132000,162000,172400,134432,125000,123000,219500,61000,148000,340000,394432,179000,127000,187750,213500,76000,240000,192000,81000,125000,191000,426000,119000,215000,106500,100000,109000,129000,123000,169500,67000,241000,245500,164990,108000,258000,168000,150000,115000,177000,280000,339750,60000,145000,222000,115000,228000,181134,149500,239000,126000,142000,206300,215000,113000,315000,139000,135000,275000,109008,195400,175000,85400,79900,122500,181000,81000,212000,116000,119000,90350,110000,555000,118000,162900,172500,210000,127500,190000,199900,119500,120000,110000,280000,204000,210000,188000,175500,98000,256000,161000,110000,263435,155000,62383,188700,124000,178740,167000,146500,250000,187000,212000,190000,148000,440000,251000,132500,208900,380000,297000,89471,326000,374000,155000,164000,132500,147000,156000,175000,160000,86000,115000,133000,172785,155000,91300,34900,430000,184000,130000,120000,113000,226700,140000,289000,147000,124500,215000,208300,161000,124500,164900,202665,129900,134000,96500,402861,158000,265000,211000,234000,106250,150000,159000,184750,315750,176000,132000,446261,86000,200624,175000,128000,107500,39300,178000,107500,188000,111250,158000,272000,315000,248000,213250,133000,179665,229000,210000,129500,125000,263000,140000,112500,255500,108000,284000,113000,141000,108000,175000,234000,121500,170000,108000,185000,268000,128000,325000,214000,316600,135960,142600,120000,224500,170000,139000,118500,145000,164500,146000,131500,181900,253293,118500,325000,133000,369900,130000,137000,143000,79500,185900,451950,138000,140000,110000,319000,114504,194201,217500,151000,275000,141000,220000,151000,221000,205000,152000,225000,359100,118500,313000,148000,261500,147000,75500,137500,183200,105500,314813,305000,67000,240000,135000,168500,165150,160000,139900,153000,135000,168500,124000,209500,82500,139400,144000,200000,60000,93000,85000,264561,274000,226000,345000,152000,370878,143250,98300,155000,155000,84500,205950,108000,191000,135000,350000,88000,145500,149000,97500,167000,197900,402000,110000,137500,423000,230500,129000,193500,168000,137500,173500,103600,165000,257500,140000,148500,87000,109500,372500,128500,143000,159434,173000,285000,221000,207500,227875,148800,392000,194700,141000,755000,335000,108480,141500,176000,89000,123500,138500,196000,312500,140000,361919,140000,213000,55000,302000,254000,179540,109900,52000,102776,189000,129000,130500,165000,159500,157000,341000,128500,275000,143000,124500,135000,320000,120500,222000,194500,110000,103000,236500,187500,222500,131400,108000,163000,93500,239900,179000,190000,132000,142000,179000,175000,180000,299800,236000,265979,260400,98000,96500,162000,217000,275500,156000,172500,212000,158900,179400,290000,127500,100000,215200,337000,270000,264132,196500,160000,216837,538000,134900,102000,107000,114500,395000,162000,221500,142500,144000,135000,176000,175900,187100,165500,128000,161500,139000,233000,107900,187500,160200,146800,269790,225000,194500,171000,143500,110000,485000,175000,200000,109900,189000,582933,118000,227680,135500,223500,159950,106000,181000,144500,55993,157900,116000,224900,137000,271000,155000,224000,183000,93000,225000,139500,232600,385000,109500,189000,185000,147400,166000,151000,237000,167000,139950,128000,153500,100000,144000,130500,140000,157500,174900,141000,153900,171000,213000,133500,240000,187000,131500,215000,164000,158000,170000,127000,147000,174000,152000,250000,189950,131500,152000,132500,250580,148500,248900,129000,169000,236000,109500,200500,116000,133000,66500,303477,132250,350000,148000,136500,157000,187500,178000,118500,100000,328900,145000,135500,268000,149500,122900,172500,154500,165000,118858,140000,106500,142953,611657,135000,110000,153000,180000,240000,125500,128000,255000,250000,131000,174000,154300,143500,88000,145000,173733,75000,35311,135000,238000,176500,201000,145900,169990,193000,207500,175000,285000,176000,236500,222000,201000,117500,320000,190000,242000,79900,184900,253000,239799,244400,150900,214000,150000,143000,137500,124900,143000,270000,192500,197500,129000,119900,133900,172000,127500,145000,124000,132000,185000,155000,116500,272000,155000,239000,214900,178900,160000,135000,37900,140000,135000,173000,99500,182000,167500,165000,85500,199900,110000,139000,178400,336000,159895,255900,126000,125000,117000,395192,195000,197000,348000,168000,187000,173900,337500,121600,136500,185000,91000,206000,82000,86000,232000,136905,181000,149900,163500,88000,240000,102000,135000,100000,165000,85000,119200,227000,203000,187500,160000,213490,176000,194000,87000,191000,287000,112500,167500,293077,105000,118000,160000,197000,310000,230000,119750,84000,315500,287000,97000,80000,155000,173000,196000,262280,278000,139600,556581,145000,115000,84900,176485,200141,165000,144500,255000,180000,185850,248000,335000,220000,213500,81000,90000,110500,154000,328000,178000,167900,151400,135000,135000,154000,91500,159500,194000,219500,170000,138800,155900,126000,145000,133000,192000,160000,187500,147000,83500,252000,137500,197000,92900,160000,136500,146000,129000,176432,127000,170000,128000,157000,60000,119500,135000,159500,106000,325000,179900,274725,181000,280000,188000,205000,129900,134500,117000,318000,184100,130000,140000,133700,118400,212900,112000,118000,163900,115000,174000,259000,215000,140000,135000,93500,117500,239500,169000,102000,119000,94000,196000,144000,139000,197500,424870,80000,80000,149000,180000,174500,116900,143000,124000,149900,230000,120500,201800,218000,179900,230000,235128,185000,146000,224000,129000,108959,194000,233170,245350,173000,235000,625000,171000,163000,171900,200500,239000,285000,119500,115000,154900,93000,250000,392500,745000,120000,186700,104900,95000,262000,195000,189000,168000,174000,125000,165000,158000,176000,219210,144000,178000,148000,116050,197900,117000,213000,153500,271900,107000,200000,140000,290000,189000,164000,113000,145000,134500,125000,112000,229456,80500,91500,115000,134000,143000,137900,184000,145000,214000,147000,367294,127000,190000,132500,101800,142000,130000,138887,175500,195000,142500,265900,224900,248328,170000,465000,230000,178000,186500,169900,129500,119000,244000,171750,130000,294000,165400,127500,301500,99900,190000,151000,181000,128900,161500,180500,181000,183900,122000,378500,381000,144000,260000,185750,137000,177000,139000,137000,162000,197900,237000,68400,227000,180000,150500,139000,169000,132500,143000,190000,278000,281000,180500,119500,107500,162900,115000,138500,155000,140000,160000,154000,225000,177500,290000,232000,130000,325000,202500,138000,147000,179200,335000,203000,302000,333168,119000,206900,295493,208900,275000,111000,156500,72500,190000,82500,147000,55000,79000,130500,256000,176500,227000,132500,100000,125500,125000,167900,135000,52500,200000,128500,123000,155000,228500,177000,155835,108500,262500,283463,215000,122000,200000,171000,134900,410000,235000,170000,110000,149900,177500,315000,189000,260000,104900,156932,144152,216000,193000,127000,144000,232000,105000,165500,274300,466500,250000,239000,91000,117000,83000,167500,58500,237500,157000,112000,105000,125500,250000,136000,377500,131000,235000,124000,123000,163000,246578,281213,160000,137500,138000,137450,120000,193000,193879,282922,105000,275000,133000,112000,125500,215000,230000,140000,90000,257000,207000,175900,122500,340000,124000,223000,179900,127500,136500,274970,144000,142000,271000,140000,119000,182900,192140,143750,64500,186500,160000,174000,120500,394617,149700,197000,191000,149300,310000,121000,179600,129000,157900,240000,112000,92000,136000,287090,145000,84500,185000,175000,210000,266500,142125,147500]},"selected":{"id":"1076","type":"Selection"},"selection_policy":{"id":"1092","type":"UnionRenderers"}},"id":"1075","type":"ColumnDataSource"},{"attributes":{"callback":null,"renderers":[{"id":"1081","type":"GlyphRenderer"}],"tags":["hv_created"],"tooltips":[["x","@{x}"],["y","@{y}"]]},"id":"1005","type":"HoverTool"},{"attributes":{"label":{"value":"Linear Regression"},"renderers":[{"id":"1064","type":"GlyphRenderer"}]},"id":"1074","type":"LegendItem"},{"attributes":{},"id":"1071","type":"UnionRenderers"},{"attributes":{"source":{"id":"1075","type":"ColumnDataSource"}},"id":"1082","type":"CDSView"},{"attributes":{},"id":"1029","type":"ResetTool"},{"attributes":{},"id":"1011","type":"LinearScale"},{"attributes":{"axis_label":"actual","bounds":"auto","formatter":{"id":"1039","type":"BasicTickFormatter"},"major_label_orientation":"horizontal","ticker":{"id":"1016","type":"BasicTicker"}},"id":"1015","type":"LinearAxis"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"1003","type":"HoverTool"},{"id":"1005","type":"HoverTool"},{"id":"1025","type":"SaveTool"},{"id":"1026","type":"PanTool"},{"id":"1027","type":"WheelZoomTool"},{"id":"1028","type":"BoxZoomTool"},{"id":"1029","type":"ResetTool"}]},"id":"1030","type":"Toolbar"}],"root_ids":["1006"]},"title":"Bokeh Application","version":"1.4.0"}};
+  var render_items = [{"docid":"d729d846-3c04-4036-964e-332cf04d83ce","roots":{"1006":"e6f7bad4-49bc-4cda-9923-c3fc9be2a756"}}];
+  root.Bokeh.embed.embed_items_notebook(docs_json, render_items);
+
+  }
+  if (root.Bokeh !== undefined) {
+    embed_document(root);
+  } else {
+    var attempts = 0;
+    var timer = setInterval(function(root) {
+      if (root.Bokeh !== undefined) {
+        clearInterval(timer);
+        embed_document(root);
+      } else {
+        attempts++;
+        if (attempts > 100) {
+          clearInterval(timer);
+          console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+        }
+      }
+    }, 10, root)
+  }
+})(window);
+</script>
+</div>
