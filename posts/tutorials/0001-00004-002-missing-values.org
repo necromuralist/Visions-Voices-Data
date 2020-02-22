@@ -2,88 +2,153 @@
 .. title: Missing Values
 .. slug: missing-values
 .. date: 2020-02-20 21:07:15 UTC-08:00
-.. tags: 
-.. category: 
+.. tags: kaggle,tutorial,cleaning
+.. category: Tutorial
 .. link: 
-.. description: 
+.. description: Part two of kaggle's intermediate machine learning tutorial.
 .. type: text
 .. status: 
 .. updated: 
 
 #+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 
+#+PROPERTY: header-args :session /run/user/1000/jupyter/kernel-eccdecf3-9100-47e8-99d5-c11af61b8a9f.json
+* Beginning
+#+begin_quote
+Now it's your turn to test your new knowledge of **missing values** handling. You'll probably find it makes a big difference.
+#+end_quote
+** Imports
+*** Python
+#+begin_src python :results none
+from argparse import Namespace
+from datetime import datetime
+from functools import partial
+from pathlib import Path
+#+end_src
+*** PyPi
+#+begin_src python :results none
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import cross_val_score, train_test_split
+from tabulate import tabulate
+
+import hvplot.pandas
+import pandas
+#+end_src
+*** Others
+#+begin_src python :results none
+from graeae import EmbedHoloviews, EnvironmentLoader, Timer
+#+end_src
+** Set Up
+*** Table
+#+begin_src python :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", showindex=False)
+#+end_src
+*** Plottting
+#+begin_src python :results none
+SLUG = "missing-values"
+OUTPUT_PATH = Path("../../files/posts/tutorials/")/SLUG
+Embed = partial(EmbedHoloviews, folder_path=OUTPUT_PATH)
+Plot = Namespace(
+    height=800,
+    width=1000,
+)
+#+end_src
+*** The Timer
+#+begin_src python :results none
+TIMER = Timer()
+#+end_src
+*** Environment
+#+begin_src python :results none
+ENVIRONMENT = EnvironmentLoader()
+#+end_src
+*** The Data
+#+begin_src python :results none
+DATA_PATH = Path(ENVIRONMENT["HOUSE-PRICES-IOWA"]).expanduser()
+train_data = pandas.read_csv(
+    DATA_PATH/"train.csv", index_col="Id")
+
+test_data = pandas.read_csv(
+    DATA_PATH/"test.csv", index_col="Id"
+)
+#+end_src
+*** Some Constants
+#+begin_src python :results none
+Data = Namespace(
+    target="SalePrice",
+    train_size=0.8,
+    test_size=0.2,
+    random_seed=0,
+)
+#+end_src
+* Middle
+** Remove Training Data with no Target
+#+begin_src python :results output :exports both
+print(f"{len(train_data):,}")
+train_data = train_data.dropna(axis="rows", subset=[Data.target])
+print(f"{len(train_data):,}")
+#+end_src
+
+#+RESULTS:
+: 1,460
+: 1,460
+
+Doesn't look like there were any missing target values.
+
+#+begin_src python :results none
+y = train_data[Data.target]
+x_train = train_data.drop([Data.target], axis="columns")
+#+end_src
+
+** Numeric Data Only
+#+begin_quote
+To keep things simple, we'll use only numerical predictors
+#+end_quote
+
+#+begin_src python :results output :exports both
+print(len(x_train.columns))
+X = x_train.select_dtypes(exclude=["object"])
+print(len(X.columns))
+#+end_src
+
+#+RESULTS:
+: 79
+: 36
+
+#+begin_src python :results output :exports both
+print(len(test_data.columns))
+x_test = test_data.select_dtypes(exclude=["object"])
+print(len(x_test.columns))
+#+end_src
+
+#+RESULTS:
+: 79
+: 36
+** Split the Training and Validation Data
+
+#+begin_src python :results none
+x_train, x_validate, y_train, y_validate = train_test_split(
+    X, y,
+    train_size=Data.train_size,
+    test_size=Data.test_size,
+    random_state=Data.random_seed)
+#+end_src
+
+** Step 1: Preliminary investigation
+
+#+begin_src python :results none
+missing_by_column = x_train.isna().sum()
+missed = missing_by_column[missing_by_column > 0]
+print(TABLE(missed, headers=["Column", "Missing"]))
+#+end_src
+
+#+RESULTS:
+# [goto error]
+
 * Raw
 #+begin_example
-#!/usr/bin/env python
-# coding: utf-8
 
-# **[Intermediate Machine Learning Home Page](https://www.kaggle.com/learn/intermediate-machine-learning)**
-# 
-# ---
-# 
-
-# Now it's your turn to test your new knowledge of **missing values** handling. You'll probably find it makes a big difference.
-# 
-# # Setup
-# 
-# The questions will give you feedback on your work. Run the following cell to set up the feedback system.
-
-# In[ ]:
-
-
-# Set up code checking
-import os
-if not os.path.exists("../input/train.csv"):
-    os.symlink("../input/home-data-for-ml-course/train.csv", "../input/train.csv")  
-    os.symlink("../input/home-data-for-ml-course/test.csv", "../input/test.csv") 
-from learntools.core import binder
-binder.bind(globals())
-from learntools.ml_intermediate.ex2 import *
-print("Setup Complete")
-
-
-# In this exercise, you will work with data from the [Housing Prices Competition for Kaggle Learn Users](https://www.kaggle.com/c/home-data-for-ml-course). 
-# 
-# ![Ames Housing dataset image](https://i.imgur.com/lTJVG4e.png)
-# 
-# Run the next code cell without changes to load the training and validation sets in `X_train`, `X_valid`, `y_train`, and `y_valid`.  The test set is loaded in `X_test`.
-
-# In[ ]:
-
-
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
-# Read the data
-X_full = pd.read_csv('../input/train.csv', index_col='Id')
-X_test_full = pd.read_csv('../input/test.csv', index_col='Id')
-
-# Remove rows with missing target, separate target from predictors
-X_full.dropna(axis=0, subset=['SalePrice'], inplace=True)
-y = X_full.SalePrice
-X_full.drop(['SalePrice'], axis=1, inplace=True)
-
-# To keep things simple, we'll use only numerical predictors
-X = X_full.select_dtypes(exclude=['object'])
-X_test = X_test_full.select_dtypes(exclude=['object'])
-
-# Break off validation set from training data
-X_train, X_valid, y_train, y_valid = train_test_split(X, y, train_size=0.8, test_size=0.2,
-                                                      random_state=0)
-
-
-# Use the next code cell to print the first five rows of the data.
-
-# In[ ]:
-
-
-X_train.head()
-
-
-# You can already see a few missing values in the first several rows.  In the next step, you'll obtain a more comprehensive understanding of the missing values in the dataset.
-# 
-# # Step 1: Preliminary investigation
-# 
-# Run the code cell below without changes.
 
 # In[ ]:
 
