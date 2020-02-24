@@ -2,10 +2,10 @@
 .. title: Categorical Values
 .. slug: categorical-values
 .. date: 2020-02-20 21:13:09 UTC-08:00
-.. tags: 
-.. category: 
+.. tags: tutorial,kaggle,categorical
+.. category: Tutorial
 .. link: 
-.. description: 
+.. description: Kaggle's intermediate machine learning tutorial on handling categorical values.
 .. type: text
 .. status: 
 .. updated: 
@@ -13,89 +13,205 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 5
-#+PROPERTY: header-args :session  /home/athena/.local/share/jupyter/runtime/kernel-a17ec546-5f56-464d-ae46-41c12ffe899e.json
+#+PROPERTY: header-args :session /home/athena/.local/share/jupyter/runtime/kernel-d526d98e-ebb2-4057-8bf1-28b2c85a1acf.json
 * Beginning
-* Middle
-* End
-* Raw
-#+begin_example
+#+begin_quote
+Now it's your turn to test your new knowledge of **missing values** handling. You'll probably find it makes a big difference.
+#+end_quote
+** Imports
+*** Python
+#+begin_src python :results none
+from argparse import Namespace
+from datetime import datetime
+from functools import partial
+from pathlib import Path
+#+end_src
+*** PyPi
+#+begin_src python :results none
+from eli5.sklearn import PermutationImportance
+from matplotlib import pyplot
+from pdpbox import pdp
 
-# # Setup
-# 
-# The questions below will give you feedback on your work. Run the following cell to set up the feedback system.
-
-# In[ ]:
-
-
-# Set up code checking
-import os
-if not os.path.exists("../input/train.csv"):
-    os.symlink("../input/home-data-for-ml-course/train.csv", "../input/train.csv")  
-    os.symlink("../input/home-data-for-ml-course/test.csv", "../input/test.csv") 
-from learntools.core import binder
-binder.bind(globals())
-from learntools.ml_intermediate.ex3 import *
-print("Setup Complete")
-
-
-# In this exercise, you will work with data from the [Housing Prices Competition for Kaggle Learn Users](https://www.kaggle.com/c/home-data-for-ml-course). 
-# 
-# ![Ames Housing dataset image](https://i.imgur.com/lTJVG4e.png)
-# 
-# Run the next code cell without changes to load the training and validation sets in `X_train`, `X_valid`, `y_train`, and `y_valid`.  The test set is loaded in `X_test`.
-
-# In[ ]:
-
-
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
-# Read the data
-X = pd.read_csv('../input/train.csv', index_col='Id') 
-X_test = pd.read_csv('../input/test.csv', index_col='Id')
-
-# Remove rows with missing target, separate target from predictors
-X.dropna(axis=0, subset=['SalePrice'], inplace=True)
-y = X.SalePrice
-X.drop(['SalePrice'], axis=1, inplace=True)
-
-# To keep things simple, we'll drop columns with missing values
-cols_with_missing = [col for col in X.columns if X[col].isnull().any()] 
-X.drop(cols_with_missing, axis=1, inplace=True)
-X_test.drop(cols_with_missing, axis=1, inplace=True)
-
-# Break off validation set from training data
-X_train, X_valid, y_train, y_valid = train_test_split(X, y,
-                                                      train_size=0.8, test_size=0.2,
-                                                      random_state=0)
-
-
-# Use the next code cell to print the first five rows of the data.
-
-# In[ ]:
-
-
-X_train.head()
-
-
-# Notice that the dataset contains both numerical and categorical variables.  You'll need to encode the categorical data before training a model.
-# 
-# To compare different models, you'll use the same `score_dataset()` function from the tutorial.  This function reports the [mean absolute error](https://en.wikipedia.org/wiki/Mean_absolute_error) (MAE) from a random forest model.
-
-# In[ ]:
-
-
+import shap
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer, KNNImputer, SimpleImputer
 from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import cross_val_score, train_test_split
+from tabulate import tabulate
 
-# function for comparing different approaches
+import eli5
+import hvplot.pandas
+import pandas
+#+end_src
+*** Others
+#+begin_src python :results none
+from graeae import EmbedHoloviews, EnvironmentLoader, Timer
+#+end_src
+** Set Up
+*** Table
+#+begin_src python :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", showindex=False, headers="keys")
+#+end_src
+*** Plottting
+#+begin_src python :results none
+SLUG = "categorical-values"
+OUTPUT_PATH = Path("../../files/posts/tutorials/")/SLUG
+Embed = partial(EmbedHoloviews, folder_path=OUTPUT_PATH)
+Plot = Namespace(
+    height=800,
+    width=1000,
+)
+#+end_src
+*** The Timer
+#+begin_src python :results none
+TIMER = Timer()
+#+end_src
+*** Environment
+#+begin_src python :results none
+ENVIRONMENT = EnvironmentLoader()
+#+end_src
+*** The Data
+#+begin_src python :results none
+DATA_PATH = Path(ENVIRONMENT["HOUSE-PRICES-IOWA"]).expanduser()
+train_data = pandas.read_csv(
+    DATA_PATH/"train.csv", index_col="Id")
+
+test_data = pandas.read_csv(
+    DATA_PATH/"test.csv", index_col="Id"
+)
+#+end_src
+*** Some Constants
+#+begin_src python :results none
+Data = Namespace(
+    target="SalePrice",
+    train_size=0.8,
+    test_size=0.2,
+    random_seed=0,
+)
+#+end_src
+* Middle
+** Setup The Data
+   Split up the target and features.
+#+begin_src python :results none
+assert not train_data[Data.target].hasnans
+y = train_data[Data.target]
+X = train_data.drop([Data.target], axis="columns")
+#+end_src
+We know that there's missing data, but since this is about handling categorical data, not missing data, we'll just drop the columns that have missing values.
+
+#+begin_src python :results output :exports both
+print(X.shape)
+X = X[[column for column in X.columns if not X[column].hasnans]]
+test_data = test_data[X.columns]
+print(X.shape)
+#+end_src
+
+#+RESULTS:
+: (1460, 79)
+: (1460, 60)
+
+So we lost 19 columns - more than I was expecting.
+
+Now do the train-test split.
+
+#+begin_src python :results none
+x_train, X_validate, y_train, y_validate = train_test_split(
+    X, y,
+    train_size=Data.train_size, test_size=Data.test_size,
+    random_state=Data.random_seed)
+#+end_src
+
+#+begin_src python :results output :exports both
+print(x_train.info())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 1168 entries, 619 to 685
+Data columns (total 60 columns):
+ #   Column         Non-Null Count  Dtype 
+---  ------         --------------  ----- 
+ 0   MSSubClass     1168 non-null   int64 
+ 1   MSZoning       1168 non-null   object
+ 2   LotArea        1168 non-null   int64 
+ 3   Street         1168 non-null   object
+ 4   LotShape       1168 non-null   object
+ 5   LandContour    1168 non-null   object
+ 6   Utilities      1168 non-null   object
+ 7   LotConfig      1168 non-null   object
+ 8   LandSlope      1168 non-null   object
+ 9   Neighborhood   1168 non-null   object
+ 10  Condition1     1168 non-null   object
+ 11  Condition2     1168 non-null   object
+ 12  BldgType       1168 non-null   object
+ 13  HouseStyle     1168 non-null   object
+ 14  OverallQual    1168 non-null   int64 
+ 15  OverallCond    1168 non-null   int64 
+ 16  YearBuilt      1168 non-null   int64 
+ 17  YearRemodAdd   1168 non-null   int64 
+ 18  RoofStyle      1168 non-null   object
+ 19  RoofMatl       1168 non-null   object
+ 20  Exterior1st    1168 non-null   object
+ 21  Exterior2nd    1168 non-null   object
+ 22  ExterQual      1168 non-null   object
+ 23  ExterCond      1168 non-null   object
+ 24  Foundation     1168 non-null   object
+ 25  BsmtFinSF1     1168 non-null   int64 
+ 26  BsmtFinSF2     1168 non-null   int64 
+ 27  BsmtUnfSF      1168 non-null   int64 
+ 28  TotalBsmtSF    1168 non-null   int64 
+ 29  Heating        1168 non-null   object
+ 30  HeatingQC      1168 non-null   object
+ 31  CentralAir     1168 non-null   object
+ 32  1stFlrSF       1168 non-null   int64 
+ 33  2ndFlrSF       1168 non-null   int64 
+ 34  LowQualFinSF   1168 non-null   int64 
+ 35  GrLivArea      1168 non-null   int64 
+ 36  BsmtFullBath   1168 non-null   int64 
+ 37  BsmtHalfBath   1168 non-null   int64 
+ 38  FullBath       1168 non-null   int64 
+ 39  HalfBath       1168 non-null   int64 
+ 40  BedroomAbvGr   1168 non-null   int64 
+ 41  KitchenAbvGr   1168 non-null   int64 
+ 42  KitchenQual    1168 non-null   object
+ 43  TotRmsAbvGrd   1168 non-null   int64 
+ 44  Functional     1168 non-null   object
+ 45  Fireplaces     1168 non-null   int64 
+ 46  GarageCars     1168 non-null   int64 
+ 47  GarageArea     1168 non-null   int64 
+ 48  PavedDrive     1168 non-null   object
+ 49  WoodDeckSF     1168 non-null   int64 
+ 50  OpenPorchSF    1168 non-null   int64 
+ 51  EnclosedPorch  1168 non-null   int64 
+ 52  3SsnPorch      1168 non-null   int64 
+ 53  ScreenPorch    1168 non-null   int64 
+ 54  PoolArea       1168 non-null   int64 
+ 55  MiscVal        1168 non-null   int64 
+ 56  MoSold         1168 non-null   int64 
+ 57  YrSold         1168 non-null   int64 
+ 58  SaleType       1168 non-null   object
+ 59  SaleCondition  1168 non-null   object
+dtypes: int64(33), object(27)
+memory usage: 556.6+ KB
+None
+#+end_example
+#+begin_quote
+Notice that the dataset contains both numerical and categorical variables.  You'll need to encode the categorical data before training a model.
+#+end_quote
+** Score Dataset
+   This is the same function used in the missing-values tutorial. It's used to compare different models' Mean Absolute Error (MAE).
+#+begin_src python :results none
 def score_dataset(X_train, X_valid, y_train, y_valid):
     model = RandomForestRegressor(n_estimators=100, random_state=0)
     model.fit(X_train, y_train)
     preds = model.predict(X_valid)
     return mean_absolute_error(y_valid, preds)
-
-
+#+end_src
+* End
+* Raw
+#+begin_example
 # # Step 1: Drop columns with categorical data
 # 
 # You'll get started with the most straightforward approach.  Use the code cell below to preprocess the data in `X_train` and `X_valid` to remove columns with categorical data.  Set the preprocessed DataFrames to `drop_X_train` and `drop_X_valid`, respectively.  
