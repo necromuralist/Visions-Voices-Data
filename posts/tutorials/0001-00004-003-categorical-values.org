@@ -13,7 +13,7 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 5
-#+PROPERTY: header-args :session /run/user/1000/jupyter/kernel-ceab7861-c725-433e-bda0-8e0a69dfee85.json
+#+PROPERTY: header-args :session /home/athena/.local/share/jupyter/runtime/kernel-6da44455-7244-4f4c-b14f-f5c60e42dd4a.json
 * Beginning
 #+begin_quote
 Now it's your turn to test your new knowledge of **missing values** handling. You'll probably find it makes a big difference.
@@ -33,6 +33,8 @@ from matplotlib import pyplot
 from pdpbox import pdp
 
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
@@ -103,7 +105,7 @@ We know that there's missing data, but since this is about handling categorical 
 #+begin_src python :results output :exports both
 print(X.shape)
 X = X[[column for column in X.columns if not X[column].hasnans]]
-test_data = test_data[drop_X.columns]
+test_data = test_data[X.columns]
 print(X.shape)
 #+end_src
 
@@ -127,93 +129,15 @@ print(drop_X_train.info())
 #+end_src
 
 #+RESULTS:
-#+begin_example
-<class 'pandas.core.frame.DataFrame'>
-Int64Index: 1168 entries, 619 to 685
-Data columns (total 79 columns):
-MSSubClass       1168 non-null int64
-MSZoning         1168 non-null object
-LotFrontage      956 non-null float64
-LotArea          1168 non-null int64
-Street           1168 non-null object
-Alley            71 non-null object
-LotShape         1168 non-null object
-LandContour      1168 non-null object
-Utilities        1168 non-null object
-LotConfig        1168 non-null object
-LandSlope        1168 non-null object
-Neighborhood     1168 non-null object
-Condition1       1168 non-null object
-Condition2       1168 non-null object
-BldgType         1168 non-null object
-HouseStyle       1168 non-null object
-OverallQual      1168 non-null int64
-OverallCond      1168 non-null int64
-YearBuilt        1168 non-null int64
-YearRemodAdd     1168 non-null int64
-RoofStyle        1168 non-null object
-RoofMatl         1168 non-null object
-Exterior1st      1168 non-null object
-Exterior2nd      1168 non-null object
-MasVnrType       1162 non-null object
-MasVnrArea       1162 non-null float64
-ExterQual        1168 non-null object
-ExterCond        1168 non-null object
-Foundation       1168 non-null object
-BsmtQual         1140 non-null object
-BsmtCond         1140 non-null object
-BsmtExposure     1140 non-null object
-BsmtFinType1     1140 non-null object
-BsmtFinSF1       1168 non-null int64
-BsmtFinType2     1139 non-null object
-BsmtFinSF2       1168 non-null int64
-BsmtUnfSF        1168 non-null int64
-TotalBsmtSF      1168 non-null int64
-Heating          1168 non-null object
-HeatingQC        1168 non-null object
-CentralAir       1168 non-null object
-Electrical       1167 non-null object
-1stFlrSF         1168 non-null int64
-2ndFlrSF         1168 non-null int64
-LowQualFinSF     1168 non-null int64
-GrLivArea        1168 non-null int64
-BsmtFullBath     1168 non-null int64
-BsmtHalfBath     1168 non-null int64
-FullBath         1168 non-null int64
-HalfBath         1168 non-null int64
-BedroomAbvGr     1168 non-null int64
-KitchenAbvGr     1168 non-null int64
-KitchenQual      1168 non-null object
-TotRmsAbvGrd     1168 non-null int64
-Functional       1168 non-null object
-Fireplaces       1168 non-null int64
-FireplaceQu      617 non-null object
-GarageType       1110 non-null object
-GarageYrBlt      1110 non-null float64
-GarageFinish     1110 non-null object
-GarageCars       1168 non-null int64
-GarageArea       1168 non-null int64
-GarageQual       1110 non-null object
-GarageCond       1110 non-null object
-PavedDrive       1168 non-null object
-WoodDeckSF       1168 non-null int64
-OpenPorchSF      1168 non-null int64
-EnclosedPorch    1168 non-null int64
-3SsnPorch        1168 non-null int64
-ScreenPorch      1168 non-null int64
-PoolArea         1168 non-null int64
-PoolQC           4 non-null object
-Fence            214 non-null object
-MiscFeature      49 non-null object
-MiscVal          1168 non-null int64
-MoSold           1168 non-null int64
-YrSold           1168 non-null int64
-SaleType         1168 non-null object
-SaleCondition    1168 non-null object
-dtypes: float64(3), int64(33), object(43)
-memory usage: 730.0+ KB
-None
-#+end_example
+:RESULTS:
+# [goto error]
+: ---------------------------------------------------------------------------
+: NameError                                 Traceback (most recent call last)
+: <ipython-input-13-002dd7ea4a19> in <module>
+: ----> 1 print(drop_X_train.info())
+: 
+: NameError: name 'drop_X_train' is not defined
+:END:
 #+begin_quote
 Notice that the dataset contains both numerical and categorical variables.  You'll need to encode the categorical data before training a model.
 #+end_quote
@@ -258,28 +182,28 @@ train_counter()
 #+end_src
 
 #+RESULTS:
-| Value   |   Count |   Percent (%) |
-|---------+---------+---------------|
-| Norm    |    1160 |         99.32 |
-| Feedr   |       4 |          0.34 |
-| Artery  |       1 |          0.09 |
-| PosN    |       1 |          0.09 |
-| RRAe    |       1 |          0.09 |
-| PosA    |       1 |          0.09 |
+: | Value   |   Count |   Percent (%) |
+: |---------+---------+---------------|
+: | Norm    |    1160 |         99.32 |
+: | Feedr   |       4 |          0.34 |
+: | Artery  |       1 |          0.09 |
+: | PosA    |       1 |          0.09 |
+: | RRAe    |       1 |          0.09 |
+: | PosN    |       1 |          0.09 |
 
 #+begin_src python :results output raw :exports both
 validate_counter()
 #+end_src
 
 #+RESULTS:
-| Value   |   Count |   Percent (%) |
-|---------+---------+---------------|
-| Norm    |     285 |         97.60 |
-| RRNn    |       2 |          0.68 |
-| Feedr   |       2 |          0.68 |
-| PosN    |       1 |          0.34 |
-| RRAn    |       1 |          0.34 |
-| Artery  |       1 |          0.34 |
+: | Value   |   Count |   Percent (%) |
+: |---------+---------+---------------|
+: | Norm    |     285 |         97.60 |
+: | RRNn    |       2 |          0.68 |
+: | Feedr   |       2 |          0.68 |
+: | PosN    |       1 |          0.34 |
+: | Artery  |       1 |          0.34 |
+: | RRAn    |       1 |          0.34 |
 
 It looks like the validation data has values that aren't in the training data (and vice versa), e.g. =RRNn=, so encoding the training set won't work with the validation set.
 
@@ -310,6 +234,38 @@ for column in bad_label_columns:
 #+end_src
 
 #+RESULTS:
+#+begin_example
+Categorical columns that will be label encoded:
+ - MSZoning
+ - Street
+ - LotShape
+ - LandContour
+ - LotConfig
+ - BldgType
+ - HouseStyle
+ - ExterQual
+ - CentralAir
+ - KitchenQual
+ - PavedDrive
+ - SaleCondition
+
+Categorical columns that will be dropped from the dataset:
+ - ExterCond
+ - RoofMatl
+ - HeatingQC
+ - Foundation
+ - Exterior1st
+ - SaleType
+ - RoofStyle
+ - Functional
+ - Condition1
+ - Condition2
+ - Heating
+ - LandSlope
+ - Exterior2nd
+ - Utilities
+ - Neighborhood
+#+end_example
 Categorical columns that will be label encoded:
  - MSZoning
  - Street
@@ -394,6 +350,7 @@ print(TABLE(cardinality))
 #+end_src
 
 #+RESULTS:
+
 | Column        |   Cardinality |
 |---------------+---------------|
 | Neighborhood  |            25 |
@@ -424,6 +381,7 @@ print(TABLE(cardinality))
 | Utilities     |             2 |
 | CentralAir    |             2 |
 
+
 #+begin_quote
 The output above shows, for each column with categorical data, the number of unique values in the column.  For instance, the ='Street'= column in the training data has two unique values: ='Grvl'= and ='Pave'=, corresponding to a gravel road and a paved road, respectively.
 
@@ -441,9 +399,9 @@ print(len(cardinality[cardinality.Cardinality > 10]))
 #+RESULTS:
 : 3
 
-#+begin_src python :results output :exports both
+#+begin_quote
 How many columns are needed to one-hot encode the 'Neighborhood' variable in the training data?
-#+end_src
+#+end_quote
 
 #+begin_src python :results output :exports both
 print(cardinality[cardinality.Column=="Neighborhood"].Cardinality.iloc[0])
@@ -462,7 +420,7 @@ As an example, consider a dataset with 10,000 rows, and containing one categoric
 
 If "entries" refers to columns then the one-hot-encoding will add 99 new columns (assuming the original is dropped) while the label-encoding won't add any columns.
 
-**Step 4: One-hot encoding
+** Step 4: One-hot encoding
 #+begin_quote
 In this step, you'll experiment with one-hot encoding.  But, instead of encoding all of the categorical variables in the dataset, you'll only create a one-hot encoding for columns with cardinality less than 10.
 
@@ -470,9 +428,6 @@ Run the code cell below without changes to set =low_cardinality_cols= to a Pytho
 #+end_quote
 
 #+begin_src python :results none
-# low_cardinality_columns = [column for column in object_columns if X_train[column].nunique() < 10]
-#high_cardinality_cols = list(set(object_cols)-set(low_cardinality_cols))
-
 low_cardinality_columns = cardinality[cardinality.Cardinality < 10].Column
 high_cardinality_columns = cardinality[~cardinality.Column.isin(low_cardinality_columns)].Column
 #+end_src
@@ -484,7 +439,6 @@ for column in low_cardinality_columns:
 #+end_src
 
 #+RESULTS:
-#+begin_example
 Categorical columns that will be one-hot encoded:
  - SaleType
  - Condition1
@@ -510,7 +464,6 @@ Categorical columns that will be one-hot encoded:
  - Street
  - Utilities
  - CentralAir
-#+end_example
 
 #+begin_src python :results output raw :exports both
 print('Categorical columns that will be dropped from the dataset:')
@@ -531,24 +484,19 @@ Use the next code cell to one-hot encode the data in =X_train= and =X_valid=.  S
 #+end_quote
 
 #+begin_src python :results none
-OH_X_train = X_train.drop(high_cardinality_columns, axis="columns").reset_index(drop=True)
-OH_X_validate = X_validate.drop(high_cardinality_columns, axis="columns").reset_index(drop=True)
+OH_X = X.drop(high_cardinality_columns, axis="columns").reset_index(drop=True)
 for column in low_cardinality_columns:
     encoder = OneHotEncoder(sparse=False)
     encoded = encoder.fit_transform(
-        OH_X_train[column].to_numpy().reshape(-1, 1)
+        OH_X[column].to_numpy().reshape(-1, 1)
     )
     reencoded = pandas.DataFrame(encoded, columns=encoder.get_feature_names())
-    OH_X_train = pandas.concat([OH_X_train, reencoded], axis="columns").drop(
+    OH_X = pandas.concat([OH_X, reencoded], axis="columns").drop(
         column, axis="columns")
-   
-    encoder = OneHotEncoder(sparse=False)
-    encoded = encoder.fit_transform(
-        OH_X_validate[column].to_numpy().reshape(-1, 1)
-    )
-    encoded = pandas.DataFrame(encoded, columns=encoder.get_feature_names())
-    OH_X_validate = pandas.concat([OH_X_validate, encoded], axis="columns").drop(
-        column, axis="columns")
+OH_X_train, OH_X_validate, y_train, y_validate = train_test_split(
+    OH_X, y,
+    train_size=Data.train_size, test_size=Data.test_size,
+    random_state=Data.random_seed)   
 #+end_src
 
 #+begin_src python :results output :exports both
@@ -557,82 +505,87 @@ print(f"{score_dataset(OH_X_train, OH_X_validate, y_train, y_validate):,}")
 #+end_src
 
 #+RESULTS:
-:RESULTS:
 : MAE from Approach 3 (One-Hot Encoding):
-# [goto error]
-#+begin_example
----------------------------------------------------------------------------
-ValueError                                Traceback (most recent call last)
-<ipython-input-148-a60fa4542679> in <module>
-      1 print("MAE from Approach 3 (One-Hot Encoding):")
-----> 2 print(f"{score_dataset(OH_X_train, OH_X_validate, y_train, y_validate):,}")
+: 17,429.93404109589
 
-<ipython-input-15-f5efa66e05f2> in score_dataset(X_train, X_valid, y_train, y_valid)
-      2     model = RandomForestRegressor(n_estimators=100, random_state=0)
-      3     model.fit(X_train, y_train)
-----> 4     preds = model.predict(X_valid)
-      5     return mean_absolute_error(y_valid, preds)
+So we've improved slightly, but still not as well as the all numeric data with imputed data.
 
-~/.virtualenvs/Visions-Voices-Data/lib/python3.7/site-packages/sklearn/ensemble/forest.py in predict(self, X)
-    691         check_is_fitted(self, 'estimators_')
-    692         # Check data
---> 693         X = self._validate_X_predict(X)
-    694 
-    695         # Assign chunk of trees to jobs
+** Step 5: Generate test predictions and submit your results
 
-~/.virtualenvs/Visions-Voices-Data/lib/python3.7/site-packages/sklearn/ensemble/forest.py in _validate_X_predict(self, X)
-    357                                  "call `fit` before exploiting the model.")
-    358 
---> 359         return self.estimators_[0]._validate_X_predict(X, check_input=True)
-    360 
-    361     @property
+After you complete Step 4, if you'd like to use what you've learned to submit your results to the leaderboard, you'll need to preprocess the test data before generating predictions.
 
-~/.virtualenvs/Visions-Voices-Data/lib/python3.7/site-packages/sklearn/tree/tree.py in _validate_X_predict(self, X, check_input)
-    400                              "match the input. Model n_features is %s and "
-    401                              "input n_features is %s "
---> 402                              % (self.n_features_, n_features))
-    403 
-    404         return X
+To get the imputation working again we need to re-add the columns with missing value.
 
-ValueError: Number of features of the model must match the input. Model n_features is 155 and input n_features is 141 
-#+end_example
-:END:
+#+begin_src python :results output :exports 
+X_2 = train_data.drop([Data.target], axis="columns")
+objects = [column for column in X_2.columns if X_2[column].dtype==object]
+missing = [column for column in objects if X_2[column].hasnans]
+
+X_2 = X_2.drop(missing, axis="columns")
+OH_X = X_2.drop(high_cardinality_columns, axis="columns").reset_index(drop=True)
+for column in low_cardinality_columns:
+    encoder = OneHotEncoder(sparse=False)
+    encoded = encoder.fit_transform(
+        OH_X[column].to_numpy().reshape(-1, 1)
+    )
+    reencoded = pandas.DataFrame(encoded, columns=encoder.get_feature_names())
+    OH_X = pandas.concat([OH_X, reencoded], axis="columns").drop(
+        column, axis="columns")
+
+imputer = IterativeImputer(random_state=Data.random_seed)
+OH_X = pandas.DataFrame(imputer.fit_transform(OH_X), columns=OH_X.columns)
+OH_X_train, OH_X_validate, y_train, y_validate = train_test_split(
+    OH_X, y,
+    train_size=Data.train_size, test_size=Data.test_size,
+    random_state=Data.random_seed)
+
+model = RandomForestRegressor(n_estimators=100, random_state=Data.random_seed)
+model.fit(OH_X_train, y_train)
+
+preds_valid = model.predict(OH_X_validate)
+error = mean_absolute_error(y_validate, preds_valid)
+print(f"MAE: {error:0.2f}")
+#+end_src
+
+#+RESULTS:
+: MAE: 17680.04
+
+It seems to have gotten worse... I don't think I'll submit it.
+
+#+begin_src python :results output raw :exports both
+permutor = PermutationImportance(model, random_state=Data.random_seed).fit(
+    OH_X_validate, y_validate)
+ipython_html = eli5.show_weights(
+    permutor,
+    feature_names=OH_X_validate.columns.tolist())
+table = pandas.read_html(ipython_html.data)[0]
+print(TABLE(table))
+#+end_src
+
+#+RESULTS:
+| Weight           | Feature      |
+|------------------+--------------|
+| 0.5068  ± 0.1320 | OverallQual  |
+| 0.1087  ± 0.0418 | GrLivArea    |
+| 0.0208  ± 0.0087 | TotalBsmtSF  |
+| 0.0145  ± 0.0055 | BsmtFinSF1   |
+| 0.0087  ± 0.0042 | YearRemodAdd |
+| 0.0084  ± 0.0017 | 2ndFlrSF     |
+| 0.0081  ± 0.0030 | LotArea      |
+| 0.0059  ± 0.0062 | 1stFlrSF     |
+| 0.0058  ± 0.0027 | YearBuilt    |
+| 0.0055  ± 0.0030 | GarageCars   |
+| 0.0027  ± 0.0011 | OverallCond  |
+| 0.0026  ± 0.0036 | GarageYrBlt  |
+| 0.0025  ± 0.0007 | LotFrontage  |
+| 0.0018  ± 0.0010 | WoodDeckSF   |
+| 0.0015  ± 0.0004 | x0_Lvl       |
+| 0.0015  ± 0.0014 | BedroomAbvGr |
+| 0.0014  ± 0.0007 | FullBath     |
+| 0.0013  ± 0.0002 | x0_Bnk       |
+| 0.0012  ± 0.0010 | x0_RM        |
+| 0.0012  ± 0.0004 | MSSubClass   |
+| … 142 more …     | … 142 more … |
+
 
 * End
-* Raw
-#+begin_example
-
-
-# # Step 5: Generate test predictions and submit your results
-# 
-# After you complete Step 4, if you'd like to use what you've learned to submit your results to the leaderboard, you'll need to preprocess the test data before generating predictions.
-# 
-# **This step is completely optional, and you do not need to submit results to the leaderboard to successfully complete the exercise.**
-# 
-# Check out the previous exercise if you need help with remembering how to [join the competition](https://www.kaggle.com/c/home-data-for-ml-course) or save your results to CSV.  Once you have generated a file with your results, follow the instructions below:
-# - Begin by clicking on the blue **COMMIT** button in the top right corner.  This will generate a pop-up window.  
-# - After your code has finished running, click on the blue **Open Version** button in the top right of the pop-up window.  This brings you into view mode of the same page. You will need to scroll down to get back to these instructions.
-# - Click on the **Output** tab on the left of the screen.  Then, click on the **Submit to Competition** button to submit your results to the leaderboard.
-# - If you want to keep working to improve your performance, select the blue **Edit** button in the top right of the screen. Then you can change your model and repeat the process.
-
-# In[ ]:
-
-
-# (Optional) Your code here
-
-
-# # Keep going
-# 
-# With missing value handling and categorical encoding, your modeling process is getting complex. This complexity gets worse when you want to save your model to use in the future. The key to managing this complexity is something called **pipelines**. 
-# 
-# **[Learn to use pipelines](https://www.kaggle.com/alexisbcook/pipelines)** to preprocess datasets with categorical variables, missing values and any other messiness your data throws at you.
-
-# ---
-# **[Intermediate Machine Learning Home Page](https://www.kaggle.com/learn/intermediate-machine-learning)**
-# 
-# 
-# 
-# 
-# 
-# *Have questions or comments? Visit the [Learn Discussion forum](https://www.kaggle.com/learn-forum) to chat with other Learners.*
-#+end_example
