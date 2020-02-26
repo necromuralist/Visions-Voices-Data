@@ -1,270 +1,237 @@
 #+BEGIN_COMMENT
-.. title: Pipelines
-.. slug: pipelines
+.. title: Kaggle Intermediate Machine Learning: Pipelines
+.. slug: kaggle-intermediate-machine-learning-pipelines
 .. date: 2020-02-20 21:14:10 UTC-08:00
-.. tags: 
-.. category: 
+.. tags: tutorial,kaggle
+.. category: Tutorial
 .. link: 
-.. description: 
+.. description: Kaggle's Intermediat Machine Learning tutorial on pipelines.
 .. type: text
 .. status: 
 .. updated: 
 
 #+END_COMMENT
-* Raw
-#+begin_example
-#!/usr/bin/env python
-# coding: utf-8
-
-# **[Intermediate Machine Learning Home Page](https://www.kaggle.com/learn/intermediate-machine-learning)**
-# 
-# ---
-# 
-
-# In this exercise, you will use **pipelines** to improve the efficiency of your machine learning code.
-# 
-# # Setup
-# 
-# The questions below will give you feedback on your work. Run the following cell to set up the feedback system.
-
-# In[ ]:
-
-
-# Set up code checking
-import os
-if not os.path.exists("../input/train.csv"):
-    os.symlink("../input/home-data-for-ml-course/train.csv", "../input/train.csv")  
-    os.symlink("../input/home-data-for-ml-course/test.csv", "../input/test.csv") 
-from learntools.core import binder
-binder.bind(globals())
-from learntools.ml_intermediate.ex4 import *
-print("Setup Complete")
-
-
-# You will work with data from the [Housing Prices Competition for Kaggle Learn Users](https://www.kaggle.com/c/home-data-for-ml-course). 
-# 
-# ![Ames Housing dataset image](https://i.imgur.com/lTJVG4e.png)
-# 
-# Run the next code cell without changes to load the training and validation sets in `X_train`, `X_valid`, `y_train`, and `y_valid`.  The test set is loaded in `X_test`.
-
-# In[ ]:
-
-
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
-# Read the data
-X_full = pd.read_csv('../input/train.csv', index_col='Id')
-X_test_full = pd.read_csv('../input/test.csv', index_col='Id')
-
-# Remove rows with missing target, separate target from predictors
-X_full.dropna(axis=0, subset=['SalePrice'], inplace=True)
-y = X_full.SalePrice
-X_full.drop(['SalePrice'], axis=1, inplace=True)
-
-# Break off validation set from training data
-X_train_full, X_valid_full, y_train, y_valid = train_test_split(X_full, y, 
-                                                                train_size=0.8, test_size=0.2,
-                                                                random_state=0)
-
-# "Cardinality" means the number of unique values in a column
-# Select categorical columns with relatively low cardinality (convenient but arbitrary)
-categorical_cols = [cname for cname in X_train_full.columns if
-                    X_train_full[cname].nunique() < 10 and 
-                    X_train_full[cname].dtype == "object"]
-
-# Select numerical columns
-numerical_cols = [cname for cname in X_train_full.columns if 
-                X_train_full[cname].dtype in ['int64', 'float64']]
-
-# Keep selected columns only
-my_cols = categorical_cols + numerical_cols
-X_train = X_train_full[my_cols].copy()
-X_valid = X_valid_full[my_cols].copy()
-X_test = X_test_full[my_cols].copy()
-
-
-# In[ ]:
-
-
-X_train.head()
-
-
-# The next code cell uses code from the tutorial to preprocess the data and train a model.  Run this code without changes.
-
-# In[ ]:
-
+#+OPTIONS: ^:{}
+#+TOC: headlines 5
+#+PROPERTY: header-args :session /run/user/1000/jupyter/kernel-0694caba-e6db-41c3-9538-977f51abbc62.json
+* Beginning
+#+begin_quote
+In this exercise, you will use **pipelines** to improve the efficiency of your machine learning code.
+#+end_quote
+** Imports
+*** Python
+#+begin_src python :results none
+from argparse import Namespace
+from functools import partial
+from pathlib import Path
+#+end_src
+*** PyPi
+#+begin_src python :results none
+from eli5.sklearn import PermutationImportance
+from matplotlib import pyplot
 
 from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+from sklearn.impute import SimpleImputer
 from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
 
-# Preprocessing for numerical data
+from tabulate import tabulate
+
+import eli5
+import pandas
+import shap
+#+end_src
+*** Others
+#+begin_src python :results none
+from graeae import CountPercentage, EmbedHoloviews, EnvironmentLoader, Timer
+#+end_src
+** Set Up
+*** Table
+#+begin_src python :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", showindex=False, headers="keys")
+#+end_src
+*** Plottting
+#+begin_src python :results none
+SLUG = "kaggle-intermediate-machine-learning-pipelines"
+OUTPUT_PATH = Path("../../files/posts/tutorials/")/SLUG
+Embed = partial(EmbedHoloviews, folder_path=OUTPUT_PATH)
+Plot = Namespace(
+    height=800,
+    width=1000,
+)
+#+end_src
+*** The Timer
+#+begin_src python :results none
+TIMER = Timer()
+#+end_src
+*** Environment
+#+begin_src python :results none
+ENVIRONMENT = EnvironmentLoader()
+#+end_src
+*** The Data
+#+begin_src python :results none
+DATA_PATH = Path(ENVIRONMENT["HOUSE-PRICES-IOWA"]).expanduser()
+train_data = pandas.read_csv(
+    DATA_PATH/"train.csv", index_col="Id")
+
+test_data = pandas.read_csv(
+    DATA_PATH/"test.csv", index_col="Id"
+)
+X_test = test_data
+#+end_src
+*** Some Constants
+#+begin_src python :results none
+Data = Namespace(
+    target="SalePrice",
+    train_size=0.8,
+    test_size=0.2,
+    random_seed=0,
+)
+#+end_src
+** Setup The Data
+   Split up the target and features.
+#+begin_src python :results none
+assert not train_data[Data.target].hasnans
+y = train_data[Data.target]
+X = train_data.drop([Data.target], axis="columns")
+#+end_src
+
+#+begin_src python :results none
+X_train, X_validate, y_train, y_validate = train_test_split(
+    X, y,
+    train_size=Data.train_size, test_size=Data.test_size,
+    random_state=Data.random_seed)
+#+end_src
+
+*** Trim the columns
+#+begin_src python :results none
+# Select categorical columns with relatively low cardinality (convenient but arbitrary)
+categorical_columns = [column for column in X_train.columns if
+                       X_train[column].nunique() < 10 and 
+                       X_train[column].dtype == object]
+
+# Select numerical columns
+numerical_columns = [column for column in X_train.columns if 
+                     X_train[column].dtype in ['int64', 'float64']]
+
+# Keep selected columns only
+columns = categorical_columns + numerical_columns
+X_train = X_train[columns].copy()
+X_validate = X_validate[columns].copy()
+X_test = X_test[columns].copy()
+#+end_src
+* Middle
+** Preprocess Data and Train the Model
+   The missing numeric values will be filled in with a simple imputer. When the =strategy= is set to constant then it will fill missing values with a single value (which is 0 by default).
+
+#+begin_src python :results none
 numerical_transformer = SimpleImputer(strategy='constant')
+#+end_src
 
-# Preprocessing for categorical data
+Now the categorical data transformer. We'll use the most frequent value in any column with missing values to fill them in and the do one-hot encoding.
+
+#+begin_src python :results none
 categorical_transformer = Pipeline(steps=[
     ('imputer', SimpleImputer(strategy='most_frequent')),
     ('onehot', OneHotEncoder(handle_unknown='ignore'))
 ])
+#+end_src
 
-# Bundle preprocessing for numerical and categorical data
+Now we can bundle them together into a single transformer.
+#+begin_src python :results none
 preprocessor = ColumnTransformer(
     transformers=[
-        ('num', numerical_transformer, numerical_cols),
-        ('cat', categorical_transformer, categorical_cols)
+        ('num', numerical_transformer, numerical_columns),
+        ('cat', categorical_transformer, categorical_columns)
     ])
+#+end_src
 
-# Define model
+*** Define The Model
+#+begin_src python :results none
 model = RandomForestRegressor(n_estimators=100, random_state=0)
-
-# Bundle preprocessing and modeling code in a pipeline
-clf = Pipeline(steps=[('preprocessor', preprocessor),
+#+end_src
+*** Build the Pipeline
+#+begin_src python :results none
+pipeline = Pipeline(steps=[('preprocessor', preprocessor),
                       ('model', model)
                      ])
-
+#+end_src
+*** Fit the Model
+#+begin_src python :results none
 # Preprocessing of training data, fit model 
-clf.fit(X_train, y_train)
+pipeline.fit(X_train, y_train)
+#+end_src
+*** Score the Model
+#+begin_src python :results output :exports both
+preds = pipeline.predict(X_validate)
 
-# Preprocessing of validation data, get predictions
-preds = clf.predict(X_valid)
+print(f"MAE: {mean_absolute_error(y_validate, preds):,}")
+#+end_src
 
-print('MAE:', mean_absolute_error(y_valid, preds))
+#+RESULTS:
+: MAE: 17,861.780102739725
 
+** Improving the Performance
+#+begin_quote
+Now, it's your turn!  In the code cell below, define your own preprocessing steps and random forest model.  Fill in values for the following variables:
+ - =numerical_transformer=
+ - =categorical_transformer=
+ - =model=
+#+end_quote
 
-# The code yields a value around 17862 for the mean absolute error (MAE).  In the next step, you will amend the code to do better.
-# 
-# # Step 1: Improve the performance
-# 
-# ### Part A
-# 
-# Now, it's your turn!  In the code cell below, define your own preprocessing steps and random forest model.  Fill in values for the following variables:
-# - `numerical_transformer`
-# - `categorical_transformer`
-# - `model`
-# 
-# To pass this part of the exercise, you need only define valid preprocessing steps and a random forest model.
+#+begin_src python :results none
+numerical_transformer = IterativeImputer(random_state=Data.random_seed)
+#+end_src
 
-# In[ ]:
+I'll use the same categorical imputer.
 
+#+begin_src python :results none
+categorical_transformer = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='most_frequent')),
+    ('onehot', OneHotEncoder(handle_unknown='ignore'))
+])
+#+end_src
 
-# Preprocessing for numerical data
-numerical_transformer = ____ # Your code here
-
-# Preprocessing for categorical data
-categorical_transformer = ____ # Your code here
-
-# Bundle preprocessing for numerical and categorical data
+And now we bundle them together.
+#+begin_src python :results none
 preprocessor = ColumnTransformer(
     transformers=[
-        ('num', numerical_transformer, numerical_cols),
-        ('cat', categorical_transformer, categorical_cols)
+        ('numeric', numerical_transformer, numerical_columns),
+        ('categorical', categorical_transformer, categorical_columns)
     ])
+#+end_src
 
-# Define model
-model = ____ # Your code here
+Now build and train the model.
 
-# Check your answer
-step_1.a.check()
+#+begin_src python :results none
+model = RandomForestRegressor(n_estimators=50, max_depth=60, random_state=0)
+pipeline = Pipeline(steps=[('preprocessor', preprocessor),
+                           ('model', model)
+                           ])
+pipeline.fit(X_train, y_train)
+#+end_src
 
+#+begin_src python :results output raw :exports both
+predictions = pipeline.predict(X_validate)
 
-# In[ ]:
+print(f"MAE: {mean_absolute_error(y_validate, predictions):,}")
+#+end_src
 
+#+RESULTS:
+: MAE: 17,710.33568493151
 
-# Lines below will give you a hint or solution code
-#step_1.a.hint()
-#step_1.a.solution()
+So we improved slightly, but we're still not doing as well as with the numeric only dataset.
 
+** SHAP
+#+begin_src python :results none
+data = preprocessor.fit_transform(X_train)
+explainer = shap.TreeExplainer(model)
+shap_values = explainer.shap_values(data)
+#+end_src
 
-# ### Part B
-# 
-# Run the code cell below without changes.
-# 
-# To pass this step, you need to have defined a pipeline in **Part A** that achieves lower MAE than the code above.  You're encouraged to take your time here and try out many different approaches, to see how low you can get the MAE!  (_If your code does not pass, please amend the preprocessing steps and model in Part A._)
-
-# In[ ]:
-
-
-# Bundle preprocessing and modeling code in a pipeline
-my_pipeline = Pipeline(steps=[('preprocessor', preprocessor),
-                              ('model', model)
-                             ])
-
-# Preprocessing of training data, fit model 
-my_pipeline.fit(X_train, y_train)
-
-# Preprocessing of validation data, get predictions
-preds = my_pipeline.predict(X_valid)
-
-# Evaluate the model
-score = mean_absolute_error(y_valid, preds)
-print('MAE:', score)
-
-# Check your answer
-step_1.b.check()
-
-
-# In[ ]:
-
-
-# Line below will give you a hint
-#step_1.b.hint()
-
-
-# # Step 2: Generate test predictions
-# 
-# Now, you'll use your trained model to generate predictions with the test data.
-
-# In[ ]:
-
-
-# Preprocessing of test data, fit model
-preds_test = ____ # Your code here
-
-# Check your answer
-step_2.check()
-
-
-# In[ ]:
-
-
-# Lines below will give you a hint or solution code
-#step_2.hint()
-#step_2.solution()
-
-
-# Run the next code cell without changes to save your results to a CSV file that can be submitted directly to the competition.
-
-# In[ ]:
-
-
-# Save test predictions to file
-output = pd.DataFrame({'Id': X_test.index,
-                       'SalePrice': preds_test})
-output.to_csv('submission.csv', index=False)
-
-
-# # Step 3: Submit your results
-# 
-# Once you have successfully completed Step 2, you're ready to submit your results to the leaderboard!  If you choose to do so, make sure that you have already joined the competition by clicking on the **Join Competition** button at [this link](https://www.kaggle.com/c/home-data-for-ml-course).  
-# - Begin by clicking on the blue **COMMIT** button in the top right corner.  This will generate a pop-up window.  
-# - After your code has finished running, click on the blue **Open Version** button in the top right of the pop-up window.  This brings you into view mode of the same page. You will need to scroll down to get back to these instructions.
-# - Click on the **Output** tab on the left of the screen.  Then, click on the **Submit to Competition** button to submit your results to the leaderboard.
-# - If you want to keep working to improve your performance, select the blue **Edit** button in the top right of the screen. Then you can change your model and repeat the process.
-# 
-# # Keep going
-# 
-# Move on to learn about [**cross-validation**](https://www.kaggle.com/alexisbcook/cross-validation), a technique you can use to obtain more accurate estimates of model performance!
-
-# ---
-# **[Intermediate Machine Learning Home Page](https://www.kaggle.com/learn/intermediate-machine-learning)**
-# 
-# 
-# 
-# 
-# 
-# *Have questions or comments? Visit the [Learn Discussion forum](https://www.kaggle.com/learn-forum) to chat with other Learners.*
-#+end_example
+* End
