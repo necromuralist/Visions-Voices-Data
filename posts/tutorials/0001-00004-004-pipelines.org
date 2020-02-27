@@ -13,7 +13,7 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 5
-#+PROPERTY: header-args :session /run/user/1000/jupyter/kernel-0694caba-e6db-41c3-9538-977f51abbc62.json
+#+PROPERTY: header-args :session /run/user/1000/jupyter/kernel-459d5b80-d72e-4d72-8d5c-1e17b7ea68ef.json
 * Beginning
 #+begin_quote
 In this exercise, you will use **pipelines** to improve the efficiency of your machine learning code.
@@ -59,6 +59,8 @@ TABLE = partial(tabulate, tablefmt="orgtbl", showindex=False, headers="keys")
 #+begin_src python :results none
 SLUG = "kaggle-intermediate-machine-learning-pipelines"
 OUTPUT_PATH = Path("../../files/posts/tutorials/")/SLUG
+if not OUTPUT_PATH.is_dir():
+    OUTPUT_PATH.mkdir()
 Embed = partial(EmbedHoloviews, folder_path=OUTPUT_PATH)
 Plot = Namespace(
     height=800,
@@ -228,10 +230,65 @@ print(f"MAE: {mean_absolute_error(y_validate, predictions):,}")
 So we improved slightly, but we're still not doing as well as with the numeric only dataset.
 
 ** SHAP
-#+begin_src python :results none
-data = preprocessor.fit_transform(X_train)
-explainer = shap.TreeExplainer(model)
-shap_values = explainer.shap_values(data)
+#+begin_src python :results output :exports both
+with TIMER:
+    training = X_train[numerical_columns + categorical_columns]
+    data = preprocessor.fit_transform(training)
+    columns = (numerical_columns
+               + list(preprocessor.named_transformers_["categorical"]["onehot"].get_feature_names()))
+    data = pandas.DataFrame(
+        data,
+        columns=columns)
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(data)
 #+end_src
+
+#+RESULTS:
+: 2020-02-26 13:41:13,081 graeae.timers.timer start: Started: 2020-02-26 13:41:13.080281
+: Setting feature_perturbation = "tree_path_dependent" because no background data was given.
+: 2020-02-26 13:41:43,900 graeae.timers.timer end: Ended: 2020-02-26 13:41:43.900277
+: 2020-02-26 13:41:43,901 graeae.timers.timer end: Elapsed: 0:00:30.819996
+
+#+begin_src python :results output :exports both
+shap.summary_plot(shap_values, data)
+figure = pyplot.gcf()
+output = "shap_summary.png"
+
+figure.savefig(OUTPUT_PATH/output)
+print(f"[[file:{output}]]")
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+[[file:./.ob-jupyter/01255561813b70d3f5923ec3f7c33040efeabb42.png]]
+: [[file:shap_summary.png]]
+: <Figure size 432x288 with 0 Axes>
+:END:
+
+ [[file:shap_summary.png]]
+
+#+begin_src python :results none
+shap.initjs()
+html = shap.force_plot(explainer.expected_value, shap_values, data)
+output_file = "force_plot.html"
+output = OUTPUT_PATH/output_file
+with output.open("w") as writer:
+    shap.save_html(writer, html, False)
+
+print(f"""
+,#+begin_export html
+: <object type="text/html" data="{output_file}" style="width:100%" height=800>
+:   <p>Figure Missing</p>
+: </object>
+,#+end_export
+""")
+#+end_src
+
+ #+begin_export html
+ : <object type="text/html" data="force_plot.html" style="width:100%" height=800>
+ :   <p>Figure Missing</p>
+ : </object>
+ #+end_export
+ 
 
 * End
