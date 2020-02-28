@@ -13,7 +13,7 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 5
-#+PROPERTY: header-args :session /run/user/1000/jupyter/kernel-0cceee1f-c0b6-4cba-ae64-6b1b0c1d0016.json
+#+PROPERTY: header-args :session /run/user/1000/jupyter/kernel-f7972554-b972-4bde-9a9c-b301b6bd38d4.json
 * Beginning
 #+begin_quote
 In this exercise, you will leverage what you've learned to tune a machine learning model with **cross-validation**.
@@ -192,68 +192,29 @@ Store your results in a Python dictionary =results=, where =results[i]= is the a
 
 #+begin_src python :results none
 results = {trees: get_score(trees) for trees in range(50, 450, 50)}
-results = pandas.DataFrame({"Trees": results.keys(), "MAE": results.values()})
+
+results_frame = pandas.DataFrame.from_dict({"Trees": list(results.keys()), "MAE": list(results.values())})
 #+end_src
 
 ** Step 3: Find the best parameter value
-#+begin_src python :results output raw :exports both
-plot = results.plot(x="Trees", y="MAE").opts(
+#+begin_src python :results none
+plot = results_frame.hvplot(x="Trees", y="MAE").opts(
     title="Cross-Validation Mean Absolute Error",
     width=Plot.width,
     height=Plot.height)
 
-Embed(plot=plot, file_name="mean_absolute_error")()
+source = Embed(plot=plot, file_name="mean_absolute_error")()
 #+end_src
 
-* Raw
-#+begin_example
+#+begin_src python :results output html :exports both
+print(source)
+#+end_src
 
-# 
-# Use the next cell to visualize your results from Step 2.  Run the code without changes.
+#+RESULTS:
+#+begin_export html
+: <object type="text/html" data="mean_absolute_error.html" style="width:100%" height=800>
+:   <p>Figure Missing</p>
+: </object>
+#+end_export
 
-# In[ ]:
-
-
-import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
-
-plt.plot(results.keys(), results.values())
-plt.show()
-
-
-# Given the results, which value for =n_estimators= seems best for the random forest model?  Use your answer to set the value of =n_estimators_best=.
-
-# In[ ]:
-
-
-n_estimators_best = ____
-
-# Check your answer
-step_3.check()
-
-
-# In[ ]:
-
-
-# Lines below will give you a hint or solution code
-#step_3.hint()
-#step_3.solution()
-
-
-# In this exercise, you have explored one method for choosing appropriate parameters in a machine learning model.  
-# 
-# If you'd like to learn more about [hyperparameter optimization](https://en.wikipedia.org/wiki/Hyperparameter_optimization), you're encouraged to start with **grid search**, which is a straightforward method for determining the best _combination_ of parameters for a machine learning model.  Thankfully, scikit-learn also contains a built-in function [=GridSearchCV()=](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) that can make your grid search code very efficient!
-# 
-# # Keep going
-# 
-# Continue to learn about **[gradient boosting](https://www.kaggle.com/alexisbcook/xgboost)**, a powerful technique that achieves state-of-the-art results on a variety of datasets.
-
-# ---
-# **[Intermediate Machine Learning Home Page](https://www.kaggle.com/learn/intermediate-machine-learning)**
-# 
-# 
-# 
-# 
-# 
-# *Have questions or comments? Visit the [Learn Discussion forum](https://www.kaggle.com/learn-forum) to chat with other Learners.*
-#+end_example
+350 appears to be the best number of trees for our forest.
