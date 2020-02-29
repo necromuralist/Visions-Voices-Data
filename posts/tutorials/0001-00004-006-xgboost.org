@@ -2,69 +2,117 @@
 .. title: XGBoost
 .. slug: xgboost
 .. date: 2020-02-20 21:25:25 UTC-08:00
-.. tags: 
-.. category: 
+.. tags: xgboost,tutorial,kaggle
+.. category: Tutorial
 .. link: 
-.. description: 
+.. description: Kaggle's tutorial on XGBoost.
 .. type: text
 .. status: 
 .. updated: 
 
 #+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 5
+#+PROPERTY: header-args :session /run/user/1000/jupyter/kernel-1478e9de-a62a-48df-ae97-97a0661a47f0.json
+* Beginning
+#+begin_quote
+In this exercise, you will leverage what you've learned to tune a machine learning model with **cross-validation**.
+#+end_quote
+** Imports
+*** Python
+#+begin_src python :results none
+from argparse import Namespace
+from functools import partial
+from pathlib import Path
+#+end_src
+*** PyPi
+#+begin_src python :results none
+from eli5.sklearn import PermutationImportance
+from matplotlib import pyplot
+
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
+
+from tabulate import tabulate
+
+import eli5
+import hvplot.pandas
+import pandas
+import shap
+#+end_src
+*** Others
+#+begin_src python :results none
+from graeae import CountPercentage, EmbedHoloviews, EnvironmentLoader, Timer
+#+end_src
+** Set Up
+*** Table
+#+begin_src python :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", showindex=False, headers="keys")
+#+end_src
+*** Plottting
+#+begin_src python :results none
+SLUG = "cross-validation"
+OUTPUT_PATH = Path("../../files/posts/tutorials/")/SLUG
+if not OUTPUT_PATH.is_dir():
+    OUTPUT_PATH.mkdir()
+Embed = partial(EmbedHoloviews, folder_path=OUTPUT_PATH)
+Plot = Namespace(
+    height=800,
+    width=1000,
+)
+#+end_src
+*** The Timer
+#+begin_src python :results none
+TIMER = Timer()
+#+end_src
+*** Environment
+#+begin_src python :results none
+ENVIRONMENT = EnvironmentLoader()
+#+end_src
+*** The Data
+#+begin_src python :results none
+DATA_PATH = Path(ENVIRONMENT["HOUSE-PRICES-IOWA"]).expanduser()
+train_data = pandas.read_csv(
+    DATA_PATH/"train.csv", index_col="Id")
+
+test_data = pandas.read_csv(
+    DATA_PATH/"test.csv", index_col="Id"
+)
+X_test = test_data
+#+end_src
+*** Some Constants
+#+begin_src python :results none
+Data = Namespace(
+    target="SalePrice",
+    train_size=0.8,
+    test_size=0.2,
+    random_seed=0,
+)
+#+end_src
+** Setup The Data
+   Split up the target and features.
+#+begin_src python :results none
+assert not train_data[Data.target].hasnans
+y = train_data[Data.target]
+X = train_data.drop([Data.target], axis="columns")
+#+end_src
+
+#+begin_src python :results none
+X_train, X_validate, y_train, y_validate = train_test_split(
+    X, y,
+    train_size=Data.train_size, test_size=Data.test_size,
+    random_state=Data.random_seed)
+#+end_src
+
+* Raw
 #+begin_example
-#!/usr/bin/env python
-# coding: utf-8
-
-# **[Intermediate Machine Learning Home Page](https://www.kaggle.com/learn/intermediate-machine-learning)**
-# 
-# ---
-# 
-
-# In this exercise, you will use your new knowledge to train a model with **gradient boosting**.
-# 
-# # Setup
-# 
-# The questions below will give you feedback on your work. Run the following cell to set up the feedback system.
-
-# In[ ]:
-
-
-# Set up code checking
-import os
-if not os.path.exists("../input/train.csv"):
-    os.symlink("../input/home-data-for-ml-course/train.csv", "../input/train.csv")  
-    os.symlink("../input/home-data-for-ml-course/test.csv", "../input/test.csv") 
-from learntools.core import binder
-binder.bind(globals())
-from learntools.ml_intermediate.ex6 import *
-print("Setup Complete")
-
-
-# You will work with the [Housing Prices Competition for Kaggle Learn Users](https://www.kaggle.com/c/home-data-for-ml-course) dataset from the previous exercise. 
-# 
-# ![Ames Housing dataset image](https://i.imgur.com/lTJVG4e.png)
-# 
-# Run the next code cell without changes to load the training and validation sets in `X_train`, `X_valid`, `y_train`, and `y_valid`.  The test set is loaded in `X_test`.
-
-# In[ ]:
-
-
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
-# Read the data
-X = pd.read_csv('../input/train.csv', index_col='Id')
-X_test_full = pd.read_csv('../input/test.csv', index_col='Id')
-
-# Remove rows with missing target, separate target from predictors
-X.dropna(axis=0, subset=['SalePrice'], inplace=True)
-y = X.SalePrice              
-X.drop(['SalePrice'], axis=1, inplace=True)
-
-# Break off validation set from training data
-X_train_full, X_valid_full, y_train, y_valid = train_test_split(X, y, train_size=0.8, test_size=0.2,
-                                                                random_state=0)
-
 # "Cardinality" means the number of unique values in a column
 # Select categorical columns with relatively low cardinality (convenient but arbitrary)
 low_cardinality_cols = [cname for cname in X_train_full.columns if X_train_full[cname].nunique() < 10 and 
