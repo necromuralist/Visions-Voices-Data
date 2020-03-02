@@ -13,7 +13,7 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 5
-#+PROPERTY: header-args :session /run/user/1000/jupyter/kernel-5d1a779b-6379-4716-af03-ce9ad0df3676.json
+#+PROPERTY: header-args :session /home/athena/.local/share/jupyter/runtime/kernel-9969ffe6-383a-495d-b019-f6636bf0ab63.json
 * Beginning
 #+begin_quote
 Now it's your turn to test your new knowledge of **missing values** handling. You'll probably find it makes a big difference.
@@ -182,28 +182,28 @@ train_counter()
 #+end_src
 
 #+RESULTS:
-: | Value   |   Count |   Percent (%) |
-: |---------+---------+---------------|
-: | Norm    |    1160 |         99.32 |
-: | Feedr   |       4 |          0.34 |
-: | Artery  |       1 |          0.09 |
-: | PosN    |       1 |          0.09 |
-: | RRAe    |       1 |          0.09 |
-: | PosA    |       1 |          0.09 |
+| Value   |   Count |   Percent (%) |
+|---------+---------+---------------|
+| Norm    |    1160 |         99.32 |
+| Feedr   |       4 |          0.34 |
+| PosA    |       1 |          0.09 |
+| Artery  |       1 |          0.09 |
+| RRAe    |       1 |          0.09 |
+| PosN    |       1 |          0.09 |
 
 #+begin_src python :results output raw :exports both
 validate_counter()
 #+end_src
 
 #+RESULTS:
-: | Value   |   Count |   Percent (%) |
-: |---------+---------+---------------|
-: | Norm    |     285 |         97.60 |
-: | Feedr   |       2 |          0.68 |
-: | RRNn    |       2 |          0.68 |
-: | Artery  |       1 |          0.34 |
-: | PosN    |       1 |          0.34 |
-: | RRAn    |       1 |          0.34 |
+| Value   |   Count |   Percent (%) |
+|---------+---------+---------------|
+| Norm    |     285 |         97.60 |
+| Feedr   |       2 |          0.68 |
+| RRNn    |       2 |          0.68 |
+| RRAn    |       1 |          0.34 |
+| Artery  |       1 |          0.34 |
+| PosN    |       1 |          0.34 |
 
 It looks like the validation data has values that aren't in the training data (and vice versa), e.g. =RRNn=, so encoding the training set won't work with the validation set.
 
@@ -234,7 +234,6 @@ for column in bad_label_columns:
 #+end_src
 
 #+RESULTS:
-#+begin_example
 Categorical columns that will be label encoded:
  - MSZoning
  - Street
@@ -265,38 +264,6 @@ Categorical columns that will be dropped from the dataset:
  - Utilities
  - Functional
  - Exterior1st
-#+end_example
-Categorical columns that will be label encoded:
- - MSZoning
- - Street
- - LotShape
- - LandContour
- - LotConfig
- - BldgType
- - HouseStyle
- - ExterQual
- - CentralAir
- - KitchenQual
- - PavedDrive
- - SaleCondition
-
-Categorical columns that will be dropped from the dataset:
- - SaleType
- - Foundation
- - Exterior1st
- - LandSlope
- - Condition2
- - Condition1
- - RoofMatl
- - Functional
- - Utilities
- - Neighborhood
- - HeatingQC
- - Heating
- - Exterior2nd
- - RoofStyle
- - ExterCond
-
 *** Drop the Bad Columns
 
 #+begin_src python :results none
@@ -350,7 +317,6 @@ print(TABLE(cardinality))
 #+end_src
 
 #+RESULTS:
-#+begin_example
 | Column        |   Cardinality |
 |---------------+---------------|
 | Neighborhood  |            25 |
@@ -380,37 +346,7 @@ print(TABLE(cardinality))
 | Street        |             2 |
 | Utilities     |             2 |
 | CentralAir    |             2 |
-#+end_example
 
-| Column        |   Cardinality |
-|---------------+---------------|
-| Neighborhood  |            25 |
-| Exterior2nd   |            16 |
-| Exterior1st   |            15 |
-| SaleType      |             9 |
-| Condition1    |             9 |
-| HouseStyle    |             8 |
-| RoofMatl      |             7 |
-| Functional    |             6 |
-| Heating       |             6 |
-| Foundation    |             6 |
-| RoofStyle     |             6 |
-| SaleCondition |             6 |
-| Condition2    |             6 |
-| BldgType      |             5 |
-| ExterCond     |             5 |
-| LotConfig     |             5 |
-| HeatingQC     |             5 |
-| MSZoning      |             5 |
-| ExterQual     |             4 |
-| KitchenQual   |             4 |
-| LandContour   |             4 |
-| LotShape      |             4 |
-| LandSlope     |             3 |
-| PavedDrive    |             3 |
-| Street        |             2 |
-| Utilities     |             2 |
-| CentralAir    |             2 |
 
 
 #+begin_quote
@@ -449,7 +385,12 @@ As an example, consider a dataset with 10,000 rows, and containing one categoric
  - If we instead replace the column with the label encoding, how many entries are added?
 #+end_quote
 
-If "entries" refers to columns then the one-hot-encoding will add 99 new columns (assuming the original is dropped) while the label-encoding won't add any columns.
+#+begin_src python :results output :exports both
+print(10000 * 100 - 10000)
+#+end_src
+
+#+RESULTS:
+: 990000
 
 ** Step 4: One-hot encoding
 #+begin_quote
@@ -503,10 +444,10 @@ for column in high_cardinality_columns:
 #+end_src
 
 #+RESULTS:
-: Categorical columns that will be dropped from the dataset:
-:  - Neighborhood
-:  - Exterior2nd
-:  - Exterior1st
+Categorical columns that will be dropped from the dataset:
+ - Neighborhood
+ - Exterior2nd
+ - Exterior1st
 
 #+begin_quote
 Use the next code cell to one-hot encode the data in =X_train= and =X_valid=.  Set the preprocessed DataFrames to =OH_X_train= and =OH_X_valid=, respectively.  
@@ -515,19 +456,22 @@ Use the next code cell to one-hot encode the data in =X_train= and =X_valid=.  S
 #+end_quote
 
 #+begin_src python :results none
-OH_X = X.drop(high_cardinality_columns, axis="columns").reset_index(drop=True)
-for column in low_cardinality_columns:
-    encoder = OneHotEncoder(sparse=False)
-    encoded = encoder.fit_transform(
-        OH_X[column].to_numpy().reshape(-1, 1)
-    )
-    reencoded = pandas.DataFrame(encoded, columns=encoder.get_feature_names())
-    OH_X = pandas.concat([OH_X, reencoded], axis="columns").drop(
-        column, axis="columns")
-OH_X_train, OH_X_validate, y_train, y_validate = train_test_split(
-    OH_X, y,
-    train_size=Data.train_size, test_size=Data.test_size,
-    random_state=Data.random_seed)   
+OH_train = X_train[low_cardinality_columns]
+OH_validate = X_validate[low_cardinality_columns]
+
+encoder = OneHotEncoder(sparse=False, handle_unknown="ignore")
+
+OH_train = pandas.DataFrame(encoder.fit_transform(OH_train))
+OH_validate = pandas.DataFrame(encoder.fit_transform(OH_validate))
+
+OH_train.index = X_train.index
+OH_validate.index = X_validate.index
+
+X_train_numeric = X_train.drop(object_columns, axis="columns")
+X_validate_numeric = X_validate.drop(object_columns, axis="columns")
+
+OH_X_train = pandas.concat([X_train_numeric, OH_train], axis="columns")
+OH_X_validate = pandas.concat([X_validate_numeric, OH_validate], axis="columns")
 #+end_src
 
 #+begin_src python :results output :exports both
@@ -581,7 +525,7 @@ print(f"MAE: {error:0.2f}")
 #+end_src
 
 #+RESULTS:
-: MAE: 17599.55
+: MAE: 17680.04
 
 It seems to have gotten worse... but maybe that's because we tuned the hyperparameters to the numeric-only model.
 *** Hyperparameter Tuning
@@ -610,11 +554,11 @@ print(search.best_params_)
 #+end_src
 
 #+RESULTS:
-: CV Training R^2: 0.87
+: CV Training R^2: 0.86
 : Training R^2:  0.98
-: Validation R^2: 0.85
-: Mean Absolute Error: 17563.961369863013
-: {'n_estimators': 50, 'max_depth': 60}
+: Validation R^2: 0.84
+: Mean Absolute Error: 17615.31526418787
+: {'n_estimators': 140, 'max_depth': 60}
 
 So it can get a little better, but it doesn't do as well as with just the numeric features. Maybe we don't have enough data to make it work.
 
@@ -630,29 +574,31 @@ print(TABLE(table))
 #+end_src
 
 #+RESULTS:
+#+begin_example
 | Weight           | Feature      |
 |------------------+--------------|
-| 0.4658  ± 0.1214 | OverallQual  |
-| 0.1104  ± 0.0348 | GrLivArea    |
-| 0.0256  ± 0.0096 | BsmtFinSF1   |
-| 0.0247  ± 0.0075 | TotalBsmtSF  |
-| 0.0159  ± 0.0083 | 1stFlrSF     |
-| 0.0155  ± 0.0081 | GarageCars   |
-| 0.0103  ± 0.0042 | LotArea      |
-| 0.0071  ± 0.0010 | 2ndFlrSF     |
-| 0.0061  ± 0.0032 | GarageArea   |
-| 0.0051  ± 0.0019 | YearBuilt    |
-| 0.0045  ± 0.0017 | GarageYrBlt  |
-| 0.0041  ± 0.0043 | BedroomAbvGr |
-| 0.0032  ± 0.0011 | WoodDeckSF   |
-| 0.0031  ± 0.0025 | YearRemodAdd |
-| 0.0028  ± 0.0003 | x0_Bnk       |
-| 0.0027  ± 0.0008 | x0_Lvl       |
-| 0.0026  ± 0.0002 | x0_Norm      |
-| 0.0024  ± 0.0005 | OverallCond  |
-| 0.0020  ± 0.0015 | OpenPorchSF  |
-| 0.0013  ± 0.0011 | x0_TA        |
+| 0.4825  ± 0.1218 | OverallQual  |
+| 0.1019  ± 0.0350 | GrLivArea    |
+| 0.0199  ± 0.0082 | TotalBsmtSF  |
+| 0.0171  ± 0.0067 | BsmtFinSF1   |
+| 0.0131  ± 0.0062 | 1stFlrSF     |
+| 0.0096  ± 0.0078 | GarageCars   |
+| 0.0084  ± 0.0011 | 2ndFlrSF     |
+| 0.0074  ± 0.0026 | LotArea      |
+| 0.0051  ± 0.0022 | YearRemodAdd |
+| 0.0050  ± 0.0034 | GarageArea   |
+| 0.0048  ± 0.0047 | BedroomAbvGr |
+| 0.0036  ± 0.0009 | LotFrontage  |
+| 0.0031  ± 0.0021 | YearBuilt    |
+| 0.0031  ± 0.0014 | OverallCond  |
+| 0.0029  ± 0.0012 | WoodDeckSF   |
+| 0.0021  ± 0.0021 | MasVnrArea   |
+| 0.0014  ± 0.0016 | OpenPorchSF  |
+| 0.0012  ± 0.0009 | FullBath     |
+| 0.0009  ± 0.0008 | x0_RM        |
+| 0.0008  ± 0.0036 | GarageYrBlt  |
 | … 142 more …     | … 142 more … |
+#+end_example
 
 It looks like the most significant categorical features are =LandContour= (Bnk and Lvl), either =Condition1= or =Condition2= (Norm) and =ExterCond= (TA). I just took a quick look they don't seem to contribute a whole lot to the model.
 * End
