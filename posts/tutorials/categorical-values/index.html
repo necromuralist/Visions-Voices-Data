@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="Kaggle's intermediate machine learning tutorial on handling categorical values." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Categorical Values | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/categorical-values/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="../../../assets/javascript/p5.min.js" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="/posts/tutorials/missing-values/" rel="prev" title="Missing Values" type="text/html">
+<link href="/posts/tutorials/kaggle-intermediate-machine-learning-pipelines/" rel="next" title="Pipelines" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Categorical Values" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/categorical-values/" property="og:url">
+<meta content="Kaggle's intermediate machine learning tutorial on handling categorical values." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2020-02-20T21:13:09-08:00" property="article:published_time">
+<meta content="categorical" property="article:tag">
+<meta content="kaggle" property="article:tag">
+<meta content="tutorial" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="/archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="/categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="/rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="/pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"> <input name="k8" type="hidden" value="#444444"> <input name="k9" type="hidden" value="#D51920"> <input name="kt" type="hidden" value="h"> <input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"> <input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="/posts/tutorials/categorical-values/index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href="/posts/tutorials/categorical-values/">Categorical Values</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/tutorials/categorical-values/" rel="bookmark"><time class="published dt-published" datetime="2020-02-20T21:13:09-08:00" itemprop="datePublished" title="2020-02-20 21:13">2020-02-20 21:13</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="/posts/tutorials/categorical-values/index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/tutorials/categorical-values/#org4fa3f50">Beginning</a>
+<ul>
+<li><a href="/posts/tutorials/categorical-values/#org1e7eab2">Imports</a>
+<ul>
+<li><a href="/posts/tutorials/categorical-values/#org26d5821">Python</a></li>
+<li><a href="/posts/tutorials/categorical-values/#org279923b">PyPi</a></li>
+<li><a href="/posts/tutorials/categorical-values/#org654b1cd">Others</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/categorical-values/#org62cf300">Set Up</a>
+<ul>
+<li><a href="/posts/tutorials/categorical-values/#org5ca4d2c">Table</a></li>
+<li><a href="/posts/tutorials/categorical-values/#org4d1d5e7">Plottting</a></li>
+<li><a href="/posts/tutorials/categorical-values/#org8474b1a">The Timer</a></li>
+<li><a href="/posts/tutorials/categorical-values/#orgad78c24">Environment</a></li>
+<li><a href="/posts/tutorials/categorical-values/#orgdc87c3e">The Data</a></li>
+<li><a href="/posts/tutorials/categorical-values/#org1437058">Some Constants</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/categorical-values/#orgfab5597">Middle</a>
+<ul>
+<li><a href="/posts/tutorials/categorical-values/#orgf004cb9">Setup The Data</a></li>
+<li><a href="/posts/tutorials/categorical-values/#orgab9e835">Score Dataset</a></li>
+<li><a href="/posts/tutorials/categorical-values/#orge60debb">Step 1: Drop Categorical Columns</a></li>
+<li><a href="/posts/tutorials/categorical-values/#org28274ef">Step 2: Label encoding</a>
+<ul>
+<li><a href="/posts/tutorials/categorical-values/#org36a8876">Drop the Bad Columns</a></li>
+<li><a href="/posts/tutorials/categorical-values/#org4544733">Encode the Categorical Values</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/categorical-values/#orgbb7ce8d">Step 3: Investigating cardinality</a>
+<ul>
+<li><a href="/posts/tutorials/categorical-values/#orgefa5122">Questions</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/categorical-values/#org33016ef">Step 4: One-hot encoding</a></li>
+<li><a href="/posts/tutorials/categorical-values/#org1591c0b">Step 5: Generate test predictions and submit your results</a>
+<ul>
+<li><a href="/posts/tutorials/categorical-values/#orgd57606d">Hyperparameter Tuning</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/categorical-values/#org830b310">End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org4fa3f50">
+<h2 id="org4fa3f50">Beginning</h2>
+<div class="outline-text-2" id="text-org4fa3f50">
+<blockquote>
+<p>Now it's your turn to test your new knowledge of <b>missing values</b> handling. You'll probably find it makes a big difference.</p>
+</blockquote>
+</div>
+<div class="outline-3" id="outline-container-org1e7eab2">
+<h3 id="org1e7eab2">Imports</h3>
+<div class="outline-text-3" id="text-org1e7eab2"></div>
+<div class="outline-4" id="outline-container-org26d5821">
+<h4 id="org26d5821">Python</h4>
+<div class="outline-text-4" id="text-org26d5821">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">Namespace</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org279923b">
+<h4 id="org279923b">PyPi</h4>
+<div class="outline-text-4" id="text-org279923b">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">eli5.sklearn</span> <span class="kn">import</span> <span class="n">PermutationImportance</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span>
+<span class="kn">from</span> <span class="nn">pdpbox</span> <span class="kn">import</span> <span class="n">pdp</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestRegressor</span>
+<span class="kn">from</span> <span class="nn">sklearn.experimental</span> <span class="kn">import</span> <span class="n">enable_iterative_imputer</span>
+<span class="kn">from</span> <span class="nn">sklearn.impute</span> <span class="kn">import</span> <span class="n">IterativeImputer</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">mean_absolute_error</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">cross_val_score</span><span class="p">,</span> <span class="n">train_test_split</span><span class="p">,</span> <span class="n">RandomizedSearchCV</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">LabelEncoder</span><span class="p">,</span> <span class="n">OneHotEncoder</span>
+
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+
+<span class="kn">import</span> <span class="nn">eli5</span>
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+<span class="kn">import</span> <span class="nn">shap</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org654b1cd">
+<h4 id="org654b1cd">Others</h4>
+<div class="outline-text-4" id="text-org654b1cd">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">CountPercentage</span><span class="p">,</span> <span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">EnvironmentLoader</span><span class="p">,</span> <span class="n">Timer</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org62cf300">
+<h3 id="org62cf300">Set Up</h3>
+<div class="outline-text-3" id="text-org62cf300"></div>
+<div class="outline-4" id="outline-container-org5ca4d2c">
+<h4 id="org5ca4d2c">Table</h4>
+<div class="outline-text-4" id="text-org5ca4d2c">
+<div class="highlight">
+<pre><span></span><span class="n">TABLE</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org4d1d5e7">
+<h4 id="org4d1d5e7">Plottting</h4>
+<div class="outline-text-4" id="text-org4d1d5e7">
+<div class="highlight">
+<pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"categorical-values"</span>
+<span class="n">OUTPUT_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/tutorials/"</span><span class="p">)</span><span class="o">/</span><span class="n">SLUG</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="n">OUTPUT_PATH</span><span class="p">)</span>
+<span class="n">Plot</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org8474b1a">
+<h4 id="org8474b1a">The Timer</h4>
+<div class="outline-text-4" id="text-org8474b1a">
+<div class="highlight">
+<pre><span></span><span class="n">TIMER</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgad78c24">
+<h4 id="orgad78c24">Environment</h4>
+<div class="outline-text-4" id="text-orgad78c24">
+<div class="highlight">
+<pre><span></span><span class="n">ENVIRONMENT</span> <span class="o">=</span> <span class="n">EnvironmentLoader</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgdc87c3e">
+<h4 id="orgdc87c3e">The Data</h4>
+<div class="outline-text-4" id="text-orgdc87c3e">
+<div class="highlight">
+<pre><span></span><span class="n">DATA_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">ENVIRONMENT</span><span class="p">[</span><span class="s2">"HOUSE-PRICES-IOWA"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">train_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+    <span class="n">DATA_PATH</span><span class="o">/</span><span class="s2">"train.csv"</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s2">"Id"</span><span class="p">)</span>
+
+<span class="n">test_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+    <span class="n">DATA_PATH</span><span class="o">/</span><span class="s2">"test.csv"</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s2">"Id"</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org1437058">
+<h4 id="org1437058">Some Constants</h4>
+<div class="outline-text-4" id="text-org1437058">
+<div class="highlight">
+<pre><span></span><span class="n">Data</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
+    <span class="n">target</span><span class="o">=</span><span class="s2">"SalePrice"</span><span class="p">,</span>
+    <span class="n">train_size</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+    <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgfab5597">
+<h2 id="orgfab5597">Middle</h2>
+<div class="outline-text-2" id="text-orgfab5597"></div>
+<div class="outline-3" id="outline-container-orgf004cb9">
+<h3 id="orgf004cb9">Setup The Data</h3>
+<div class="outline-text-3" id="text-orgf004cb9">
+<p>Split up the target and features.</p>
+<div class="highlight">
+<pre><span></span><span class="k">assert</span> <span class="ow">not</span> <span class="n">train_data</span><span class="p">[</span><span class="n">Data</span><span class="o">.</span><span class="n">target</span><span class="p">]</span><span class="o">.</span><span class="n">hasnans</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">train_data</span><span class="p">[</span><span class="n">Data</span><span class="o">.</span><span class="n">target</span><span class="p">]</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">train_data</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="n">Data</span><span class="o">.</span><span class="n">target</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+</pre></div>
+<p>We know that there's missing data, but since this is about handling categorical data, not missing data, we'll just drop the columns that have missing values.</p>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">[[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">X</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">hasnans</span><span class="p">]]</span>
+<span class="n">test_data</span> <span class="o">=</span> <span class="n">test_data</span><span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+(1460, 79)
+(1460, 60)
+</pre>
+<p>So we lost 19 columns - more than I was expecting.</p>
+<p>Now do the train-test split.</p>
+<div class="highlight">
+<pre><span></span><span class="n">X_train</span><span class="p">,</span> <span class="n">X_validate</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_validate</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+    <span class="n">train_size</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">train_size</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">test_size</span><span class="p">,</span>
+    <span class="n">random_state</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">random_seed</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">drop_X_train</span><span class="o">.</span><span class="n">info</span><span class="p">())</span>
+</pre></div>
+<pre class="example">
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+&lt;ipython-input-13-002dd7ea4a19&gt; in &lt;module&gt;
+----&gt; 1 print(drop_X_train.info())
+
+NameError: name 'drop_X_train' is not defined
+</pre>
+<blockquote>
+<p>Notice that the dataset contains both numerical and categorical variables. You'll need to encode the categorical data before training a model.</p>
+</blockquote>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgab9e835">
+<h3 id="orgab9e835">Score Dataset</h3>
+<div class="outline-text-3" id="text-orgab9e835">
+<p>This is the same function used in the missing-values tutorial. It's used to compare different models' Mean Absolute Error (MAE) as we make changes.</p>
+<div class="highlight">
+<pre><span></span><span class="k">def</span> <span class="nf">score_dataset</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">X_valid</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_valid</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestRegressor</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+    <span class="n">preds</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_valid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_valid</span><span class="p">,</span> <span class="n">preds</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orge60debb">
+<h3 id="orge60debb">Step 1: Drop Categorical Columns</h3>
+<div class="outline-text-3" id="text-orge60debb">
+<p>The first approach is to just drop all the non-numeric columns.</p>
+<div class="highlight">
+<pre><span></span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">X_train</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">X_train</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="nb">object</span><span class="p">]</span>
+<span class="n">drop_X_train</span> <span class="o">=</span> <span class="n">X_train</span><span class="p">[</span><span class="n">columns</span><span class="p">]</span>
+<span class="n">drop_X_validate</span> <span class="o">=</span> <span class="n">X_validate</span><span class="p">[</span><span class="n">columns</span><span class="p">]</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s2">"MAE from Approach 1 (Drop categorical variables):"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{score_dataset(drop_X_train, drop_X_validate, y_train, y_validate):,}"</span><span class="p">)</span>
+</pre></div>
+<p>Using all the numeric columns does better than we did with our initial subset of columns (20,928.5), but not as good as we did with imputed values (16,656.3).</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org28274ef">
+<h3 id="org28274ef">Step 2: Label encoding</h3>
+<div class="outline-text-3" id="text-org28274ef">
+<blockquote>
+<p>Before jumping into label encoding, we'll investigate the dataset. Specifically, we'll look at the <code>'Condition2'</code> column. The code cell below prints the unique entries in both the training and validation sets.</p>
+</blockquote>
+<div class="highlight">
+<pre><span></span><span class="n">train_counter</span> <span class="o">=</span> <span class="n">CountPercentage</span><span class="p">(</span><span class="n">X_train</span><span class="o">.</span><span class="n">Condition2</span><span class="p">,</span> <span class="n">dropna</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">validate_counter</span> <span class="o">=</span> <span class="n">CountPercentage</span><span class="p">(</span><span class="n">X_validate</span><span class="o">.</span><span class="n">Condition2</span><span class="p">,</span> <span class="n">dropna</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">train_counter</span><span class="p">()</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Value</th>
+<th class="org-right" scope="col">Count</th>
+<th class="org-right" scope="col">Percent (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Norm</td>
+<td class="org-right">1160</td>
+<td class="org-right">99.32</td>
+</tr>
+<tr>
+<td class="org-left">Feedr</td>
+<td class="org-right">4</td>
+<td class="org-right">0.34</td>
+</tr>
+<tr>
+<td class="org-left">PosA</td>
+<td class="org-right">1</td>
+<td class="org-right">0.09</td>
+</tr>
+<tr>
+<td class="org-left">Artery</td>
+<td class="org-right">1</td>
+<td class="org-right">0.09</td>
+</tr>
+<tr>
+<td class="org-left">RRAe</td>
+<td class="org-right">1</td>
+<td class="org-right">0.09</td>
+</tr>
+<tr>
+<td class="org-left">PosN</td>
+<td class="org-right">1</td>
+<td class="org-right">0.09</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span><span class="n">validate_counter</span><span class="p">()</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Value</th>
+<th class="org-right" scope="col">Count</th>
+<th class="org-right" scope="col">Percent (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Norm</td>
+<td class="org-right">285</td>
+<td class="org-right">97.60</td>
+</tr>
+<tr>
+<td class="org-left">Feedr</td>
+<td class="org-right">2</td>
+<td class="org-right">0.68</td>
+</tr>
+<tr>
+<td class="org-left">RRNn</td>
+<td class="org-right">2</td>
+<td class="org-right">0.68</td>
+</tr>
+<tr>
+<td class="org-left">RRAn</td>
+<td class="org-right">1</td>
+<td class="org-right">0.34</td>
+</tr>
+<tr>
+<td class="org-left">Artery</td>
+<td class="org-right">1</td>
+<td class="org-right">0.34</td>
+</tr>
+<tr>
+<td class="org-left">PosN</td>
+<td class="org-right">1</td>
+<td class="org-right">0.34</td>
+</tr>
+</tbody>
+</table>
+<p>It looks like the validation data has values that aren't in the training data (and vice versa), e.g. <code>RRNn</code>, so encoding the training set won't work with the validation set.</p>
+<blockquote>
+<p>This is a common problem that you'll encounter with real-world data, and there are many approaches to fixing this issue. For instance, you can write a custom label encoder to deal with new categories. The simplest approach, however, is to drop the problematic categorical columns.</p>
+<p>Run the code cell below to save the problematic columns to a Python list <code>bad_label_cols</code>. Likewise, columns that can be safely label encoded are stored in <code>good_label_cols</code>.</p>
+</blockquote>
+<div class="highlight">
+<pre><span></span><span class="c1"># All categorical columns</span>
+<span class="n">object_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">X_train</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">X_train</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s2">"object"</span><span class="p">]</span>
+
+<span class="c1"># Columns that can be safely label encoded</span>
+<span class="n">good_label_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">object_columns</span> <span class="k">if</span> 
+                      <span class="nb">set</span><span class="p">(</span><span class="n">X_train</span><span class="p">[</span><span class="n">column</span><span class="p">])</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">X_validate</span><span class="p">[</span><span class="n">column</span><span class="p">])]</span>
+
+<span class="c1"># Problematic columns that will be dropped from the dataset</span>
+<span class="n">bad_label_columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">object_columns</span><span class="p">)</span><span class="o">-</span><span class="nb">set</span><span class="p">(</span><span class="n">good_label_columns</span><span class="p">))</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s1">'Categorical columns that will be label encoded:'</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">column</span> <span class="ow">in</span>  <span class="n">good_label_columns</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">" - {column}"</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">Categorical columns that will be dropped from the dataset:'</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">bad_label_columns</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">" - {column}"</span><span class="p">)</span>
+</pre></div>
+<p>Categorical columns that will be label encoded:</p>
+<ul class="org-ul">
+<li>MSZoning</li>
+<li>Street</li>
+<li>LotShape</li>
+<li>LandContour</li>
+<li>LotConfig</li>
+<li>BldgType</li>
+<li>HouseStyle</li>
+<li>ExterQual</li>
+<li>CentralAir</li>
+<li>KitchenQual</li>
+<li>PavedDrive</li>
+<li>SaleCondition</li>
+</ul>
+<p>Categorical columns that will be dropped from the dataset:</p>
+<ul class="org-ul">
+<li>Condition1</li>
+<li>RoofMatl</li>
+<li>HeatingQC</li>
+<li>ExterCond</li>
+<li>RoofStyle</li>
+<li>SaleType</li>
+<li>Foundation</li>
+<li>Condition2</li>
+<li>Exterior2nd</li>
+<li>Neighborhood</li>
+<li>Heating</li>
+<li>LandSlope</li>
+<li>Utilities</li>
+<li>Functional</li>
+<li>Exterior1st</li>
+</ul>
+</div>
+<div class="outline-4" id="outline-container-org36a8876">
+<h4 id="org36a8876">Drop the Bad Columns</h4>
+<div class="outline-text-4" id="text-org36a8876">
+<div class="highlight">
+<pre><span></span><span class="n">label_X_train</span> <span class="o">=</span> <span class="n">X_train</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">bad_label_columns</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+<span class="n">label_X_validate</span> <span class="o">=</span> <span class="n">X_validate</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">bad_label_columns</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org4544733">
+<h4 id="org4544733">Encode the Categorical Values</h4>
+<div class="outline-text-4" id="text-org4544733">
+<p>We're going to use sklearn's <a href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.LabelEncoder.html">LabelEncoder</a>.</p>
+<p><b>Note:</b> Sklearn's documentation says that this is meant only for categorical target data (the labels), not the input data like we're doing here. Later on we're going to use one-hot-encoding, which is what sklearn recommends (the LabelEncoder method implies that the numbers are values, not just numeric codes for strings).</p>
+<p>It's going to create integer values for each of the unique values in each column.</p>
+<div class="highlight">
+<pre><span></span><span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">good_label_columns</span><span class="p">:</span>
+    <span class="n">encoder</span> <span class="o">=</span> <span class="n">LabelEncoder</span><span class="p">()</span>    
+    <span class="n">label_X_train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">label_X_train</span><span class="p">[</span><span class="n">column</span><span class="p">])</span>
+    <span class="n">label_X_validate</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">label_X_validate</span><span class="p">[</span><span class="n">column</span><span class="p">])</span>
+</pre></div>
+<p>Now check how it did.</p>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="s2">"MAE from Approach 2 (Label Encoding):"</span><span class="p">)</span> 
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{score_dataset(label_X_train, label_X_validate, y_train, y_validate):,}"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+MAE from Approach 2 (Label Encoding):
+17,575.291883561644
+</pre>
+<p>So it does a little better than the previous approach of just dropping all the categorical data, but not as well as it did when we imputed the missing numeric values.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgbb7ce8d">
+<h3 id="orgbb7ce8d">Step 3: Investigating cardinality</h3>
+<div class="outline-text-3" id="text-orgbb7ce8d">
+<blockquote>
+<p>So far, you've tried two different approaches to dealing with categorical variables. And, you've seen that encoding categorical data yields better results than removing columns from the dataset.</p>
+<p>Soon, you'll try one-hot encoding. Before then, there's one additional topic we need to cover. Begin by running the next code cell without changes.</p>
+</blockquote>
+<p>Get number of unique entries in each column with categorical data</p>
+<div class="highlight">
+<pre><span></span><span class="n">object_nunique</span> <span class="o">=</span> <span class="p">[</span><span class="n">X_train</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">object_columns</span><span class="p">]</span>
+
+<span class="c1">## Print number of unique entries by column, in descending</span>
+<span class="n">cardinality</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">Column</span><span class="o">=</span><span class="n">object_columns</span><span class="p">,</span>
+                                    <span class="n">Cardinality</span><span class="o">=</span><span class="n">object_nunique</span><span class="p">)</span>
+                     <span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">"Cardinality"</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">cardinality</span><span class="p">))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Column</th>
+<th class="org-right" scope="col">Cardinality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Neighborhood</td>
+<td class="org-right">25</td>
+</tr>
+<tr>
+<td class="org-left">Exterior2nd</td>
+<td class="org-right">16</td>
+</tr>
+<tr>
+<td class="org-left">Exterior1st</td>
+<td class="org-right">15</td>
+</tr>
+<tr>
+<td class="org-left">SaleType</td>
+<td class="org-right">9</td>
+</tr>
+<tr>
+<td class="org-left">Condition1</td>
+<td class="org-right">9</td>
+</tr>
+<tr>
+<td class="org-left">HouseStyle</td>
+<td class="org-right">8</td>
+</tr>
+<tr>
+<td class="org-left">RoofMatl</td>
+<td class="org-right">7</td>
+</tr>
+<tr>
+<td class="org-left">Functional</td>
+<td class="org-right">6</td>
+</tr>
+<tr>
+<td class="org-left">Heating</td>
+<td class="org-right">6</td>
+</tr>
+<tr>
+<td class="org-left">Foundation</td>
+<td class="org-right">6</td>
+</tr>
+<tr>
+<td class="org-left">RoofStyle</td>
+<td class="org-right">6</td>
+</tr>
+<tr>
+<td class="org-left">SaleCondition</td>
+<td class="org-right">6</td>
+</tr>
+<tr>
+<td class="org-left">Condition2</td>
+<td class="org-right">6</td>
+</tr>
+<tr>
+<td class="org-left">BldgType</td>
+<td class="org-right">5</td>
+</tr>
+<tr>
+<td class="org-left">ExterCond</td>
+<td class="org-right">5</td>
+</tr>
+<tr>
+<td class="org-left">LotConfig</td>
+<td class="org-right">5</td>
+</tr>
+<tr>
+<td class="org-left">HeatingQC</td>
+<td class="org-right">5</td>
+</tr>
+<tr>
+<td class="org-left">MSZoning</td>
+<td class="org-right">5</td>
+</tr>
+<tr>
+<td class="org-left">ExterQual</td>
+<td class="org-right">4</td>
+</tr>
+<tr>
+<td class="org-left">KitchenQual</td>
+<td class="org-right">4</td>
+</tr>
+<tr>
+<td class="org-left">LandContour</td>
+<td class="org-right">4</td>
+</tr>
+<tr>
+<td class="org-left">LotShape</td>
+<td class="org-right">4</td>
+</tr>
+<tr>
+<td class="org-left">LandSlope</td>
+<td class="org-right">3</td>
+</tr>
+<tr>
+<td class="org-left">PavedDrive</td>
+<td class="org-right">3</td>
+</tr>
+<tr>
+<td class="org-left">Street</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-left">Utilities</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-left">CentralAir</td>
+<td class="org-right">2</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>The output above shows, for each column with categorical data, the number of unique values in the column. For instance, the <code>'Street'</code> column in the training data has two unique values: <code>'Grvl'</code> and <code>'Pave'</code>, corresponding to a gravel road and a paved road, respectively.</p>
+<p>We refer to the number of unique entries of a categorical variable as the <b>cardinality</b> of that categorical variable. For instance, the <code>'Street'</code> variable has cardinality 2.</p>
+</blockquote>
+</div>
+<div class="outline-4" id="outline-container-orgefa5122">
+<h4 id="orgefa5122">Questions</h4>
+<div class="outline-text-4" id="text-orgefa5122">
+<blockquote>
+<p>How many categorical variables in the training data have cardinality greater than 10?</p>
+</blockquote>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cardinality</span><span class="p">[</span><span class="n">cardinality</span><span class="o">.</span><span class="n">Cardinality</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">]))</span>
+</pre></div>
+<pre class="example">
+3
+</pre>
+<blockquote>
+<p>How many columns are needed to one-hot encode the 'Neighborhood' variable in the training data?</p>
+</blockquote>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">cardinality</span><span class="p">[</span><span class="n">cardinality</span><span class="o">.</span><span class="n">Column</span><span class="o">==</span><span class="s2">"Neighborhood"</span><span class="p">]</span><span class="o">.</span><span class="n">Cardinality</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+<pre class="example">
+25
+</pre>
+<blockquote>
+<p>For large datasets with many rows, one-hot encoding can greatly expand the size of the dataset. For this reason, we typically will only one-hot encode columns with relatively low cardinality. Then, high cardinality columns can either be dropped from the dataset, or we can use label encoding.</p>
+<p>As an example, consider a dataset with 10,000 rows, and containing one categorical column with 100 unique entries.</p>
+<ul class="org-ul">
+<li>If this column is replaced with the corresponding one-hot encoding, how many entries are added to the dataset?</li>
+<li>If we instead replace the column with the label encoding, how many entries are added?</li>
+</ul>
+</blockquote>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="mi">10000</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">-</span> <span class="mi">10000</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+990000
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org33016ef">
+<h3 id="org33016ef">Step 4: One-hot encoding</h3>
+<div class="outline-text-3" id="text-org33016ef">
+<blockquote>
+<p>In this step, you'll experiment with one-hot encoding. But, instead of encoding all of the categorical variables in the dataset, you'll only create a one-hot encoding for columns with cardinality less than 10.</p>
+<p>Run the code cell below without changes to set <code>low_cardinality_cols</code> to a Python list containing the columns that will be one-hot encoded. Likewise, <code>high_cardinality_cols</code> contains a list of categorical columns that will be dropped from the dataset.</p>
+</blockquote>
+<div class="highlight">
+<pre><span></span><span class="n">low_cardinality_columns</span> <span class="o">=</span> <span class="n">cardinality</span><span class="p">[</span><span class="n">cardinality</span><span class="o">.</span><span class="n">Cardinality</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">Column</span>
+<span class="n">high_cardinality_columns</span> <span class="o">=</span> <span class="n">cardinality</span><span class="p">[</span><span class="o">~</span><span class="n">cardinality</span><span class="o">.</span><span class="n">Column</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">low_cardinality_columns</span><span class="p">)]</span><span class="o">.</span><span class="n">Column</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="s2">"Categorical columns that will be one-hot encoded:"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">low_cardinality_columns</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">" - {column}"</span><span class="p">)</span>
+</pre></div>
+<p>Categorical columns that will be one-hot encoded:</p>
+<ul class="org-ul">
+<li>SaleType</li>
+<li>Condition1</li>
+<li>HouseStyle</li>
+<li>RoofMatl</li>
+<li>Functional</li>
+<li>Heating</li>
+<li>Foundation</li>
+<li>RoofStyle</li>
+<li>SaleCondition</li>
+<li>Condition2</li>
+<li>BldgType</li>
+<li>ExterCond</li>
+<li>LotConfig</li>
+<li>HeatingQC</li>
+<li>MSZoning</li>
+<li>ExterQual</li>
+<li>KitchenQual</li>
+<li>LandContour</li>
+<li>LotShape</li>
+<li>LandSlope</li>
+<li>PavedDrive</li>
+<li>Street</li>
+<li>Utilities</li>
+<li>CentralAir</li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="s1">'Categorical columns that will be dropped from the dataset:'</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">high_cardinality_columns</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">" - {column}"</span><span class="p">)</span>
+</pre></div>
+<p>Categorical columns that will be dropped from the dataset:</p>
+<ul class="org-ul">
+<li>Neighborhood</li>
+<li>Exterior2nd</li>
+<li>Exterior1st</li>
+</ul>
+<blockquote>
+<p>Use the next code cell to one-hot encode the data in <code>X_train</code> and <code>X_valid</code>. Set the preprocessed DataFrames to <code>OH_X_train</code> and <code>OH_X_valid</code>, respectively.</p>
+<ul class="org-ul">
+<li>The full list of categorical columns in the dataset can be found in the Python list <code>object_cols</code>.</li>
+<li>You should only one-hot encode the categorical columns in <code>low_cardinality_cols</code>. All other categorical columns should be dropped from the dataset.</li>
+</ul>
+</blockquote>
+<div class="highlight">
+<pre><span></span><span class="n">OH_train</span> <span class="o">=</span> <span class="n">X_train</span><span class="p">[</span><span class="n">low_cardinality_columns</span><span class="p">]</span>
+<span class="n">OH_validate</span> <span class="o">=</span> <span class="n">X_validate</span><span class="p">[</span><span class="n">low_cardinality_columns</span><span class="p">]</span>
+
+<span class="n">encoder</span> <span class="o">=</span> <span class="n">OneHotEncoder</span><span class="p">(</span><span class="n">sparse</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">handle_unknown</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">)</span>
+
+<span class="n">OH_train</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">encoder</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">OH_train</span><span class="p">))</span>
+<span class="n">OH_validate</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">encoder</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">OH_validate</span><span class="p">))</span>
+
+<span class="n">OH_train</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">X_train</span><span class="o">.</span><span class="n">index</span>
+<span class="n">OH_validate</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">X_validate</span><span class="o">.</span><span class="n">index</span>
+
+<span class="n">X_train_numeric</span> <span class="o">=</span> <span class="n">X_train</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">object_columns</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+<span class="n">X_validate_numeric</span> <span class="o">=</span> <span class="n">X_validate</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">object_columns</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+
+<span class="n">OH_X_train</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">X_train_numeric</span><span class="p">,</span> <span class="n">OH_train</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+<span class="n">OH_X_validate</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">X_validate_numeric</span><span class="p">,</span> <span class="n">OH_validate</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="s2">"MAE from Approach 3 (One-Hot Encoding):"</span><span class="p">)</span> 
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{score_dataset(OH_X_train, OH_X_validate, y_train, y_validate):,}"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+MAE from Approach 3 (One-Hot Encoding):
+17,429.93404109589
+</pre>
+<p>So we've improved slightly, but still not as well as the all numeric data with imputed data.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org1591c0b">
+<h3 id="org1591c0b">Step 5: Generate test predictions and submit your results</h3>
+<div class="outline-text-3" id="text-org1591c0b">
+<blockquote>
+<p>After you complete Step 4, if you'd like to use what you've learned to submit your results to the leaderboard, you'll need to preprocess the test data before generating predictions.</p>
+</blockquote>
+<p>To get the imputation working again we need to re-add the columns with missing values. I'm also going to encode the entire dataset before splitting so that everything is encoded, rather than ignoring the values in the validation set that aren't in the training set.</p>
+<div class="highlight">
+<pre><span></span><span class="n">X_2</span> <span class="o">=</span> <span class="n">train_data</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="n">Data</span><span class="o">.</span><span class="n">target</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+<span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">X_2</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">X_2</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="o">==</span><span class="nb">object</span><span class="p">]</span>
+<span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">objects</span> <span class="k">if</span> <span class="n">X_2</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">hasnans</span><span class="p">]</span>
+
+<span class="n">X_2</span> <span class="o">=</span> <span class="n">X_2</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">missing</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+<span class="n">OH_X</span> <span class="o">=</span> <span class="n">X_2</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">high_cardinality_columns</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">low_cardinality_columns</span><span class="p">:</span>
+    <span class="n">encoder</span> <span class="o">=</span> <span class="n">OneHotEncoder</span><span class="p">(</span><span class="n">sparse</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">encoded</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span>
+        <span class="n">OH_X</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">reencoded</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">encoded</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">encoder</span><span class="o">.</span><span class="n">get_feature_names</span><span class="p">())</span>
+    <span class="n">OH_X</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">OH_X</span><span class="p">,</span> <span class="n">reencoded</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+        <span class="n">column</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+
+<span class="n">imputer</span> <span class="o">=</span> <span class="n">IterativeImputer</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">random_seed</span><span class="p">)</span>
+<span class="n">OH_X</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">OH_X</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="n">OH_X</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+<span class="n">OH_X_train</span><span class="p">,</span> <span class="n">OH_X_validate</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_validate</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+    <span class="n">OH_X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+    <span class="n">train_size</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">train_size</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">test_size</span><span class="p">,</span>
+    <span class="n">random_state</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">random_seed</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestRegressor</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">random_seed</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">OH_X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+
+<span class="n">preds_valid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">OH_X_validate</span><span class="p">)</span>
+<span class="n">error</span> <span class="o">=</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_validate</span><span class="p">,</span> <span class="n">preds_valid</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"MAE: {error:0.2f}"</span><span class="p">)</span>
+</pre></div>
+<p>It seems to have gotten worse… but maybe that's because we tuned the hyperparameters to the numeric-only model.</p>
+</div>
+<div class="outline-4" id="outline-container-orgd57606d">
+<h4 id="orgd57606d">Hyperparameter Tuning</h4>
+<div class="outline-text-4" id="text-orgd57606d">
+<div class="highlight">
+<pre><span></span><span class="n">estimators</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">max_depth</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span> <span class="o">+</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span>
+
+<span class="n">grid</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">estimators</span><span class="p">,</span>
+            <span class="n">max_depth</span><span class="o">=</span><span class="n">max_depth</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestRegressor</span><span class="p">()</span>
+<span class="n">search</span> <span class="o">=</span> <span class="n">RandomizedSearchCV</span><span class="p">(</span><span class="n">estimator</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+                            <span class="n">param_distributions</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span>
+                            <span class="n">n_iter</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+                            <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                            <span class="n">random_state</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">search</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">OH_X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">best_estimator_</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"CV Training R^2: {search.best_score_:0.2f}"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Training R^2: {model.score(OH_X_train, y_train): 0.2f}"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Validation R^2: {model.score(OH_X_validate, y_validate):0.2f}"</span><span class="p">)</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">OH_X_validate</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Mean Absolute Error: {mean_absolute_error(y_validate, predictions)}"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">search</span><span class="o">.</span><span class="n">best_params_</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+CV Training R^2: 0.86
+Training R^2:  0.98
+Validation R^2: 0.84
+Mean Absolute Error: 17615.31526418787
+{'n_estimators': 140, 'max_depth': 60}
+</pre>
+<p>So it can get a little better, but it doesn't do as well as with just the numeric features. Maybe we don't have enough data to make it work.</p>
+<div class="highlight">
+<pre><span></span><span class="n">permutor</span> <span class="o">=</span> <span class="n">PermutationImportance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">random_seed</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+    <span class="n">OH_X_validate</span><span class="p">,</span> <span class="n">y_validate</span><span class="p">)</span>
+<span class="n">ipython_html</span> <span class="o">=</span> <span class="n">eli5</span><span class="o">.</span><span class="n">show_weights</span><span class="p">(</span>
+    <span class="n">permutor</span><span class="p">,</span>
+    <span class="n">feature_names</span><span class="o">=</span><span class="n">OH_X_validate</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="n">ipython_html</span><span class="o">.</span><span class="n">data</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">table</span><span class="p">))</span>
+</pre></div>
+<pre class="example">
+| Weight           | Feature      |
+|------------------+--------------|
+| 0.4825  ± 0.1218 | OverallQual  |
+| 0.1019  ± 0.0350 | GrLivArea    |
+| 0.0199  ± 0.0082 | TotalBsmtSF  |
+| 0.0171  ± 0.0067 | BsmtFinSF1   |
+| 0.0131  ± 0.0062 | 1stFlrSF     |
+| 0.0096  ± 0.0078 | GarageCars   |
+| 0.0084  ± 0.0011 | 2ndFlrSF     |
+| 0.0074  ± 0.0026 | LotArea      |
+| 0.0051  ± 0.0022 | YearRemodAdd |
+| 0.0050  ± 0.0034 | GarageArea   |
+| 0.0048  ± 0.0047 | BedroomAbvGr |
+| 0.0036  ± 0.0009 | LotFrontage  |
+| 0.0031  ± 0.0021 | YearBuilt    |
+| 0.0031  ± 0.0014 | OverallCond  |
+| 0.0029  ± 0.0012 | WoodDeckSF   |
+| 0.0021  ± 0.0021 | MasVnrArea   |
+| 0.0014  ± 0.0016 | OpenPorchSF  |
+| 0.0012  ± 0.0009 | FullBath     |
+| 0.0009  ± 0.0008 | x0_RM        |
+| 0.0008  ± 0.0036 | GarageYrBlt  |
+| … 142 more …     | … 142 more … |
+</pre>
+<p>It looks like the most significant categorical features are <code>LandContour</code> (Bnk and Lvl), either <code>Condition1</code> or <code>Condition2</code> (Norm) and <code>ExterCond</code> (TA). I just took a quick look they don't seem to contribute a whole lot to the model.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org830b310">
+<h2 id="org830b310">End</h2>
+<div class="outline-text-2" id="text-org830b310">
+<p>This was a brief look at handling categorical data.</p>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="/categories/categorical/" rel="tag">categorical</a></li>
+<li><a class="tag p-category" href="/categories/kaggle/" rel="tag">kaggle</a></li>
+<li><a class="tag p-category" href="/categories/tutorial/" rel="tag">tutorial</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="/posts/tutorials/missing-values/" rel="prev" title="Missing Values">Previous post</a></li>
+<li class="next"><a href="/posts/tutorials/kaggle-intermediate-machine-learning-pipelines/" rel="next" title="Pipelines">Next post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2020 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script> 
+</body>
+</html>

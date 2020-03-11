@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="Part two of kaggle's intermediate machine learning tutorial." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Missing Values | Visions, Voices, Data</title>
+<link href="../../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../../rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/missing-values/" rel="canonical"><!--[if lt IE 9]><script src="../../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="../../../assets/javascript/p5.min.js" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="/posts/tutorials/introduction-intermediate-machine-learning/" rel="prev" title="Introduction to the Kaggle Intermediate Machine Learning Tutorial" type="text/html">
+<link href="/posts/tutorials/categorical-values/" rel="next" title="Categorical Values" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Missing Values" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/missing-values/" property="og:url">
+<meta content="Part two of kaggle's intermediate machine learning tutorial." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2020-02-20T21:07:15-08:00" property="article:published_time">
+<meta content="cleaning" property="article:tag">
+<meta content="kaggle" property="article:tag">
+<meta content="tutorial" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="https://necromuralist.github.io/Visions-Voices-Data/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="/archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="/categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="/rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="/pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"> <input name="k8" type="hidden" value="#444444"> <input name="k9" type="hidden" value="#D51920"> <input name="kt" type="hidden" value="h"> <input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"> <input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="/posts/tutorials/missing-values/index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href="/posts/tutorials/missing-values/">Missing Values</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/tutorials/missing-values/" rel="bookmark"><time class="published dt-published" datetime="2020-02-20T21:07:15-08:00" itemprop="datePublished" title="2020-02-20 21:07">2020-02-20 21:07</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="/posts/tutorials/missing-values/index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/tutorials/missing-values/#org7746135">Beginning</a>
+<ul>
+<li><a href="/posts/tutorials/missing-values/#org2780072">Imports</a>
+<ul>
+<li><a href="/posts/tutorials/missing-values/#orgaee82e8">Python</a></li>
+<li><a href="/posts/tutorials/missing-values/#org9f00c3c">PyPi</a></li>
+<li><a href="/posts/tutorials/missing-values/#org9913d32">Others</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/missing-values/#org033988a">Set Up</a>
+<ul>
+<li><a href="/posts/tutorials/missing-values/#org31d9580">Table</a></li>
+<li><a href="/posts/tutorials/missing-values/#orgeb23cd6">Plottting</a></li>
+<li><a href="/posts/tutorials/missing-values/#orgd4ef854">The Timer</a></li>
+<li><a href="/posts/tutorials/missing-values/#org3e8e10b">Environment</a></li>
+<li><a href="/posts/tutorials/missing-values/#orgcb6c7bf">The Data</a></li>
+<li><a href="/posts/tutorials/missing-values/#orgfa59782">Some Constants</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/missing-values/#org565362e">Middle</a>
+<ul>
+<li><a href="/posts/tutorials/missing-values/#org821cf88">Remove Training Data with no Target</a></li>
+<li><a href="/posts/tutorials/missing-values/#org4525bd2">Numeric Data Only</a></li>
+<li><a href="/posts/tutorials/missing-values/#orgc63a292">Split the Training and Validation Data</a></li>
+<li><a href="/posts/tutorials/missing-values/#org191a93d">Step 1: Preliminary investigation</a>
+<ul>
+<li><a href="/posts/tutorials/missing-values/#orgcd1cf3f">Part A</a></li>
+<li><a href="/posts/tutorials/missing-values/#orgee76642">Part B</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/missing-values/#org55bef2c">score_dataset</a></li>
+<li><a href="/posts/tutorials/missing-values/#org3355b16">Step 2: Drop columns with missing values</a></li>
+<li><a href="/posts/tutorials/missing-values/#orge647768">Step 3: Imputation</a>
+<ul>
+<li><a href="/posts/tutorials/missing-values/#org039aa4d">Part A</a></li>
+<li><a href="/posts/tutorials/missing-values/#org493f5c2">Part B</a></li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/missing-values/#orge30b8c7">Step 4: Generate test predictions</a>
+<ul>
+<li><a href="/posts/tutorials/missing-values/#org3b1aebc">Part A</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/tutorials/missing-values/#orgc76b4bb">End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org7746135">
+<h2 id="org7746135">Beginning</h2>
+<div class="outline-text-2" id="text-org7746135">
+<blockquote>
+<p>Now it's your turn to test your new knowledge of <b>missing values</b> handling. You'll probably find it makes a big difference.</p>
+</blockquote>
+</div>
+<div class="outline-3" id="outline-container-org2780072">
+<h3 id="org2780072">Imports</h3>
+<div class="outline-text-3" id="text-org2780072"></div>
+<div class="outline-4" id="outline-container-orgaee82e8">
+<h4 id="orgaee82e8">Python</h4>
+<div class="outline-text-4" id="text-orgaee82e8">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">Namespace</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org9f00c3c">
+<h4 id="org9f00c3c">PyPi</h4>
+<div class="outline-text-4" id="text-org9f00c3c">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">eli5.sklearn</span> <span class="kn">import</span> <span class="n">PermutationImportance</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span>
+<span class="kn">from</span> <span class="nn">pdpbox</span> <span class="kn">import</span> <span class="n">pdp</span>
+
+<span class="kn">import</span> <span class="nn">shap</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestRegressor</span>
+<span class="kn">from</span> <span class="nn">sklearn.experimental</span> <span class="kn">import</span> <span class="n">enable_iterative_imputer</span>
+<span class="kn">from</span> <span class="nn">sklearn.impute</span> <span class="kn">import</span> <span class="n">IterativeImputer</span><span class="p">,</span> <span class="n">KNNImputer</span><span class="p">,</span> <span class="n">SimpleImputer</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">mean_absolute_error</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">cross_val_score</span><span class="p">,</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+
+<span class="kn">import</span> <span class="nn">eli5</span>
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org9913d32">
+<h4 id="org9913d32">Others</h4>
+<div class="outline-text-4" id="text-org9913d32">
+<div class="highlight">
+<pre><span></span><span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">EnvironmentLoader</span><span class="p">,</span> <span class="n">Timer</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org033988a">
+<h3 id="org033988a">Set Up</h3>
+<div class="outline-text-3" id="text-org033988a"></div>
+<div class="outline-4" id="outline-container-org31d9580">
+<h4 id="org31d9580">Table</h4>
+<div class="outline-text-4" id="text-org31d9580">
+<div class="highlight">
+<pre><span></span><span class="n">TABLE</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgeb23cd6">
+<h4 id="orgeb23cd6">Plottting</h4>
+<div class="outline-text-4" id="text-orgeb23cd6">
+<div class="highlight">
+<pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"missing-values"</span>
+<span class="n">OUTPUT_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/tutorials/"</span><span class="p">)</span><span class="o">/</span><span class="n">SLUG</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="n">OUTPUT_PATH</span><span class="p">)</span>
+<span class="n">Plot</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgd4ef854">
+<h4 id="orgd4ef854">The Timer</h4>
+<div class="outline-text-4" id="text-orgd4ef854">
+<div class="highlight">
+<pre><span></span><span class="n">TIMER</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org3e8e10b">
+<h4 id="org3e8e10b">Environment</h4>
+<div class="outline-text-4" id="text-org3e8e10b">
+<div class="highlight">
+<pre><span></span><span class="n">ENVIRONMENT</span> <span class="o">=</span> <span class="n">EnvironmentLoader</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgcb6c7bf">
+<h4 id="orgcb6c7bf">The Data</h4>
+<div class="outline-text-4" id="text-orgcb6c7bf">
+<div class="highlight">
+<pre><span></span><span class="n">DATA_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">ENVIRONMENT</span><span class="p">[</span><span class="s2">"HOUSE-PRICES-IOWA"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">train_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+    <span class="n">DATA_PATH</span><span class="o">/</span><span class="s2">"train.csv"</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s2">"Id"</span><span class="p">)</span>
+
+<span class="n">test_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+    <span class="n">DATA_PATH</span><span class="o">/</span><span class="s2">"test.csv"</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s2">"Id"</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgfa59782">
+<h4 id="orgfa59782">Some Constants</h4>
+<div class="outline-text-4" id="text-orgfa59782">
+<div class="highlight">
+<pre><span></span><span class="n">Data</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
+    <span class="n">target</span><span class="o">=</span><span class="s2">"SalePrice"</span><span class="p">,</span>
+    <span class="n">train_size</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+    <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org565362e">
+<h2 id="org565362e">Middle</h2>
+<div class="outline-text-2" id="text-org565362e"></div>
+<div class="outline-3" id="outline-container-org821cf88">
+<h3 id="org821cf88">Remove Training Data with no Target</h3>
+<div class="outline-text-3" id="text-org821cf88">
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{len(train_data):,}"</span><span class="p">)</span>
+<span class="n">train_data</span> <span class="o">=</span> <span class="n">train_data</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"rows"</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="n">Data</span><span class="o">.</span><span class="n">target</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{len(train_data):,}"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+1,460
+1,460
+</pre>
+<p>Doesn't look like there were any missing target values.</p>
+<div class="highlight">
+<pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">train_data</span><span class="p">[</span><span class="n">Data</span><span class="o">.</span><span class="n">target</span><span class="p">]</span>
+<span class="n">x_train</span> <span class="o">=</span> <span class="n">train_data</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="n">Data</span><span class="o">.</span><span class="n">target</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org4525bd2">
+<h3 id="org4525bd2">Numeric Data Only</h3>
+<div class="outline-text-3" id="text-org4525bd2">
+<blockquote>
+<p>To keep things simple, we'll use only numerical predictors</p>
+</blockquote>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_train</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">x_train</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s2">"object"</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+</pre></div>
+<pre class="example">
+79
+36
+</pre>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_data</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+<span class="n">x_test</span> <span class="o">=</span> <span class="n">test_data</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s2">"object"</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_test</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+</pre></div>
+<pre class="example">
+79
+36
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-orgc63a292">
+<h3 id="orgc63a292">Split the Training and Validation Data</h3>
+<div class="outline-text-3" id="text-orgc63a292">
+<div class="highlight">
+<pre><span></span><span class="n">x_train</span><span class="p">,</span> <span class="n">x_validate</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_validate</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+    <span class="n">train_size</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">train_size</span><span class="p">,</span>
+    <span class="n">test_size</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">test_size</span><span class="p">,</span>
+    <span class="n">random_state</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">random_seed</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org191a93d">
+<h3 id="org191a93d">Step 1: Preliminary investigation</h3>
+<div class="outline-text-3" id="text-org191a93d">
+<div class="highlight">
+<pre><span></span><span class="n">missing_by_column</span> <span class="o">=</span> <span class="n">x_train</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="n">missed</span> <span class="o">=</span> <span class="n">missing_by_column</span><span class="p">[</span><span class="n">missing_by_column</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">missed</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"index"</span><span class="p">:</span> <span class="s2">"Feature"</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="s2">"Missing"</span><span class="p">})))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Feature</th>
+<th class="org-right" scope="col">Missing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">LotFrontage</td>
+<td class="org-right">212</td>
+</tr>
+<tr>
+<td class="org-left">MasVnrArea</td>
+<td class="org-right">6</td>
+</tr>
+<tr>
+<td class="org-left">GarageYrBlt</td>
+<td class="org-right">58</td>
+</tr>
+</tbody>
+</table>
+<p>According to the data description these features are:</p>
+<p><b>LotFrontage</b>: Linear feet of street connected to property <b>MasVnrArea:</b> Masonry veneer area in square feet <b>GarageYrBlt</b>: Year garage was built</p>
+<div class="highlight">
+<pre><span></span><span class="n">Missing</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
+    <span class="n">frontage</span> <span class="o">=</span> <span class="s2">"LotFrontage"</span><span class="p">,</span>
+    <span class="n">masonry</span> <span class="o">=</span> <span class="s2">"MasVnrArea"</span><span class="p">,</span>
+    <span class="n">garage</span> <span class="o">=</span> <span class="s2">"GarageYrBlt"</span><span class="p">,</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"LotFrontage"</span><span class="p">,</span> <span class="s2">"MasVnrArea"</span><span class="p">,</span> <span class="s2">"GarageYrBlt"</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-orgcd1cf3f">
+<h4 id="orgcd1cf3f">Part A</h4>
+<div class="outline-text-4" id="text-orgcd1cf3f"></div>
+<ul class="org-ul">
+<li><a id="org65f5534"></a>How many rows are in the training data?<br>
+<div class="outline-text-5" id="text-org65f5534">
+<div class="highlight">
+<pre><span></span> <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{len(x_train):,}"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+1,168
+</pre></div>
+</li>
+<li><a id="org6731737"></a>Fill in the line below: How many columns in the training data have missing values?<br>
+<div class="outline-text-5" id="text-org6731737">
+<div class="highlight">
+<pre><span></span> <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{sum([1 for column in x_train.columns if x_train[column].hasnans])}"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+3
+</pre></div>
+</li>
+<li><a id="orgbd30e03"></a>Fill in the line below: How many missing entries are contained in all of the training data?<br>
+<div class="outline-text-5" id="text-orgbd30e03">
+<div class="highlight">
+<pre><span></span> <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{missed.sum()}"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+276
+</pre>
+<p><b>Note:</b> For some reason it doesn't appear to be explicitly mentioned in the notebook, but if you don't deal with the missing values and try and fit the trees to the data you'll end up with an error.</p>
+<div class="highlight">
+<pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">score_dataset</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">x_validate</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_validate</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+Input contains NaN, infinity or a value too large for dtype('float32').
+</pre></div>
+</li>
+</ul>
+</div>
+<div class="outline-4" id="outline-container-orgee76642">
+<h4 id="orgee76642">Part B</h4>
+<div class="outline-text-4" id="text-orgee76642">
+<blockquote>
+<p>Considering your answers above, what do you think is likely the best approach to dealing with the missing values?</p>
+</blockquote>
+<p>For the cases where there are few missing values I would drop them - e.g. <code>MasVnrArea</code>. For <code>GarageYrBlt</code> I would use the most common value in the same neighborhood and for the <code>LotFrontage</code> I would use the mean or median.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org55bef2c">
+<h3 id="org55bef2c">score_dataset</h3>
+<div class="outline-text-3" id="text-org55bef2c">
+<p>This function will help check the Mean Absolute Error (MAE) as we make changes to the dataset.</p>
+<div class="highlight">
+<pre><span></span><span class="k">def</span> <span class="nf">score_dataset</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">X_valid</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_valid</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestRegressor</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+    <span class="n">preds</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_valid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_valid</span><span class="p">,</span> <span class="n">preds</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org3355b16">
+<h3 id="org3355b16">Step 2: Drop columns with missing values</h3>
+<div class="outline-text-3" id="text-org3355b16">
+<p>We'll try dropping the columns in the training and validation.</p>
+<div class="highlight">
+<pre><span></span><span class="n">missing_columns</span> <span class="o">=</span> <span class="n">missed</span><span class="o">.</span><span class="n">index</span>
+<span class="n">keep</span> <span class="o">=</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">x_train</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">x_train</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">hasnans</span><span class="p">]</span>
+<span class="n">reduced_X_train</span> <span class="o">=</span> <span class="n">x_train</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+<span class="n">reduced_X_valid</span> <span class="o">=</span> <span class="n">x_validate</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s2">"MAE (Drop columns with missing values):"</span><span class="p">)</span>
+<span class="n">drop_columns_error</span> <span class="o">=</span> <span class="n">score_dataset</span><span class="p">(</span><span class="n">reduced_X_train</span><span class="p">,</span> <span class="n">reduced_X_valid</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_validate</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{drop_columns_error:0.2f}"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+MAE (Drop columns with missing values):
+17837.83
+</pre></div>
+</div>
+<div class="outline-3" id="outline-container-orge647768">
+<h3 id="orge647768">Step 3: Imputation</h3>
+<div class="outline-text-3" id="text-orge647768"></div>
+<div class="outline-4" id="outline-container-org039aa4d">
+<h4 id="org039aa4d">Part A</h4>
+<div class="outline-text-4" id="text-org039aa4d">
+<blockquote>
+<p>Use the next code cell to impute missing values with the mean value along each column. Set the preprocessed DataFrames to <code>imputed_X_train</code> and <code>imputed_X_valid</code>. Make sure that the column names match those in <code>X_train</code> and <code>X_valid</code>.</p>
+</blockquote>
+<p>Here we'll use sklearn's <a href="https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html">SimpleImputer</a> which fills missing values with the means of the columns (by default). It accepts pandas DataFrames but returns a numpy array so we need to rebuild the DataFrame afterward. The notebook suggests you can just re-set the columns, but I don't know what they're expecting, since it isn't a DataFrame. As long as we end up with the same thing in the end I guess it's okay.</p>
+<div class="highlight">
+<pre><span></span><span class="n">imputer</span> <span class="o">=</span> <span class="n">SimpleImputer</span><span class="p">()</span>
+<span class="n">imputed_X_train</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">x_train</span><span class="p">),</span>
+                                   <span class="n">columns</span><span class="o">=</span><span class="n">x_train</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+<span class="n">imputed_X_valid</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x_validate</span><span class="p">))</span>
+</pre></div>
+<p>Now check the Mean Absolute Error for our imputed frames.</p>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="s2">"MAE (Imputation):"</span><span class="p">)</span>
+<span class="n">impute_mean_error</span> <span class="o">=</span> <span class="n">score_dataset</span><span class="p">(</span><span class="n">imputed_X_train</span><span class="p">,</span> <span class="n">imputed_X_valid</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_validate</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{impute_mean_error:0.2f}"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement: {drop_columns_error - impute_mean_error:0.2f}"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+MAE (Imputation):
+18056.85
+Improvement: -219.03
+</pre>
+<p>So we actually got a little worse using mean imputation.</p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org493f5c2">
+<h4 id="org493f5c2">Part B</h4>
+<div class="outline-text-4" id="text-org493f5c2">
+<blockquote>
+<p>Compare the MAE from each approach. Does anything surprise you about the results? Why do you think one approach performed better than the other?</p>
+</blockquote>
+<p>As note previously, the imputation did worse than discarding the columns did. It might be that using the mean threw the values off so much that it did worse than just throwing the values away. This might indicate that the values aren't symmetrically distributed so using a central tendency doesn't reflect the data very well.</p>
+<div class="highlight">
+<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">x_train</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"LotFrontage"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"LotFrontage"</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">source</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"lot_frontage_box"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+</pre></div>
+: <object data="/posts/tutorials/missing-values/lot_frontage_box.html" height="800" style="width:100%" type="text/html">:
+<p>Figure Missing</p>
+:</object>
+<p>Looking at the plot you can see that it's right-skewed, with an extreme point over 300 square feet well over the mean:</p>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Mean: {x_train.LotFrontage.mean():0.2f} sq ft"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Max: {x_train.LotFrontage.max():0.2f} sq ft"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+Mean: 69.61 sq ft
+Max: 313.00 sq ft
+</pre>
+<div class="highlight">
+<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">x_train</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"GarageYrBlt"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"GarageYrBlt"</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">source</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"garage_year_built_box"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+</pre></div>
+: <object data="/posts/tutorials/missing-values/garage_year_built_box.html" height="800" style="width:100%" type="text/html">:
+<p>Figure Missing</p>
+:</object>
+<p>This also looks skewed, but the number of missing points is less so I don't know if it had as much of an effect.</p>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orge30b8c7">
+<h3 id="orge30b8c7">Step 4: Generate test predictions</h3>
+<div class="outline-text-3" id="text-orge30b8c7">
+<blockquote>
+<p>In this final step, you'll use any approach of your choosing to deal with missing values. Once you've preprocessed the training and validation features, you'll train and evaluate a random forest model. Then, you'll preprocess the test data before generating predictions that can be submitted to the competition.</p>
+</blockquote>
+</div>
+<div class="outline-4" id="outline-container-org3b1aebc">
+<h4 id="org3b1aebc">Part A</h4>
+<div class="outline-text-4" id="text-org3b1aebc">
+<blockquote>
+<p>Use the next code cell to preprocess the training and validation data. Set the preprocessed DataFrames to <code>final_X_train</code> and <code>final_X_valid</code>. <b>You can use any approach of your choosing here!</b> in order for this step to be marked as correct, you need only ensure:</p>
+<ul class="org-ul">
+<li>the preprocessed DataFrames have the same number of columns,</li>
+<li>the preprocessed DataFrames have no missing values,</li>
+<li><code>final_X_train</code> and <code>y_train</code> have the same number of rows, and</li>
+<li><code>final_X_valid</code> and <code>y_valid</code> have the same number of rows.</li>
+</ul>
+</blockquote>
+</div>
+<ul class="org-ul">
+<li><a id="org0201603"></a>KNN<br>
+<div class="outline-text-5" id="text-org0201603">
+<p>Let's try using K-Nearest Neighbors to estimate missing values.</p>
+<div class="highlight">
+<pre><span></span><span class="n">imputer</span> <span class="o">=</span> <span class="n">KNNImputer</span><span class="p">()</span>
+<span class="n">final_x_train</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">x_train</span><span class="p">),</span>
+                                 <span class="n">columns</span><span class="o">=</span><span class="n">x_train</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+<span class="n">final_x_validate</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x_validate</span><span class="p">),</span>
+                                 <span class="n">columns</span><span class="o">=</span><span class="n">x_validate</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="org-ul">
+<li><a id="org0af675f"></a>One Last Try<br>
+<div class="outline-text-6" id="text-org0af675f">
+<blockquote>
+<p>Run the next code cell to train and evaluate a random forest model. (<b>Note that we don't use the <code>score_dataset()</code> function above, because we will soon use the trained model to generate test predictions!</b>)</p>
+</blockquote>
+<p>Define and fit the model.</p>
+<div class="highlight">
+<pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestRegressor</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">final_x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+</pre></div>
+<p>Get validation predictions and MAE.</p>
+<div class="highlight">
+<pre><span></span><span class="n">preds_valid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">final_x_validate</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">"MAE (Your approach):"</span><span class="p">)</span>
+<span class="n">final_error</span> <span class="o">=</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_validate</span><span class="p">,</span> <span class="n">preds_valid</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{final_error:.2f}"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement Over Dropping Columns: {drop_columns_error - final_error:0.2f}"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement Over Mean: {impute_mean_error - final_error:0.2f}"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+MAE (Your approach):
+17834.40
+Improvement Over Dropping Columns: 3.43
+Improvement Over Mean: 222.46
+</pre>
+<p>So it does a litle better than dropping the columns altogether.</p>
+</div>
+</li>
+</ul>
+</li>
+<li><a id="orgb82bcbb"></a>Iterative<br>
+<div class="outline-text-5" id="text-orgb82bcbb">
+<p>This is an experimental imputer from sklearn based on imputation methods from R.</p>
+<div class="highlight">
+<pre><span></span><span class="n">imputer_2</span> <span class="o">=</span> <span class="n">IterativeImputer</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">random_seed</span><span class="p">)</span>
+<span class="n">final_x_train_2</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer_2</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">x_train</span><span class="p">),</span>
+                                   <span class="n">columns</span><span class="o">=</span><span class="n">x_train</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+<span class="n">final_x_validate_2</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer_2</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x_validate</span><span class="p">),</span>
+                                      <span class="n">columns</span><span class="o">=</span><span class="n">x_validate</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="org-ul">
+<li><a id="org3fd13ae"></a>One Last Try<br>
+<div class="outline-text-6" id="text-org3fd13ae">
+<blockquote>
+<p>Run the next code cell to train and evaluate a random forest model. (<b>Note that we don't use the <code>score_dataset()</code> function above, because we will soon use the trained model to generate test predictions!</b>)</p>
+</blockquote>
+<p>Define and fit the model.</p>
+<div class="highlight">
+<pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestRegressor</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">final_x_train_2</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+</pre></div>
+<p>Get validation predictions and MAE.</p>
+<div class="highlight">
+<pre><span></span><span class="n">preds_valid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">final_x_validate_2</span><span class="p">)</span>
+<span class="n">final_error_2</span> <span class="o">=</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_validate</span><span class="p">,</span> <span class="n">preds_valid</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"MAE (Your approach): {final_error_2:0.2f}"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement Over Dropping Columns: {drop_columns_error - final_error:0.2f}"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement Over Mean: {impute_mean_error - final_error:0.2f}"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement over KNN: {final_error - final_error_2: 0.2f}"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+MAE (Your approach): 17812.88
+Improvement Over Dropping Columns: 3.43
+Improvement Over Mean: 222.46
+Improvement over KNN:  21.51
+</pre>
+<p>There's a slight improvement once again (the imputers have hyperparameters themselves that aren't being tuned so they might be even better than what I'm getting).</p>
+</div>
+</li>
+</ul>
+</li>
+<li><a id="orga2c6027"></a>Permutation Importance<br>
+<div class="outline-text-5" id="text-orga2c6027">
+<p>Let's look at the the features that were the most important in our model.</p>
+<div class="highlight">
+<pre><span></span><span class="n">permutor</span> <span class="o">=</span> <span class="n">PermutationImportance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">random_seed</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+    <span class="n">final_x_validate_2</span><span class="p">,</span> <span class="n">y_validate</span><span class="p">)</span>
+<span class="n">ipython_html</span> <span class="o">=</span> <span class="n">eli5</span><span class="o">.</span><span class="n">show_weights</span><span class="p">(</span>
+    <span class="n">permutor</span><span class="p">,</span>
+    <span class="n">feature_names</span><span class="o">=</span><span class="n">final_x_validate_2</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="n">ipython_html</span><span class="o">.</span><span class="n">data</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">table</span><span class="p">))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Weight</th>
+<th class="org-left" scope="col">Feature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">0.4717 ± 0.0741</td>
+<td class="org-left">OverallQual</td>
+</tr>
+<tr>
+<td class="org-left">0.1163 ± 0.0182</td>
+<td class="org-left">GrLivArea</td>
+</tr>
+<tr>
+<td class="org-left">0.0254 ± 0.0066</td>
+<td class="org-left">TotalBsmtSF</td>
+</tr>
+<tr>
+<td class="org-left">0.0209 ± 0.0040</td>
+<td class="org-left">BsmtFinSF1</td>
+</tr>
+<tr>
+<td class="org-left">0.0127 ± 0.0006</td>
+<td class="org-left">2ndFlrSF</td>
+</tr>
+<tr>
+<td class="org-left">0.0112 ± 0.0042</td>
+<td class="org-left">1stFlrSF</td>
+</tr>
+<tr>
+<td class="org-left">0.0090 ± 0.0072</td>
+<td class="org-left">YearRemodAdd</td>
+</tr>
+<tr>
+<td class="org-left">0.0079 ± 0.0022</td>
+<td class="org-left">YearBuilt</td>
+</tr>
+<tr>
+<td class="org-left">0.0069 ± 0.0036</td>
+<td class="org-left">LotArea</td>
+</tr>
+<tr>
+<td class="org-left">0.0046 ± 0.0018</td>
+<td class="org-left">GarageCars</td>
+</tr>
+<tr>
+<td class="org-left">0.0039 ± 0.0006</td>
+<td class="org-left">WoodDeckSF</td>
+</tr>
+<tr>
+<td class="org-left">0.0034 ± 0.0026</td>
+<td class="org-left">GarageYrBlt</td>
+</tr>
+<tr>
+<td class="org-left">0.0031 ± 0.0009</td>
+<td class="org-left">OverallCond</td>
+</tr>
+<tr>
+<td class="org-left">0.0027 ± 0.0032</td>
+<td class="org-left">OpenPorchSF</td>
+</tr>
+<tr>
+<td class="org-left">0.0026 ± 0.0008</td>
+<td class="org-left">LotFrontage</td>
+</tr>
+<tr>
+<td class="org-left">0.0026 ± 0.0011</td>
+<td class="org-left">Fireplaces</td>
+</tr>
+<tr>
+<td class="org-left">0.0016 ± 0.0009</td>
+<td class="org-left">FullBath</td>
+</tr>
+<tr>
+<td class="org-left">0.0015 ± 0.0010</td>
+<td class="org-left">BedroomAbvGr</td>
+</tr>
+<tr>
+<td class="org-left">0.0014 ± 0.0028</td>
+<td class="org-left">BsmtUnfSF</td>
+</tr>
+<tr>
+<td class="org-left">0.0012 ± 0.0025</td>
+<td class="org-left">TotRmsAbvGrd</td>
+</tr>
+<tr>
+<td class="org-left">… 16 more …</td>
+<td class="org-left">… 16 more …</td>
+</tr>
+</tbody>
+</table>
+<p>It's interesting, but the four most important features (<i>OverallQual</i>, <i>GrLivArea</i>, <i>TotalBsmtSF</i>, and <i>BsmtFinSF1</i>) were'nt in our first models. And <i>LotFrontage</i> that we spent all that time in this post filling in is only fifteenth - but looking at our improvements the imputation made, even these seemingly lowm contributiong features helped.</p>
+<div class="highlight">
+<pre><span></span><span class="n">ipython_html</span> <span class="o">=</span> <span class="n">eli5</span><span class="o">.</span><span class="n">show_weights</span><span class="p">(</span>
+    <span class="n">permutor</span><span class="p">,</span>
+    <span class="n">top</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="n">feature_names</span><span class="o">=</span><span class="n">final_x_validate_2</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="n">ipython_html</span><span class="o">.</span><span class="n">data</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">table</span><span class="p">[</span><span class="s2">"Weight"</span><span class="p">]</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">Weight</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">expand</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Feature"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Weight"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Permutation Importance"</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="n">xrotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+<span class="n">source</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"permutation_importance"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+</pre></div>
+: <object data="/posts/tutorials/missing-values/permutation_importance.html" height="800" style="width:100%" type="text/html">:
+<p>Figure Missing</p>
+:</object>
+<p>Looking at the plot you can see that there's a huge drop from the influence of <code>OverallQuall</code> to the influence of the rest of the features.</p>
+<p>Let's look at the features that didn't contribute to the model.</p>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="s2">"| Feature | Weight|"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">"|-+-|"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">table</span><span class="p">[</span><span class="n">table</span><span class="o">.</span><span class="n">Weight</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"|{row.Feature}| {row.Weight}|"</span><span class="p">)</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Feature</th>
+<th class="org-right" scope="col">Weight</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">MiscVal</td>
+<td class="org-right">0.0</td>
+</tr>
+<tr>
+<td class="org-left">LowQualFinSF</td>
+<td class="org-right">0.0</td>
+</tr>
+<tr>
+<td class="org-left">PoolArea</td>
+<td class="org-right">0.0</td>
+</tr>
+<tr>
+<td class="org-left">EnclosedPorch</td>
+<td class="org-right">-0.0003</td>
+</tr>
+<tr>
+<td class="org-left">HalfBath</td>
+<td class="org-right">-0.0004</td>
+</tr>
+<tr>
+<td class="org-left">YrSold</td>
+<td class="org-right">-0.0005</td>
+</tr>
+<tr>
+<td class="org-left">MasVnrArea</td>
+<td class="org-right">-0.0015</td>
+</tr>
+<tr>
+<td class="org-left">MoSold</td>
+<td class="org-right">-0.0058</td>
+</tr>
+</tbody>
+</table>
+<p>So, no point enclosing that porch or expanding your pool, I guess.</p>
+</div>
+</li>
+<li><a id="org863f04c"></a>The Most Important Feature<br>
+<div class="outline-text-5" id="text-org863f04c">
+<p>This is the <code>data_description</code> entry for <code>OverallQual</code>:</p>
+<p><b>OverallQual:</b> Rates the overall material and finish of the house</p>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-right">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-right" scope="col">Value</th>
+<th class="org-left" scope="col">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">10</td>
+<td class="org-left">Very Excellent</td>
+</tr>
+<tr>
+<td class="org-right">9</td>
+<td class="org-left">Excellent</td>
+</tr>
+<tr>
+<td class="org-right">8</td>
+<td class="org-left">Very Good</td>
+</tr>
+<tr>
+<td class="org-right">7</td>
+<td class="org-left">Good</td>
+</tr>
+<tr>
+<td class="org-right">6</td>
+<td class="org-left">Above Average</td>
+</tr>
+<tr>
+<td class="org-right">5</td>
+<td class="org-left">Average</td>
+</tr>
+<tr>
+<td class="org-right">4</td>
+<td class="org-left">Below Average</td>
+</tr>
+<tr>
+<td class="org-right">3</td>
+<td class="org-left">Fair</td>
+</tr>
+<tr>
+<td class="org-right">2</td>
+<td class="org-left">Poor</td>
+</tr>
+<tr>
+<td class="org-right">1</td>
+<td class="org-left">Very Poor</td>
+</tr>
+</tbody>
+</table>
+<p>This appears to be an ordinal rather than a continuous variable, interesting how much it dominates.</p>
+</div>
+<ul class="org-ul">
+<li><a id="orgffd3b51"></a>PDP Plot<br>
+<div class="outline-text-6" id="text-orgffd3b51">
+<p>Here's the amount that the feature changes the sales price as it changes.</p>
+<div class="highlight">
+<pre><span></span><span class="n">FEATURE</span> <span class="o">=</span> <span class="s2">"OverallQual"</span>
+<span class="n">pdp_dist</span> <span class="o">=</span> <span class="n">pdp</span><span class="o">.</span><span class="n">pdp_isolate</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+                           <span class="n">dataset</span><span class="o">=</span><span class="n">final_x_validate_2</span><span class="p">,</span>
+                           <span class="n">model_features</span><span class="o">=</span><span class="n">final_x_validate_2</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+                           <span class="n">feature</span><span class="o">=</span><span class="n">FEATURE</span><span class="p">)</span>
+<span class="n">pdp</span><span class="o">.</span><span class="n">pdp_plot</span><span class="p">(</span><span class="n">pdp_dist</span><span class="p">,</span> <span class="n">FEATURE</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">f</span><span class="s2">"{FEATURE}_pdp_plot.png"</span>
+<span class="n">figure</span> <span class="o">=</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+<span class="n">figure</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">OUTPUT_PATH</span><span class="o">/</span><span class="n">output</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"[[file:{output}]]"</span><span class="p">)</span>
+</pre></div>
+<div class="figure">
+<p><img alt="OverallQual_pdp_plot.png" src="/posts/tutorials/missing-values/OverallQual_pdp_plot.png"></p>
+</div>
+<p>So it looks like once you hit "Above Average" it's pretty much a linear relationship between the overall quality and the sale price.</p>
+</div>
+</li>
+<li><a id="org7f90cfc"></a>SHAP Summary<br>
+<div class="outline-text-6" id="text-org7f90cfc">
+<p>Let's take a more visual look at the importance of each feature.</p>
+<div class="highlight">
+<pre><span></span><span class="n">explainer</span> <span class="o">=</span> <span class="n">shap</span><span class="o">.</span><span class="n">TreeExplainer</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="n">shap_values</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="n">shap_values</span><span class="p">(</span><span class="n">final_x_validate_2</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">shap</span><span class="o">.</span><span class="n">summary_plot</span><span class="p">(</span><span class="n">shap_values</span><span class="p">,</span> <span class="n">final_x_validate_2</span><span class="p">)</span>
+<span class="n">figure</span> <span class="o">=</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+<span class="n">output</span> <span class="o">=</span> <span class="s2">"shap_summary.png"</span>
+
+<span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">OUTPUT_PATH</span><span class="o">/</span><span class="n">output</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"[[file:{output}]]"</span><span class="p">)</span>
+</pre></div>
+<div class="figure">
+<p><img alt="shap_summary.png" src="/posts/tutorials/missing-values/shap_summary.png"></p>
+</div>
+<p>Besides reinforcing the importance of <code>OverallQual</code>, the plot shows how much spread its influence covers. The odd bunches might reflect the fact that it's a discrete, ordinal feature, not a continuous one.</p>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc76b4bb">
+<h2 id="orgc76b4bb">End</h2>
+<div class="outline-text-2" id="text-orgc76b4bb">
+<p>Make a kaggle submission.</p>
+<div class="highlight">
+<pre><span></span><span class="n">final_x_test</span> <span class="o">=</span> <span class="n">imputer_2</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x_test</span><span class="p">)</span>
+<span class="n">preds_test</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">final_x_test</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">'Id'</span><span class="p">:</span> <span class="n">x_test</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                           <span class="s1">'SalePrice'</span><span class="p">:</span> <span class="n">preds_test</span><span class="p">})</span>
+<span class="n">output</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">DATA_PATH</span><span class="o">/</span><span class="s1">'submission.csv'</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+<p>This model gives us an error of 16,656.25822, an improvement over our previous submission where we used only a smaller subset of the features.</p>
+<div class="highlight">
+<pre><span></span><span class="n">introduction</span> <span class="o">=</span> <span class="mf">27217.91640</span>
+<span class="n">previous</span> <span class="o">=</span> <span class="mf">20928.54621</span>
+<span class="n">current</span> <span class="o">=</span> <span class="mf">16656.25822</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Latest Error: {current:,}"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement over the introduction ({introduction:,}): {introduction - current:,}"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement over the previous model ({previous:,}): {previous - current:,}"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+Latest Error: 16,656.25822
+Improvement over the introduction (27,217.9164): 10,561.658179999999
+Improvement over the previous model (20,928.54621): 4,272.287990000001
+</pre>
+<p>So by adding in the remaining features we were able to reduce our error by quite a bit.</p>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="/categories/cleaning/" rel="tag">cleaning</a></li>
+<li><a class="tag p-category" href="/categories/kaggle/" rel="tag">kaggle</a></li>
+<li><a class="tag p-category" href="/categories/tutorial/" rel="tag">tutorial</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="/posts/tutorials/introduction-intermediate-machine-learning/" rel="prev" title="Introduction to the Kaggle Intermediate Machine Learning Tutorial">Previous post</a></li>
+<li class="next"><a href="/posts/tutorials/categorical-values/" rel="next" title="Categorical Values">Next post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2020 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element) {
+            return element.getElementsByTagName('img')[0].alt;
+    }});
+</script> 
+</body>
+</html>
