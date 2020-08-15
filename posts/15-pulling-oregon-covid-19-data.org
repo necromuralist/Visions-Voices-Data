@@ -1,0 +1,142 @@
+#+BEGIN_COMMENT
+.. title: Pulling Oregon Covid-19 Data
+.. slug: pulling-oregon-covid-19-data
+.. date: 2020-08-04 22:59:37 UTC-07:00
+.. tags: oregon,data,covid-19
+.. category: Covid-19
+.. link: 
+.. description: Pulling Oregon Covid-19 data from PDFs.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-30a49622-ce5d-4ea3-9079-bb7867c705d3-ssh.json
+
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Beginning
+  This is a look at pulling Oregon Covid-19 data from their weekly update PDFs. There are datasets for Oregon Covid-19 cases published by the [[https://govstatus.egov.com/OR-OHA-COVID-19][Oregon Health Authority]] but for some reason I can't find the raw data sources matching what they have in their weekly reports so I thought maybe instead of just endlessly searching I'd pull them from the PDFs themselves.
+** Set Up
+*** Imports
+#+begin_src python :results none
+# python
+from pathlib import Path
+
+import calendar
+import datetime
+import os
+
+# pypi
+from dateutil.relativedelta import relativedelta
+from dotenv import load_dotenv
+
+import requests
+#+end_src
+*** The Path
+    This is where I'm going to save the PDFs - to make it portable I usually keep the path in a file with =dotenv= loads as an environment variable. This wayif things get moved around I can edit the file to change the path but the code that uses it doesn't have to change.
+#+begin_src python :results none
+load_dotenv(Path("~/.local/share/env").expanduser())
+FOLDER = Path(os.environ["OREGON_COVID"]).expanduser()
+if not FOLDER.is_dir():
+    FOLDER.mkdir(parents=True)
+#+end_src
+* Middle
+** Starting the Dates
+   I could only find a link to the current PDF on their page (as of August 4, 2020). The URL embeds the date in it so to work backwards (and maybe later forwards) we need an easy way to set it. Here's what the URL looks like.
+
+#+begin_src python :results none
+EXAMPLE_URL = "https://www.oregon.gov/oha/PH/DISEASESCONDITIONS/DISEASESAZ/Emerging%20Respitory%20Infections/COVID-19-Weekly-Report-2020-07-29-FINAL.pdf"
+#+end_src
+
+So to work with it I'll find out what day of the week July 29, 2020 was (the date in the URL).
+
+#+begin_src python :results output :exports both
+START = datetime.date(2020, 7, 29)
+WEEKDAY = START.weekday()
+assert WEEKDAY == calendar.WEDNESDAY
+print(WEEKDAY)
+#+end_src
+
+#+RESULTS:
+: 2
+
+So, it looks like it came out on a Wednesday, which I'm going to assume is going to be the same every week. Now we can find the most recent Wednesday, which will be the start (or end, depending on how you look at it) of our date-ragen.
+
+#+begin_src python :results output :exports both
+TODAY = datetime.date.today()
+LAST = TODAY + relativedelta(weekday=WEEKDAY) - relativedelta(weeks=1) 
+print(LAST)
+#+end_src
+
+#+RESULTS:
+: 2020-08-12
+
+Now I'm going to work backwards one week at a time to create the URLS and file-names. Using the =relativedelta= makes it easy-peasey to get prior weeks from a given date. Here's the Wednesday before the most recent one.
+
+#+begin_src python :results output :exports both
+one_week = relativedelta(weeks = 1)
+print(LAST - one_week)
+#+end_src
+
+#+RESULTS:
+: 2020-08-05
+
+Now, I don't actually know when these PDFs started so I'm just going to work backwards until I get an error message from my HTTP request and then stop. 
+
+#+begin_src python :results output :exports both
+FILE_NAME = "COVID-19-Weekly-Report-{}-FINAL.pdf"
+BASE_URL = "https://www.oregon.gov/oha/PH/DISEASESCONDITIONS/DISEASESAZ/Emerging%20Respitory%20Infections/{}"
+
+for week in range(20):
+    print(f"Checking back {week} weeks from this past Wednesday")
+    date = LAST - (one_week * week)
+    filename = FILE_NAME.format(date)
+    output_path = FOLDER/filename
+    if not output_path.is_file():
+        url = BASE_URL.format(filename)
+        response = requests.get(url)
+        if not response.ok:
+            print(f"Bad week: {week}\tDate: {date}")
+            break
+        print(f"Saving {filename}")
+        with output_path.open("wb") as writer:            
+            writer.write(response.content)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Checking back 0 weeks from this past Wednesday
+Saving COVID-19-Weekly-Report-2020-08-12-FINAL.pdf
+Checking back 1 weeks from this past Wednesday
+Saving COVID-19-Weekly-Report-2020-08-05-FINAL.pdf
+Checking back 2 weeks from this past Wednesday
+Saving COVID-19-Weekly-Report-2020-07-29-FINAL.pdf
+Checking back 3 weeks from this past Wednesday
+Saving COVID-19-Weekly-Report-2020-07-22-FINAL.pdf
+Checking back 4 weeks from this past Wednesday
+Saving COVID-19-Weekly-Report-2020-07-15-FINAL.pdf
+Checking back 5 weeks from this past Wednesday
+Saving COVID-19-Weekly-Report-2020-07-08-FINAL.pdf
+Checking back 6 weeks from this past Wednesday
+Saving COVID-19-Weekly-Report-2020-07-01-FINAL.pdf
+Checking back 7 weeks from this past Wednesday
+Saving COVID-19-Weekly-Report-2020-06-24-FINAL.pdf
+Checking back 8 weeks from this past Wednesday
+Saving COVID-19-Weekly-Report-2020-06-17-FINAL.pdf
+Checking back 9 weeks from this past Wednesday
+Saving COVID-19-Weekly-Report-2020-06-10-FINAL.pdf
+Checking back 10 weeks from this past Wednesday
+Saving COVID-19-Weekly-Report-2020-06-03-FINAL.pdf
+Checking back 11 weeks from this past Wednesday
+Saving COVID-19-Weekly-Report-2020-05-27-FINAL.pdf
+Checking back 12 weeks from this past Wednesday
+Bad week: 12	Date: 2020-05-20
+#+end_example
+
+So, there are eleven weeks of PDFs going back to May 27, 2020. Which seems a little short, given that Oregon started telling people to stay home in March, but maybe they have the data somewhere else. Anyway, next up is pulling the data from the PDFs from the files using [[https://tabula-py.readthedocs.io/en/latest/tabula.html][tabula-py]].
