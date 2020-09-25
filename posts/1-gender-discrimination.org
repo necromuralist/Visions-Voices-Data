@@ -1,0 +1,316 @@
+#+BEGIN_COMMENT
+.. title: Gender Discrimination Inference
+.. slug: gender-discrimination
+.. date: 2020-09-22 17:04:38 UTC-07:00
+.. tags: statistics,simulation,inference
+.. category: Statistics
+.. link: 
+.. description: Using simulation to check for gender discrimination.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-eaa361ce-9546-4722-b98d-ef5ad3d67d56-ssh.json
+
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Beginning
+** Imports
+#+begin_src python :results none
+# python
+from argparse import Namespace
+from functools import partial
+
+# pypi
+from expects import (
+    equal,
+    expect,    
+)
+from numpy.random import default_rng
+from tabulate import tabulate
+
+import holoviews
+import hvplot.pandas
+import numpy
+import pandas
+
+# my stuff
+from graeae import EmbedHoloviews, Timer
+#+end_src
+** Randomness
+#+begin_src python :results none
+numpy_random = default_rng()
+#+end_src
+** Plotting, Tables, and a Timer
+*** Plotting
+#+begin_src python :results none
+Embed = partial(EmbedHoloviews,
+                folder_path="files/posts/gender-discrimination/")
+Plot = Namespace(
+    width=990,
+    height=780,
+    fontscale=2,
+    tan="#ddb377",
+    blue="#4687b7",
+    red="#ce7b6d",
+    color_cycle = holoviews.Cycle(["#4687b7", "#ce7b6d"])
+)
+#+end_src
+*** The Table
+#+begin_src python :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys")
+#+end_src
+*** The Timer
+#+begin_src python :results none
+TIMER = Timer()
+#+end_src
+* Middle
+** The Original Study
+   This starts with a study where bank managers were each given a personnel file and asked to decide if they would promote the person represented by the file to branch manager. The files were identical but half of them were filled out as male and half as female. The researchers wanted to know if these manager were biased in favor of men. The table below shows their resuts.
+
+#+begin_src python :results output :exports both
+study = pandas.DataFrame({"Promoted": [21, 14],
+                          "Not Promoted":[3, 10]},
+                         index=["Male", "Female"])
+row = study.sum()
+row.name = "Total"
+study = study.append(row)
+column = study.sum(axis="columns")
+study["Total"] = column
+print(TABLE(study))
+#+end_src
+
+
+#+RESULTS:
+|        |   Promoted |   Not Promoted |   Total |
+|--------+------------+----------------+---------|
+| Male   |         21 |              3 |      24 |
+| Female |         14 |             10 |      24 |
+| Total  |         35 |             13 |      48 |
+
+Let's look at the values (without the totals) as a plot.
+
+#+begin_src python :results none
+plotter = study.reset_index()
+del(plotter["Total"])
+plotter = plotter.iloc[:-1]
+plotter = plotter.melt(id_vars=["index"],
+                       value_vars=["Promoted", "Not Promoted"])
+plotter = plotter.rename(columns=dict(index="Gender",
+                                      value="Count",
+                                      variable="Decision"))
+plot = plotter.hvplot.bar(x="Gender", y="Count", by="Decision").opts(
+    title="Outcome by Gender",
+    height=Plot.height,
+    width=Plot.width,
+    fontscale=Plot.fontscale,
+    color=Plot.color_cycle,
+)
+outcome = Embed(plot=plot, file_name="promotions_by_gender")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="promotions_by_gender.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+It looks like a considerable majority of the males were promoted whereas for the females only a slight majority were promoted.
+
+#+begin_src python :results none
+plot = plotter.hvplot.bar(x="Decision", y="Count", by="Gender").opts(
+    title="Male Vs Female by Decision",
+    height=Plot.height,
+    width=Plot.width,
+    fontscale=Plot.fontscale,
+    color=Plot.color_cycle,
+)
+outcome = Embed(plot=plot, file_name="decision_by_gender")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="decision_by_gender.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+This plot doesn't make the disparity look quite as extreme as the previous plot did, I think.
+
+*** About the Variables
+I started using them without explicity stating it but we have two variable here - =Promoted= and =Not Promoted= are part of the =decision= variable and =Male= and =Female= are part of the =gender= variable.
+
+Anyway... so more males were chosen for promotion than female, but by what proportion?
+
+#+begin_src python :results output :exports both
+print(TABLE(study/study.loc["Total"]))
+#+end_src
+
+#+RESULTS:
+|        |   Promoted |   Not Promoted |   Total |
+|--------+------------+----------------+---------|
+| Male   |        0.6 |       0.230769 |     0.5 |
+| Female |        0.4 |       0.769231 |     0.5 |
+| Total  |        1   |       1        |     1   |
+
+So 60% of the promoted were male and 40% of the promoted were female.
+
+#+begin_src python :results output :exports both
+print(f"{.6/.4:.2f}")
+#+end_src
+
+#+RESULTS:
+: 1.50
+
+If you were promoted you were one and a half times more likely to be male. Another way to look at it is to ask - /What proportion of each gender was promoted?/
+
+#+begin_src python :results output :exports both
+fractions = study/study.Total.values
+print(TABLE(fractions))
+#+end_src
+
+#+RESULTS:
+|        |   Promoted |   Not Promoted |   Total |
+|--------+------------+----------------+---------|
+| Male   |   0.875    |       0.125    |     0.5 |
+| Female |   0.583333 |       0.416667 |     0.5 |
+| Total  |   1.45833  |       0.541667 |     1   |
+
+So about 88% of the males were promoted while only 58% of the females were promoted.
+
+#+begin_src python :results output :exports both
+POINT_ESTIMATE = fractions.Promoted.loc['Male'] - fractions.Promoted.loc['Female']
+print(f"{POINT_ESTIMATE:0.2f}")
+#+end_src
+
+#+RESULTS:
+: 0.29
+
+There was a 30% difference between the rate of male promotion and the rate of female promotion. The question we have now is - /could this difference have happened by random chance or is this evidence of bias?/.
+** The Experiment
+   We have a *point estimate* of the difference of 0.29 - is this evidence of bias?
+*** Our Hypotheses
+   - \(H_0\): *Null Hypothesis.* The variables =gender= and =decision are independent and the observed difference was due to chance.
+   - \(H_A\): *Alternative Hypothesis.* The variables =gender= and =decision= are not independent and the difference was not due to chance, but rather women were less likely to be promoted than men.
+
+I'm going to pick an arbitrary confidence interval of 0.95.
+
+#+begin_src python :results none
+ALPHA = 0.05
+#+end_src
+*** The Simulation
+    The basic method here is we'll create an "urn" with an equal number of "balls" for men and women (24 of each in this case) and then randomly select 35 balls representing the number that were promoted and see the difference in the fraction of males promoted vs the number of females. To make the math simple I'll run it a number of times that is a power of 10.
+**** Some Setup
+     To make the counting easier I'll set males to be 1 and females to be 0 (so the number of males promoted is the sum and the females is the remainder).
+
+#+begin_src python :results none
+NUMBER_OF_MALES = NUMBER_OF_FEMALES = 24
+MALE = 1
+FEMALE = 0
+PROMOTED = 35
+MALES = numpy.ones(NUMBER_OF_MALES)
+FEMALES = numpy.zeros(NUMBER_OF_FEMALES)
+URN = numpy.append(MALES, FEMALES)
+
+expect(len(URN)).to(equal(NUMBER_OF_MALES + NUMBER_OF_FEMALES))
+expect(URN.sum()).to(equal(NUMBER_OF_MALES))
+#+end_src
+**** The Trials
+#+begin_src python :results none
+TRIALS = 1 * 10**7
+males_promoted = [numpy_random.choice(URN, PROMOTED, replace=False).sum()
+                  for trial in range(TRIALS)]
+females_promoted = [PROMOTED - males for males in males_promoted]
+proportion_males_promoted = [males/NUMBER_OF_MALES for males in males_promoted]
+proportion_females_promoted = [females/NUMBER_OF_FEMALES for females in females_promoted]
+pairs = zip(proportion_males_promoted, proportion_females_promoted)
+differences = [males - females for males, females in pairs]
+#+end_src
+
+** Looking at the Distribution
+#+begin_src python :results none
+data = pandas.DataFrame.from_dict({
+    "Point Estimate": differences,
+    "Males Promoted": males_promoted,
+    "Females Promoted": females_promoted,
+    "Proportion Males Promoted": proportion_males_promoted,
+    "Proportion Females Promoted": proportion_females_promoted,
+})
+#+end_src
+
+#+begin_src python :results none
+plot = data.hvplot.hist("Point Estimate").opts(
+    title="Distribution of Differences in Gender Promotion",
+    width=Plot.width,
+    height=Plot.height,
+    fontscale=Plot.fontscale,
+)
+
+outcome = Embed(plot=plot, file_name="difference_distribution")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="difference_distribution.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+The distribution looks /mostly/ normal. As you might guess the distribution is centered around 0 (cases where exactly the same number of males and females were promoted - although 35 were promoted each time so the trials are never exactly 0). The cases where the difference in proportion is as great or greater than as it was in the original study are in the rightmost two bins.
+
+I should note that because the sample size is so small, there's a weird distribution of the points - there's not enough variation in the differences to make a smooth curve (thus the gaps in the histogram).
+
+But anyway, what proportion of our simulations had as much or more of a difference than that found in the study?
+
+#+begin_src python :results output :exports both
+proportion = len(data[data["Point Estimate"] >= POINT_ESTIMATE])/TRIALS
+print(f"Proportion: {100 * proportion:0.3f} %")
+#+end_src
+
+#+RESULTS:
+: Proportion: 2.450 %
+
+#+begin_src python :results output :exports both
+print(f"Probability of our study's difference in promotion between genders by chance alone: {proportion:0.2f}.")
+print(f"Our tolerance was {ALPHA:0.2f}.")
+#+end_src
+
+#+RESULTS:
+: Probability of our study's difference in promotion between genders by chance alone: 0.02.
+: Our tolerance was 0.05.
+
+So we reject the null hypothesis and conclude that there is a statistically significant chance that the number of women promoted vs men in the original study was the result of bias.
+* End
+  Well, that was the replication (sort of) of this problem from {{% doc %}}introductory-statistics-with-randomization-and-simulation{{% /doc %}}. The point of it was to both review Hypothesis Testing and see how it can be done using simulation rather than a p-test.
+
+** In Abstract
+
+   1. Is your problem that you suspect some kind of bias in outcomes for two groups?
+   2. Get the *Point Estimate* for the value you want to test
+   3. State the *Null Hypothesis* that what happened could happen by chance and the *Alternative Hypothesis* that there was bias involved.
+   4. Decide on a tolerance level for the probability that it happened by chance.
+   5. Set up your urn
+   6. Simulate random selections for a large number of trials.
+   7. Calculate the proporiton of the trials that were greater than the original studies Point Estimate.
+   8. Make a conclusion whether the original outcome could have happened by random chance or not.
+** Source
+   - {{% doc %}}introductory-statistics-with-randomization-and-simulation{{% /doc %}}
