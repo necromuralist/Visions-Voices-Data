@@ -19,7 +19,7 @@
 </script>
 -->
 <script async src="javascript/p5.min.js" type="text/javascript"></script>
-<link href="/posts/gender-discrimination/" rel="prefetch" type="text/html">
+<link href="/posts/opportunity-cost-neglect/" rel="prefetch" type="text/html">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -46,6 +46,496 @@
 <div class="container" id="content" role="main">
 <div class="body-content"><!--Body content-->
 <div class="postindex">
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/opportunity-cost-neglect/">Opportunity Cost Neglect</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/opportunity-cost-neglect/" rel="bookmark"><time class="published dt-published" datetime="2020-09-26T18:34:45-07:00" itemprop="datePublished" title="2020-09-26 18:34">2020-09-26 18:34</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div class="outline-2" id="outline-container-org810f8a5">
+<h2 id="org810f8a5">Citation</h2>
+<div class="outline-text-2" id="text-org810f8a5">
+<ul class="org-ul">
+<li>Frederick S, Novemsky N, Wang J, Dhar R, Nowlis S. Opportunity cost neglect. Journal of Consumer Research. 2009 Dec 1;36(4):553-61.</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org1018d95">
+<h2 id="org1018d95">Abstract</h2>
+<div class="outline-text-2" id="text-org1018d95"></div>
+<div class="outline-3" id="outline-container-orgd83bc84">
+<h3 id="orgd83bc84">And</h3>
+<div class="outline-text-3" id="text-orgd83bc84">
+<p>To properly consider the opportunity costs of a purchase, consumers must actively generate the alternatives that it would displace.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orge75c424">
+<h3 id="orge75c424">But</h3>
+<div class="outline-text-3" id="text-orge75c424">
+<p>The current research suggests that consumers often fail to do so. Even under conditions promoting cognitive effort, various cues to consider opportunity costs reduce purchase rates and increase the choice share of more affordable options. Sensitivity to such cues varies with chronic dispositional differences in spending attitudes.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org88cd190">
+<h3 id="org88cd190">Therefore</h3>
+<div class="outline-text-3" id="text-org88cd190">
+<p>We discuss the implications of these results for the marketing strategies of economy and premium brands.</p>
+</div>
+</div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/opportunity-cost/">Opportunity Cost</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/opportunity-cost/" rel="bookmark"><time class="published dt-published" datetime="2020-09-26T16:07:12-07:00" itemprop="datePublished" title="2020-09-26 16:07">2020-09-26 16:07</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/opportunity-cost/#orgbd62967">Beginning</a>
+<ul>
+<li><a href="/posts/opportunity-cost/#org3e3054d">Imports</a></li>
+<li><a href="/posts/opportunity-cost/#orgd26c0db">Set Up</a></li>
+</ul>
+</li>
+<li><a href="/posts/opportunity-cost/#orgc5f61fb">Middle</a>
+<ul>
+<li><a href="/posts/opportunity-cost/#org369f7d1">Hypotheses</a></li>
+<li><a href="/posts/opportunity-cost/#orgcda2157">The Study Data</a></li>
+<li><a href="/posts/opportunity-cost/#org18b0cbd">Point Estimate of Effect</a></li>
+<li><a href="/posts/opportunity-cost/#orga1e36c5">Simulating Random Chance</a></li>
+</ul>
+</li>
+<li><a href="/posts/opportunity-cost/#orgc19d8ee">End</a>
+<ul>
+<li><a href="/posts/opportunity-cost/#orgeb8ce88">In the Abstract</a></li>
+<li><a href="/posts/opportunity-cost/#org49b36c4">Source</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgbd62967">
+<h2 id="orgbd62967">Beginning</h2>
+<div class="outline-text-2" id="text-orgbd62967">
+<p>We want to answer the question of whether reminding college students that spending money now deprives them of money in the future will affect their spending behavior.</p>
+</div>
+<div class="outline-3" id="outline-container-org3e3054d">
+<h3 id="org3e3054d">Imports</h3>
+<div class="outline-text-3" id="text-org3e3054d">
+<div class="highlight">
+<pre><span></span><span class="c1"># python</span>
+<span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">Namespace</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="c1"># pypi</span>
+<span class="kn">from</span> <span class="nn">expects</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">equal</span><span class="p">,</span>
+    <span class="n">expect</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">default_rng</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+
+<span class="kn">import</span> <span class="nn">holoviews</span>
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+
+<span class="c1"># my stuff</span>
+<span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">Timer</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgd26c0db">
+<h3 id="orgd26c0db">Set Up</h3>
+<div class="outline-text-3" id="text-orgd26c0db"></div>
+<div class="outline-4" id="outline-container-org5498c80">
+<h4 id="org5498c80">Randomness</h4>
+<div class="outline-text-4" id="text-org5498c80">
+<div class="highlight">
+<pre><span></span><span class="n">numpy_random</span> <span class="o">=</span> <span class="n">default_rng</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org63d8231">
+<h4 id="org63d8231">Table</h4>
+<div class="outline-text-4" id="text-org63d8231">
+<div class="highlight">
+<pre><span></span><span class="n">TABLE</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgc4aeee9">
+<h4 id="orgc4aeee9">Timer and Plotting</h4>
+<div class="outline-text-4" id="text-orgc4aeee9">
+<div class="highlight">
+<pre><span></span><span class="n">TIMER</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
+
+<span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"opportunity-cost"</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span>
+                <span class="n">folder_path</span><span class="o">=</span><span class="n">f</span><span class="s2">"files/posts/{SLUG}"</span><span class="p">)</span>
+
+<span class="n">Plot</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">990</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">780</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">tan</span><span class="o">=</span><span class="s2">"#ddb377"</span><span class="p">,</span>
+    <span class="n">blue</span><span class="o">=</span><span class="s2">"#4687b7"</span><span class="p">,</span>
+    <span class="n">red</span><span class="o">=</span><span class="s2">"#ce7b6d"</span><span class="p">,</span>
+    <span class="n">color_cycle</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Cycle</span><span class="p">([</span><span class="s2">"#4687b7"</span><span class="p">,</span> <span class="s2">"#ce7b6d"</span><span class="p">])</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc5f61fb">
+<h2 id="orgc5f61fb">Middle</h2>
+<div class="outline-text-2" id="text-orgc5f61fb"></div>
+<div class="outline-3" id="outline-container-org369f7d1">
+<h3 id="org369f7d1">Hypotheses</h3>
+<div class="outline-text-3" id="text-org369f7d1">
+<ul class="org-ul">
+<li>\(H_0:\) <b>Null Hypothesis.</b> Reminding students that they can save money for future purchases won't impact their spending decisions.</li>
+<li>\(H_A:\) <b>Alternative Hypothesis.</b> Reminding students that they can save money for future purchases will reduce their spending.</li>
+</ul>
+<p>I'll us a 95% significance level.</p>
+<div class="highlight">
+<pre><span></span><span class="n">ALPHA</span> <span class="o">=</span> <span class="s2">"0.05"</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgcda2157">
+<h3 id="orgcda2157">The Study Data</h3>
+<div class="outline-text-3" id="text-orgcda2157">
+<p>150 Students were given the following statement:</p>
+<blockquote>
+<p>Imagine that you have been saving some extra money on the side to make some purchases and on your most recent visit to the video store you come across a special sale on a new video. This video is one with your favorite actor or actress, and your favorite type of movie (such as comedy, drama, thriller, etc.). This particular video that you are considering is one you have been thinking about buying for a long time. It is available for a special sale price of $14.99.</p>
+<p>What would you do in this situation? Please circle one of the options below.</p>
+</blockquote>
+<p>Video store? Are we going to have to invent a time machine to run this study? No, we'll just swipe the data published by Frederick et al. in 2009. They conducted their study at Arizona State University, which perhaps still had some DVD stores around back then. The study was building on prior work that showed that people focus exclusively on explicitly presented details and ignore the facts that the explicit statements imply but don't state. (Also, I just looked it up and there's quite a few video stores around me (here in Portland) I guess I just haven't been to one in a while).</p>
+<p>The options that the subjects were given to circle depended on which group they belonged to. The control group (75 students) were given these options:</p>
+<blockquote>
+<p>A. Buy this entertaining video.<br>
+B. Not buy this entertaining video.</p>
+</blockquote>
+<p>The treatment group (also 75 students) were given these options:</p>
+<blockquote>
+<p>A. Buy this entertaining video.<br>
+B. Not buy this entertaining video. Keep the $14.99 for other purchases.</p>
+</blockquote>
+<p>Here's the outcome of the study.</p>
+<div class="highlight">
+<pre><span></span><span class="n">Outcome</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
+    <span class="n">buy</span><span class="o">=</span><span class="s2">"Buy DVD"</span><span class="p">,</span>
+    <span class="n">dont_buy</span><span class="o">=</span><span class="s2">"Not Buy DVD"</span><span class="p">,</span>
+    <span class="n">control</span><span class="o">=</span><span class="s2">"Control Group"</span><span class="p">,</span>
+    <span class="n">treatment</span><span class="o">=</span><span class="s2">"Treatment Group"</span><span class="p">,</span>
+    <span class="n">total</span><span class="o">=</span><span class="s2">"Total"</span>
+<span class="p">)</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span><span class="n">Outcome</span><span class="o">.</span><span class="n">buy</span><span class="p">:[</span><span class="mi">56</span><span class="p">,</span> <span class="mi">41</span><span class="p">],</span>
+                                   <span class="n">Outcome</span><span class="o">.</span><span class="n">dont_buy</span><span class="p">:</span> <span class="p">[</span><span class="mi">19</span><span class="p">,</span> <span class="mi">34</span><span class="p">]})</span>
+<span class="n">data</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">control</span><span class="p">,</span> <span class="n">Outcome</span><span class="o">.</span><span class="n">treatment</span><span class="p">]</span>
+<span class="n">row</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="n">row</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">Outcome</span><span class="o">.</span><span class="n">total</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+<span class="n">data</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">total</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">&nbsp;</th>
+<th class="org-right" scope="col">Buy DVD</th>
+<th class="org-right" scope="col">Not Buy DVD</th>
+<th class="org-right" scope="col">Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Control Group</td>
+<td class="org-right">56</td>
+<td class="org-right">19</td>
+<td class="org-right">75</td>
+</tr>
+<tr>
+<td class="org-left">Treatment Group</td>
+<td class="org-right">41</td>
+<td class="org-right">34</td>
+<td class="org-right">75</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">Total</td>
+<td class="org-right">97</td>
+<td class="org-right">53</td>
+<td class="org-right">150</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span><span class="n">Total</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
+    <span class="n">buy</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">total</span><span class="p">][</span><span class="n">Outcome</span><span class="o">.</span><span class="n">buy</span><span class="p">],</span>
+    <span class="n">dont_buy</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">total</span><span class="p">][</span><span class="n">Outcome</span><span class="o">.</span><span class="n">dont_buy</span><span class="p">],</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">control</span><span class="p">][</span><span class="n">Outcome</span><span class="o">.</span><span class="n">total</span><span class="p">],</span>
+    <span class="n">students</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">total</span><span class="p">][</span><span class="n">Outcome</span><span class="o">.</span><span class="n">total</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+<p>Now a little plotting.</p>
+<div class="highlight">
+<pre><span></span><span class="c1"># put the groups into a column</span>
+<span class="n">plotter</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+<span class="c1"># get rid of the totals</span>
+<span class="k">del</span><span class="p">(</span><span class="n">plotter</span><span class="p">[</span><span class="s2">"Total"</span><span class="p">])</span>
+<span class="n">plotter</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="c1"># move the outcome headers into a column</span>
+<span class="n">plotter</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">"index"</span><span class="p">],</span>
+                       <span class="n">value_vars</span><span class="o">=</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">buy</span><span class="p">,</span> <span class="n">Outcome</span><span class="o">.</span><span class="n">dont_buy</span><span class="p">])</span>
+<span class="n">plotter</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+    <span class="n">index</span><span class="o">=</span><span class="s2">"Group"</span><span class="p">,</span>
+    <span class="n">variable</span><span class="o">=</span><span class="s2">"Outcome"</span><span class="p">,</span>
+    <span class="n">value</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">))</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Group"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">"Outcome"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Buy Or Don't Buy DVD"</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">color_cycle</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">fontscale</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">outcome</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"buy_dont_buy"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">outcome</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/opportunity-cost/buy_dont_buy.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>It <i>looks</i> like there was a significant difference since not only did the majority of the treatment group opt not to buy the DVD, but in the control a significant majority did.</p>
+<p>Now as row-proportions.</p>
+<div class="highlight">
+<pre><span></span><span class="n">proportions</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">total</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"rows"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">proportions</span><span class="p">))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">&nbsp;</th>
+<th class="org-right" scope="col">Buy DVD</th>
+<th class="org-right" scope="col">Not Buy DVD</th>
+<th class="org-right" scope="col">Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Control Group</td>
+<td class="org-right">0.746667</td>
+<td class="org-right">0.253333</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-left">Treatment Group</td>
+<td class="org-right">0.546667</td>
+<td class="org-right">0.453333</td>
+<td class="org-right">1</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">Total</td>
+<td class="org-right">0.646667</td>
+<td class="org-right">0.353333</td>
+<td class="org-right">1</td>
+</tr>
+</tbody>
+</table>
+<p>Looking at the proportions it looks like quite a bit more didn't buy the DVD, but let's run the experiment and see.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org18b0cbd">
+<h3 id="org18b0cbd">Point Estimate of Effect</h3>
+<div class="outline-text-3" id="text-org18b0cbd">
+<p>The thing we are interested in is whether the wording of the second option to not buy the DVD made a difference, so our statistic of interest is the difference in proportions of the control and treatment group participants who didn't buy the DVD.</p>
+\begin{align} \hat{p}_{control} &amp;= \frac{\textrm{Control group that wouldnt' buy}}\textrm{size of Control Group}\\ \hat{p}_{treatment} &amp;= \frac{\textrm{Treatment group that wouldnt' buy}}\textrm{size of Treament group}\\ \hat{p} = \hat{p}_{treatment} - \hat{p}_{control} \end{align}
+<div class="highlight">
+<pre><span></span><span class="n">POINT_ESTIMATE</span> <span class="o">=</span> <span class="p">(</span><span class="n">proportions</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">dont_buy</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">treatment</span><span class="p">]</span>
+                  <span class="o">-</span> <span class="n">proportions</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">dont_buy</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">control</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{POINT_ESTIMATE * 100:.2f} %"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+20.00 %
+</pre>
+<p>About twenty percent more of the treatment group said they would abstain from the purchase than control group.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orga1e36c5">
+<h3 id="orga1e36c5">Simulating Random Chance</h3>
+<div class="outline-text-3" id="text-orga1e36c5">
+<p>In a previous post looking at <a href="/posts/gender-discrimination/">Gender Discrimination Inference</a> I split the Urn into a 50-50 split of males and females to see if there was gender bias in choosing whether to promote them. In that case we didn't have a control group, but here we do, so in this case it's going to work a little differently.</p>
+<p>We are asking here whether our treatment had an effect. If it didn't then we would expect that the distribution of "buy" and "don't buy" that we saw represents the distribution of the underlying population of ASU students, so we need to split our urn up to match the counts in the "Buy" and "Don't Buy" columns and then randomly split it into two equal groups. If the difference we saw was the result of random chance then we would expect that the difference between "buy" and "don't buy" group would be equal most of the time. This doesn't seem as intuitive a way to set it up as the previous method, but we'll see how it goes.</p>
+</div>
+<div class="outline-4" id="outline-container-org44bbecf">
+<h4 id="org44bbecf">Set Up the Urn</h4>
+<div class="outline-text-4" id="text-org44bbecf">
+<div class="highlight">
+<pre><span></span><span class="n">buy</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">total</span><span class="p">][</span><span class="n">Outcome</span><span class="o">.</span><span class="n">buy</span><span class="p">]</span>
+<span class="n">dont</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">Outcome</span><span class="o">.</span><span class="n">total</span><span class="p">][</span><span class="n">Outcome</span><span class="o">.</span><span class="n">dont_buy</span><span class="p">]</span>
+
+<span class="n">bought</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">buy</span><span class="p">)</span>
+<span class="n">didnt</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">dont</span><span class="p">)</span>
+
+<span class="n">URN</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bought</span><span class="p">,</span> <span class="n">didnt</span><span class="p">)</span>
+
+<span class="n">expect</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">URN</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">equal</span><span class="p">(</span><span class="n">STUDENTS</span><span class="p">))</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">buy</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">equal</span><span class="p">(</span><span class="mi">97</span><span class="p">))</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">dont</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">equal</span><span class="p">(</span><span class="mi">53</span><span class="p">))</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">URN</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">equal</span><span class="p">(</span><span class="n">dont</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgc7ce368">
+<h4 id="orgc7ce368">Simulate</h4>
+<div class="outline-text-4" id="text-orgc7ce368">
+<p>The Process:</p>
+<ol class="org-ol">
+<li>Shuffle the urn</li>
+<li>Split the shuffled urn in half (control and treatment)</li>
+<li>Count the proportion of each half that said they would not buy the DVD</li>
+<li>Record the differences between the proportions of the control that wouldn't buy and the treatment that wouldn't buy</li>
+</ol>
+<p>But, since I'm doing this with numpy it works a little different.</p>
+<p>My process:</p>
+<ol class="org-ol">
+<li>Randomly choose half the urn (without replacement) to get the control group</li>
+<li>Sum the choices (this gives the count of the control that said they wouldn't buy)</li>
+<li>Subtract the previous sum from the total that said they wouldn't buy (to get the treatment count)</li>
+<li>Calculate the proportion of each group that said they wouldn't buy</li>
+<li>Find the difference in proportion for each group</li>
+</ol>
+<div class="highlight">
+<pre><span></span><span class="n">TRIALS</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**</span><span class="mi">6</span>
+
+<span class="k">with</span> <span class="n">TIMER</span><span class="p">:</span>
+    <span class="n">controls</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">numpy_random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">URN</span><span class="p">,</span>
+                                                <span class="n">Total</span><span class="o">.</span><span class="n">group</span><span class="p">,</span>
+                                                <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                            <span class="k">for</span> <span class="n">trial</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">TRIALS</span><span class="p">)])</span>
+    <span class="n">treatments</span> <span class="o">=</span> <span class="n">Total</span><span class="o">.</span><span class="n">dont_buy</span> <span class="o">-</span> <span class="n">controls</span>
+
+    <span class="n">control_proportions</span> <span class="o">=</span> <span class="n">controls</span><span class="o">/</span><span class="n">Total</span><span class="o">.</span><span class="n">group</span>
+    <span class="n">treatment_proportions</span> <span class="o">=</span> <span class="n">treatments</span><span class="o">/</span><span class="n">Total</span><span class="o">.</span><span class="n">group</span>
+
+    <span class="n">differences</span> <span class="o">=</span> <span class="n">control_proportions</span> <span class="o">-</span> <span class="n">treatment_proportions</span>
+    <span class="n">simulation</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span>
+        <span class="s2">"Point Estimate"</span><span class="p">:</span> <span class="n">differences</span><span class="p">,</span>
+        <span class="s2">"Control"</span><span class="p">:</span> <span class="n">control_proportions</span><span class="p">,</span>
+        <span class="s2">"Treatment"</span><span class="p">:</span> <span class="n">treatment_proportions</span><span class="p">,</span>
+    <span class="p">})</span>
+</pre></div>
+<pre class="example">
+2020-09-26 20:02:52,224 graeae.timers.timer start: Started: 2020-09-26 20:02:52.224515
+2020-09-26 20:03:29,174 graeae.timers.timer end: Ended: 2020-09-26 20:03:29.174373
+2020-09-26 20:03:29,175 graeae.timers.timer end: Elapsed: 0:00:36.949858
+</pre></div>
+</div>
+<div class="outline-4" id="outline-container-org19f800b">
+<h4 id="org19f800b">Plot the Distribution</h4>
+<div class="outline-text-4" id="text-org19f800b">
+<div class="highlight">
+<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="s2">"Point Estimate"</span><span class="p">,</span>
+                              <span class="n">bins</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Opportunity Cost Don't Buy Difference"</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">tan</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="n">outcome</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"opportunity_cost_simulation"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">outcome</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/opportunity-cost/opportunity_cost_simulation.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>The distribution appears to be reasonably normal, if a bit peaked in the middle.</p>
+<div class="highlight">
+<pre><span></span><span class="n">matched</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">simulation</span><span class="p">[</span><span class="n">simulation</span><span class="p">[</span><span class="s2">"Point Estimate"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">POINT_ESTIMATE</span><span class="p">])</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">simulation</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Percent of trials &gt;= Point Estimate of Study: {100 * matched:0.3f} %"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+Percent of trials &gt;= Point Estimate of Study: 0.817 %
+</pre>
+<p>According to our simulation, less than one percent of the time we would see a difference like the study found by random chance alone.</p>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orge00b910">
+<h4 id="orge00b910">Test Our Hypothesis</h4>
+<div class="outline-text-4" id="text-orge00b910">
+<div class="highlight">
+<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Null Hypothesis is {matched &gt;= POINT_ESTIMATE}"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+Null Hypothesis is False
+</pre>
+<p>So we'll conclude that the Null Hypothesis is false and that the Alternative Hypothesis that telling students about the opportunity cost of buying a DVD does have an effecte in getting them to not buy the DVD.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc19d8ee">
+<h2 id="orgc19d8ee">End</h2>
+<div class="outline-text-2" id="text-orgc19d8ee">
+<p>So here we have a walk through of Inference using simulation and an experiment with Control and Treatment groups. Although the conclusion reached is that reminding students of the money they would have in the future if they didn't spend it is "causal", since this was an experiment, I'm not 100% convinced that asking studnents what the</p>
+</div>
+<div class="outline-3" id="outline-container-orgeb8ce88">
+<h3 id="orgeb8ce88">In the Abstract</h3>
+<div class="outline-text-3" id="text-orgeb8ce88">
+<ol class="org-ol">
+<li>Do you have control and treatment groups?</li>
+<li>Create an urn where the ones and zeros are equal to the totals for each of the outcomes</li>
+<li>Sample from the urn a simulated control group and treatment group</li>
+<li>Find the difference between the proportion of the control group and the treatment group that match the "success" outcome</li>
+<li>Calculate the fraction of the differences that are equal to or greater than the differences in the study</li>
+<li>Check if the fraction in the simulation meets your confidence level</li>
+</ol>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org49b36c4">
+<h3 id="org49b36c4">Source</h3>
+<div class="outline-text-3" id="text-org49b36c4">
+<ul class="org-ul">
+<li><a href="/posts/introductory-statistics-with-randomization-and-simulation/">Introductory Statistics with Randomization and Simulation</a></li>
+<li><a href="/posts/opportunity-cost-neglect/">Opportunity Cost Neglect</a></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</article>
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/gender-discrimination/">Gender Discrimination Inference</a></h1>
@@ -2775,1155 +3265,6 @@ Mean Absolute Error: 17615.31526418787
 <h2 id="orgf1fa4e5">End</h2>
 <div class="outline-text-2" id="text-orgf1fa4e5">
 <p>This was a brief look at handling categorical data.</p>
-</div>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="/posts/tutorials/missing-values/">Missing Values</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="/posts/tutorials/missing-values/" rel="bookmark"><time class="published dt-published" datetime="2020-02-20T21:07:15-08:00" itemprop="datePublished" title="2020-02-20 21:07">2020-02-20 21:07</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="/posts/tutorials/missing-values/#org4ef88d0">Beginning</a>
-<ul>
-<li><a href="/posts/tutorials/missing-values/#org4dce918">Imports</a>
-<ul>
-<li><a href="/posts/tutorials/missing-values/#orgfe1523e">Python</a></li>
-<li><a href="/posts/tutorials/missing-values/#org9509447">PyPi</a></li>
-<li><a href="/posts/tutorials/missing-values/#orgd143f12">Others</a></li>
-</ul>
-</li>
-<li><a href="/posts/tutorials/missing-values/#org7676bd0">Set Up</a>
-<ul>
-<li><a href="/posts/tutorials/missing-values/#org272dba6">Table</a></li>
-<li><a href="/posts/tutorials/missing-values/#org60465db">Plottting</a></li>
-<li><a href="/posts/tutorials/missing-values/#org8dfdcab">The Timer</a></li>
-<li><a href="/posts/tutorials/missing-values/#org4aeabb0">Environment</a></li>
-<li><a href="/posts/tutorials/missing-values/#org427c89a">The Data</a></li>
-<li><a href="/posts/tutorials/missing-values/#org8c378f1">Some Constants</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/tutorials/missing-values/#orgfb58d5a">Middle</a>
-<ul>
-<li><a href="/posts/tutorials/missing-values/#org7b09c62">Remove Training Data with no Target</a></li>
-<li><a href="/posts/tutorials/missing-values/#orgac20761">Numeric Data Only</a></li>
-<li><a href="/posts/tutorials/missing-values/#org6c8fdcf">Split the Training and Validation Data</a></li>
-<li><a href="/posts/tutorials/missing-values/#org1300780">Step 1: Preliminary investigation</a>
-<ul>
-<li><a href="/posts/tutorials/missing-values/#orgf11726e">Part A</a></li>
-<li><a href="/posts/tutorials/missing-values/#org89f64e3">Part B</a></li>
-</ul>
-</li>
-<li><a href="/posts/tutorials/missing-values/#org11c1e67">score_dataset</a></li>
-<li><a href="/posts/tutorials/missing-values/#org446b061">Step 2: Drop columns with missing values</a></li>
-<li><a href="/posts/tutorials/missing-values/#orge4e71b6">Step 3: Imputation</a>
-<ul>
-<li><a href="/posts/tutorials/missing-values/#org01ee5ec">Part A</a></li>
-<li><a href="/posts/tutorials/missing-values/#org0f265b2">Part B</a></li>
-</ul>
-</li>
-<li><a href="/posts/tutorials/missing-values/#org0e61bbe">Step 4: Generate test predictions</a>
-<ul>
-<li><a href="/posts/tutorials/missing-values/#orgd37aebc">Part A</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/tutorials/missing-values/#org27deac5">End</a></li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org4ef88d0">
-<h2 id="org4ef88d0">Beginning</h2>
-<div class="outline-text-2" id="text-org4ef88d0">
-<blockquote>
-<p>Now it's your turn to test your new knowledge of <b>missing values</b> handling. You'll probably find it makes a big difference.</p>
-</blockquote>
-</div>
-<div class="outline-3" id="outline-container-org4dce918">
-<h3 id="org4dce918">Imports</h3>
-<div class="outline-text-3" id="text-org4dce918"></div>
-<div class="outline-4" id="outline-container-orgfe1523e">
-<h4 id="orgfe1523e">Python</h4>
-<div class="outline-text-4" id="text-orgfe1523e">
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">Namespace</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org9509447">
-<h4 id="org9509447">PyPi</h4>
-<div class="outline-text-4" id="text-org9509447">
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">eli5.sklearn</span> <span class="kn">import</span> <span class="n">PermutationImportance</span>
-<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span>
-<span class="kn">from</span> <span class="nn">pdpbox</span> <span class="kn">import</span> <span class="n">pdp</span>
-
-<span class="kn">import</span> <span class="nn">shap</span>
-<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestRegressor</span>
-<span class="kn">from</span> <span class="nn">sklearn.experimental</span> <span class="kn">import</span> <span class="n">enable_iterative_imputer</span>
-<span class="kn">from</span> <span class="nn">sklearn.impute</span> <span class="kn">import</span> <span class="n">IterativeImputer</span><span class="p">,</span> <span class="n">KNNImputer</span><span class="p">,</span> <span class="n">SimpleImputer</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">mean_absolute_error</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">cross_val_score</span><span class="p">,</span> <span class="n">train_test_split</span>
-<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
-
-<span class="kn">import</span> <span class="nn">eli5</span>
-<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
-<span class="kn">import</span> <span class="nn">pandas</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-orgd143f12">
-<h4 id="orgd143f12">Others</h4>
-<div class="outline-text-4" id="text-orgd143f12">
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">EnvironmentLoader</span><span class="p">,</span> <span class="n">Timer</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org7676bd0">
-<h3 id="org7676bd0">Set Up</h3>
-<div class="outline-text-3" id="text-org7676bd0"></div>
-<div class="outline-4" id="outline-container-org272dba6">
-<h4 id="org272dba6">Table</h4>
-<div class="outline-text-4" id="text-org272dba6">
-<div class="highlight">
-<pre><span></span><span class="n">TABLE</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org60465db">
-<h4 id="org60465db">Plottting</h4>
-<div class="outline-text-4" id="text-org60465db">
-<div class="highlight">
-<pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"missing-values"</span>
-<span class="n">OUTPUT_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/tutorials/"</span><span class="p">)</span><span class="o">/</span><span class="n">SLUG</span>
-<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="n">OUTPUT_PATH</span><span class="p">)</span>
-<span class="n">Plot</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
-    <span class="n">height</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org8dfdcab">
-<h4 id="org8dfdcab">The Timer</h4>
-<div class="outline-text-4" id="text-org8dfdcab">
-<div class="highlight">
-<pre><span></span><span class="n">TIMER</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org4aeabb0">
-<h4 id="org4aeabb0">Environment</h4>
-<div class="outline-text-4" id="text-org4aeabb0">
-<div class="highlight">
-<pre><span></span><span class="n">ENVIRONMENT</span> <span class="o">=</span> <span class="n">EnvironmentLoader</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org427c89a">
-<h4 id="org427c89a">The Data</h4>
-<div class="outline-text-4" id="text-org427c89a">
-<div class="highlight">
-<pre><span></span><span class="n">DATA_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">ENVIRONMENT</span><span class="p">[</span><span class="s2">"HOUSE-PRICES-IOWA"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
-<span class="n">train_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
-    <span class="n">DATA_PATH</span><span class="o">/</span><span class="s2">"train.csv"</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s2">"Id"</span><span class="p">)</span>
-
-<span class="n">test_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
-    <span class="n">DATA_PATH</span><span class="o">/</span><span class="s2">"test.csv"</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s2">"Id"</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org8c378f1">
-<h4 id="org8c378f1">Some Constants</h4>
-<div class="outline-text-4" id="text-org8c378f1">
-<div class="highlight">
-<pre><span></span><span class="n">Data</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
-    <span class="n">target</span><span class="o">=</span><span class="s2">"SalePrice"</span><span class="p">,</span>
-    <span class="n">train_size</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
-    <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-    <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgfb58d5a">
-<h2 id="orgfb58d5a">Middle</h2>
-<div class="outline-text-2" id="text-orgfb58d5a"></div>
-<div class="outline-3" id="outline-container-org7b09c62">
-<h3 id="org7b09c62">Remove Training Data with no Target</h3>
-<div class="outline-text-3" id="text-org7b09c62">
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{len(train_data):,}"</span><span class="p">)</span>
-<span class="n">train_data</span> <span class="o">=</span> <span class="n">train_data</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"rows"</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="n">Data</span><span class="o">.</span><span class="n">target</span><span class="p">])</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{len(train_data):,}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-1,460
-1,460
-</pre>
-<p>Doesn't look like there were any missing target values.</p>
-<div class="highlight">
-<pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">train_data</span><span class="p">[</span><span class="n">Data</span><span class="o">.</span><span class="n">target</span><span class="p">]</span>
-<span class="n">x_train</span> <span class="o">=</span> <span class="n">train_data</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="n">Data</span><span class="o">.</span><span class="n">target</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-orgac20761">
-<h3 id="orgac20761">Numeric Data Only</h3>
-<div class="outline-text-3" id="text-orgac20761">
-<blockquote>
-<p>To keep things simple, we'll use only numerical predictors</p>
-</blockquote>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_train</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">x_train</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s2">"object"</span><span class="p">])</span>
-<span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
-</pre></div>
-<pre class="example">
-79
-36
-</pre>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_data</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
-<span class="n">x_test</span> <span class="o">=</span> <span class="n">test_data</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s2">"object"</span><span class="p">])</span>
-<span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_test</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
-</pre></div>
-<pre class="example">
-79
-36
-</pre></div>
-</div>
-<div class="outline-3" id="outline-container-org6c8fdcf">
-<h3 id="org6c8fdcf">Split the Training and Validation Data</h3>
-<div class="outline-text-3" id="text-org6c8fdcf">
-<div class="highlight">
-<pre><span></span><span class="n">x_train</span><span class="p">,</span> <span class="n">x_validate</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_validate</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
-    <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
-    <span class="n">train_size</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">train_size</span><span class="p">,</span>
-    <span class="n">test_size</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">test_size</span><span class="p">,</span>
-    <span class="n">random_state</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">random_seed</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org1300780">
-<h3 id="org1300780">Step 1: Preliminary investigation</h3>
-<div class="outline-text-3" id="text-org1300780">
-<div class="highlight">
-<pre><span></span><span class="n">missing_by_column</span> <span class="o">=</span> <span class="n">x_train</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-<span class="n">missed</span> <span class="o">=</span> <span class="n">missing_by_column</span><span class="p">[</span><span class="n">missing_by_column</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
-<span class="k">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">missed</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"index"</span><span class="p">:</span> <span class="s2">"Feature"</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="s2">"Missing"</span><span class="p">})))</span>
-</pre></div>
-<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
-<colgroup>
-<col class="org-left">
-<col class="org-right"></colgroup>
-<thead>
-<tr>
-<th class="org-left" scope="col">Feature</th>
-<th class="org-right" scope="col">Missing</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-left">LotFrontage</td>
-<td class="org-right">212</td>
-</tr>
-<tr>
-<td class="org-left">MasVnrArea</td>
-<td class="org-right">6</td>
-</tr>
-<tr>
-<td class="org-left">GarageYrBlt</td>
-<td class="org-right">58</td>
-</tr>
-</tbody>
-</table>
-<p>According to the data description these features are:</p>
-<p><b>LotFrontage</b>: Linear feet of street connected to property <b>MasVnrArea:</b> Masonry veneer area in square feet <b>GarageYrBlt</b>: Year garage was built</p>
-<div class="highlight">
-<pre><span></span><span class="n">Missing</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
-    <span class="n">frontage</span> <span class="o">=</span> <span class="s2">"LotFrontage"</span><span class="p">,</span>
-    <span class="n">masonry</span> <span class="o">=</span> <span class="s2">"MasVnrArea"</span><span class="p">,</span>
-    <span class="n">garage</span> <span class="o">=</span> <span class="s2">"GarageYrBlt"</span><span class="p">,</span>
-    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"LotFrontage"</span><span class="p">,</span> <span class="s2">"MasVnrArea"</span><span class="p">,</span> <span class="s2">"GarageYrBlt"</span><span class="p">],</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-<div class="outline-4" id="outline-container-orgf11726e">
-<h4 id="orgf11726e">Part A</h4>
-<div class="outline-text-4" id="text-orgf11726e"></div>
-<ul class="org-ul">
-<li><a id="orgd062fa9"></a>How many rows are in the training data?<br>
-<div class="outline-text-5" id="text-orgd062fa9">
-<div class="highlight">
-<pre><span></span> <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{len(x_train):,}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-1,168
-</pre></div>
-</li>
-<li><a id="orgeb94d89"></a>Fill in the line below: How many columns in the training data have missing values?<br>
-<div class="outline-text-5" id="text-orgeb94d89">
-<div class="highlight">
-<pre><span></span> <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{sum([1 for column in x_train.columns if x_train[column].hasnans])}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-3
-</pre></div>
-</li>
-<li><a id="org5e7f4c9"></a>Fill in the line below: How many missing entries are contained in all of the training data?<br>
-<div class="outline-text-5" id="text-org5e7f4c9">
-<div class="highlight">
-<pre><span></span> <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{missed.sum()}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-276
-</pre>
-<p><b>Note:</b> For some reason it doesn't appear to be explicitly mentioned in the notebook, but if you don't deal with the missing values and try and fit the trees to the data you'll end up with an error.</p>
-<div class="highlight">
-<pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">score_dataset</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">x_validate</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_validate</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-Input contains NaN, infinity or a value too large for dtype('float32').
-</pre></div>
-</li>
-</ul>
-</div>
-<div class="outline-4" id="outline-container-org89f64e3">
-<h4 id="org89f64e3">Part B</h4>
-<div class="outline-text-4" id="text-org89f64e3">
-<blockquote>
-<p>Considering your answers above, what do you think is likely the best approach to dealing with the missing values?</p>
-</blockquote>
-<p>For the cases where there are few missing values I would drop them - e.g. <code>MasVnrArea</code>. For <code>GarageYrBlt</code> I would use the most common value in the same neighborhood and for the <code>LotFrontage</code> I would use the mean or median.</p>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org11c1e67">
-<h3 id="org11c1e67">score_dataset</h3>
-<div class="outline-text-3" id="text-org11c1e67">
-<p>This function will help check the Mean Absolute Error (MAE) as we make changes to the dataset.</p>
-<div class="highlight">
-<pre><span></span><span class="k">def</span> <span class="nf">score_dataset</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">X_valid</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_valid</span><span class="p">):</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestRegressor</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
-    <span class="n">preds</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_valid</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_valid</span><span class="p">,</span> <span class="n">preds</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org446b061">
-<h3 id="org446b061">Step 2: Drop columns with missing values</h3>
-<div class="outline-text-3" id="text-org446b061">
-<p>We'll try dropping the columns in the training and validation.</p>
-<div class="highlight">
-<pre><span></span><span class="n">missing_columns</span> <span class="o">=</span> <span class="n">missed</span><span class="o">.</span><span class="n">index</span>
-<span class="n">keep</span> <span class="o">=</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">x_train</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">x_train</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">hasnans</span><span class="p">]</span>
-<span class="n">reduced_X_train</span> <span class="o">=</span> <span class="n">x_train</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
-<span class="n">reduced_X_valid</span> <span class="o">=</span> <span class="n">x_validate</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
-
-<span class="k">print</span><span class="p">(</span><span class="s2">"MAE (Drop columns with missing values):"</span><span class="p">)</span>
-<span class="n">drop_columns_error</span> <span class="o">=</span> <span class="n">score_dataset</span><span class="p">(</span><span class="n">reduced_X_train</span><span class="p">,</span> <span class="n">reduced_X_valid</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_validate</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{drop_columns_error:0.2f}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-MAE (Drop columns with missing values):
-17837.83
-</pre></div>
-</div>
-<div class="outline-3" id="outline-container-orge4e71b6">
-<h3 id="orge4e71b6">Step 3: Imputation</h3>
-<div class="outline-text-3" id="text-orge4e71b6"></div>
-<div class="outline-4" id="outline-container-org01ee5ec">
-<h4 id="org01ee5ec">Part A</h4>
-<div class="outline-text-4" id="text-org01ee5ec">
-<blockquote>
-<p>Use the next code cell to impute missing values with the mean value along each column. Set the preprocessed DataFrames to <code>imputed_X_train</code> and <code>imputed_X_valid</code>. Make sure that the column names match those in <code>X_train</code> and <code>X_valid</code>.</p>
-</blockquote>
-<p>Here we'll use sklearn's <a href="https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html">SimpleImputer</a> which fills missing values with the means of the columns (by default). It accepts pandas DataFrames but returns a numpy array so we need to rebuild the DataFrame afterward. The notebook suggests you can just re-set the columns, but I don't know what they're expecting, since it isn't a DataFrame. As long as we end up with the same thing in the end I guess it's okay.</p>
-<div class="highlight">
-<pre><span></span><span class="n">imputer</span> <span class="o">=</span> <span class="n">SimpleImputer</span><span class="p">()</span>
-<span class="n">imputed_X_train</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">x_train</span><span class="p">),</span>
-                                   <span class="n">columns</span><span class="o">=</span><span class="n">x_train</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-<span class="n">imputed_X_valid</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x_validate</span><span class="p">))</span>
-</pre></div>
-<p>Now check the Mean Absolute Error for our imputed frames.</p>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="s2">"MAE (Imputation):"</span><span class="p">)</span>
-<span class="n">impute_mean_error</span> <span class="o">=</span> <span class="n">score_dataset</span><span class="p">(</span><span class="n">imputed_X_train</span><span class="p">,</span> <span class="n">imputed_X_valid</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_validate</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{impute_mean_error:0.2f}"</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement: {drop_columns_error - impute_mean_error:0.2f}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-MAE (Imputation):
-18056.85
-Improvement: -219.03
-</pre>
-<p>So we actually got a little worse using mean imputation.</p>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org0f265b2">
-<h4 id="org0f265b2">Part B</h4>
-<div class="outline-text-4" id="text-org0f265b2">
-<blockquote>
-<p>Compare the MAE from each approach. Does anything surprise you about the results? Why do you think one approach performed better than the other?</p>
-</blockquote>
-<p>As note previously, the imputation did worse than discarding the columns did. It might be that using the mean threw the values off so much that it did worse than just throwing the values away. This might indicate that the values aren't symmetrically distributed so using a central tendency doesn't reflect the data very well.</p>
-<div class="highlight">
-<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">x_train</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"LotFrontage"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"LotFrontage"</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">source</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"lot_frontage_box"</span><span class="p">)()</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
-</pre></div>
-: <object data="/posts/tutorials/missing-values/lot_frontage_box.html" height="800" style="width:100%" type="text/html">:
-<p>Figure Missing</p>
-:</object>
-<p>Looking at the plot you can see that it's right-skewed, with an extreme point over 300 square feet well over the mean:</p>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Mean: {x_train.LotFrontage.mean():0.2f} sq ft"</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Max: {x_train.LotFrontage.max():0.2f} sq ft"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-Mean: 69.61 sq ft
-Max: 313.00 sq ft
-</pre>
-<div class="highlight">
-<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">x_train</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"GarageYrBlt"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"GarageYrBlt"</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">source</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"garage_year_built_box"</span><span class="p">)()</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
-</pre></div>
-: <object data="/posts/tutorials/missing-values/garage_year_built_box.html" height="800" style="width:100%" type="text/html">:
-<p>Figure Missing</p>
-:</object>
-<p>This also looks skewed, but the number of missing points is less so I don't know if it had as much of an effect.</p>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org0e61bbe">
-<h3 id="org0e61bbe">Step 4: Generate test predictions</h3>
-<div class="outline-text-3" id="text-org0e61bbe">
-<blockquote>
-<p>In this final step, you'll use any approach of your choosing to deal with missing values. Once you've preprocessed the training and validation features, you'll train and evaluate a random forest model. Then, you'll preprocess the test data before generating predictions that can be submitted to the competition.</p>
-</blockquote>
-</div>
-<div class="outline-4" id="outline-container-orgd37aebc">
-<h4 id="orgd37aebc">Part A</h4>
-<div class="outline-text-4" id="text-orgd37aebc">
-<blockquote>
-<p>Use the next code cell to preprocess the training and validation data. Set the preprocessed DataFrames to <code>final_X_train</code> and <code>final_X_valid</code>. <b>You can use any approach of your choosing here!</b> in order for this step to be marked as correct, you need only ensure:</p>
-<ul class="org-ul">
-<li>the preprocessed DataFrames have the same number of columns,</li>
-<li>the preprocessed DataFrames have no missing values,</li>
-<li><code>final_X_train</code> and <code>y_train</code> have the same number of rows, and</li>
-<li><code>final_X_valid</code> and <code>y_valid</code> have the same number of rows.</li>
-</ul>
-</blockquote>
-</div>
-<ul class="org-ul">
-<li><a id="orga189d19"></a>KNN<br>
-<div class="outline-text-5" id="text-orga189d19">
-<p>Let's try using K-Nearest Neighbors to estimate missing values.</p>
-<div class="highlight">
-<pre><span></span><span class="n">imputer</span> <span class="o">=</span> <span class="n">KNNImputer</span><span class="p">()</span>
-<span class="n">final_x_train</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">x_train</span><span class="p">),</span>
-                                 <span class="n">columns</span><span class="o">=</span><span class="n">x_train</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-<span class="n">final_x_validate</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x_validate</span><span class="p">),</span>
-                                 <span class="n">columns</span><span class="o">=</span><span class="n">x_validate</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-</pre></div>
-</div>
-<ul class="org-ul">
-<li><a id="org4981c75"></a>One Last Try<br>
-<div class="outline-text-6" id="text-org4981c75">
-<blockquote>
-<p>Run the next code cell to train and evaluate a random forest model. (<b>Note that we don't use the <code>score_dataset()</code> function above, because we will soon use the trained model to generate test predictions!</b>)</p>
-</blockquote>
-<p>Define and fit the model.</p>
-<div class="highlight">
-<pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestRegressor</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">final_x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
-</pre></div>
-<p>Get validation predictions and MAE.</p>
-<div class="highlight">
-<pre><span></span><span class="n">preds_valid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">final_x_validate</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">"MAE (Your approach):"</span><span class="p">)</span>
-<span class="n">final_error</span> <span class="o">=</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_validate</span><span class="p">,</span> <span class="n">preds_valid</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"{final_error:.2f}"</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement Over Dropping Columns: {drop_columns_error - final_error:0.2f}"</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement Over Mean: {impute_mean_error - final_error:0.2f}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-MAE (Your approach):
-17834.40
-Improvement Over Dropping Columns: 3.43
-Improvement Over Mean: 222.46
-</pre>
-<p>So it does a litle better than dropping the columns altogether.</p>
-</div>
-</li>
-</ul>
-</li>
-<li><a id="org2958459"></a>Iterative<br>
-<div class="outline-text-5" id="text-org2958459">
-<p>This is an experimental imputer from sklearn based on imputation methods from R.</p>
-<div class="highlight">
-<pre><span></span><span class="n">imputer_2</span> <span class="o">=</span> <span class="n">IterativeImputer</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">random_seed</span><span class="p">)</span>
-<span class="n">final_x_train_2</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer_2</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">x_train</span><span class="p">),</span>
-                                   <span class="n">columns</span><span class="o">=</span><span class="n">x_train</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-<span class="n">final_x_validate_2</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imputer_2</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x_validate</span><span class="p">),</span>
-                                      <span class="n">columns</span><span class="o">=</span><span class="n">x_validate</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-</pre></div>
-</div>
-<ul class="org-ul">
-<li><a id="org20e6bcb"></a>One Last Try<br>
-<div class="outline-text-6" id="text-org20e6bcb">
-<blockquote>
-<p>Run the next code cell to train and evaluate a random forest model. (<b>Note that we don't use the <code>score_dataset()</code> function above, because we will soon use the trained model to generate test predictions!</b>)</p>
-</blockquote>
-<p>Define and fit the model.</p>
-<div class="highlight">
-<pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestRegressor</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">final_x_train_2</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
-</pre></div>
-<p>Get validation predictions and MAE.</p>
-<div class="highlight">
-<pre><span></span><span class="n">preds_valid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">final_x_validate_2</span><span class="p">)</span>
-<span class="n">final_error_2</span> <span class="o">=</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_validate</span><span class="p">,</span> <span class="n">preds_valid</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"MAE (Your approach): {final_error_2:0.2f}"</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement Over Dropping Columns: {drop_columns_error - final_error:0.2f}"</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement Over Mean: {impute_mean_error - final_error:0.2f}"</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement over KNN: {final_error - final_error_2: 0.2f}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-MAE (Your approach): 17812.88
-Improvement Over Dropping Columns: 3.43
-Improvement Over Mean: 222.46
-Improvement over KNN:  21.51
-</pre>
-<p>There's a slight improvement once again (the imputers have hyperparameters themselves that aren't being tuned so they might be even better than what I'm getting).</p>
-</div>
-</li>
-</ul>
-</li>
-<li><a id="org1d348d2"></a>Permutation Importance<br>
-<div class="outline-text-5" id="text-org1d348d2">
-<p>Let's look at the the features that were the most important in our model.</p>
-<div class="highlight">
-<pre><span></span><span class="n">permutor</span> <span class="o">=</span> <span class="n">PermutationImportance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">Data</span><span class="o">.</span><span class="n">random_seed</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
-    <span class="n">final_x_validate_2</span><span class="p">,</span> <span class="n">y_validate</span><span class="p">)</span>
-<span class="n">ipython_html</span> <span class="o">=</span> <span class="n">eli5</span><span class="o">.</span><span class="n">show_weights</span><span class="p">(</span>
-    <span class="n">permutor</span><span class="p">,</span>
-    <span class="n">feature_names</span><span class="o">=</span><span class="n">final_x_validate_2</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
-<span class="n">table</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="n">ipython_html</span><span class="o">.</span><span class="n">data</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-<span class="k">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">table</span><span class="p">))</span>
-</pre></div>
-<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
-<colgroup>
-<col class="org-left">
-<col class="org-left"></colgroup>
-<thead>
-<tr>
-<th class="org-left" scope="col">Weight</th>
-<th class="org-left" scope="col">Feature</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-left">0.4717 ± 0.0741</td>
-<td class="org-left">OverallQual</td>
-</tr>
-<tr>
-<td class="org-left">0.1163 ± 0.0182</td>
-<td class="org-left">GrLivArea</td>
-</tr>
-<tr>
-<td class="org-left">0.0254 ± 0.0066</td>
-<td class="org-left">TotalBsmtSF</td>
-</tr>
-<tr>
-<td class="org-left">0.0209 ± 0.0040</td>
-<td class="org-left">BsmtFinSF1</td>
-</tr>
-<tr>
-<td class="org-left">0.0127 ± 0.0006</td>
-<td class="org-left">2ndFlrSF</td>
-</tr>
-<tr>
-<td class="org-left">0.0112 ± 0.0042</td>
-<td class="org-left">1stFlrSF</td>
-</tr>
-<tr>
-<td class="org-left">0.0090 ± 0.0072</td>
-<td class="org-left">YearRemodAdd</td>
-</tr>
-<tr>
-<td class="org-left">0.0079 ± 0.0022</td>
-<td class="org-left">YearBuilt</td>
-</tr>
-<tr>
-<td class="org-left">0.0069 ± 0.0036</td>
-<td class="org-left">LotArea</td>
-</tr>
-<tr>
-<td class="org-left">0.0046 ± 0.0018</td>
-<td class="org-left">GarageCars</td>
-</tr>
-<tr>
-<td class="org-left">0.0039 ± 0.0006</td>
-<td class="org-left">WoodDeckSF</td>
-</tr>
-<tr>
-<td class="org-left">0.0034 ± 0.0026</td>
-<td class="org-left">GarageYrBlt</td>
-</tr>
-<tr>
-<td class="org-left">0.0031 ± 0.0009</td>
-<td class="org-left">OverallCond</td>
-</tr>
-<tr>
-<td class="org-left">0.0027 ± 0.0032</td>
-<td class="org-left">OpenPorchSF</td>
-</tr>
-<tr>
-<td class="org-left">0.0026 ± 0.0008</td>
-<td class="org-left">LotFrontage</td>
-</tr>
-<tr>
-<td class="org-left">0.0026 ± 0.0011</td>
-<td class="org-left">Fireplaces</td>
-</tr>
-<tr>
-<td class="org-left">0.0016 ± 0.0009</td>
-<td class="org-left">FullBath</td>
-</tr>
-<tr>
-<td class="org-left">0.0015 ± 0.0010</td>
-<td class="org-left">BedroomAbvGr</td>
-</tr>
-<tr>
-<td class="org-left">0.0014 ± 0.0028</td>
-<td class="org-left">BsmtUnfSF</td>
-</tr>
-<tr>
-<td class="org-left">0.0012 ± 0.0025</td>
-<td class="org-left">TotRmsAbvGrd</td>
-</tr>
-<tr>
-<td class="org-left">… 16 more …</td>
-<td class="org-left">… 16 more …</td>
-</tr>
-</tbody>
-</table>
-<p>It's interesting, but the four most important features (<i>OverallQual</i>, <i>GrLivArea</i>, <i>TotalBsmtSF</i>, and <i>BsmtFinSF1</i>) were'nt in our first models. And <i>LotFrontage</i> that we spent all that time in this post filling in is only fifteenth - but looking at our improvements the imputation made, even these seemingly lowm contributiong features helped.</p>
-<div class="highlight">
-<pre><span></span><span class="n">ipython_html</span> <span class="o">=</span> <span class="n">eli5</span><span class="o">.</span><span class="n">show_weights</span><span class="p">(</span>
-    <span class="n">permutor</span><span class="p">,</span>
-    <span class="n">top</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span>
-    <span class="n">feature_names</span><span class="o">=</span><span class="n">final_x_validate_2</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
-<span class="n">table</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="n">ipython_html</span><span class="o">.</span><span class="n">data</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-
-<span class="n">table</span><span class="p">[</span><span class="s2">"Weight"</span><span class="p">]</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">Weight</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">expand</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Feature"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Weight"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"Permutation Importance"</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-    <span class="n">xrotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
-<span class="n">source</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"permutation_importance"</span><span class="p">)()</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
-</pre></div>
-: <object data="/posts/tutorials/missing-values/permutation_importance.html" height="800" style="width:100%" type="text/html">:
-<p>Figure Missing</p>
-:</object>
-<p>Looking at the plot you can see that there's a huge drop from the influence of <code>OverallQuall</code> to the influence of the rest of the features.</p>
-<p>Let's look at the features that didn't contribute to the model.</p>
-<div class="highlight">
-<pre><span></span><span class="k">print</span><span class="p">(</span><span class="s2">"| Feature | Weight|"</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">"|-+-|"</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">table</span><span class="p">[</span><span class="n">table</span><span class="o">.</span><span class="n">Weight</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"|{row.Feature}| {row.Weight}|"</span><span class="p">)</span>
-</pre></div>
-<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
-<colgroup>
-<col class="org-left">
-<col class="org-right"></colgroup>
-<thead>
-<tr>
-<th class="org-left" scope="col">Feature</th>
-<th class="org-right" scope="col">Weight</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-left">MiscVal</td>
-<td class="org-right">0.0</td>
-</tr>
-<tr>
-<td class="org-left">LowQualFinSF</td>
-<td class="org-right">0.0</td>
-</tr>
-<tr>
-<td class="org-left">PoolArea</td>
-<td class="org-right">0.0</td>
-</tr>
-<tr>
-<td class="org-left">EnclosedPorch</td>
-<td class="org-right">-0.0003</td>
-</tr>
-<tr>
-<td class="org-left">HalfBath</td>
-<td class="org-right">-0.0004</td>
-</tr>
-<tr>
-<td class="org-left">YrSold</td>
-<td class="org-right">-0.0005</td>
-</tr>
-<tr>
-<td class="org-left">MasVnrArea</td>
-<td class="org-right">-0.0015</td>
-</tr>
-<tr>
-<td class="org-left">MoSold</td>
-<td class="org-right">-0.0058</td>
-</tr>
-</tbody>
-</table>
-<p>So, no point enclosing that porch or expanding your pool, I guess.</p>
-</div>
-</li>
-<li><a id="org9357569"></a>The Most Important Feature<br>
-<div class="outline-text-5" id="text-org9357569">
-<p>This is the <code>data_description</code> entry for <code>OverallQual</code>:</p>
-<p><b>OverallQual:</b> Rates the overall material and finish of the house</p>
-<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
-<colgroup>
-<col class="org-right">
-<col class="org-left"></colgroup>
-<thead>
-<tr>
-<th class="org-right" scope="col">Value</th>
-<th class="org-left" scope="col">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-right">10</td>
-<td class="org-left">Very Excellent</td>
-</tr>
-<tr>
-<td class="org-right">9</td>
-<td class="org-left">Excellent</td>
-</tr>
-<tr>
-<td class="org-right">8</td>
-<td class="org-left">Very Good</td>
-</tr>
-<tr>
-<td class="org-right">7</td>
-<td class="org-left">Good</td>
-</tr>
-<tr>
-<td class="org-right">6</td>
-<td class="org-left">Above Average</td>
-</tr>
-<tr>
-<td class="org-right">5</td>
-<td class="org-left">Average</td>
-</tr>
-<tr>
-<td class="org-right">4</td>
-<td class="org-left">Below Average</td>
-</tr>
-<tr>
-<td class="org-right">3</td>
-<td class="org-left">Fair</td>
-</tr>
-<tr>
-<td class="org-right">2</td>
-<td class="org-left">Poor</td>
-</tr>
-<tr>
-<td class="org-right">1</td>
-<td class="org-left">Very Poor</td>
-</tr>
-</tbody>
-</table>
-<p>This appears to be an ordinal rather than a continuous variable, interesting how much it dominates.</p>
-</div>
-<ul class="org-ul">
-<li><a id="orgf8de560"></a>PDP Plot<br>
-<div class="outline-text-6" id="text-orgf8de560">
-<p>Here's the amount that the feature changes the sales price as it changes.</p>
-<div class="highlight">
-<pre><span></span><span class="n">FEATURE</span> <span class="o">=</span> <span class="s2">"OverallQual"</span>
-<span class="n">pdp_dist</span> <span class="o">=</span> <span class="n">pdp</span><span class="o">.</span><span class="n">pdp_isolate</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
-                           <span class="n">dataset</span><span class="o">=</span><span class="n">final_x_validate_2</span><span class="p">,</span>
-                           <span class="n">model_features</span><span class="o">=</span><span class="n">final_x_validate_2</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
-                           <span class="n">feature</span><span class="o">=</span><span class="n">FEATURE</span><span class="p">)</span>
-<span class="n">pdp</span><span class="o">.</span><span class="n">pdp_plot</span><span class="p">(</span><span class="n">pdp_dist</span><span class="p">,</span> <span class="n">FEATURE</span><span class="p">)</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">f</span><span class="s2">"{FEATURE}_pdp_plot.png"</span>
-<span class="n">figure</span> <span class="o">=</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
-<span class="n">figure</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-<span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">OUTPUT_PATH</span><span class="o">/</span><span class="n">output</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"[[file:{output}]]"</span><span class="p">)</span>
-</pre></div>
-<div class="figure">
-<p><img alt="OverallQual_pdp_plot.png" src="/posts/tutorials/missing-values/OverallQual_pdp_plot.png"></p>
-</div>
-<p>So it looks like once you hit "Above Average" it's pretty much a linear relationship between the overall quality and the sale price.</p>
-</div>
-</li>
-<li><a id="org870fbb5"></a>SHAP Summary<br>
-<div class="outline-text-6" id="text-org870fbb5">
-<p>Let's take a more visual look at the importance of each feature.</p>
-<div class="highlight">
-<pre><span></span><span class="n">explainer</span> <span class="o">=</span> <span class="n">shap</span><span class="o">.</span><span class="n">TreeExplainer</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
-<span class="n">shap_values</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="n">shap_values</span><span class="p">(</span><span class="n">final_x_validate_2</span><span class="p">)</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="n">shap</span><span class="o">.</span><span class="n">summary_plot</span><span class="p">(</span><span class="n">shap_values</span><span class="p">,</span> <span class="n">final_x_validate_2</span><span class="p">)</span>
-<span class="n">figure</span> <span class="o">=</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
-<span class="n">output</span> <span class="o">=</span> <span class="s2">"shap_summary.png"</span>
-
-<span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">OUTPUT_PATH</span><span class="o">/</span><span class="n">output</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"[[file:{output}]]"</span><span class="p">)</span>
-</pre></div>
-<div class="figure">
-<p><img alt="shap_summary.png" src="/posts/tutorials/missing-values/shap_summary.png"></p>
-</div>
-<p>Besides reinforcing the importance of <code>OverallQual</code>, the plot shows how much spread its influence covers. The odd bunches might reflect the fact that it's a discrete, ordinal feature, not a continuous one.</p>
-</div>
-</li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org27deac5">
-<h2 id="org27deac5">End</h2>
-<div class="outline-text-2" id="text-org27deac5">
-<p>Make a kaggle submission.</p>
-<div class="highlight">
-<pre><span></span><span class="n">final_x_test</span> <span class="o">=</span> <span class="n">imputer_2</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x_test</span><span class="p">)</span>
-<span class="n">preds_test</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">final_x_test</span><span class="p">)</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">'Id'</span><span class="p">:</span> <span class="n">x_test</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
-                           <span class="s1">'SalePrice'</span><span class="p">:</span> <span class="n">preds_test</span><span class="p">})</span>
-<span class="n">output</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">DATA_PATH</span><span class="o">/</span><span class="s1">'submission.csv'</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-</pre></div>
-<p>This model gives us an error of 16,656.25822, an improvement over our previous submission where we used only a smaller subset of the features.</p>
-<div class="highlight">
-<pre><span></span><span class="n">introduction</span> <span class="o">=</span> <span class="mf">27217.91640</span>
-<span class="n">previous</span> <span class="o">=</span> <span class="mf">20928.54621</span>
-<span class="n">current</span> <span class="o">=</span> <span class="mf">16656.25822</span>
-
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Latest Error: {current:,}"</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement over the introduction ({introduction:,}): {introduction - current:,}"</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Improvement over the previous model ({previous:,}): {previous - current:,}"</span><span class="p">)</span>
-</pre></div>
-<pre class="example">
-Latest Error: 16,656.25822
-Improvement over the introduction (27,217.9164): 10,561.658179999999
-Improvement over the previous model (20,928.54621): 4,272.287990000001
-</pre>
-<p>So by adding in the remaining features we were able to reduce our error by quite a bit.</p>
-</div>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="/posts/tutorials/introduction-intermediate-machine-learning/">Introduction to the Kaggle Intermediate Machine Learning Tutorial</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="/posts/tutorials/introduction-intermediate-machine-learning/" rel="bookmark"><time class="published dt-published" datetime="2020-02-20T20:59:21-08:00" itemprop="datePublished" title="2020-02-20 20:59">2020-02-20 20:59</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#orga63dcf0">Beginning</a>
-<ul>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#orgfc609b9">Imports</a>
-<ul>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#org1cf1ecb">Python</a></li>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#orgbed9e59">PyPi</a></li>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#org0c88ab6">Others</a></li>
-</ul>
-</li>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#org83fd5f3">Set Up</a>
-<ul>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#org53439df">Plottting</a></li>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#org2e636ef">The Timer</a></li>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#org9c6d29c">Environment</a></li>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#org649bbb7">The Data</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#orgd5afb4d">Middle</a>
-<ul>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#org8c1472c">Preliminary 1: Specify Prediction Target</a></li>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#org38546e5">Preliminary 2: Create X</a></li>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#org31bbcd9">Preliminary 3: Evaluate Some Models</a></li>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#orgdd33e46">Preliminary 4: Make Some Predictions</a></li>
-</ul>
-</li>
-<li><a href="/posts/tutorials/introduction-intermediate-machine-learning/#org8fdd3fe">End</a></li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orga63dcf0">
-<h2 id="orga63dcf0">Beginning</h2>
-<div class="outline-text-2" id="text-orga63dcf0">
-<p>This is the introduction to kaggle's intermediate machine learning tutorial.</p>
-</div>
-<div class="outline-3" id="outline-container-orgfc609b9">
-<h3 id="orgfc609b9">Imports</h3>
-<div class="outline-text-3" id="text-orgfc609b9"></div>
-<div class="outline-4" id="outline-container-org1cf1ecb">
-<h4 id="org1cf1ecb">Python</h4>
-<div class="outline-text-4" id="text-org1cf1ecb">
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">Namespace</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-orgbed9e59">
-<h4 id="orgbed9e59">PyPi</h4>
-<div class="outline-text-4" id="text-orgbed9e59">
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestRegressor</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">mean_absolute_error</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">cross_val_score</span><span class="p">,</span> <span class="n">train_test_split</span>
-
-<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
-<span class="kn">import</span> <span class="nn">pandas</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org0c88ab6">
-<h4 id="org0c88ab6">Others</h4>
-<div class="outline-text-4" id="text-org0c88ab6">
-<div class="highlight">
-<pre><span></span><span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">EnvironmentLoader</span><span class="p">,</span> <span class="n">Timer</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org83fd5f3">
-<h3 id="org83fd5f3">Set Up</h3>
-<div class="outline-text-3" id="text-org83fd5f3"></div>
-<div class="outline-4" id="outline-container-org53439df">
-<h4 id="org53439df">Plottting</h4>
-<div class="outline-text-4" id="text-org53439df">
-<div class="highlight">
-<pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"introduction-intermediate-machine-learning"</span>
-<span class="n">OUTPUT_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../files/posts/tutorials/"</span><span class="p">)</span><span class="o">/</span><span class="n">SLUG</span>
-<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="n">OUTPUT_PATH</span><span class="p">)</span>
-<span class="n">Plot</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
-    <span class="n">height</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org2e636ef">
-<h4 id="org2e636ef">The Timer</h4>
-<div class="outline-text-4" id="text-org2e636ef">
-<div class="highlight">
-<pre><span></span><span class="n">TIMER</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org9c6d29c">
-<h4 id="org9c6d29c">Environment</h4>
-<div class="outline-text-4" id="text-org9c6d29c">
-<div class="highlight">
-<pre><span></span><span class="n">ENVIRONMENT</span> <span class="o">=</span> <span class="n">EnvironmentLoader</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-4" id="outline-container-org649bbb7">
-<h4 id="org649bbb7">The Data</h4>
-<div class="outline-text-4" id="text-org649bbb7">
-<div class="highlight">
-<pre><span></span><span class="n">DATA_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">ENVIRONMENT</span><span class="p">[</span><span class="s2">"HOUSE-PRICES-IOWA"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
-<span class="n">training_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
-    <span class="n">DATA_PATH</span><span class="o">/</span><span class="s2">"train.csv"</span><span class="p">)</span>
-
-<span class="n">testing_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
-    <span class="n">DATA_PATH</span><span class="o">/</span><span class="s2">"test.csv"</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgd5afb4d">
-<h2 id="orgd5afb4d">Middle</h2>
-<div class="outline-text-2" id="text-orgd5afb4d"></div>
-<div class="outline-3" id="outline-container-org8c1472c">
-<h3 id="org8c1472c">Preliminary 1: Specify Prediction Target</h3>
-<div class="outline-text-3" id="text-org8c1472c">
-<p>Select the target variable, which corresponds to the sales price. Save this to a new variable called `y`. You'll need to print a list of the columns to find the name of the column you need.</p>
-<p>Our target is <i>SalePrice</i>.</p>
-<div class="highlight">
-<pre><span></span><span class="n">Y</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">SalePrice</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org38546e5">
-<h3 id="org38546e5">Preliminary 2: Create X</h3>
-<div class="outline-text-3" id="text-org38546e5">
-<blockquote>
-<p>Now you will create a DataFrame called `X` holding the predictive features.</p>
-<p>Since you want only some columns from the original data, you'll first create a list with the names of the columns you want in `X`.</p>
-<p>You'll use just the following columns in the list (you can copy and paste the whole list to save some typing, though you'll still need to add quotes):</p>
-<ul class="org-ul">
-<li>LotArea</li>
-<li>YearBuilt</li>
-<li>1stFlrSF</li>
-<li>2ndFlrSF</li>
-<li>FullBath</li>
-<li>BedroomAbvGr</li>
-<li>TotRmsAbvGrd</li>
-</ul>
-</blockquote>
-<div class="highlight">
-<pre><span></span><span class="n">Training</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span>
-    <span class="n">features</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">"1stFlrSF"</span><span class="p">,</span>
-        <span class="s2">"2ndFlrSF"</span><span class="p">,</span>
-        <span class="s2">"BedroomAbvGr"</span><span class="p">,</span>
-        <span class="s2">"FullBath"</span><span class="p">,</span>
-        <span class="s2">"LotArea"</span><span class="p">,</span>
-        <span class="s2">"TotRmsAbvGrd"</span><span class="p">,</span>
-        <span class="s2">"YearBuilt"</span><span class="p">,</span>
-    <span class="p">],</span>
-    <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">train_size</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
-    <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">training_data</span><span class="p">[</span><span class="n">Training</span><span class="o">.</span><span class="n">features</span><span class="p">]</span>
-<span class="n">x_submit</span> <span class="o">=</span> <span class="n">testing_data</span><span class="p">[</span><span class="n">Training</span><span class="o">.</span><span class="n">features</span><span class="p">]</span>
-</pre></div>
-<p>Split up the data into training and validation sets.</p>
-<div class="highlight">
-<pre><span></span><span class="n">x_train</span><span class="p">,</span> <span class="n">x_validate</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_validate</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
-    <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span>
-    <span class="n">random_state</span><span class="o">=</span><span class="n">Training</span><span class="o">.</span><span class="n">random_seed</span><span class="p">,</span>
-    <span class="n">train_size</span><span class="o">=</span><span class="n">Training</span><span class="o">.</span><span class="n">train_size</span><span class="p">,</span>
-    <span class="n">test_size</span><span class="o">=</span><span class="n">Training</span><span class="o">.</span><span class="n">test_size</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org31bbcd9">
-<h3 id="org31bbcd9">Preliminary 3: Evaluate Some Models</h3>
-<div class="outline-text-3" id="text-org31bbcd9">
-<div class="highlight">
-<pre><span></span><span class="n">hyperparameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-    <span class="n">model_1</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
-    <span class="n">model_2</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
-    <span class="n">model_3</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="s1">'mae'</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
-    <span class="n">model_4</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">min_samples_split</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
-    <span class="n">model_5</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
-    <span class="p">)</span>
-
-<span class="n">models</span> <span class="o">=</span> <span class="p">[</span><span class="n">RandomForestRegressor</span><span class="p">(</span><span class="o">**</span><span class="n">parameters</span><span class="p">)</span> <span class="k">for</span> <span class="n">parameters</span> <span class="ow">in</span> <span class="n">hyperparameters</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="k">def</span> <span class="nf">score_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">X_t</span><span class="o">=</span><span class="n">x_train</span><span class="p">,</span> <span class="n">X_v</span><span class="o">=</span><span class="n">x_validate</span><span class="p">,</span> <span class="n">y_t</span><span class="o">=</span><span class="n">y_train</span><span class="p">,</span> <span class="n">y_v</span><span class="o">=</span><span class="n">y_validate</span><span class="p">):</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_t</span><span class="p">,</span> <span class="n">y_t</span><span class="p">)</span>
-    <span class="n">preds</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_v</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_v</span><span class="p">,</span> <span class="n">preds</span><span class="p">)</span>
-
-<span class="n">scores</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([(</span><span class="n">score_model</span><span class="p">(</span><span class="n">model</span><span class="p">),</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">models</span><span class="p">)])</span>
-
-<span class="k">for</span> <span class="n">score</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Model {index} MAE: {score:0.2f}"</span><span class="p">)</span>
-
-<span class="n">best</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
-<span class="k">print</span><span class="p">()</span>
-<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Best Model: {best}"</span><span class="p">)</span>
-<span class="n">best_model</span> <span class="o">=</span> <span class="n">f</span><span class="s2">"model_{best[2]}"</span>
-<span class="n">best_hyperparameters</span> <span class="o">=</span> <span class="n">hyperparameters</span><span class="p">[</span><span class="n">best_model</span><span class="p">]</span>
-</pre></div>
-<pre class="example">
-Model 2 MAE: 23528.78
-Model 4 MAE: 23706.67
-Model 1 MAE: 23740.98
-Model 3 MAE: 23996.68
-Model 0 MAE: 24015.49
-
-Best Model: (23528.78421232877, RandomForestRegressor(bootstrap=True, criterion='mae', max_depth=None,
-                      max_features='auto', max_leaf_nodes=None,
-                      min_impurity_decrease=0.0, min_impurity_split=None,
-                      min_samples_leaf=1, min_samples_split=2,
-                      min_weight_fraction_leaf=0.0, n_estimators=100,
-                      n_jobs=None, oob_score=False, random_state=0, verbose=0,
-                      warm_start=False), 2)
-</pre></div>
-</div>
-<div class="outline-3" id="outline-container-orgdd33e46">
-<h3 id="orgdd33e46">Preliminary 4: Make Some Predictions</h3>
-<div class="outline-text-3" id="text-orgdd33e46">
-<div class="highlight">
-<pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestRegressor</span><span class="p">(</span><span class="o">**</span><span class="n">best_hyperparameters</span><span class="p">)</span>
-<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
-
-<span class="n">test_predictions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x_submit</span><span class="p">)</span>
-
-<span class="n">submission</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">Id</span><span class="o">=</span><span class="n">testing_data</span><span class="o">.</span><span class="n">Id</span><span class="p">,</span>
-                                   <span class="n">SalePrice</span><span class="o">=</span><span class="n">test_predictions</span><span class="p">))</span>
-<span class="n">submission</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">DATA_PATH</span><span class="o">/</span><span class="s2">"submission.csv"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-</pre></div>
-<p>This gets a score of <b>20,928.54621</b> compared to the previous error score of <b>*27,217.91640</b>, so it looks like the error is getting better.</p>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org8fdd3fe">
-<h2 id="org8fdd3fe">End</h2>
-<div class="outline-text-2" id="text-org8fdd3fe">
-<p>Now we're back at the point we were at the end of the introduction to machine learning tutorial, except with a slightly improved model.</p>
 </div>
 </div>
 </div>

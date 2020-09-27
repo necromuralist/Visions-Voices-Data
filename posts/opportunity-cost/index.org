@@ -1,0 +1,348 @@
+#+BEGIN_COMMENT
+.. title: Opportunity Cost
+.. slug: opportunity-cost
+.. date: 2020-09-26 16:07:12 UTC-07:00
+.. tags: statistics,inference,simulation
+.. category: Statistics
+.. link: 
+.. description: Testing whether reminding college students of opportunity cost helps.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-cbb68c7f-46d6-475d-a211-c98d547dff29-ssh.json
+
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Beginning
+  We want to answer the question of whether reminding college students that spending money now deprives them of money in the future will affect their spending behavior.
+** Imports
+#+begin_src python :results none
+# python
+from argparse import Namespace
+from functools import partial
+
+# pypi
+from expects import (
+    equal,
+    expect,
+)
+from numpy.random import default_rng
+from tabulate import tabulate
+
+import holoviews
+import hvplot.pandas
+import numpy
+import pandas
+
+# my stuff
+from graeae import EmbedHoloviews, Timer
+#+end_src
+** Set Up
+*** Randomness
+#+begin_src python :results none
+numpy_random = default_rng()
+#+end_src
+
+*** Table
+#+begin_src python :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys")
+#+end_src
+*** Timer and Plotting
+#+begin_src python :results none
+TIMER = Timer()
+
+SLUG = "opportunity-cost"
+Embed = partial(EmbedHoloviews,
+                folder_path=f"files/posts/{SLUG}")
+
+Plot = Namespace(
+    width=990,
+    height=780,
+    fontscale=2,
+    tan="#ddb377",
+    blue="#4687b7",
+    red="#ce7b6d",
+    color_cycle = holoviews.Cycle(["#4687b7", "#ce7b6d"])
+)
+#+end_src
+* Middle
+** Hypotheses
+   - \(H_0:\) *Null Hypothesis.* Reminding students that they can save money for future purchases won't impact their spending decisions.
+   - \(H_A:\) *Alternative Hypothesis.* Reminding students that they can save money for future purchases will reduce their spending.
+
+I'll us a 95% significance level.
+
+#+begin_src python :results none
+ALPHA = "0.05"
+#+end_src
+** The Study Data
+   150 Students were given the following statement:
+
+#+begin_quote
+Imagine that you have been saving some extra money on the side to make some purchases and on your most recent visit to the video store you come across a special sale on a new video. This video is one with your favorite actor or actress, and your favorite type of movie (such as comedy, drama, thriller, etc.). This particular video that you are considering is one you have been thinking about buying for a long time. It is available for a special sale price of $14.99.
+
+What would you do in this situation? Please circle one of the options below.
+#+end_quote
+
+Video store? Are we going to have to invent a time machine to run this study? No, we'll just swipe the data published by Frederick et al. in 2009. They conducted their study at Arizona State University, which perhaps still had some DVD stores around back then. The study was building on prior work that showed that people focus exclusively on explicitly presented details and ignore the facts that the explicit statements imply but don't state. (Also, I just looked it up and there's quite a few video stores around me (here in Portland) I guess I just haven't been to one in a while).
+
+The options that the subjects were given to circle depended on which group they belonged to. The control group (75 students) were given these options:
+
+#+begin_quote
+ A. Buy this entertaining video.\\
+ B. Not buy this entertaining video.
+#+end_quote
+
+The treatment group (also 75 students) were given these options:
+ 
+#+begin_quote
+ A. Buy this entertaining video.\\
+ B. Not buy this entertaining video. Keep the $14.99 for other purchases.
+#+end_quote
+
+Here's the outcome of the study.
+
+#+begin_src python :results none
+Outcome = Namespace(
+    buy="Buy DVD",
+    dont_buy="Not Buy DVD",
+    control="Control Group",
+    treatment="Treatment Group",
+    total="Total"
+)
+
+data = pandas.DataFrame.from_dict({Outcome.buy:[56, 41],
+                                   Outcome.dont_buy: [19, 34]})
+data.index = [Outcome.control, Outcome.treatment]
+row = data.sum()
+row.name = Outcome.total
+data = data.append(row)
+data[Outcome.total] = data.sum(axis="columns")
+#+end_src
+
+#+begin_src python :results output :exports both
+print(TABLE(data))
+#+end_src
+
+#+RESULTS:
+|                 | Buy DVD | Not Buy DVD | Total |
+|-----------------+---------+-------------+-------|
+| Control Group   |      56 |          19 |    75 |
+| Treatment Group |      41 |          34 |    75 |
+|-----------------+---------+-------------+-------|
+| Total           |      97 |          53 |   150 |
+
+#+begin_src python :results none
+Total = Namespace(
+    buy = data.loc[Outcome.total][Outcome.buy],
+    dont_buy = data.loc[Outcome.total][Outcome.dont_buy],
+    group = data.loc[Outcome.control][Outcome.total],
+    students = data.loc[Outcome.total][Outcome.total],
+)
+#+end_src
+
+Now a little plotting.
+
+#+begin_src python :results none
+# put the groups into a column
+plotter = data.reset_index()
+
+# get rid of the totals
+del(plotter["Total"])
+plotter = plotter.iloc[:-1]
+
+# move the outcome headers into a column
+plotter = plotter.melt(id_vars=["index"],
+                       value_vars=[Outcome.buy, Outcome.dont_buy])
+plotter = plotter.rename(columns=dict(
+    index="Group",
+    variable="Outcome",
+    value="Count"))
+plot = plotter.hvplot.bar(x="Group", y="Count", by="Outcome").opts(
+    title="Buy Or Don't Buy DVD",
+    width=Plot.width,
+    height=Plot.height,
+    color=Plot.color_cycle,
+    fontscale=Plot.fontscale,
+)
+
+outcome = Embed(plot=plot, file_name="buy_dont_buy")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="buy_dont_buy.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+It /looks/ like there was a significant difference since not only did the majority of the treatment group opt not to buy the DVD, but in the control a significant majority did.
+
+Now as row-proportions.
+
+#+begin_src python :results output :exports both
+proportions = data.divide(data[Outcome.total], axis="rows")
+print(TABLE(proportions))
+#+end_src
+
+#+RESULTS:
+|                 |  Buy DVD | Not Buy DVD | Total |
+|-----------------+----------+-------------+-------|
+| Control Group   | 0.746667 |    0.253333 |     1 |
+| Treatment Group | 0.546667 |    0.453333 |     1 |
+|-----------------+----------+-------------+-------|
+| Total           | 0.646667 |    0.353333 |     1 |
+
+Looking at the proportions it looks like quite a bit more didn't buy the DVD, but let's run the experiment and see.
+** Point Estimate of Effect
+   The thing we are interested in is whether the wording of the second option to not buy the DVD made a difference, so our statistic of interest is the difference in proportions of the control and treatment group participants who didn't buy the DVD.
+
+\begin{align}
+\hat{p}_{control} &= \frac{\textrm{Control group that wouldnt' buy}}\textrm{size of Control Group}\\
+
+\hat{p}_{treatment} &= \frac{\textrm{Treatment group that wouldnt' buy}}\textrm{size of Treament group}\\
+
+\hat{p} = \hat{p}_{treatment} - \hat{p}_{control}
+\end{align}
+
+#+begin_src python :results output :exports both
+POINT_ESTIMATE = (proportions[Outcome.dont_buy].loc[Outcome.treatment]
+                  - proportions[Outcome.dont_buy].loc[Outcome.control])
+print(f"{POINT_ESTIMATE * 100:.2f} %")
+#+end_src
+
+#+RESULTS:
+: 20.00 %
+
+About twenty percent more of the treatment group said they would abstain from the purchase than control group.
+** Simulating Random Chance
+  In a previous post looking at {{% doc %}}gender-discrimination{{% /doc %}} I split the Urn into a 50-50 split of males and females to see if there was gender bias in choosing whether to promote them. In that case we didn't have a control group, but here we do, so in this case it's going to work a little differently.
+
+We are asking here whether our treatment had an effect. If it didn't then we would expect that the distribution of "buy" and "don't buy" that we saw represents the distribution of the underlying population of ASU students, so we need to split our urn up to match the counts in the "Buy" and "Don't Buy" columns and then randomly split it into two equal groups. If the difference we saw was the result of random chance then we would expect that the difference between "buy" and "don't buy" group would be equal most of the time. This doesn't seem as intuitive a way to set it up as the previous method, but we'll see how it goes.
+*** Set Up the Urn
+#+begin_src python :results none
+buy = data.loc[Outcome.total][Outcome.buy]
+dont = data.loc[Outcome.total][Outcome.dont_buy]
+
+bought = numpy.zeros(buy)
+didnt = numpy.ones(dont)
+
+URN = numpy.append(bought, didnt)
+
+expect(len(URN)).to(equal(STUDENTS))
+expect(buy).to(equal(97))
+expect(dont).to(equal(53))
+expect(URN.sum()).to(equal(dont))
+#+end_src
+
+*** Simulate
+    The Process:
+
+    1. Shuffle the urn
+    2. Split the shuffled urn in half (control and treatment)
+    3. Count the proportion of each half that said they would not buy the DVD
+    4. Record the differences between the proportions of the control that wouldn't buy and the treatment that wouldn't buy
+
+But, since I'm doing this with numpy it works a little different.
+
+My process:
+
+ 1. Randomly choose half the urn (without replacement) to get the control group
+ 2. Sum the choices (this gives the count of the control that said they wouldn't buy)
+ 3. Subtract the previous sum from the total that said they wouldn't buy (to get the treatment count)
+ 4. Calculate the proportion of each group that said they wouldn't buy
+ 5. Find the difference in proportion for each group
+
+#+begin_src python :results output :exports both
+TRIALS = 1 * 10**6
+
+with TIMER:
+    controls = numpy.array([numpy_random.choice(URN,
+                                                Total.group,
+                                                replace=False).sum()
+                            for trial in range(TRIALS)])
+    treatments = Total.dont_buy - controls
+    
+    control_proportions = controls/Total.group
+    treatment_proportions = treatments/Total.group
+
+    differences = control_proportions - treatment_proportions
+    simulation = pandas.DataFrame.from_dict({
+        "Point Estimate": differences,
+        "Control": control_proportions,
+        "Treatment": treatment_proportions,
+    })
+#+end_src
+
+#+RESULTS:
+: 2020-09-26 20:02:52,224 graeae.timers.timer start: Started: 2020-09-26 20:02:52.224515
+: 2020-09-26 20:03:29,174 graeae.timers.timer end: Ended: 2020-09-26 20:03:29.174373
+: 2020-09-26 20:03:29,175 graeae.timers.timer end: Elapsed: 0:00:36.949858
+*** Plot the Distribution
+#+begin_src python :results none
+plot = simulation.hvplot.hist("Point Estimate",
+                              bins=25).opts(
+    title="Opportunity Cost Don't Buy Difference",
+    width=Plot.width,
+    height=Plot.height,
+    color=Plot.tan,
+    )
+outcome = Embed(plot=plot, file_name="opportunity_cost_simulation")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="opportunity_cost_simulation.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+The distribution appears to be reasonably normal, if a bit peaked in the middle.
+
+
+#+begin_src python :results output :exports both
+matched = len(simulation[simulation["Point Estimate"] >= POINT_ESTIMATE])/len(simulation)
+print(f"Percent of trials >= Point Estimate of Study: {100 * matched:0.3f} %")
+#+end_src
+
+#+RESULTS:
+: Percent of trials >= Point Estimate of Study: 0.817 %
+
+According to our simulation, less than one percent of the time we would see a difference like the study found by random chance alone.
+*** Test Our Hypothesis
+#+begin_src python :results output :exports both
+print(f"Null Hypothesis is {matched >= POINT_ESTIMATE}")
+#+end_src
+
+#+RESULTS:
+: Null Hypothesis is False
+
+So we'll conclude that the Null Hypothesis is false and that the Alternative Hypothesis that telling students about the opportunity cost of buying a DVD does have an effecte in getting them to not buy the DVD.
+* End
+  So here we have a walk through of Inference using simulation and an experiment with Control and Treatment groups. Although the conclusion reached is that reminding students of the money they would have in the future if they didn't spend it is "causal", since this was an experiment, I'm not 100% convinced that asking studnents what the
+** In the Abstract
+   1. Do you have control and treatment groups?
+   2. Create an urn where the ones and zeros are equal to the totals for each of the outcomes
+   3. Sample from the urn a simulated control group and treatment group
+   4. Find the difference between the proportion of the control group and the treatment group that match the "success" outcome
+   5. Calculate the fraction of the differences that are equal to or greater than the differences in the study
+   6. Check if the fraction in the simulation meets your confidence level
+
+** Source
+   - {{% doc %}}introductory-statistics-with-randomization-and-simulation{{% /doc %}}
+   - {{% doc %}}opportunity-cost-neglect{{% /doc %}}
