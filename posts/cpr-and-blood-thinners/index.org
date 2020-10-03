@@ -1,0 +1,261 @@
+#+BEGIN_COMMENT
+.. title: CPR and Blood Thinners
+.. slug: cpr-and-blood-thinners
+.. date: 2020-10-01 18:16:06 UTC-07:00
+.. tags: inference,statistics,simulation
+.. category: Statistics
+.. link: 
+.. description: Testing whether CPR helps or hurts survival rates for people given blood thinners.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-9383405f-6f48-46cf-94c9-cd07c9f54342-ssh.json
+
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Beginning
+  We want to test the hypothesis that blood thinners administered to patients that have been give CPR has /some/ kind of effect (for good or for ill) on survival rates.
+
+  - \(H_0\): Bood thinners don't have an effect on survival rate - the proportions will be the same for each group (\(p_{treatment} = p_{control}\)).
+  - \(H_A\): Blood thinners impact survival, either positive or negative (\(p_{treatment} - p_{control} \neq 0\)).
+
+We're going to use a significance level of 0.05.
+
+#+begin_src python :results none
+ALPHA = 0.05
+#+end_src
+** Set Up
+*** Imports
+#+begin_src python :results none
+from argparse import Namespace
+from functools import partial
+
+# pypi
+from numpy.random import default_rng
+from tabulate import tabulate
+
+import holoviews
+import hvplot.pandas
+import numpy
+import pandas
+
+# my stuff
+from graeae import EmbedHoloviews, Timer
+#+end_src
+*** Random Generator
+#+begin_src python :results none
+numpy_random = default_rng()
+#+end_src
+*** The Timer
+#+begin_src python :results none
+TIMER = Timer()
+#+end_src
+*** Plotting
+#+begin_src python :results none
+SLUG = "cpr-and-blood-thinners"
+path = f"files/posts/{SLUG}"
+Embed = partial(EmbedHoloviews, folder_path=path)
+
+Plot = Namespace(
+    width=990,
+    height=780,
+    fontscale=2,
+    tan="#ddb377",
+    blue="#4687b7",
+    red="#ce7b6d",
+    color_cycle = holoviews.Cycle(["#4687b7", "#ce7b6d"])
+)
+#+end_src
+*** The Table Printer
+#+begin_src python :results none
+TABLE = partial(tabulate, headers="keys", tablefmt="orgtbl")
+#+end_src
+* Middle
+** The Study Data
+#+begin_src python :results output :exports both
+data = pandas.DataFrame.from_dict(
+    dict(
+        Survived=[11, 14],
+        Died = [39, 26]))
+data.index = ["Control", "Treatment"]
+row = data.sum()
+row.name = "Total"
+data = data.append(row)
+data["Total"] = data.sum(axis="columns")
+print(TABLE(data))
+#+end_src
+
+#+RESULTS:
+|           | Survived | Died | Total |
+|-----------+----------+------+-------|
+| Control   |       11 |   39 |    50 |
+| Treatment |       14 |   26 |    40 |
+|-----------+----------+------+-------|
+| Total     |       25 |   65 |    90 |
+
+The fifty people in the Control Group didn't receive blood thinners and the forty in the Treatment Group did.
+
+Now I'll plot it to see what the differences look like.
+
+#+begin_src python :results none
+# put the groups into a column
+plotter = data.reset_index()
+
+# get rid of the totals
+del(plotter["Total"])
+plotter = plotter.iloc[:-1]
+
+plotter = plotter.melt(id_vars=["index"],
+                       value_vars=["Survived", "Died"])
+
+plotter = plotter.rename(columns=dict(
+    index="Group",
+    variable="Outcome",
+    value="Count"))
+plot = plotter.hvplot.bar(x="Group", y="Count", by="Outcome").opts(
+    title="Survived or Died",
+    width=Plot.width,
+    height=Plot.height,
+    color=Plot.color_cycle,
+    fontscale=Plot.fontscale,
+)
+
+outcome = Embed(plot=plot, file_name="survived_or_died")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="survived_or_died.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+Hard to say, but it looks like more of the Treatment Group survived.
+*** The Porportions
+    We are interested in the difference in survival rates so we need to calculate the proprtion that survived in each group and take the difference.
+
+#+begin_src python :results output :exports both
+survival_rates = (data["Survived"] / data.Total).reset_index().rename(
+    columns={"index": "Group", 0: "Survival Rate"})
+print(TABLE(survival_rates, showindex=False))
+#+end_src
+
+#+RESULTS:
+| Group     | Survival Rate |
+|-----------+---------------|
+| Control   |          0.22 |
+| Treatment |          0.35 |
+|-----------+---------------|
+| Total     |      0.277778 |
+
+#+begin_src python :results output :exports both
+survival_rates = survival_rates.set_index("Group")
+TEST_STATISTIC = survival_rates.loc["Treatment"] - survival_rates.loc["Control"]
+print(f"Difference: {TEST_STATISTIC}")
+#+end_src
+
+#+RESULTS:
+: Difference: Survival Rate    0.13
+: dtype: float64
+
+It appears that 13% more people survive when they are given blood thinners than when they aren't.
+** Simulation
+   Now I'll run a simulation to build up the *null distribution* of the differences.
+*** Set Up The Urn
+    The urn will be based on the total row on the contingency table. The that number survived will be represented as ones and the number that died will be represented as zeros.
+
+#+begin_src python :results none
+total = data.loc["Total"]
+survived = numpy.ones(total.Survived)
+died = numpy.zeros(total.Died)
+urn = numpy.append(survived, died)
+#+end_src
+
+Now we'll run the simulation to get the distribution.
+
+#+begin_src python :results output :exports both
+TRIALS = 10**6
+CONTROL_GROUP = data.Total.loc["Control"]
+TREATMENT_GROUP = data.Total.loc["Treatment"]
+survived = data["Survived"]
+
+with TIMER:
+    controls = numpy.array([numpy_random.choice(urn,
+                                                CONTROL_GROUP,
+                                                replace=False).sum()
+                            for trial in range(TRIALS)])
+    treatments = survived.loc["Total"] - controls
+    
+    control_proportions = controls/CONTROL_GROUP
+    treatment_proportions = treatments/TREATMENT_GROUP
+
+    differences = treatment_proportions - control_proportions
+    differences = pandas.DataFrame.from_dict({"Point Estimate": differences})
+#+end_src
+
+#+RESULTS:
+: 2020-10-01 19:38:55,370 graeae.timers.timer start: Started: 2020-10-01 19:38:55.370038
+: 2020-10-01 19:39:31,437 graeae.timers.timer end: Ended: 2020-10-01 19:39:31.437364
+: 2020-10-01 19:39:31,438 graeae.timers.timer end: Elapsed: 0:00:36.067326
+
+Plot the distribution.
+
+#+begin_src python :results none
+plot = differences.hvplot.hist("Point Estimate").opts(
+    title="Null Distribution of Point Estimate",
+    width=Plot.width,
+    height=Plot.height,
+    color=Plot.tan,
+    fontscale=Plot.fontscale,
+)
+outcome = Embed(plot=plot, file_name="null_distribution")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="null_distribution.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+Now we want to try a two-sided hypothesis test.
+
+#+begin_src python :results output :exports both
+right_side = (differences >= TEST_STATISTIC.values).sum()
+total = right_side * 2
+p_value = total / len(differences)
+print(f"One-Sided p-value: {(right_side/len(differences)).values[0]}")
+print(f"Two-sided p-value: {p_value.values[0]}")
+#+end_src
+
+#+RESULTS:
+: One-Sided p-value: 0.129026
+: Two-sided p-value: 0.258052
+
+#+begin_src python :results output :exports both
+print(f"We reject the Null Hypothesis: {p_value.values[0] < ALPHA}")
+#+end_src
+
+#+RESULTS:
+: We reject the Null Hypothesis: False
+
+Even a single-sided test wouldn't have provided enough evidence to reject the null hypothesis, but with the two-sided version it looks really like the difference was from chance.
+
+* End
+
+Although it initially looked like the use of blood thinners after someone has been given CPR helped survival rates our data does not contain evidence to say that it does.
