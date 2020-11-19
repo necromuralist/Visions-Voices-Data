@@ -71,30 +71,30 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/pulling-oregon-covid-19-data/#org828cfb1">Beginning</a>
+<li><a href="/posts/pulling-oregon-covid-19-data/#orgb7e8aa7">Beginning</a>
 <ul>
-<li><a href="/posts/pulling-oregon-covid-19-data/#org7d04b17">Set Up</a></li>
+<li><a href="/posts/pulling-oregon-covid-19-data/#orge389e9a">Set Up</a></li>
 </ul>
 </li>
-<li><a href="/posts/pulling-oregon-covid-19-data/#org0005e5d">Middle</a>
+<li><a href="/posts/pulling-oregon-covid-19-data/#org90919b1">Middle</a>
 <ul>
-<li><a href="/posts/pulling-oregon-covid-19-data/#orgf60c5a9">Starting the Dates</a></li>
+<li><a href="/posts/pulling-oregon-covid-19-data/#orgad5fc59">Starting the Dates</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org828cfb1">
-<h2 id="org828cfb1">Beginning</h2>
-<div class="outline-text-2" id="text-org828cfb1">
+<div class="outline-2" id="outline-container-orgb7e8aa7">
+<h2 id="orgb7e8aa7">Beginning</h2>
+<div class="outline-text-2" id="text-orgb7e8aa7">
 <p>This is a look at pulling Oregon Covid-19 data from their weekly update PDFs. There are datasets for Oregon Covid-19 cases published by the <a href="https://govstatus.egov.com/OR-OHA-COVID-19">Oregon Health Authority</a> but for some reason I can't find the raw data sources matching what they have in their weekly reports so I thought maybe instead of just endlessly searching I'd pull them from the PDFs themselves.</p>
 </div>
-<div class="outline-3" id="outline-container-org7d04b17">
-<h3 id="org7d04b17">Set Up</h3>
-<div class="outline-text-3" id="text-org7d04b17"></div>
-<div class="outline-4" id="outline-container-org5ccee4f">
-<h4 id="org5ccee4f">Imports</h4>
-<div class="outline-text-4" id="text-org5ccee4f">
+<div class="outline-3" id="outline-container-orge389e9a">
+<h3 id="orge389e9a">Set Up</h3>
+<div class="outline-text-3" id="text-orge389e9a"></div>
+<div class="outline-4" id="outline-container-org6808e55">
+<h4 id="org6808e55">Imports</h4>
+<div class="outline-text-4" id="text-org6808e55">
 <div class="highlight">
 <pre><span></span><span class="c1"># python</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
@@ -111,26 +111,26 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org49c1b02">
-<h4 id="org49c1b02">The Path</h4>
-<div class="outline-text-4" id="text-org49c1b02">
+<div class="outline-4" id="outline-container-orgd5eabd2">
+<h4 id="orgd5eabd2">The Path</h4>
+<div class="outline-text-4" id="text-orgd5eabd2">
 <p>This is where I'm going to save the PDFs - to make it portable I usually keep the path in a file with <code>dotenv</code> loads as an environment variable. This wayif things get moved around I can edit the file to change the path but the code that uses it doesn't have to change.</p>
 <div class="highlight">
 <pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">"~/.local/share/env"</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">())</span>
 <span class="n">FOLDER</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"OREGON_COVID"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">FOLDER</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-    <span class="n">FOLDER</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">FOLDER</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org0005e5d">
-<h2 id="org0005e5d">Middle</h2>
-<div class="outline-text-2" id="text-org0005e5d"></div>
-<div class="outline-3" id="outline-container-orgf60c5a9">
-<h3 id="orgf60c5a9">Starting the Dates</h3>
-<div class="outline-text-3" id="text-orgf60c5a9">
+<div class="outline-2" id="outline-container-org90919b1">
+<h2 id="org90919b1">Middle</h2>
+<div class="outline-text-2" id="text-org90919b1"></div>
+<div class="outline-3" id="outline-container-orgad5fc59">
+<h3 id="orgad5fc59">Starting the Dates</h3>
+<div class="outline-text-3" id="text-orgad5fc59">
 <p>I could only find a link to the current PDF on their page (as of August 4, 2020). The URL embeds the date in it so to work backwards (and maybe later forwards) we need an easy way to set it. Here's what the URL looks like.</p>
 <div class="highlight">
 <pre><span></span><span class="n">EXAMPLE_URL</span> <span class="o">=</span> <span class="s2">"https://www.oregon.gov/oha/PH/DISEASESCONDITIONS/DISEASESAZ/Emerging%20Respitory%20Infections/COVID-19-Weekly-Report-2020-07-29-FINAL.pdf"</span>
@@ -140,7 +140,7 @@
 <pre><span></span><span class="n">START</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">2020</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">29</span><span class="p">)</span>
 <span class="n">WEEKDAY</span> <span class="o">=</span> <span class="n">START</span><span class="o">.</span><span class="n">weekday</span><span class="p">()</span>
 <span class="k">assert</span> <span class="n">WEEKDAY</span> <span class="o">==</span> <span class="n">calendar</span><span class="o">.</span><span class="n">WEDNESDAY</span>
-<span class="k">print</span><span class="p">(</span><span class="n">WEEKDAY</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">WEEKDAY</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 2
@@ -149,7 +149,7 @@
 <div class="highlight">
 <pre><span></span><span class="n">TODAY</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
 <span class="n">LAST</span> <span class="o">=</span> <span class="n">TODAY</span> <span class="o">+</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">weekday</span><span class="o">=</span><span class="n">WEEKDAY</span><span class="p">)</span> <span class="o">-</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">weeks</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> 
-<span class="k">print</span><span class="p">(</span><span class="n">LAST</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">LAST</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 2020-08-12
@@ -157,18 +157,18 @@
 <p>Now I'm going to work backwards one week at a time to create the URLS and file-names. Using the <code>relativedelta</code> makes it easy-peasey to get prior weeks from a given date. Here's the Wednesday before the most recent one.</p>
 <div class="highlight">
 <pre><span></span><span class="n">one_week</span> <span class="o">=</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">weeks</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">LAST</span> <span class="o">-</span> <span class="n">one_week</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">LAST</span> <span class="o">-</span> <span class="n">one_week</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
 2020-08-05
 </pre>
 <p>Now, I don't actually know when these PDFs started so I'm just going to work backwards until I get an error message from my HTTP request and then stop.</p>
 <div class="highlight">
-<pre><span></span><span class="n">FILE_NAME</span> <span class="o">=</span> <span class="s2">"COVID-19-Weekly-Report-{}-FINAL.pdf"</span>
-<span class="n">BASE_URL</span> <span class="o">=</span> <span class="s2">"https://www.oregon.gov/oha/PH/DISEASESCONDITIONS/DISEASESAZ/Emerging%20Respitory%20Infections/{}"</span>
+<pre><span></span><span class="n">FILE_NAME</span> <span class="o">=</span> <span class="s2">"COVID-19-Weekly-Report-</span><span class="si">{}</span><span class="s2">-FINAL.pdf"</span>
+<span class="n">BASE_URL</span> <span class="o">=</span> <span class="s2">"https://www.oregon.gov/oha/PH/DISEASESCONDITIONS/DISEASESAZ/Emerging%20Respitory%20Infections/</span><span class="si">{}</span><span class="s2">"</span>
 
 <span class="k">for</span> <span class="n">week</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Checking back {week} weeks from this past Wednesday"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Checking back </span><span class="si">{</span><span class="n">week</span><span class="si">}</span><span class="s2"> weeks from this past Wednesday"</span><span class="p">)</span>
     <span class="n">date</span> <span class="o">=</span> <span class="n">LAST</span> <span class="o">-</span> <span class="p">(</span><span class="n">one_week</span> <span class="o">*</span> <span class="n">week</span><span class="p">)</span>
     <span class="n">filename</span> <span class="o">=</span> <span class="n">FILE_NAME</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
     <span class="n">output_path</span> <span class="o">=</span> <span class="n">FOLDER</span><span class="o">/</span><span class="n">filename</span>
@@ -176,9 +176,9 @@
         <span class="n">url</span> <span class="o">=</span> <span class="n">BASE_URL</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Bad week: {week}</span><span class="se">\t</span><span class="s2">Date: {date}"</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Bad week: </span><span class="si">{</span><span class="n">week</span><span class="si">}</span><span class="se">\t</span><span class="s2">Date: </span><span class="si">{</span><span class="n">date</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">break</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">"Saving {filename}"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Saving </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">output_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>            
             <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
 </pre></div>
