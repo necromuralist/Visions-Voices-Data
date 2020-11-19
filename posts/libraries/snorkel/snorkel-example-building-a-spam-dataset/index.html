@@ -71,38 +71,38 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgab7f4ac">Beginning</a>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org40dd6b3">Beginning</a>
 <ul>
-<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgf8fafb5">Imports</a></li>
-<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org81eb875">Set Up</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org16510b3">Imports</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org0578a38">Set Up</a></li>
 </ul>
 </li>
-<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org5164759">Middle</a>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orge91f516">Middle</a>
 <ul>
-<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org44f50d7">Labeling Functions</a></li>
-<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org902eda5">Data Augmentation</a></li>
-<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org953d2c9">Slicing</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgb681313">Labeling Functions</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgadf32d2">Data Augmentation</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org6972c97">Slicing</a></li>
 </ul>
 </li>
-<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgc7460a9">End</a>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#orgc1745cb">End</a>
 <ul>
-<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org26dbf90">Train A Classifier</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset/#org977c939">Train A Classifier</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgab7f4ac">
-<h2 id="orgab7f4ac">Beginning</h2>
-<div class="outline-text-2" id="text-orgab7f4ac">
+<div class="outline-2" id="outline-container-org40dd6b3">
+<h2 id="org40dd6b3">Beginning</h2>
+<div class="outline-text-2" id="text-org40dd6b3">
 <p>This is a walk-through of the Snorkel <a href="https://www.snorkel.org/get-started/">Get Started</a> tutorial which shows how you can use it to build a labeled dataset. It uses the <a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/">YouTube Spam Collection</a> data set (downloaded from the <a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection">UCI Machine Learning Repository</a>). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns <code>COMMENT_ID</code>, <code>AUTHOR</code>, <code>DATE</code>, <code>CONTENT</code>, <code>TAG</code>. The tag represents whether it was considered <i>Spam</i> or not, so we'll pretend it isn't there for most of this walk-through.</p>
 </div>
-<div class="outline-3" id="outline-container-orgf8fafb5">
-<h3 id="orgf8fafb5">Imports</h3>
-<div class="outline-text-3" id="text-orgf8fafb5"></div>
-<div class="outline-4" id="outline-container-orgab953bc">
-<h4 id="orgab953bc">Python</h4>
-<div class="outline-text-4" id="text-orgab953bc">
+<div class="outline-3" id="outline-container-org16510b3">
+<h3 id="org16510b3">Imports</h3>
+<div class="outline-text-3" id="text-org16510b3"></div>
+<div class="outline-4" id="outline-container-org21f74c2">
+<h4 id="org21f74c2">Python</h4>
+<div class="outline-text-4" id="text-org21f74c2">
 <div class="highlight">
 <pre><span></span>from argparse import Namespace
 from functools import partial
@@ -112,9 +112,9 @@ import re
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgfcb7f53">
-<h4 id="orgfcb7f53">PyPi</h4>
-<div class="outline-text-4" id="text-orgfcb7f53">
+<div class="outline-4" id="outline-container-orge277dd1">
+<h4 id="orge277dd1">PyPi</h4>
+<div class="outline-text-4" id="text-orge277dd1">
 <div class="highlight">
 <pre><span></span>from nltk.corpus import wordnet
 from sklearn import metrics
@@ -131,37 +131,37 @@ import pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orge8de827">
-<h4 id="orge8de827">Others</h4>
-<div class="outline-text-4" id="text-orge8de827">
+<div class="outline-4" id="outline-container-orgfdd7668">
+<h4 id="orgfdd7668">Others</h4>
+<div class="outline-text-4" id="text-orgfdd7668">
 <div class="highlight">
 <pre><span></span>from graeae import CountPercentage, EmbedHoloviews
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org81eb875">
-<h3 id="org81eb875">Set Up</h3>
-<div class="outline-text-3" id="text-org81eb875"></div>
-<div class="outline-4" id="outline-container-org6cc00fb">
-<h4 id="org6cc00fb">The WordNet Corpus</h4>
-<div class="outline-text-4" id="text-org6cc00fb">
+<div class="outline-3" id="outline-container-org0578a38">
+<h3 id="org0578a38">Set Up</h3>
+<div class="outline-text-3" id="text-org0578a38"></div>
+<div class="outline-4" id="outline-container-org0c57164">
+<h4 id="org0c57164">The WordNet Corpus</h4>
+<div class="outline-text-4" id="text-org0c57164">
 <div class="highlight">
 <pre><span></span>nltk.download("wordnet", quiet=True)
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org58425df">
-<h4 id="org58425df">Plotting</h4>
-<div class="outline-text-4" id="text-org58425df">
+<div class="outline-4" id="outline-container-org9832938">
+<h4 id="org9832938">Plotting</h4>
+<div class="outline-text-4" id="text-org9832938">
 <div class="highlight">
 <pre><span></span>Embed = partial(EmbedHoloviews, folder_path="../../../files/posts/libraries/snorkel/snorkel-example-building-a-spam-dataset")
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org4638b88">
-<h4 id="org4638b88">The Dataset</h4>
-<div class="outline-text-4" id="text-org4638b88">
+<div class="outline-4" id="outline-container-org1824b8e">
+<h4 id="org1824b8e">The Dataset</h4>
+<div class="outline-text-4" id="text-org1824b8e">
 <p>The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a <code>artist</code> column.</p>
 <div class="highlight">
 <pre><span></span>path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
@@ -182,9 +182,9 @@ Shakira
 Psy
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-orgb32cc42">
-<h4 id="orgb32cc42">Splitting the Set</h4>
-<div class="outline-text-4" id="text-orgb32cc42">
+<div class="outline-4" id="outline-container-org8e6eafd">
+<h4 id="org8e6eafd">Splitting the Set</h4>
+<div class="outline-text-4" id="text-org8e6eafd">
 <div class="highlight">
 <pre><span></span>train, test = train_test_split(data)
 print(train.shape)
@@ -226,17 +226,17 @@ Embed(plot=plot, file_name="comments_by_artist_and_class")()
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org5164759">
-<h2 id="org5164759">Middle</h2>
-<div class="outline-text-2" id="text-org5164759"></div>
-<div class="outline-3" id="outline-container-org44f50d7">
-<h3 id="org44f50d7">Labeling Functions</h3>
-<div class="outline-text-3" id="text-org44f50d7">
+<div class="outline-2" id="outline-container-orge91f516">
+<h2 id="orge91f516">Middle</h2>
+<div class="outline-text-2" id="text-orge91f516"></div>
+<div class="outline-3" id="outline-container-orgb681313">
+<h3 id="orgb681313">Labeling Functions</h3>
+<div class="outline-text-3" id="text-orgb681313">
 <p>Labeling functions output a label for values in the training set.</p>
 </div>
-<div class="outline-4" id="outline-container-org8233c3e">
-<h4 id="org8233c3e">Labels</h4>
-<div class="outline-text-4" id="text-org8233c3e">
+<div class="outline-4" id="outline-container-org1b10309">
+<h4 id="org1b10309">Labels</h4>
+<div class="outline-text-4" id="text-org1b10309">
 <div class="highlight">
 <pre><span></span>Label = Namespace(
     abstain = -1,
@@ -247,9 +247,9 @@ Embed(plot=plot, file_name="comments_by_artist_and_class")()
 <p>The actual data-set only has spam/not-spam classes, but the Snorkel tutorial adds the <code>abstain</code> class as well. Each function is going to be passed a row from the training dataframe, so the class name you use has to match it.</p>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orga1fe83b">
-<h4 id="orga1fe83b">Keyword Matching</h4>
-<div class="outline-text-4" id="text-orga1fe83b">
+<div class="outline-4" id="outline-container-orgf83d267">
+<h4 id="orgf83d267">Keyword Matching</h4>
+<div class="outline-text-4" id="text-orgf83d267">
 <div class="highlight">
 <pre><span></span>@labeling_function()
 def labeling_by_keyword(comment: pandas.Series) -&gt; int:
@@ -265,9 +265,9 @@ def labeling_by_keyword(comment: pandas.Series) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org08fed71">
-<h4 id="org08fed71">Regular Expressions</h4>
-<div class="outline-text-4" id="text-org08fed71">
+<div class="outline-4" id="outline-container-org0c32df3">
+<h4 id="org0c32df3">Regular Expressions</h4>
+<div class="outline-text-4" id="text-org0c32df3">
 <div class="highlight">
 <pre><span></span>@labeling_function()
 def label_check_out(comment) -&gt; int:
@@ -276,9 +276,9 @@ def label_check_out(comment) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgfaaf096">
-<h4 id="orgfaaf096">Short Comments</h4>
-<div class="outline-text-4" id="text-orgfaaf096">
+<div class="outline-4" id="outline-container-org9581112">
+<h4 id="org9581112">Short Comments</h4>
+<div class="outline-text-4" id="text-org9581112">
 <div class="highlight">
 <pre><span></span>@labeling_function()
 def label_short_comment(comment) -&gt; int:
@@ -287,9 +287,9 @@ def label_short_comment(comment) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orge75ede7">
-<h4 id="orge75ede7">Positive Comments</h4>
-<div class="outline-text-4" id="text-orge75ede7">
+<div class="outline-4" id="outline-container-orgd646779">
+<h4 id="orgd646779">Positive Comments</h4>
+<div class="outline-text-4" id="text-orgd646779">
 <p>Here we'll use <a href="https://textblob.readthedocs.io/en/dev/">textblob</a> to try and decide on whether a comment is positive (textblob uses <a href="https://www.clips.uantwerpen.be/pattern">pattern</a> to decide on the polarity.)</p>
 <div class="highlight">
 <pre><span></span>@labeling_function()
@@ -299,9 +299,9 @@ def label_positive_comment(comment) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orge5824f7">
-<h4 id="orge5824f7">Combining the Functions and Cleaning the Labels</h4>
-<div class="outline-text-4" id="text-orge5824f7">
+<div class="outline-4" id="outline-container-orgdedcedc">
+<h4 id="orgdedcedc">Combining the Functions and Cleaning the Labels</h4>
+<div class="outline-text-4" id="text-orgdedcedc">
 <p>First I'll create a list of the labeling functions so that we can pass it to the label-applier class.</p>
 <div class="highlight">
 <pre><span></span>labeling_functions = [labeling_by_keyword, label_check_out, label_short_comment, label_positive_comment]
@@ -333,9 +333,9 @@ for column in label_frame.columns:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org80cd134">
-<h4 id="org80cd134">Training the Label Model</h4>
-<div class="outline-text-4" id="text-org80cd134">
+<div class="outline-4" id="outline-container-org2ec1c28">
+<h4 id="org2ec1c28">Training the Label Model</h4>
+<div class="outline-text-4" id="text-org2ec1c28">
 <div class="highlight">
 <pre><span></span>label_model = LabelModel(cardinality=2, verbose=True)
 label_model.fit(label_matrix, n_epochs=500, log_freq=50, seed=0)
@@ -390,14 +390,14 @@ print(f"{matched/len(train): .2f}")
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org902eda5">
-<h3 id="org902eda5">Data Augmentation</h3>
-<div class="outline-text-3" id="text-org902eda5">
+<div class="outline-3" id="outline-container-orgadf32d2">
+<h3 id="orgadf32d2">Data Augmentation</h3>
+<div class="outline-text-3" id="text-orgadf32d2">
 <p>We're going to create new entries in the data by randomly replacing words with their synonyms.</p>
 </div>
-<div class="outline-4" id="outline-container-orgd88ed69">
-<h4 id="orgd88ed69">Synonym Lookup Function</h4>
-<div class="outline-text-4" id="text-orgd88ed69">
+<div class="outline-4" id="outline-container-orgfab4241">
+<h4 id="orgfab4241">Synonym Lookup Function</h4>
+<div class="outline-text-4" id="text-orgfab4241">
 <div class="highlight">
 <pre><span></span>def synonyms_for(word: str) -&gt; list:
     """get synonyms for word"""
@@ -406,9 +406,9 @@ print(f"{matched/len(train): .2f}")
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org9cf3492">
-<h4 id="org9cf3492">The Transformation Function</h4>
-<div class="outline-text-4" id="text-org9cf3492">
+<div class="outline-4" id="outline-container-orgb76b7ac">
+<h4 id="orgb76b7ac">The Transformation Function</h4>
+<div class="outline-text-4" id="text-orgb76b7ac">
 <div class="highlight">
 <pre><span></span>@transformation_function()
 def replace_word_with_synonym(comment: pandas.Series) -&gt; pandas.Series:
@@ -457,9 +457,9 @@ print(f"{len(train):,}")
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org953d2c9">
-<h3 id="org953d2c9">Slicing</h3>
-<div class="outline-text-3" id="text-org953d2c9">
+<div class="outline-3" id="outline-container-org6972c97">
+<h3 id="org6972c97">Slicing</h3>
+<div class="outline-text-3" id="text-org6972c97">
 <p>A <i>slice</i> is a subset of the data - in this case we want to identify slices that might be more important than others. In this case we're going to assume that we've identified that short links are more likely to be malicious, so we want to be more aware of them.</p>
 <div class="highlight">
 <pre><span></span>@slicing_function()
@@ -477,12 +477,12 @@ def short_link(comment: pandas.Series) -&gt; int:
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc7460a9">
-<h2 id="orgc7460a9">End</h2>
-<div class="outline-text-2" id="text-orgc7460a9"></div>
-<div class="outline-3" id="outline-container-org26dbf90">
-<h3 id="org26dbf90">Train A Classifier</h3>
-<div class="outline-text-3" id="text-org26dbf90">
+<div class="outline-2" id="outline-container-orgc1745cb">
+<h2 id="orgc1745cb">End</h2>
+<div class="outline-text-2" id="text-orgc1745cb"></div>
+<div class="outline-3" id="outline-container-org977c939">
+<h3 id="org977c939">Train A Classifier</h3>
+<div class="outline-text-3" id="text-org977c939">
 <div class="highlight">
 <pre><span></span>training_text = train_augmented.CONTENT.tolist()
 vectorizer = CountVectorizer(ngram_range=(1, 2))
@@ -515,9 +515,9 @@ print(f"{sum(development.CLASS == development.predicted)/len(development):.2f}")
 weighted avg       0.53      0.54      0.53       367
 
 </pre></div>
-<div class="outline-4" id="outline-container-orgb7dcd9f">
-<h4 id="orgb7dcd9f">Training on the Original Labels</h4>
-<div class="outline-text-4" id="text-orgb7dcd9f">
+<div class="outline-4" id="outline-container-orge97cffb">
+<h4 id="orge97cffb">Training on the Original Labels</h4>
+<div class="outline-text-4" id="text-orge97cffb">
 <div class="highlight">
 <pre><span></span>vectorizer = CountVectorizer(ngram_range=(1, 2))
 x_train = vectorizer.fit_transform(train.CONTENT)

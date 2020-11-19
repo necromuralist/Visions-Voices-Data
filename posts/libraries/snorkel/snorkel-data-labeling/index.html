@@ -71,34 +71,34 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#orgd8bc71b">Beginning</a>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org06927e3">Beginning</a>
 <ul>
-<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org8f4320f">Imports</a></li>
-<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#orgccf28f1">Set Up</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org7f8d1ae">Imports</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#orgfad0ccd">Set Up</a></li>
 </ul>
 </li>
-<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#orge2b4fa4">Middle</a>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org1bd75e8">Middle</a>
 <ul>
-<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org1aeb449">Finding Labeling Functions</a></li>
-<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org0195f7f">Using TextBlob with a Preprocessor</a></li>
-<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org92dabce">More Labeling Functions</a></li>
-<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#orgb72d115">Adding a Spacy Preprocessor</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org45a8226">Finding Labeling Functions</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org0eb4199">Using TextBlob with a Preprocessor</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#orgba3195b">More Labeling Functions</a></li>
+<li><a href="/posts/libraries/snorkel/snorkel-data-labeling/#org4575456">Adding a Spacy Preprocessor</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgd8bc71b">
-<h2 id="orgd8bc71b">Beginning</h2>
-<div class="outline-text-2" id="text-orgd8bc71b">
+<div class="outline-2" id="outline-container-org06927e3">
+<h2 id="org06927e3">Beginning</h2>
+<div class="outline-text-2" id="text-org06927e3">
 <p>This is a walk-through of the Snorkel <a href="https://www.snorkel.org/use-cases/01-spam-tutorial">Snorkel Data Labeling</a> tutorial.It uses the <a href="http://www.dt.fee.unicamp.br/~tiago//youtubespamcollection/">YouTube Spam Collection</a> data set (downloaded from the <a href="https://archive.ics.uci.edu/ml/datasets/YouTube+Spam+Collection">UCI Machine Learning Repository</a>). The data was collected in 2015 and represents comments from five of the ten most popular videos on YouTube. It is a tabular dataset with the columns <code>COMMENT_ID</code>, <code>AUTHOR</code>, <code>DATE</code>, <code>CONTENT</code>, <code>CLASS</code>. The tag represents whether it was considered <i>Spam</i> or not, so we'll pretend it isn't there for most of this walk-through.</p>
 </div>
-<div class="outline-3" id="outline-container-org8f4320f">
-<h3 id="org8f4320f">Imports</h3>
-<div class="outline-text-3" id="text-org8f4320f"></div>
-<div class="outline-4" id="outline-container-org29d9d04">
-<h4 id="org29d9d04">Python</h4>
-<div class="outline-text-4" id="text-org29d9d04">
+<div class="outline-3" id="outline-container-org7f8d1ae">
+<h3 id="org7f8d1ae">Imports</h3>
+<div class="outline-text-3" id="text-org7f8d1ae"></div>
+<div class="outline-4" id="outline-container-org9173448">
+<h4 id="org9173448">Python</h4>
+<div class="outline-text-4" id="text-org9173448">
 <div class="highlight">
 <pre><span></span>from argparse import Namespace
 from functools import partial
@@ -107,9 +107,9 @@ import re
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org102de7e">
-<h4 id="org102de7e">PyPi</h4>
-<div class="outline-text-4" id="text-org102de7e">
+<div class="outline-4" id="outline-container-org7d6ca41">
+<h4 id="org7d6ca41">PyPi</h4>
+<div class="outline-text-4" id="text-org7d6ca41">
 <div class="highlight">
 <pre><span></span>from snorkel.analysis import get_label_buckets
 from snorkel.labeling import labeling_function, LabelingFunction, LFAnalysis, PandasLFApplier
@@ -124,20 +124,20 @@ import pandas
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgccf28f1">
-<h3 id="orgccf28f1">Set Up</h3>
-<div class="outline-text-3" id="text-orgccf28f1"></div>
-<div class="outline-4" id="outline-container-org4b7c160">
-<h4 id="org4b7c160">The Tabulate Table</h4>
-<div class="outline-text-4" id="text-org4b7c160">
+<div class="outline-3" id="outline-container-orgfad0ccd">
+<h3 id="orgfad0ccd">Set Up</h3>
+<div class="outline-text-3" id="text-orgfad0ccd"></div>
+<div class="outline-4" id="outline-container-org4daa77b">
+<h4 id="org4daa77b">The Tabulate Table</h4>
+<div class="outline-text-4" id="text-org4daa77b">
 <div class="highlight">
 <pre><span></span>TABLE = partial(tabulate, tablefmt="orgtbl", headers="keys")
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org96d8534">
-<h4 id="org96d8534">Some Constants</h4>
-<div class="outline-text-4" id="text-org96d8534">
+<div class="outline-4" id="outline-container-org1d35b54">
+<h4 id="org1d35b54">Some Constants</h4>
+<div class="outline-text-4" id="text-org1d35b54">
 <div class="highlight">
 <pre><span></span>Comment = Namespace(
     is_ambiguous = -1,
@@ -164,12 +164,12 @@ import pandas
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge2b4fa4">
-<h2 id="orge2b4fa4">Middle</h2>
-<div class="outline-text-2" id="text-orge2b4fa4"></div>
-<div class="outline-4" id="outline-container-org761dc4d">
-<h4 id="org761dc4d">The Dataset</h4>
-<div class="outline-text-4" id="text-org761dc4d">
+<div class="outline-2" id="outline-container-org1bd75e8">
+<h2 id="org1bd75e8">Middle</h2>
+<div class="outline-text-2" id="text-org1bd75e8"></div>
+<div class="outline-4" id="outline-container-org5cff5f4">
+<h4 id="org5cff5f4">The Dataset</h4>
+<div class="outline-text-4" id="text-org5cff5f4">
 <p>The data is split up into separate files - one for each artist/video (they are named after the artist and each only appears to have one entry) so I'm going to smash them back together and add a <code>artist</code> column.</p>
 <div class="highlight">
 <pre><span></span>path = Path("~/data/datasets/texts/you_tube_comments/").expanduser()
@@ -190,9 +190,9 @@ Shakira
 Psy
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org6754a03">
-<h4 id="org6754a03">Splitting the Set</h4>
-<div class="outline-text-4" id="text-org6754a03">
+<div class="outline-4" id="outline-container-orgd0f4285">
+<h4 id="orgd0f4285">Splitting the Set</h4>
+<div class="outline-text-4" id="text-orgd0f4285">
 <p>The tutorial takes a slightly different approach from the one I previously took. Here's their four data-set splits:</p>
 <ul class="org-ul">
 <li><i>train</i>: Comments from the first four videos</li>
@@ -217,9 +217,9 @@ Validation: (185, 6)
 Testing: (185, 6)
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-org1aeb449">
-<h3 id="org1aeb449">Finding Labeling Functions</h3>
-<div class="outline-text-3" id="text-org1aeb449">
+<div class="outline-3" id="outline-container-org45a8226">
+<h3 id="org45a8226">Finding Labeling Functions</h3>
+<div class="outline-text-3" id="text-org45a8226">
 <p>The place to start is with the development set - it's labeled (although in this case the training set is as well, but pretend it isn't) and we can inspect it to get ideas.</p>
 <div class="highlight">
 <pre><span></span>print(development.sample(random_state=Data.random_seed)[[Columns.comment, Columns.classification]])
@@ -247,14 +247,14 @@ Who&amp;#39;s watching in 2015 Subscribe for me !﻿
 </pre>
 <p>You can already see that the spam has people asking viewers to check out their sites.</p>
 </div>
-<div class="outline-4" id="outline-container-org1d370b0">
-<h4 id="org1d370b0">Check vs Check Out</h4>
-<div class="outline-text-4" id="text-org1d370b0">
+<div class="outline-4" id="outline-container-org823bb24">
+<h4 id="org823bb24">Check vs Check Out</h4>
+<div class="outline-text-4" id="text-org823bb24">
 <p>Let's see which one of the strings (<i>check</i> or <i>check out</i>) does better for us.</p>
 </div>
 <ul class="org-ul">
-<li><a id="org1a7e769"></a>The Labeling Functions<br>
-<div class="outline-text-5" id="text-org1a7e769">
+<li><a id="org648df57"></a>The Labeling Functions<br>
+<div class="outline-text-5" id="text-org648df57">
 <div class="highlight">
 <pre><span></span>@labeling_function()
 def check(row: pandas.Series) -&gt; int:
@@ -269,8 +269,8 @@ def check_out(row: pandas.Series) -&gt; int:
 </pre></div>
 </div>
 </li>
-<li><a id="org2d2f10a"></a>Applying the Functions<br>
-<div class="outline-text-5" id="text-org2d2f10a">
+<li><a id="orgcf84922"></a>Applying the Functions<br>
+<div class="outline-text-5" id="text-orgcf84922">
 <p>The next step is to create some Labeling Matrices using our labeling functions by applying them to our training and development sets. Since our data is stored using pandas, we'll use the <code>PandasLFApplier</code>, but there are <a href="https://snorkel.readthedocs.io/en/master/packages/labeling.html">other types available</a> as well.</p>
 <div class="highlight">
 <pre><span></span>labeling_functions = [check, check_out]
@@ -288,8 +288,8 @@ Development Labeling Matrix: (200, 2)
 <p>Each matrix has one column for each of our labeling functions (so two in this case) and one row for each of the rows in the set that the functions were applied to.</p>
 </div>
 </li>
-<li><a id="orgae06379"></a>Evaluating the Labeling Functions<br>
-<div class="outline-text-5" id="text-orgae06379">
+<li><a id="org6359522"></a>Evaluating the Labeling Functions<br>
+<div class="outline-text-5" id="text-org6359522">
 <p>Snorkel provides a <a href="https://snorkel.readthedocs.io/en/master/packages/_autosummary/labeling/snorkel.labeling.LFAnalysis.html">LFAnalysis</a> class to help you see how well the labeling functions do.</p>
 <div class="highlight">
 <pre><span></span>analysis = LFAnalysis(L=train_labeling_matrix, lfs=labeling_functions)
@@ -437,8 +437,8 @@ Admit it you just came here to check the number of viewers ﻿
 <p>It's not obvious to me how you should handle those.</p>
 </div>
 </li>
-<li><a id="org628892c"></a>Check Out But Not Check<br>
-<div class="outline-text-5" id="text-org628892c">
+<li><a id="orgb1175e3"></a>Check Out But Not Check<br>
+<div class="outline-text-5" id="text-orgb1175e3">
 <p>What are some training examples that <code>check</code> labels but <code>check_out</code> doesn't? We can check by feeding the columns from the labeling matrix for the <code>check</code> and <code>check_out</code> functions and see where <code>check_out</code> abstained and <code>check</code> didn't. I said earlier that the first argument to <code>get_label_buckets</code> is the actual label, but really you can feed any two arrays and it will find give you the indices for the permutations of their row-values.</p>
 <div class="highlight">
 <pre><span></span>buckets = get_label_buckets(train_labeling_matrix[:, 0], train_labeling_matrix[:, 1])
@@ -609,9 +609,9 @@ Admit it you just came here to check the number of viewers ﻿
 </ul>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org0195f7f">
-<h3 id="org0195f7f">Using TextBlob with a Preprocessor</h3>
-<div class="outline-text-3" id="text-org0195f7f">
+<div class="outline-3" id="outline-container-org0eb4199">
+<h3 id="org0eb4199">Using TextBlob with a Preprocessor</h3>
+<div class="outline-text-3" id="text-org0eb4199">
 <p>Here we'll use text-blobs sentiment scorer to find comments that aren't spam. To do this we'll need to use snorkel's Preprocessor, which maps data using black-box functions.</p>
 <div class="highlight">
 <pre><span></span>@preprocessor(memoize=True)
@@ -629,9 +629,9 @@ def textblob_sentiment(row: pandas.Series) -&gt; pandas.Series:
 <p>The <code>polarity</code> is a value from -1.0 to 1.0 which reflects how negative or positive the text is believed to be. The <code>subjectivity</code> is a value from 0.0 to 1.0 which reflects whether the text is objective or subjective - whether it is a statement of fact or opinion.</p>
 <p>Now that we have the pre-processor we can use it with a labeling function.</p>
 </div>
-<div class="outline-4" id="outline-container-org511a59f">
-<h4 id="org511a59f">Polarity</h4>
-<div class="outline-text-4" id="text-org511a59f">
+<div class="outline-4" id="outline-container-org3f9b491">
+<h4 id="org3f9b491">Polarity</h4>
+<div class="outline-text-4" id="text-org3f9b491">
 <div class="highlight">
 <pre><span></span>@labeling_function(pre=[textblob_sentiment])
 def textblob_polarity(row: pandas.Series) -&gt; int:
@@ -640,9 +640,9 @@ def textblob_polarity(row: pandas.Series) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org79ea60e">
-<h4 id="org79ea60e">Subjectivity</h4>
-<div class="outline-text-4" id="text-org79ea60e">
+<div class="outline-4" id="outline-container-orgfe2eafc">
+<h4 id="orgfe2eafc">Subjectivity</h4>
+<div class="outline-text-4" id="text-orgfe2eafc">
 <div class="highlight">
 <pre><span></span>@labeling_function(pre=[textblob_sentiment])
 def textblob_subjectivity(row: pandas.Series) -&gt; int:
@@ -651,9 +651,9 @@ def textblob_subjectivity(row: pandas.Series) -&gt; int:
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org7381d7d">
-<h4 id="org7381d7d">Analyzing the Performance</h4>
-<div class="outline-text-4" id="text-org7381d7d">
+<div class="outline-4" id="outline-container-org76d0eee">
+<h4 id="org76d0eee">Analyzing the Performance</h4>
+<div class="outline-text-4" id="text-org76d0eee">
 <p>Once again, now that we have labeling functions we need to analyze how well they do.</p>
 <div class="highlight">
 <pre><span></span>labeling_functions = [textblob_polarity, textblob_subjectivity]
@@ -757,9 +757,9 @@ development_label_matrix = applier.apply(development, progress_bar=False)
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org92dabce">
-<h3 id="org92dabce">More Labeling Functions</h3>
-<div class="outline-text-3" id="text-org92dabce">
+<div class="outline-3" id="outline-container-orgba3195b">
+<h3 id="orgba3195b">More Labeling Functions</h3>
+<div class="outline-text-3" id="text-orgba3195b">
 <p>We previously created a keyword-based labeling function for "check". Because using keywords is such a common thing Snorkel has a way to create them with a little less work than creating the labeling functions individually.</p>
 <p>First we make a function that checks if any of a collection of keywords is in the comment.</p>
 <div class="highlight">
@@ -891,9 +891,9 @@ print(TABLE(LFAnalysis(development_label_matrix, labeling_functions).lf_summary(
 <p>There are varying degrees of coveragen and accuracy with these. Interestingly, the <code>subscribe</code> keyword was completely accurate and had pretty good coverage (compared to our check-out labelers).</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgb72d115">
-<h3 id="orgb72d115">Adding a Spacy Preprocessor</h3>
-<div class="outline-text-3" id="text-orgb72d115">
+<div class="outline-3" id="outline-container-org4575456">
+<h3 id="org4575456">Adding a Spacy Preprocessor</h3>
+<div class="outline-text-3" id="text-org4575456">
 <p>The purpose of the pre-processors is to do a little feature engineering to add features that aren't in the original dataset but which can be derived from it. Becaues SpaCY is used so much for this, snorkel comes with a labeling function that adds a <code>doc</code> attribute (you can also create it manually to get more control).</p>
 <div class="highlight">
 <pre><span></span>@nlp_labeling_function()
