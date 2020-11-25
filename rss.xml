@@ -1,5 +1,162 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Thu, 19 Nov 2020 07:01:57 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>The Geopandas DataFrame Coordinates Example</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/the-geopandas-dataframe-coordinates-example/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description>Adumbrations of data.</description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/rss.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Wed, 25 Nov 2020 22:22:53 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Zip Code Plotting</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#orge3b8013"&gt;Beginning&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#org1213191"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#orgc344b65"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#org05e5028"&gt;Middle&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#orgb2cd068"&gt;Loading the Data&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#org16a34c6"&gt;End&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#orgf12f3b2"&gt;Sources&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orge3b8013" class="outline-2"&gt;
+&lt;h2 id="orge3b8013"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orge3b8013"&gt;
+&lt;p&gt;
+This is a quick test to see if I can plot some GeoJSON that defines a zipcode map for the state of Oregon. I got the file from &lt;a href="https://github.com/OpenDataDE/State-zip-code-GeoJSON"&gt;GitHub&lt;/a&gt; but the README indicates that the original source (see below) was the the U.S. Census Bureau. The files are from 2010, so they're a little old, but I don't imagine that zip codes update that often anyway. Maybe as a future exercise I'll try to replicated what was done with the &lt;a href="https://www.census.gov/cgi-bin/geo/shapefiles/index.php"&gt;2019&lt;/a&gt; update.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org1213191" class="outline-3"&gt;
+&lt;h3 id="org1213191"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org1213191"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# python&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;functools&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pathlib&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+
+&lt;span class="c1"&gt;# pypi&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;dotenv&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;load_dotenv&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;geopandas&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;hvplot.pandas&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;pyplot&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pandas&lt;/span&gt;
+
+&lt;span class="c1"&gt;# my stuff&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;graeae&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;EmbedHoloviews&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgc344b65" class="outline-3"&gt;
+&lt;h3 id="orgc344b65"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgc344b65"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;SLUG&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"zip-code-plotting"&lt;/span&gt;
+&lt;span class="n"&gt;Embed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;EmbedHoloviews&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;folder_path&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"files/posts/&lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;SLUG&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org05e5028" class="outline-2"&gt;
+&lt;h2 id="org05e5028"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org05e5028"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgb2cd068" class="outline-3"&gt;
+&lt;h3 id="orgb2cd068"&gt;Loading the Data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgb2cd068"&gt;
+&lt;p&gt;
+This should be pretty straightforward. The documentation for &lt;a href="https://geopandas.org/"&gt;GeoPandas&lt;/a&gt; indicates that it can handle GeoJSON directly.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;load_dotenv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"posts/.env"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;environ&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"OREGON_ZIP_CODES"&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;expanduser&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;geoframe&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;geopandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_file&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Let's see what's there.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;geoframe&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+  STATEFP10 ZCTA5CE10  GEOID10 CLASSFP10 MTFCC10 FUNCSTAT10    ALAND10  \
+0        41     97833  4197833        B5   G6350          S  228152974   
+1        41     97840  4197840        B5   G6350          S  295777905   
+2        41     97330  4197330        B5   G6350          S  199697439   
+3        41     97004  4197004        B5   G6350          S  113398767   
+4        41     97023  4197023        B5   G6350          S  330220870   
+
+   AWATER10   INTPTLAT10    INTPTLON10 PARTFLG10  \
+0         0  +44.9288886  -118.0148791         N   
+1  10777783  +44.8847111  -116.9184395         N   
+2    814864  +44.6424890  -123.2562655         N   
+3     71994  +45.2549625  -122.4493774         N   
+4   2345079  +45.2784758  -122.3231876         N   
+
+                                            geometry  
+0  MULTIPOLYGON (((-118.15748 44.99903, -118.1575...  
+1  POLYGON ((-116.98971 44.88256, -116.98957 44.8...  
+2  POLYGON ((-123.18294 44.64477, -123.18293 44.6...  
+3  POLYGON ((-122.48691 45.22227, -122.48713 45.2...  
+4  POLYGON ((-122.07580 45.10889, -122.07594 45.1...  
+&lt;/pre&gt;
+
+&lt;p&gt;
+This next bit is a little slow.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;geoframe&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hvplot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;hover_cols&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"ZCTA5CE10"&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;legend&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;False&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tools&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"hover"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"wheel_zoom"&lt;/span&gt;&lt;span class="p"&gt;],)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;opts&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"Oregon Zip Codes"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;width&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;800&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;height&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;700&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;fontscale&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;outcome&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Embed&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;plot&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;plot&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;file_name&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"oregon_zip_codes"&lt;/span&gt;&lt;span class="p"&gt;)()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;outcome&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/oregon_zip_codes.html" style="width:100%" height="800"&gt;
+  &lt;p&gt;Figure Missing&lt;/p&gt;
+&lt;/object&gt;
+
+&lt;p&gt;
+Well, on the one hand it kind of works, but it has a lot of weird holes and I can't get the tools to appear so you can zoom in. I also don't really want the zip-codes to be interpreted as a heat map. But I guess it's a start.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org16a34c6" class="outline-2"&gt;
+&lt;h2 id="org16a34c6"&gt;End&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org16a34c6"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgf12f3b2" class="outline-3"&gt;
+&lt;h3 id="orgf12f3b2"&gt;Sources&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgf12f3b2"&gt;
+&lt;ul class="org-ul"&gt;
+&lt;li&gt;The Zip Code GeoJSON comes from a GitHub repository created by &lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/state-zip-code-geojson-repository/"&gt;OpenDataDE&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://geojson.org/"&gt;The Official GeoJSON page&lt;/a&gt; (I think), not much there.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://en.wikipedia.org/wiki/GeoJSON"&gt;Wikipedia on GeoJSON&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://geopandas.org/"&gt;GeoPandas Documentation&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>geojson</category><category>geopandas</category><category>mapping</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/</guid><pubDate>Wed, 25 Nov 2020 06:49:35 GMT</pubDate></item><item><title>State Zip Code GeoJSON Repository</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/state-zip-code-geojson-repository/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="outline-container-org1c1bc8d" class="outline-2"&gt;
+&lt;h2 id="org1c1bc8d"&gt;Cittation&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org1c1bc8d"&gt;
+&lt;ol class="org-ol"&gt;
+&lt;li&gt;GitHub - OpenDataDE/State-zip-code-GeoJSON: Zip code boundaries for each of the 50 states [Internet]. [cited 2020 Nov 20]. Available from: &lt;a href="https://github.com/OpenDataDE/State-zip-code-GeoJSON"&gt;https://github.com/OpenDataDE/State-zip-code-GeoJSON&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>citation</category><category>geojson</category><category>zip code</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/state-zip-code-geojson-repository/</guid><pubDate>Sat, 21 Nov 2020 03:06:30 GMT</pubDate></item><item><title>The Geopandas DataFrame Coordinates Example</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/the-geopandas-dataframe-coordinates-example/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
 &lt;h2&gt;Table of Contents&lt;/h2&gt;
 &lt;div id="text-table-of-contents"&gt;
 &lt;ul&gt;
@@ -1708,367 +1865,4 @@ Well, that was the replication (sort of) of this problem from &lt;a href="https:
 &lt;li&gt;Diez DM, Barr CD, Çetinkaya-Rundel M. Introductory statistics with randomization and simulation. OpenIntro.org; 2014. 348 p.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description><category>bibliography</category><category>simulation</category><category>statistics</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/introductory-statistics-with-randomization-and-simulation/</guid><pubDate>Tue, 22 Sep 2020 23:53:36 GMT</pubDate></item><item><title>Pulling Oregon Covid-19 Data</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/pulling-oregon-covid-19-data/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
-&lt;h2&gt;Table of Contents&lt;/h2&gt;
-&lt;div id="text-table-of-contents"&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/pulling-oregon-covid-19-data/#orgb7e8aa7"&gt;Beginning&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/pulling-oregon-covid-19-data/#orge389e9a"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/pulling-oregon-covid-19-data/#org90919b1"&gt;Middle&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/pulling-oregon-covid-19-data/#orgad5fc59"&gt;Starting the Dates&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgb7e8aa7" class="outline-2"&gt;
-&lt;h2 id="orgb7e8aa7"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-orgb7e8aa7"&gt;
-&lt;p&gt;
-This is a look at pulling Oregon Covid-19 data from their weekly update PDFs. There are datasets for Oregon Covid-19 cases published by the &lt;a href="https://govstatus.egov.com/OR-OHA-COVID-19"&gt;Oregon Health Authority&lt;/a&gt; but for some reason I can't find the raw data sources matching what they have in their weekly reports so I thought maybe instead of just endlessly searching I'd pull them from the PDFs themselves.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orge389e9a" class="outline-3"&gt;
-&lt;h3 id="orge389e9a"&gt;Set Up&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orge389e9a"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org6808e55" class="outline-4"&gt;
-&lt;h4 id="org6808e55"&gt;Imports&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-org6808e55"&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# python&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pathlib&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;
-
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;calendar&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;datetime&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
-
-&lt;span class="c1"&gt;# pypi&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;dateutil.relativedelta&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;relativedelta&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;dotenv&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;load_dotenv&lt;/span&gt;
-
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;requests&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgd5eabd2" class="outline-4"&gt;
-&lt;h4 id="orgd5eabd2"&gt;The Path&lt;/h4&gt;
-&lt;div class="outline-text-4" id="text-orgd5eabd2"&gt;
-&lt;p&gt;
-This is where I'm going to save the PDFs - to make it portable I usually keep the path in a file with &lt;code&gt;dotenv&lt;/code&gt; loads as an environment variable. This wayif things get moved around I can edit the file to change the path but the code that uses it doesn't have to change.
-&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;load_dotenv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"~/.local/share/env"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;expanduser&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
-&lt;span class="n"&gt;FOLDER&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;environ&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"OREGON_COVID"&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;expanduser&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;FOLDER&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_dir&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
-    &lt;span class="n"&gt;FOLDER&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mkdir&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;parents&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org90919b1" class="outline-2"&gt;
-&lt;h2 id="org90919b1"&gt;Middle&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org90919b1"&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-orgad5fc59" class="outline-3"&gt;
-&lt;h3 id="orgad5fc59"&gt;Starting the Dates&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgad5fc59"&gt;
-&lt;p&gt;
-I could only find a link to the current PDF on their page (as of August 4, 2020). The URL embeds the date in it so to work backwards (and maybe later forwards) we need an easy way to set it. Here's what the URL looks like.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;EXAMPLE_URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"https://www.oregon.gov/oha/PH/DISEASESCONDITIONS/DISEASESAZ/Emerging%20Respitory%20Infections/COVID-19-Weekly-Report-2020-07-29-FINAL.pdf"&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;
-So to work with it I'll find out what day of the week July 29, 2020 was (the date in the URL).
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;START&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2020&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;29&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;WEEKDAY&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;START&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;weekday&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;WEEKDAY&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;calendar&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;WEDNESDAY&lt;/span&gt;
-&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;WEEKDAY&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-2
-&lt;/pre&gt;
-
-
-&lt;p&gt;
-So, it looks like it came out on a Wednesday, which I'm going to assume is going to be the same every week. Now we can find the most recent Wednesday, which will be the start (or end, depending on how you look at it) of our date-ragen.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;TODAY&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;today&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;LAST&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;TODAY&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;relativedelta&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;weekday&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;WEEKDAY&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;relativedelta&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;weeks&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; 
-&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;LAST&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-2020-08-12
-&lt;/pre&gt;
-
-
-&lt;p&gt;
-Now I'm going to work backwards one week at a time to create the URLS and file-names. Using the &lt;code&gt;relativedelta&lt;/code&gt; makes it easy-peasey to get prior weeks from a given date. Here's the Wednesday before the most recent one.
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;one_week&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;relativedelta&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;weeks&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;LAST&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;one_week&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-2020-08-05
-&lt;/pre&gt;
-
-
-&lt;p&gt;
-Now, I don't actually know when these PDFs started so I'm just going to work backwards until I get an error message from my HTTP request and then stop. 
-&lt;/p&gt;
-
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;FILE_NAME&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"COVID-19-Weekly-Report-&lt;/span&gt;&lt;span class="si"&gt;{}&lt;/span&gt;&lt;span class="s2"&gt;-FINAL.pdf"&lt;/span&gt;
-&lt;span class="n"&gt;BASE_URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"https://www.oregon.gov/oha/PH/DISEASESCONDITIONS/DISEASESAZ/Emerging%20Respitory%20Infections/&lt;/span&gt;&lt;span class="si"&gt;{}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;
-
-&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;week&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Checking back &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;week&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt; weeks from this past Wednesday"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;date&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;LAST&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;one_week&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;week&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;filename&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;FILE_NAME&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;output_path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;FOLDER&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;filename&lt;/span&gt;
-    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;output_path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_file&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
-	&lt;span class="n"&gt;url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;BASE_URL&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;filename&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-	&lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;requests&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-	&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ok&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-	    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Bad week: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;week&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="se"&gt;\t&lt;/span&gt;&lt;span class="s2"&gt;Date: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-	    &lt;span class="k"&gt;break&lt;/span&gt;
-	&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Saving &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;filename&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-	&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;output_path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"wb"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;writer&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;            
-	    &lt;span class="n"&gt;writer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;content&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre class="example"&gt;
-Checking back 0 weeks from this past Wednesday
-Saving COVID-19-Weekly-Report-2020-08-12-FINAL.pdf
-Checking back 1 weeks from this past Wednesday
-Saving COVID-19-Weekly-Report-2020-08-05-FINAL.pdf
-Checking back 2 weeks from this past Wednesday
-Saving COVID-19-Weekly-Report-2020-07-29-FINAL.pdf
-Checking back 3 weeks from this past Wednesday
-Saving COVID-19-Weekly-Report-2020-07-22-FINAL.pdf
-Checking back 4 weeks from this past Wednesday
-Saving COVID-19-Weekly-Report-2020-07-15-FINAL.pdf
-Checking back 5 weeks from this past Wednesday
-Saving COVID-19-Weekly-Report-2020-07-08-FINAL.pdf
-Checking back 6 weeks from this past Wednesday
-Saving COVID-19-Weekly-Report-2020-07-01-FINAL.pdf
-Checking back 7 weeks from this past Wednesday
-Saving COVID-19-Weekly-Report-2020-06-24-FINAL.pdf
-Checking back 8 weeks from this past Wednesday
-Saving COVID-19-Weekly-Report-2020-06-17-FINAL.pdf
-Checking back 9 weeks from this past Wednesday
-Saving COVID-19-Weekly-Report-2020-06-10-FINAL.pdf
-Checking back 10 weeks from this past Wednesday
-Saving COVID-19-Weekly-Report-2020-06-03-FINAL.pdf
-Checking back 11 weeks from this past Wednesday
-Saving COVID-19-Weekly-Report-2020-05-27-FINAL.pdf
-Checking back 12 weeks from this past Wednesday
-Bad week: 12	Date: 2020-05-20
-&lt;/pre&gt;
-
-&lt;p&gt;
-So, there are eleven weeks of PDFs going back to May 27, 2020. Which seems a little short, given that Oregon started telling people to stay home in March, but maybe they have the data somewhere else. Anyway, next up is pulling the data from the PDFs from the files using &lt;a href="https://tabula-py.readthedocs.io/en/latest/tabula.html"&gt;tabula-py&lt;/a&gt;.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;</description><category>covid-19</category><category>data</category><category>oregon</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/pulling-oregon-covid-19-data/</guid><pubDate>Wed, 05 Aug 2020 05:59:37 GMT</pubDate></item><item><title>Data Leakage</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/data-leakage/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
-&lt;h2&gt;Table of Contents&lt;/h2&gt;
-&lt;div id="text-table-of-contents"&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/data-leakage/#org84d5d68"&gt;Beginning&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/data-leakage/#orgbb91325"&gt;1. The Data Science of Shoelaces&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/data-leakage/#org0811ab0"&gt;2. Return of the Shoelaces&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/data-leakage/#org5d4303f"&gt;3. Getting Rich With Cryptocurrencies?&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/data-leakage/#org6672b0e"&gt;4. Preventing Infections&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/data-leakage/#org3dc832d"&gt;5. Housing Prices&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org84d5d68" class="outline-2"&gt;
-&lt;h2 id="org84d5d68"&gt;Beginning&lt;/h2&gt;
-&lt;div class="outline-text-2" id="text-org84d5d68"&gt;
-&lt;blockquote&gt;
-&lt;p&gt;
-Most people find target leakage very tricky until they've thought about it for a long time.
-&lt;/p&gt;
-
-&lt;p&gt;
-So, before trying to think about leakage in the housing price example, we'll go through a few examples in other applications. Things will feel more familiar once you come back to a question about house prices.
-&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-orgbb91325" class="outline-3"&gt;
-&lt;h3 id="orgbb91325"&gt;1. The Data Science of Shoelaces&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-orgbb91325"&gt;
-&lt;blockquote&gt;
-&lt;p&gt;
-Nike has hired you as a data science consultant to help them save money on shoe materials. Your first assignment is to review a model one of their employees built to predict how many shoelaces they'll need each month. The features going into the machine learning model include:
-&lt;/p&gt;
-&lt;ul class="org-ul"&gt;
-&lt;li&gt;The current month (January, February, etc)&lt;/li&gt;
-&lt;li&gt;Advertising expenditures in the previous month&lt;/li&gt;
-&lt;li&gt;Various macroeconomic features (like the unemployment rate) as of the beginning of the current month&lt;/li&gt;
-&lt;li&gt;The amount of leather they ended up using in the current month&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;
-The results show the model is almost perfectly accurate if you include the feature about how much leather they used. But it is only moderately accurate if you leave that feature out. You realize this is because the amount of leather they use is a perfect indicator of how many shoes they produce, which in turn tells you how many shoelaces they need.
-&lt;/p&gt;
-
-&lt;p&gt;
-Do you think the &lt;code&gt;leather used&lt;/code&gt; feature constitutes a source of data leakage? If your answer is "it depends," what does it depend on?
-&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;
-&lt;code&gt;leather_used&lt;/code&gt; does seem like a leakage, but it depends on whether the value is known before the shoelace predictions are made. If you won't know it in time for the predictions, then it is a leak. If there's a reason why you would always know the amount used but somehow not know how many shoes were made it might not be a data leak, but it seems odd that it would be useful. It be useable if it is a prediction of the amount of leather that will be needed, but it seems odd to use it then to predict shoelaces.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org0811ab0" class="outline-3"&gt;
-&lt;h3 id="org0811ab0"&gt;2. Return of the Shoelaces&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org0811ab0"&gt;
-&lt;blockquote&gt;
-&lt;p&gt;
-You have a new idea. You could use the amount of leather Nike ordered (rather than the amount they actually used) leading up to a given month as a predictor in your shoelace model.
-&lt;/p&gt;
-
-&lt;p&gt;
-Does this change your answer about whether there is a leakage problem? If you answer "it depends," what does it depend on?
-&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;
-Whether it is a leak will depend on whether the leather is always ordered before the shoelaces or not. If they are always ordered before shoelaces then it wouldn't be a leak.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div id="outline-container-org5d4303f" class="outline-3"&gt;
-&lt;h3 id="org5d4303f"&gt;3. Getting Rich With Cryptocurrencies?&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org5d4303f"&gt;
-&lt;blockquote&gt;
-&lt;p&gt;
-You saved Nike so much money that they gave you a bonus. Congratulations.
-&lt;/p&gt;
-
-&lt;p&gt;
-Your friend, who is also a data scientist, says he has built a model that will let you turn your bonus into millions of dollars. Specifically, his model predicts the price of a new cryptocurrency (like Bitcoin, but a newer one) one day ahead of the moment of prediction. His plan is to purchase the cryptocurrency whenever the model says the price of the currency (in dollars) is about to go up.
-&lt;/p&gt;
-
-&lt;p&gt;
-The most important features in his model are:
-&lt;/p&gt;
-&lt;ul class="org-ul"&gt;
-&lt;li&gt;Current price of the currency&lt;/li&gt;
-&lt;li&gt;Amount of the currency sold in the last 24 hours&lt;/li&gt;
-&lt;li&gt;Change in the currency price in the last 24 hours&lt;/li&gt;
-&lt;li&gt;Change in the currency price in the last 1 hour&lt;/li&gt;
-&lt;li&gt;Number of new tweets in the last 24 hours that mention the currency&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;
-The value of the cryptocurrency in dollars has fluctuated up and down by over $100 in the last year, and yet his model's average error is less than $1. He says this is proof his model is accurate, and you should invest with him, buying the currency whenever the model says it is about to go up.
-&lt;/p&gt;
-
-&lt;p&gt;
-Is he right? If there is a problem with his model, what is it?
-&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;
-The data isn't leaking.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org6672b0e" class="outline-3"&gt;
-&lt;h3 id="org6672b0e"&gt;4. Preventing Infections&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org6672b0e"&gt;
-&lt;blockquote&gt;
-&lt;p&gt;
-An agency that provides healthcare wants to predict which patients from a rare surgery are at risk of infection, so it can alert the nurses to be especially careful when following up with those patients.
-&lt;/p&gt;
-
-&lt;p&gt;
-You want to build a model. Each row in the modeling dataset will be a single patient who received the surgery, and the prediction target will be whether they got an infection.
-&lt;/p&gt;
-
-&lt;p&gt;
-Some surgeons may do the procedure in a manner that raises or lowers the risk of infection. But how can you best incorporate the surgeon information into the model?
-&lt;/p&gt;
-
-&lt;p&gt;
-You have a clever idea. 
-&lt;/p&gt;
-&lt;ol class="org-ol"&gt;
-&lt;li&gt;Take all surgeries by each surgeon and calculate the infection rate among those surgeons.&lt;/li&gt;
-&lt;li&gt;For each patient in the data, find out who the surgeon was and plug in that surgeon's average infection rate as a feature.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;
-Does this pose any target leakage issues?
-Does it pose any train-test contamination issues?
-&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;
-The infection rate would have a target leak if the calculated value includes the patient whose row it is added to. 
-&lt;/p&gt;
-
-&lt;p&gt;
-You would have train-test contamination if you calculated this value using both the train and test set. You would have to calculate it only on the training set to avoid contamination.
-&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="outline-container-org3dc832d" class="outline-3"&gt;
-&lt;h3 id="org3dc832d"&gt;5. Housing Prices&lt;/h3&gt;
-&lt;div class="outline-text-3" id="text-org3dc832d"&gt;
-&lt;blockquote&gt;
-&lt;p&gt;
-You will build a model to predict housing prices.  The model will be deployed on an ongoing basis, to predict the price of a new house when a description is added to a website.  Here are four features that could be used as predictors.
-&lt;/p&gt;
-&lt;ol class="org-ol"&gt;
-&lt;li&gt;Size of the house (in square meters)&lt;/li&gt;
-&lt;li&gt;Average sales price of homes in the same neighborhood&lt;/li&gt;
-&lt;li&gt;Latitude and longitude of the house&lt;/li&gt;
-&lt;li&gt;Whether the house has a basement&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;
-You have historic data to train and validate the model.
-&lt;/p&gt;
-
-&lt;p&gt;
-Which of the features is most likely to be a source of leakage?
-&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;
-Average sales price of homes in the same neighborhood. If the home was sold in the past, then it would contribute to the average.
-&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;
-Leakage is a hard and subtle issue. You should be proud if you picked up on the issues in these examples.
-&lt;/p&gt;
-
-&lt;p&gt;
-Now you have the tools to make highly accurate models, and pick up on the most difficult practical problems that arise with applying these models to solve real problems.
-&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;</description><category>tutorial</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/tutorials/data-leakage/</guid><pubDate>Fri, 21 Feb 2020 05:26:31 GMT</pubDate></item></channel></rss>
+&lt;/div&gt;</description><category>bibliography</category><category>simulation</category><category>statistics</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/introductory-statistics-with-randomization-and-simulation/</guid><pubDate>Tue, 22 Sep 2020 23:53:36 GMT</pubDate></item></channel></rss>
