@@ -1,0 +1,119 @@
+#+BEGIN_COMMENT
+.. title: Zip Code Plotting
+.. slug: zip-code-plotting
+.. date: 2020-11-24 22:49:35 UTC-08:00
+.. tags: geopandas,geojson,mapping
+.. category: GeoPandas
+.. link: 
+.. description: Plotting Zip Code Maps with GeoPandas.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-7491cc6c-92a7-4bb3-b1dd-eac19f217b43-ssh.json
+
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Beginning
+  This is a quick test to see if I can plot some GeoJSON that defines a zipcode map for the state of Oregon. I got the file from [[https://github.com/OpenDataDE/State-zip-code-GeoJSON][GitHub]] but the README indicates that the original source (see below) was the the U.S. Census Bureau. The files are from 2010, so they're a little old, but I don't imagine that zip codes update that often anyway. Maybe as a future exercise I'll try to replicated what was done with the [[https://www.census.gov/cgi-bin/geo/shapefiles/index.php][2019]] update.
+** Imports
+#+begin_src python :results none
+# python
+from functools import partial
+from pathlib import Path
+
+import os
+
+# pypi
+from dotenv import load_dotenv
+
+import geopandas
+import hvplot.pandas
+import matplotlib.pyplot as pyplot
+import pandas
+
+# my stuff
+from graeae import EmbedHoloviews
+#+end_src
+** Set Up
+#+begin_src python :results none
+SLUG = "zip-code-plotting"
+Embed = partial(EmbedHoloviews, folder_path=f"files/posts/{SLUG}")
+#+end_src   
+
+* Middle
+** Loading the Data
+   This should be pretty straightforward. The documentation for [[https://geopandas.org/][GeoPandas]] indicates that it can handle GeoJSON directly.
+
+#+begin_src python :results none
+load_dotenv("posts/.env")
+path = Path(os.environ["OREGON_ZIP_CODES"]).expanduser()
+geoframe = geopandas.read_file(path)
+#+end_src
+
+Let's see what's there.
+
+#+begin_src python :results output :exports both
+print(geoframe.head())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  STATEFP10 ZCTA5CE10  GEOID10 CLASSFP10 MTFCC10 FUNCSTAT10    ALAND10  \
+0        41     97833  4197833        B5   G6350          S  228152974   
+1        41     97840  4197840        B5   G6350          S  295777905   
+2        41     97330  4197330        B5   G6350          S  199697439   
+3        41     97004  4197004        B5   G6350          S  113398767   
+4        41     97023  4197023        B5   G6350          S  330220870   
+
+   AWATER10   INTPTLAT10    INTPTLON10 PARTFLG10  \
+0         0  +44.9288886  -118.0148791         N   
+1  10777783  +44.8847111  -116.9184395         N   
+2    814864  +44.6424890  -123.2562655         N   
+3     71994  +45.2549625  -122.4493774         N   
+4   2345079  +45.2784758  -122.3231876         N   
+
+                                            geometry  
+0  MULTIPOLYGON (((-118.15748 44.99903, -118.1575...  
+1  POLYGON ((-116.98971 44.88256, -116.98957 44.8...  
+2  POLYGON ((-123.18294 44.64477, -123.18293 44.6...  
+3  POLYGON ((-122.48691 45.22227, -122.48713 45.2...  
+4  POLYGON ((-122.07580 45.10889, -122.07594 45.1...  
+#+end_example
+
+This next bit is a little slow.
+
+#+begin_src python :results none
+plot = geoframe.hvplot(hover_cols=["ZCTA5CE10"], legend=False, tools=["hover", "wheel_zoom"],).opts(
+    title="Oregon Zip Codes",
+    width=800,
+    height=700,
+    fontscale=2,
+)
+outcome = Embed(plot=plot, file_name="oregon_zip_codes")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="oregon_zip_codes.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+Well, on the one hand it kind of works, but it has a lot of weird holes and I can't get the tools to appear so you can zoom in. I also don't really want the zip-codes to be interpreted as a heat map. But I guess it's a start.
+* End
+** Sources
+   - The Zip Code GeoJSON comes from a GitHub repository created by {{% lancelot title="OpenDataDE" %}}state-zip-code-geojson-repository{{% /lancelot %}}.
+   - [[https://geojson.org/][The Official GeoJSON page]] (I think), not much there.
+   - [[https://en.wikipedia.org/wiki/GeoJSON][Wikipedia on GeoJSON]]
+   - [[https://geopandas.org/][GeoPandas Documentation]]
