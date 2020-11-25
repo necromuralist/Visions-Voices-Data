@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data (Posts about geojson)</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description></description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/categories/geojson.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2020 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Wed, 25 Nov 2020 22:22:53 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Zip Code Plotting</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#orge3b8013"&gt;Beginning&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#org1213191"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#orgc344b65"&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#org05e5028"&gt;Middle&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#orgb2cd068"&gt;Loading the Data&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#org16a34c6"&gt;End&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/#orgf12f3b2"&gt;Sources&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orge3b8013" class="outline-2"&gt;
+&lt;h2 id="orge3b8013"&gt;Beginning&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orge3b8013"&gt;
+&lt;p&gt;
+This is a quick test to see if I can plot some GeoJSON that defines a zipcode map for the state of Oregon. I got the file from &lt;a href="https://github.com/OpenDataDE/State-zip-code-GeoJSON"&gt;GitHub&lt;/a&gt; but the README indicates that the original source (see below) was the the U.S. Census Bureau. The files are from 2010, so they're a little old, but I don't imagine that zip codes update that often anyway. Maybe as a future exercise I'll try to replicated what was done with the &lt;a href="https://www.census.gov/cgi-bin/geo/shapefiles/index.php"&gt;2019&lt;/a&gt; update.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org1213191" class="outline-3"&gt;
+&lt;h3 id="org1213191"&gt;Imports&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org1213191"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# python&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;functools&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pathlib&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+
+&lt;span class="c1"&gt;# pypi&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;dotenv&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;load_dotenv&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;geopandas&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;hvplot.pandas&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;pyplot&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pandas&lt;/span&gt;
+
+&lt;span class="c1"&gt;# my stuff&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;graeae&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;EmbedHoloviews&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgc344b65" class="outline-3"&gt;
+&lt;h3 id="orgc344b65"&gt;Set Up&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgc344b65"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;SLUG&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"zip-code-plotting"&lt;/span&gt;
+&lt;span class="n"&gt;Embed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;partial&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;EmbedHoloviews&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;folder_path&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"files/posts/&lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;SLUG&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org05e5028" class="outline-2"&gt;
+&lt;h2 id="org05e5028"&gt;Middle&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org05e5028"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgb2cd068" class="outline-3"&gt;
+&lt;h3 id="orgb2cd068"&gt;Loading the Data&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgb2cd068"&gt;
+&lt;p&gt;
+This should be pretty straightforward. The documentation for &lt;a href="https://geopandas.org/"&gt;GeoPandas&lt;/a&gt; indicates that it can handle GeoJSON directly.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;load_dotenv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"posts/.env"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;environ&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"OREGON_ZIP_CODES"&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;expanduser&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;geoframe&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;geopandas&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_file&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;
+Let's see what's there.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;geoframe&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+  STATEFP10 ZCTA5CE10  GEOID10 CLASSFP10 MTFCC10 FUNCSTAT10    ALAND10  \
+0        41     97833  4197833        B5   G6350          S  228152974   
+1        41     97840  4197840        B5   G6350          S  295777905   
+2        41     97330  4197330        B5   G6350          S  199697439   
+3        41     97004  4197004        B5   G6350          S  113398767   
+4        41     97023  4197023        B5   G6350          S  330220870   
+
+   AWATER10   INTPTLAT10    INTPTLON10 PARTFLG10  \
+0         0  +44.9288886  -118.0148791         N   
+1  10777783  +44.8847111  -116.9184395         N   
+2    814864  +44.6424890  -123.2562655         N   
+3     71994  +45.2549625  -122.4493774         N   
+4   2345079  +45.2784758  -122.3231876         N   
+
+                                            geometry  
+0  MULTIPOLYGON (((-118.15748 44.99903, -118.1575...  
+1  POLYGON ((-116.98971 44.88256, -116.98957 44.8...  
+2  POLYGON ((-123.18294 44.64477, -123.18293 44.6...  
+3  POLYGON ((-122.48691 45.22227, -122.48713 45.2...  
+4  POLYGON ((-122.07580 45.10889, -122.07594 45.1...  
+&lt;/pre&gt;
+
+&lt;p&gt;
+This next bit is a little slow.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;geoframe&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hvplot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;hover_cols&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"ZCTA5CE10"&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;legend&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;False&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tools&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"hover"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"wheel_zoom"&lt;/span&gt;&lt;span class="p"&gt;],)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;opts&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"Oregon Zip Codes"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;width&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;800&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;height&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;700&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;fontscale&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;outcome&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Embed&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;plot&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;plot&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;file_name&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"oregon_zip_codes"&lt;/span&gt;&lt;span class="p"&gt;)()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;outcome&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;object type="text/html" data="https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/oregon_zip_codes.html" style="width:100%" height="800"&gt;
+  &lt;p&gt;Figure Missing&lt;/p&gt;
+&lt;/object&gt;
+
+&lt;p&gt;
+Well, on the one hand it kind of works, but it has a lot of weird holes and I can't get the tools to appear so you can zoom in. I also don't really want the zip-codes to be interpreted as a heat map. But I guess it's a start.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org16a34c6" class="outline-2"&gt;
+&lt;h2 id="org16a34c6"&gt;End&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org16a34c6"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgf12f3b2" class="outline-3"&gt;
+&lt;h3 id="orgf12f3b2"&gt;Sources&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgf12f3b2"&gt;
+&lt;ul class="org-ul"&gt;
+&lt;li&gt;The Zip Code GeoJSON comes from a GitHub repository created by &lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/state-zip-code-geojson-repository/"&gt;OpenDataDE&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://geojson.org/"&gt;The Official GeoJSON page&lt;/a&gt; (I think), not much there.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://en.wikipedia.org/wiki/GeoJSON"&gt;Wikipedia on GeoJSON&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://geopandas.org/"&gt;GeoPandas Documentation&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>geojson</category><category>geopandas</category><category>mapping</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/zip-code-plotting/</guid><pubDate>Wed, 25 Nov 2020 06:49:35 GMT</pubDate></item><item><title>State Zip Code GeoJSON Repository</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/state-zip-code-geojson-repository/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="outline-container-org1c1bc8d" class="outline-2"&gt;
+&lt;h2 id="org1c1bc8d"&gt;Cittation&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org1c1bc8d"&gt;
+&lt;ol class="org-ol"&gt;
+&lt;li&gt;GitHub - OpenDataDE/State-zip-code-GeoJSON: Zip code boundaries for each of the 50 states [Internet]. [cited 2020 Nov 20]. Available from: &lt;a href="https://github.com/OpenDataDE/State-zip-code-GeoJSON"&gt;https://github.com/OpenDataDE/State-zip-code-GeoJSON&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>citation</category><category>geojson</category><category>zip code</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/state-zip-code-geojson-repository/</guid><pubDate>Sat, 21 Nov 2020 03:06:30 GMT</pubDate></item></channel></rss>
