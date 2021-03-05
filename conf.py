@@ -1302,7 +1302,7 @@ ADDITIONAL_METADATA = {
 # USE_BUNDLES = True
 
 # Plugins you don't want to use. Be careful :-)
-# DISABLED_PLUGINS = ["render_galleries"]
+DISABLED_PLUGINS = ["robots"]
 
 # Special settings to disable only parts of the indexes plugin.
 # Use with care.
