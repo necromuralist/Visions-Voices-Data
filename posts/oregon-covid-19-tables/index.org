@@ -1,0 +1,323 @@
+#+BEGIN_COMMENT
+.. title: Oregon Covid-19 Tables
+.. slug: oregon-covid-19-tables
+.. date: 2020-08-17 21:13:29 UTC-07:00
+.. tags: oregon,data,covid-19,tabula
+.. category: Covid-19
+.. link: 
+.. description: Gathering tables from Covid-19 PDFs.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 2
+
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-6ac1edb6-ca3d-4594-9d1a-fb5df4b47654-ssh.json
+
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Beginning
+** Set Up
+*** Imports
+#+begin_src python :results none
+# python
+from argparse import Namespace
+from pathlib import Path
+from functools import partial
+
+import os
+
+# pypi
+from dotenv import load_dotenv
+
+import holoviews
+import hvplot.pandas
+import pandas
+import tabula
+
+from graeae import EmbedHoloviews
+#+end_src
+*** Plotting
+#+begin_src python :results none
+SLUG = "oregon-covid-19-tables"
+Embed = partial(EmbedHoloviews, folder_path = f"files/posts/{SLUG}")
+
+Plot = Namespace(
+    width=990,
+    height=780,
+    tan="#ddb377",
+    blue="#4687b7",
+    red="#ce7b6d",
+    font_scale=2,
+    color_cycle = holoviews.Cycle(["#4687b7", "#ce7b6d"])
+)
+#+end_src
+* Middle
+** Loading Some Tables
+#+begin_src python :results none
+BASE = "COVID-19-Weekly-Report-{date}-FINAL.pdf"
+
+DATE = "2020-05-27"
+load_dotenv(Path("~/.local/share/env").expanduser())
+path = Path(os.environ["OREGON_COVID"]).expanduser()
+filename = path/BASE.format(date=DATE)
+assert filename.is_file()
+tables = tabula.read_pdf(filename, pages="all")
+#+end_src
+
+#+begin_src python :results output :exports both
+print(type(tables))
+print(len(tables))
+#+end_src
+
+#+RESULTS:
+: <class 'list'>
+: 15
+
+Okay, so it found 15 tables, which should have been loaded as pandas DataFrames. Since a list doesn't really provide an easy way to get metadata, maybe I'll just traverse the list and see what's there.
+
+#+begin_src python :results output :exports both
+for table in tables:
+    print(table.head(1))
+    print("*" * 20)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+    Sex  Cases % of total cases Cases per 10,000a  Deaths Case fatality (%)  \
+0  Male  1,874            47.5%               8.7      85              4.5%   
+
+   Hospitalized  
+0           402  
+,********************
+  Age group Cases % of total cases  Cases per 10,000a  Deaths  \
+0       0-9    53             1.3%                1.1       0   
+
+  Case fatality (%)  Hospitalized  
+0                0%             6  
+,********************
+  Unnamed: 0  Race  Cases % of total cases Cases per 10,000b  Deaths  \
+0      White   NaN  1,946            49.3%               6.2   109.0   
+
+  Case fatality (%)  Hospitalized  
+0              5.6%         452.0  
+,********************
+  Ethnicity Case count % of total cases Cases per 10,000a  Deaths  \
+0  Hispanic      1,317            33.4%              23.7      14   
+
+  Case fatality (%)  Hospitalized  
+0              1.1%           178  
+,********************
+                Facility name     County First reported  Total casesa  \
+0  Healthcare at Foster Creek  Multnomah      3/24/2020         119.0   
+
+   Total deathsa  
+0           30.0  
+,********************
+   ZIP code Number of cases Cases per 10,000
+0     97002             1–9              n/a
+,********************
+   97053 1–9  n/a
+0  97054   0  0.0
+,********************
+   97148   0  0.0
+0  97201  13  8.4
+,********************
+   97324   0   0.0
+0  97325  10  15.1
+,********************
+   97411    0  0.0
+0  97415  1–9  n/a
+,********************
+   97501 1–9  n/a
+0  97502  13  4.7
+,********************
+   97813  1–9  n/a
+0  97814  1–9  n/a
+,********************
+  Hospital                    Max Patients    Max Patients.1
+0      NaN  (Both suspected and confirmed)  (Confirmed only)
+,********************
+                               Hospital
+0  Asante Rogue Regional Medical Center
+,********************
+  Providence Newberg Medical Center
+0       Providence Seaside Hospital
+,********************
+#+end_example
+
+Most of the tables appear to be either fragments or case-counts based on different categorizations.
+
+#+begin_src python :results none
+COLUMNS = Namespace(
+    sex="Sex",
+    cases="Cases",
+    cases_per_10000 = "Cases per 10,000a",
+    percent = "% of total cases",
+)
+#+end_src
+** By Sex
+#+begin_src python :results output :exports both
+tables_2 = dict(sex=tables[0])
+
+print(tables_2["sex"])
+#+end_src
+
+#+RESULTS:
+#+begin_example
+             Sex  Cases % of total cases Cases per 10,000a  Deaths  \
+0           Male  1,874            47.5%               8.7      85   
+1         Female  2,071            52.4%               9.9      63   
+2     Non-Binary      1               0%               n/a       0   
+3  Not available      3             0.1%               n/a       0   
+4          Total  3,949           100.0%               9.3     148   
+
+  Case fatality (%)  Hospitalized  
+0              4.5%           402  
+1              3.0%           344  
+2                0%             0  
+3                0%             1  
+4              3.7%           747  
+#+end_example
+
+One thing to notice is that there are "n/a", ",", and "%" strings in there that prevent some columns from being treated as numbers.
+
+#+begin_src python :results output :exports both
+tables_2["sex"].info()
+males_females = tables[0].iloc[:2]
+#+end_src
+
+#+RESULTS:
+#+begin_example
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 5 entries, 0 to 4
+Data columns (total 7 columns):
+ #   Column             Non-Null Count  Dtype 
+---  ------             --------------  ----- 
+ 0   Sex                5 non-null      object
+ 1   Cases              5 non-null      object
+ 2   % of total cases   5 non-null      object
+ 3   Cases per 10,000a  5 non-null      object
+ 4   Deaths             5 non-null      int64 
+ 5   Case fatality (%)  5 non-null      object
+ 6   Hospitalized       5 non-null      int64 
+dtypes: int64(2), object(5)
+memory usage: 408.0+ bytes
+#+end_example
+
+So to use most of the columns you have to do something to convert them back to numbers. I'll start by looking at male and female cases adjusted by population.
+
+#+begin_src python :results none
+def bar_plot(data: pandas.DataFrame, x_column: str, y_column: str,
+             title:str, filename: str) -> str:
+    """Plot the data as a bar-plot
+
+    Args:
+     data: thing to plot
+     x_column: name of column for the x-axis
+     y_column: name of the column with the bar height
+     title: Title for the plot
+     filename: Name to save the plot
+
+    Returns:
+     html: the html to use to embed the plot into org
+    """
+
+    plot = data.hvplot.bar(x=x_column,
+                           y=y_column,
+                           color=Plot.color_cycle).opts(
+                               width=Plot.width,
+                               height=Plot.height,
+                               fontscale=Plot.font_scale,
+                               title=title,
+)
+
+    outcome = Embed(plot=plot, file_name=filename)()
+    return outcome
+#+end_src
+
+#+begin_src python :results none
+gender_bar = partial(bar_plot, data=males_females, x_column=COLUMNS.sex)
+#+end_src
+*** Total Cases
+    First, make the counts integers.
+#+begin_src python :results none
+males_females.loc[:, COLUMNS.cases] = males_females[COLUMNS.cases].str.replace(
+    ",", "").astype(int)
+#+end_src
+
+Now a little bar plot.
+#+begin_src python :results none
+outcome = gender_bar(y_column=COLUMNS.cases,
+                     title="Cases by Gender",
+                     filename="cases_by_gender")
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="cases_by_gender.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+There were slightly more female cases than male cases.
+*** Case Percentages
+
+#+begin_src python :results none
+males_females.loc[:, COLUMNS.percent] = males_females[COLUMNS.percent].str.replace(
+    "%", "").astype(float)
+#+end_src
+
+#+begin_src python :results none
+outcome = gender_bar(y_column=COLUMNS.percent,
+                     title="Case Percentage by Gender",
+                     filename="percentage_by_gender")
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="percentage_by_gender.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+*** Cases Adjusted For Population
+
+#+begin_src python :results none
+males_females.loc[:, COLUMNS.cases_per_10000] = males_females[
+    COLUMNS.cases_per_10000].astype(float)
+
+plot = males_females.hvplot.bar(x=COLUMNS.sex, y=COLUMNS.cases_per_10000,
+                                color=Plot.color_cycle,
+                                fontscale=Plot.font_scale).opts(
+    title="Cases per 10,000 Population by Gender",
+    width=Plot.width,
+    height=Plot.height)
+
+outcome = Embed(plot=plot, file_name="cases_by_sex_and_population")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="cases_by_sex_and_population.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+* End

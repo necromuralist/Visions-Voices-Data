@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Visions, Voices, Data (Posts about confidence intervals)</title><link>https://necromuralist.github.io/Visions-Voices-Data/</link><description></description><atom:link href="https://necromuralist.github.io/Visions-Voices-Data/categories/confidence-intervals.xml" rel="self" type="application/rss+xml"></atom:link><language>en</language><copyright>Contents © 2021 &lt;a href="mailto:necromuralist@protonmail.com"&gt;Cloistered Monkey&lt;/a&gt; </copyright><lastBuildDate>Sat, 06 Mar 2021 23:34:06 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>t Confidence Intervals</title><link>https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/</link><dc:creator>Cloistered Monkey</dc:creator><description>&lt;div id="table-of-contents"&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id="text-table-of-contents"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/#orgb71d812"&gt;Imports&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/#org78fb3d4"&gt;Whale Mercury&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/#org926bd20"&gt;Beginning&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/#orgae22b01"&gt;Checking the Skew&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/#org239e74a"&gt;Middle&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/#org2e90006"&gt;Standard Error&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/#org1319d13"&gt;t Star&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/#orgb2d7dcb"&gt;Margin Of Error&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/#org6bf7080"&gt;The Confidence Interval&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/#orgeca9e12"&gt;End&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/#org1a17677"&gt;Sources&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-orgb71d812" class="outline-2"&gt;
+&lt;h2 id="orgb71d812"&gt;Imports&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-orgb71d812"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# from python&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;collections&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;namedtuple&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;math&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;sqrt&lt;/span&gt;
+
+&lt;span class="c1"&gt;# pypi&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;scipy.stats&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;t&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org78fb3d4" class="outline-2"&gt;
+&lt;h2 id="org78fb3d4"&gt;Whale Mercury&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org78fb3d4"&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org926bd20" class="outline-3"&gt;
+&lt;h3 id="org926bd20"&gt;Beginning&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org926bd20"&gt;
+&lt;table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"&gt;
+
+
+&lt;colgroup&gt;
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+
+&lt;col class="org-right"&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope="col" class="org-right"&gt;n&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;\(\overline{x}\)&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;&lt;i&gt;s&lt;/i&gt;&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;&lt;i&gt;min&lt;/i&gt;&lt;/th&gt;
+&lt;th scope="col" class="org-right"&gt;&lt;i&gt;max&lt;/i&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td class="org-right"&gt;19&lt;/td&gt;
+&lt;td class="org-right"&gt;4.4&lt;/td&gt;
+&lt;td class="org-right"&gt;2.3&lt;/td&gt;
+&lt;td class="org-right"&gt;1.7&lt;/td&gt;
+&lt;td class="org-right"&gt;9.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;WhaleMercury&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;namedtuple&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"WhaleMercury"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+			  &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"n"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+			   &lt;span class="s2"&gt;"mean"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+			   &lt;span class="s2"&gt;"standard_deviation"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+			   &lt;span class="s2"&gt;"minimum"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+			   &lt;span class="s2"&gt;"maximum"&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+
+&lt;span class="n"&gt;WHALES&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;WhaleMercury&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;19&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+		      &lt;span class="n"&gt;mean&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mf"&gt;4.4&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+		      &lt;span class="n"&gt;standard_deviation&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mf"&gt;2.3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+		      &lt;span class="n"&gt;minimum&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mf"&gt;1.7&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+		      &lt;span class="n"&gt;maximum&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mf"&gt;9.2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgae22b01" class="outline-4"&gt;
+&lt;h4 id="orgae22b01"&gt;Checking the Skew&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgae22b01"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;scalar&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mf"&gt;2.5&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;WHALES&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;standard_deviation&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"(&lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;WHALES&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mean&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;scalar&lt;/span&gt;&lt;span class="si"&gt;:&lt;/span&gt;&lt;span class="s2"&gt; 0.2f&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;, &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;WHALES&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mean&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;scalar&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;)"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+(-1.35, 10.15)
+&lt;/pre&gt;
+
+
+&lt;p&gt;
+Our minimum and maximum are within two-and a half standard deviations from the mean so we'll judge that there isn't a skew.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-org239e74a" class="outline-3"&gt;
+&lt;h3 id="org239e74a"&gt;Middle&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-org239e74a"&gt;
+&lt;p&gt;
+\[
+\textrm{Confidence Interval} = \overline{x} \pm t^*_{df} SE
+\]
+&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org2e90006" class="outline-4"&gt;
+&lt;h4 id="org2e90006"&gt;Standard Error&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org2e90006"&gt;
+&lt;p&gt;
+\[
+SE = \frac{s}{\sqrt{n}}
+\]
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;standard_error&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;WHALES&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;standard_deviation&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sqrt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;WHALES&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Standard Error: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;standard_error&lt;/span&gt;&lt;span class="si"&gt;:&lt;/span&gt;&lt;span class="s2"&gt; 0.2f&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+Standard Error:  0.53
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org1319d13" class="outline-4"&gt;
+&lt;h4 id="org1319d13"&gt;t Star&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org1319d13"&gt;
+&lt;p&gt;
+To get the \(t^*_{18}\) value we can use the &lt;a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.t.html"&gt;scipy t&lt;/a&gt; module which has a &lt;code&gt;ppf&lt;/code&gt; (percent point function) that will get it for us. We're going to calculate the 95 % confidence error so we would need to pass in &lt;i&gt;1 - 0.95&lt;/i&gt; (because we want the area in the tail), but the function actually gives you the one-tailed value so we need to divide this value by two \(\frac{1 - 0.95}{2}\) to get the two-tailed value.
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;confidence&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mf"&gt;0.95&lt;/span&gt;
+&lt;span class="n"&gt;two_tailed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;confidence&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;
+&lt;span class="n"&gt;degrees_of_freedom&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;WHALES&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;n&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+
+&lt;span class="n"&gt;t_star_18&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;abs&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ppf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;two_tailed&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;degrees_of_freedom&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"t: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;t_star_18&lt;/span&gt;&lt;span class="si"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;0.3f&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+t: 2.101
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgb2d7dcb" class="outline-4"&gt;
+&lt;h4 id="orgb2d7dcb"&gt;Margin Of Error&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-orgb2d7dcb"&gt;
+&lt;p&gt;
+\[
+\textrm{Margin of Error} = t^*_{18} SE
+\]
+&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;margin_of_error&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;t_star_18&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;standard_error&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Margin of Error: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;margin_of_error&lt;/span&gt;&lt;span class="si"&gt;:&lt;/span&gt;&lt;span class="s2"&gt; 0.2f&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+Margin of Error:  1.11
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org6bf7080" class="outline-4"&gt;
+&lt;h4 id="org6bf7080"&gt;The Confidence Interval&lt;/h4&gt;
+&lt;div class="outline-text-4" id="text-org6bf7080"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;lower&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;WHALES&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mean&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;margin_of_error&lt;/span&gt;
+&lt;span class="n"&gt;upper&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;WHALES&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mean&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;margin_of_error&lt;/span&gt;
+
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Confidence Interval = &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;WHALES&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mean&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt; +- &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;t_star_18&lt;/span&gt;&lt;span class="si"&gt;:&lt;/span&gt;&lt;span class="s2"&gt; 0.2f&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt; x &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;standard_error&lt;/span&gt;&lt;span class="si"&gt;:&lt;/span&gt;&lt;span class="s2"&gt; 0.2f&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"(&lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;lower&lt;/span&gt;&lt;span class="si"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;0.3f&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;, &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;upper&lt;/span&gt;&lt;span class="si"&gt;:&lt;/span&gt;&lt;span class="s2"&gt; 0.3f&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;)"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre class="example"&gt;
+Confidence Interval = 4.4 +-  2.10 x  0.53
+(3.291,  5.509)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-orgeca9e12" class="outline-3"&gt;
+&lt;h3 id="orgeca9e12"&gt;End&lt;/h3&gt;
+&lt;div class="outline-text-3" id="text-orgeca9e12"&gt;
+&lt;p&gt;
+We can say with 91% confidence that the mean Methyl-Mercury levels for Pilot Whale red meat in Taiji is within 3.291 and 5.509 \(\frac{\mu g}{\textrm{wet g}}\) (the FDA suggested limit is \(1.0 \frac{\mu g}{\textit{wet g}}\).
+&lt;/p&gt;
+
+&lt;p&gt;
+There's a couple of things to note. One is that although the original paper is behind a paywall so I can't read it, the abstract is available through &lt;a href="https://www.researchgate.net/publication/40833219_High_mercury_levels_in_hair_samples_from_residents_of_Taiji_a_Japanese_whaling_town"&gt;Research Gate&lt;/a&gt; (and Elsevier) and in it the mean is given as 5.9, not 4.4. In addition, the book that I got the values from (OpenIntro Statistics) had the wrong values &lt;i&gt;(3.87, 4.93)&lt;/i&gt; when they calculated the confidence interval, so I don't know how accurate the starting numbers are. Also, if you poke around the web there are other researchers who've found that there is a lot of variation in mercury levels found by different researchers.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="outline-container-org1a17677" class="outline-2"&gt;
+&lt;h2 id="org1a17677"&gt;Sources&lt;/h2&gt;
+&lt;div class="outline-text-2" id="text-org1a17677"&gt;
+&lt;ul class="org-ul"&gt;
+&lt;li&gt;&lt;a href="https://necromuralist.github.io/Visions-Voices-Data/posts/openintro-statistics/"&gt;OpenIntro Statistics&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Endo T, Haraguchi K. High mercury levels in hair samples from residents of Taiji, a Japanese whaling town. Marine Pollution Bulletin. 2010 May 1;60(5):743-7.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description><category>confidence intervals</category><category>statistics</category><category>t distribution</category><guid>https://necromuralist.github.io/Visions-Voices-Data/posts/t-confidence-intervals/</guid><pubDate>Sat, 06 Mar 2021 00:30:52 GMT</pubDate></item></channel></rss>

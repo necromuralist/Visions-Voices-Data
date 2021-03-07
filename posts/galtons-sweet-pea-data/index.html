@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="A look at Francis Galton's Sweet Pea Data." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Galton's Sweet Pea Data | Visions, Voices, Data</title>
+<link href="../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../rss.xml" hreflang="en" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/galtons-sweet-pea-data/" rel="canonical"><!--[if lt IE 9]><script src="../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="../../javascript/p5.min.js" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="/posts/zip-code-plotting/" rel="prev" title="Zip Code Plotting" type="text/html">
+<link href="/posts/galton-pearson-and-the-peas/" rel="next" title="Galton, Pearson, and the Peas" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Galton's Sweet Pea Data" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/galtons-sweet-pea-data/" property="og:url">
+<meta content="A look at Francis Galton's Sweet Pea Data." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2021-02-24T13:47:33-08:00" property="article:published_time">
+<meta content="data" property="article:tag">
+<meta content="galton" property="article:tag">
+<meta content="history" property="article:tag">
+<meta content="linear regression" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="/archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="/categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="/rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="/pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"> <input name="k8" type="hidden" value="#444444"> <input name="k9" type="hidden" value="#D51920"> <input name="kt" type="hidden" value="h"> <input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"> <input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="/posts/galtons-sweet-pea-data/index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href="/posts/galtons-sweet-pea-data/">Galton's Sweet Pea Data</a></h1>
+<div class="metadata">
+<p class="byline author vcard p-author h-card"><span class="byline-name fn p-name" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/galtons-sweet-pea-data/" rel="bookmark"><time class="published dt-published" datetime="2021-02-24T13:47:33-08:00" itemprop="datePublished" title="2021-02-24 13:47">2021-02-24 13:47</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="/posts/galtons-sweet-pea-data/index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/galtons-sweet-pea-data/#orgbc83901">Beginning</a>
+<ul>
+<li><a href="/posts/galtons-sweet-pea-data/#org7cfbaf8">Imports</a></li>
+<li><a href="/posts/galtons-sweet-pea-data/#org7a1615f">Set Up</a></li>
+</ul>
+</li>
+<li><a href="/posts/galtons-sweet-pea-data/#orgbdb6913">Middle</a>
+<ul>
+<li><a href="/posts/galtons-sweet-pea-data/#orgafe890b">The Data</a></li>
+</ul>
+</li>
+<li><a href="/posts/galtons-sweet-pea-data/#org3179c0f">End</a>
+<ul>
+<li><a href="/posts/galtons-sweet-pea-data/#org202913d">Source</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgbc83901">
+<h2 id="orgbc83901">Beginning</h2>
+<div class="outline-text-2" id="text-orgbc83901"></div>
+<div class="outline-3" id="outline-container-org7cfbaf8">
+<h3 id="org7cfbaf8">Imports</h3>
+<div class="outline-text-3" id="text-org7cfbaf8">
+<div class="highlight">
+<pre><span></span><span class="c1"># python</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="c1"># pypi</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+
+<span class="kn">import</span> <span class="nn">holoviews</span>
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+
+<span class="c1"># my stuff</span>
+<span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org7a1615f">
+<h3 id="org7a1615f">Set Up</h3>
+<div class="outline-text-3" id="text-org7a1615f">
+<div class="highlight">
+<pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"galtons-sweet-pea-data"</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"files/posts/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="n">Plot</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">"Plot"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"width"</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">,</span> <span class="s2">"fontscale"</span><span class="p">,</span>
+                           <span class="s2">"tan"</span><span class="p">,</span> <span class="s2">"blue"</span><span class="p">,</span>
+                           <span class="s2">"red"</span><span class="p">])</span>
+<span class="n">PLOT</span> <span class="o">=</span> <span class="n">Plot</span><span class="p">(</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">750</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">tan</span><span class="o">=</span><span class="s2">"#ddb377"</span><span class="p">,</span>
+    <span class="n">blue</span><span class="o">=</span><span class="s2">"#4687b7"</span><span class="p">,</span>
+    <span class="n">red</span><span class="o">=</span><span class="s2">"#ce7b6d"</span><span class="p">,</span>
+ <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgbdb6913">
+<h2 id="orgbdb6913">Middle</h2>
+<div class="outline-text-2" id="text-orgbdb6913"></div>
+<div class="outline-3" id="outline-container-orgafe890b">
+<h3 id="orgafe890b">The Data</h3>
+<div class="outline-text-3" id="text-orgafe890b">
+<div class="highlight">
+<pre><span></span><span class="n">URL</span> <span class="o">=</span> <span class="s2">"http://jse.amstat.org/v9n3/stanton.html#appendixa"</span>
+
+<span class="n">frames</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+<p>There are two tables on the page, we want the second one.</p>
+<div class="highlight">
+<pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">frames</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-right" scope="col">Diameter of Parent Seed(0.01 inch)</th>
+<th class="org-right" scope="col">Diameter of Daughter Seed(0.01 inch)</th>
+<th class="org-right" scope="col">Frequency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">14.67</td>
+<td class="org-right">22</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">15.67</td>
+<td class="org-right">8</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">16.67</td>
+<td class="org-right">10</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">17.67</td>
+<td class="org-right">18</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">18.67</td>
+<td class="org-right">21</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">19.67</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">20.67</td>
+<td class="org-right">6</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">22.67</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">14.66</td>
+<td class="org-right">23</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">15.66</td>
+<td class="org-right">10</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">16.66</td>
+<td class="org-right">12</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">17.66</td>
+<td class="org-right">17</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">18.66</td>
+<td class="org-right">20</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">19.66</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">20.66</td>
+<td class="org-right">3</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">22.66</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">14.07</td>
+<td class="org-right">35</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">15.07</td>
+<td class="org-right">16</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">16.07</td>
+<td class="org-right">12</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">17.07</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">18.07</td>
+<td class="org-right">11</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">19.07</td>
+<td class="org-right">10</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">20.07</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">22.07</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">14.35</td>
+<td class="org-right">34</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">15.35</td>
+<td class="org-right">12</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">16.35</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">17.35</td>
+<td class="org-right">17</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">18.35</td>
+<td class="org-right">16</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">19.35</td>
+<td class="org-right">6</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">20.35</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">13.92</td>
+<td class="org-right">37</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">14.92</td>
+<td class="org-right">16</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">15.92</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">16.92</td>
+<td class="org-right">16</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">17.92</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">18.92</td>
+<td class="org-right">4</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">19.92</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">14.28</td>
+<td class="org-right">34</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">15.28</td>
+<td class="org-right">15</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">16.28</td>
+<td class="org-right">18</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">17.28</td>
+<td class="org-right">16</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">18.28</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">19.28</td>
+<td class="org-right">3</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">20.28</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">13.77</td>
+<td class="org-right">46</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">14.77</td>
+<td class="org-right">14</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">15.77</td>
+<td class="org-right">9</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">16.77</td>
+<td class="org-right">11</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">17.77</td>
+<td class="org-right">14</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">18.77</td>
+<td class="org-right">4</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">19.77</td>
+<td class="org-right">2</td>
+</tr>
+</tbody>
+</table>
+<p>Note that the data is somewhat aggregated - the last column is the number of times that the parent/daughter diameter pairs occured in the original data.</p>
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Parent"</span><span class="p">,</span> <span class="s2">"Daughter"</span><span class="p">,</span> <span class="s2">"Frequency"</span><span class="p">]</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Parent"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Daughter"</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">Frequency</span><span class="p">,</span>
+                           <span class="n">c</span><span class="o">=</span><span class="s2">"Frequency"</span><span class="p">,</span>
+                           <span class="n">color</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">red</span><span class="p">,</span>
+                           <span class="n">title</span><span class="o">=</span><span class="s2">"Sweet Pea Diameter (0.01 Inch)"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+                               <span class="n">height</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+                               <span class="n">width</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+                               <span class="n">fontscale</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">fontscale</span><span class="p">,</span>
+                           <span class="p">)</span>
+<span class="n">embedder</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"scatter_plot"</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">embedder</span><span class="p">()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/galtons-sweet-pea-data/scatter_plot.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span><span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+    <span class="n">rows</span><span class="o">.</span><span class="n">extend</span><span class="p">([[</span><span class="n">row</span><span class="o">.</span><span class="n">Parent</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">Daughter</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">Frequency</span><span class="p">)])</span>
+
+<span class="n">frame</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">"Parent Daughter"</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">"Diameter Distribution"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">fontscale</span><span class="p">,</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s2">"Diameter"</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"histogram"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/galtons-sweet-pea-data/histogram.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span><span class="n">parent_min</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">Parent</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+<span class="n">parent_max</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">Parent</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="n">y_1</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="n">frame</span><span class="o">.</span><span class="n">Parent</span><span class="o">==</span><span class="n">parent_min</span><span class="p">]</span><span class="o">.</span><span class="n">Daughter</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">y_2</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="n">frame</span><span class="o">.</span><span class="n">Parent</span><span class="o">==</span><span class="n">parent_max</span><span class="p">]</span><span class="o">.</span><span class="n">Daughter</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="n">dots</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Parent"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Daughter"</span><span class="p">,</span>
+                           <span class="n">color</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">red</span><span class="p">,</span>
+                           <span class="n">title</span><span class="o">=</span><span class="s2">"Sweet Pea Diameter (0.01 Inch)"</span><span class="p">)</span>
+<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Curve</span><span class="p">([(</span><span class="n">parent_min</span><span class="p">,</span> <span class="n">y_1</span><span class="p">),</span> <span class="p">(</span><span class="n">parent_max</span><span class="p">,</span> <span class="n">y_2</span><span class="p">)])</span>
+
+<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">dots</span> <span class="o">*</span> <span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">fontscale</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">output</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"scatter_plot_with_means"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/galtons-sweet-pea-data/scatter_plot_with_means.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org3179c0f">
+<h2 id="org3179c0f">End</h2>
+<div class="outline-text-2" id="text-org3179c0f"></div>
+<div class="outline-3" id="outline-container-org202913d">
+<h3 id="org202913d">Source</h3>
+<div class="outline-text-3" id="text-org202913d">
+<ul class="org-ul">
+<li>Stanton JM. Galton, Pearson, and the peas: A brief history of linear regression for statistics instructors. Journal of Statistics Education. 2001 Jan 1;9(3). (<a href="http://jse.amstat.org/v9n3/stanton.html">Link</a>)</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="/categories/data/" rel="tag">data</a></li>
+<li><a class="tag p-category" href="/categories/galton/" rel="tag">galton</a></li>
+<li><a class="tag p-category" href="/categories/history/" rel="tag">history</a></li>
+<li><a class="tag p-category" href="/categories/linear-regression/" rel="tag">linear regression</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="/posts/zip-code-plotting/" rel="prev" title="Zip Code Plotting">Previous post</a></li>
+<li class="next"><a href="/posts/galton-pearson-and-the-peas/" rel="next" title="Galton, Pearson, and the Peas">Next post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2021 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element){var i=element.getElementsByTagName('img')[0];return i===undefined?'':i.alt;}});
+</script> 
+</body>
+</html>

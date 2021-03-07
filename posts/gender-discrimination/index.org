@@ -2,19 +2,19 @@
 .. title: Gender Discrimination Inference
 .. slug: gender-discrimination
 .. date: 2020-09-22 17:04:38 UTC-07:00
-.. tags: statistics,simulation,inference
+.. tags: statistics,simulation,inference,openintro
 .. category: Statistics
 .. link: 
 .. description: Using simulation to check for gender discrimination.
 .. type: text
 .. status: 
 .. updated: 
-
+.. has_math: True
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 2
 
-#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-eaa361ce-9546-4722-b98d-ef5ad3d67d56-ssh.json
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-46c385c1-f17c-4992-bb6c-b41407905200-ssh.json
 
 #+BEGIN_SRC python :results none :exports none
 %load_ext autoreload
@@ -33,6 +33,7 @@ from expects import (
     expect,    
 )
 from numpy.random import default_rng
+from scipy import stats
 from tabulate import tabulate
 
 import holoviews
@@ -72,7 +73,7 @@ TIMER = Timer()
 #+end_src
 * Middle
 ** The Original Study
-   This starts with a study where bank managers were each given a personnel file and asked to decide if they would promote the person represented by the file to branch manager. The files were identical but half of them were filled out as male and half as female. The researchers wanted to know if these manager were biased in favor of men. The table below shows their resuts.
+   This starts with a study where bank managers were each given a personnel file and asked to decide if they would promote the person represented by the file to branch manager. The files were identical but half of them were filled out as male and half as female. The researchers wanted to know if these manager were biased in favor of men. There was actually two types of jobs, one described by the authors as "simple" and one as "complex". This only looks at the "simple" job.  The table below shows their results.
 
 #+begin_src python :results output :exports both
 study = pandas.DataFrame({"Promoted": [21, 14],
@@ -88,12 +89,11 @@ print(TABLE(study))
 
 
 #+RESULTS:
-|        | Promoted | Not Promoted | Total |
-|--------+----------+--------------+-------|
-| Male   |       21 |            3 |    24 |
-| Female |       14 |           10 |    24 |
-|--------+----------+--------------+-------|
-| Total  |       35 |           13 |    48 |
+|        |   Promoted |   Not Promoted |   Total |
+|--------+------------+----------------+---------|
+| Male   |         21 |              3 |      24 |
+| Female |         14 |             10 |      24 |
+| Total  |         35 |             13 |      48 |
 
 Let's look at the values (without the totals) as a plot.
 
@@ -195,7 +195,8 @@ print(TABLE(fractions))
 So about 88% of the males were promoted while only 58% of the females were promoted.
 
 #+begin_src python :results output :exports both
-POINT_ESTIMATE = fractions.Promoted.loc['Male'] - fractions.Promoted.loc['Female']
+POINT_ESTIMATE = (fractions.Promoted.loc['Male']
+                  - fractions.Promoted.loc['Female'])
 print(f"{POINT_ESTIMATE:0.2f}")
 #+end_src
 
@@ -233,7 +234,7 @@ expect(URN.sum()).to(equal(NUMBER_OF_MALES))
 #+end_src
 **** The Trials
 #+begin_src python :results none
-TRIALS = 1 * 10**7
+TRIALS = 10**7
 males_promoted = [numpy_random.choice(URN, PROMOTED, replace=False).sum()
                   for trial in range(TRIALS)]
 females_promoted = [PROMOTED - males for males in males_promoted]
@@ -280,6 +281,65 @@ The distribution looks /mostly/ normal. As you might guess the distribution is c
 
 I should note that because the sample size is so small, there's a weird distribution of the points - there's not enough variation in the differences to make a smooth curve (thus the gaps in the histogram).
 
+#+begin_src python :results none
+output = stats.probplot(data["Point Estimate"])
+theoretical, actual = output[0]
+slope, intercept, r = output[1]
+
+first = theoretical.min()
+last = theoretical.max()
+
+line = holoviews.Curve([(first, slope * first + intercept), (last, slope * last + intercept)],
+                       color=Plot.red)
+
+qq_frame = pandas.DataFrame.from_dict({
+    "Theoretical Quantiles": theoretical,
+    "Differences In Hiring Rates": actual,
+})
+
+scatter = qq_frame.hvplot.scatter(x="Theoretical Quantiles",
+                                  y="Differences In Hiring Rates", datashade=True)
+plot = (scatter * line).opts(
+    title="Hiring Probability Plot",
+    width=Plot.width,
+    height=Plot.height,
+    fontscale=Plot.fontscale,
+)
+outcome = Embed(plot=plot, file_name="differences_qq")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="differences_qq.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+
+Hmm... I'm not sure I'm doing that right. But it looks reasonable, I suppose.
+
+#+begin_src python :results output :exports both
+lowest = data["Point Estimate"].min()
+data_sorted = data["Point Estimate"].sort_values()
+
+max_loc = int(len(data_sorted) * 0.95)
+highest = data_sorted.iloc[max_loc]
+
+print(f"Point Estimate: {POINT_ESTIMATE: 0.3f}")
+print(f"({lowest: 0.3f} , {highest: 0.3f})")
+#+end_src
+
+#+RESULTS:
+: Point Estimate:  0.292
+: (-0.542 ,  0.208)
+
+Looking at the confidence interval we can see that the original point estimate is higher than 95 % of the values, but the original book example used a hypothesis test so let's finish it up.
+
+** A Hypothesis Test
 But anyway, what proportion of our simulations had as much or more of a difference than that found in the study?
 
 #+begin_src python :results output :exports both
@@ -315,3 +375,4 @@ So we reject the null hypothesis and conclude that there is a statistically sign
    8. Make a conclusion whether the original outcome could have happened by random chance or not.
 ** Source
    - {{% doc %}}introductory-statistics-with-randomization-and-simulation{{% /doc %}}
+   - Rosen B, Jerdee TH. Influence of sex role stereotypes on personnel decisions. Journal of Applied Psychology. 1974 Feb;59(1):9 [[https://pdfs.semanticscholar.org/39f6/d40e907ff08af4ddd3280c2ceee55ee1ddb6.pdf][Link to PDF]]
