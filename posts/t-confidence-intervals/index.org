@@ -1,0 +1,131 @@
+#+BEGIN_COMMENT
+.. title: t Confidence Intervals
+.. slug: t-confidence-intervals
+.. date: 2021-03-05 16:30:52 UTC-08:00
+.. tags: statistics,confidence intervals,t distribution
+.. category: Confidence Intervals
+.. link: 
+.. description: A look at Confidence Intervals using the t-Distribution.
+.. type: text
+.. status: 
+.. updated: 
+.. has_math: True
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-89224e71-c337-4ea1-9e6c-37c0a96abe80-ssh.json
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Imports
+#+begin_src python :results none
+# from python
+from collections import namedtuple
+from math import sqrt
+
+# pypi
+from scipy.stats import t
+#+end_src  
+* Whale Mercury
+** Beginning
+|  n | \(\overline{x}\) | /s/ | /min/ | /max/ |
+|----+------------------+-----+-------+-------|
+| 19 |              4.4 | 2.3 |   1.7 |   9.2 |
+
+#+begin_src python :results none
+WhaleMercury = namedtuple("WhaleMercury",
+                          ["n",
+                           "mean",
+                           "standard_deviation",
+                           "minimum",
+                           "maximum"])
+
+WHALES = WhaleMercury(n=19,
+                      mean=4.4,
+                      standard_deviation=2.3,
+                      minimum=1.7,
+                      maximum=9.2)
+#+end_src
+
+*** Checking the Skew
+
+#+begin_src python :results output :exports both
+scalar = 2.5 * WHALES.standard_deviation
+print(f"({WHALES.mean - scalar: 0.2f}, {WHALES.mean + scalar})")
+#+end_src
+
+#+RESULTS:
+: (-1.35, 10.15)
+
+Our minimum and maximum are within two-and a half standard deviations from the mean so we'll judge that there isn't a skew.
+** Middle
+
+\[
+\textrm{Confidence Interval} = \overline{x} \pm t^*_{df} SE
+\]
+
+*** Standard Error
+\[
+SE = \frac{s}{\sqrt{n}}
+\]
+
+#+begin_src python :results output :exports both
+standard_error = WHALES.standard_deviation/sqrt(WHALES.n)
+print(f"Standard Error: {standard_error: 0.2f}")
+#+end_src
+
+#+RESULTS:
+: Standard Error:  0.53
+
+*** t Star
+    To get the \(t^*_{18}\) value we can use the [[https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.t.html][scipy t]] module which has a =ppf= (percent point function) that will get it for us. We're going to calculate the 95 % confidence error so we would need to pass in /1 - 0.95/ (because we want the area in the tail), but the function actually gives you the one-tailed value so we need to divide this value by two \(\frac{1 - 0.95}{2}\) to get the two-tailed value.
+    
+#+begin_src python :results output :exports both
+confidence = 0.95
+two_tailed = (1 - confidence)/2
+degrees_of_freedom = WHALES.n - 1
+
+t_star_18 = abs(t.ppf(two_tailed, degrees_of_freedom))
+print(f"t: {t_star_18:0.3f}")
+#+end_src    
+
+#+RESULTS:
+: t: 2.101
+
+*** Margin Of Error
+
+\[
+\textrm{Margin of Error} = t^*_{18} SE
+\]
+
+#+begin_src python :results output :exports both
+margin_of_error = t_star_18 * standard_error
+print(f"Margin of Error: {margin_of_error: 0.2f}")
+#+end_src
+
+#+RESULTS:
+: Margin of Error:  1.11
+
+*** The Confidence Interval
+#+begin_src python :results output :exports both
+lower = WHALES.mean - margin_of_error
+upper = WHALES.mean + margin_of_error
+
+print(f"Confidence Interval = {WHALES.mean} +- {t_star_18: 0.2f} x {standard_error: 0.2f}")
+print(f"({lower:0.3f}, {upper: 0.3f})")
+#+end_src    
+
+#+RESULTS:
+: Confidence Interval = 4.4 +-  2.10 x  0.53
+: (3.291,  5.509)
+
+** End
+   We can say with 91% confidence that the mean Methyl-Mercury levels for Pilot Whale red meat in Taiji is within 3.291 and 5.509 \(\frac{\mu g}{\textrm{wet g}}\) (the FDA suggested limit is \(1.0 \frac{\mu g}{\textit{wet g}}\).
+
+   There's a couple of things to note. One is that although the original paper is behind a paywall so I can't read it, the abstract is available through [[https://www.researchgate.net/publication/40833219_High_mercury_levels_in_hair_samples_from_residents_of_Taiji_a_Japanese_whaling_town][Research Gate]] (and Elsevier) and in it the mean is given as 5.9, not 4.4. In addition, the book that I got the values from (OpenIntro Statistics) had the wrong values /(3.87, 4.93)/ when they calculated the confidence interval, so I don't know how accurate the starting numbers are. Also, if you poke around the web there are other researchers who've found that there is a lot of variation in mercury levels found by different researchers.
+
+* Sources
+  - {{% doc %}}openintro-statistics{{% /doc %}}
+  - Endo T, Haraguchi K. High mercury levels in hair samples from residents of Taiji, a Japanese whaling town. Marine Pollution Bulletin. 2010 May 1;60(5):743-7.

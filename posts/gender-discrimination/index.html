@@ -28,6 +28,7 @@
 <meta content="article" property="og:type">
 <meta content="2020-09-22T17:04:38-07:00" property="article:published_time">
 <meta content="inference" property="article:tag">
+<meta content="openintro" property="article:tag">
 <meta content="simulation" property="article:tag">
 <meta content="statistics" property="article:tag">
 </head>
@@ -71,35 +72,36 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/gender-discrimination/#org295a8f3">Beginning</a>
+<li><a href="/posts/gender-discrimination/#org860f808">Beginning</a>
 <ul>
-<li><a href="/posts/gender-discrimination/#org6f008fe">Imports</a></li>
-<li><a href="/posts/gender-discrimination/#org169ccfe">Randomness</a></li>
-<li><a href="/posts/gender-discrimination/#org3559941">Plotting, Tables, and a Timer</a></li>
+<li><a href="/posts/gender-discrimination/#orgba750b2">Imports</a></li>
+<li><a href="/posts/gender-discrimination/#org160c467">Randomness</a></li>
+<li><a href="/posts/gender-discrimination/#orgebb1b48">Plotting, Tables, and a Timer</a></li>
 </ul>
 </li>
-<li><a href="/posts/gender-discrimination/#org174f5c7">Middle</a>
+<li><a href="/posts/gender-discrimination/#org6453e31">Middle</a>
 <ul>
-<li><a href="/posts/gender-discrimination/#orgdc7b835">The Original Study</a></li>
-<li><a href="/posts/gender-discrimination/#org3eef9ac">The Experiment</a></li>
-<li><a href="/posts/gender-discrimination/#org61b5dda">Looking at the Distribution</a></li>
+<li><a href="/posts/gender-discrimination/#orgb04949f">The Original Study</a></li>
+<li><a href="/posts/gender-discrimination/#org0e5744f">The Experiment</a></li>
+<li><a href="/posts/gender-discrimination/#org9ff33a9">Looking at the Distribution</a></li>
+<li><a href="/posts/gender-discrimination/#org59be2da">A Hypothesis Test</a></li>
 </ul>
 </li>
-<li><a href="/posts/gender-discrimination/#org20fa171">End</a>
+<li><a href="/posts/gender-discrimination/#org2bb3d95">End</a>
 <ul>
-<li><a href="/posts/gender-discrimination/#org6d84db2">In Abstract</a></li>
-<li><a href="/posts/gender-discrimination/#orgf8560d1">Source</a></li>
+<li><a href="/posts/gender-discrimination/#org96959c6">In Abstract</a></li>
+<li><a href="/posts/gender-discrimination/#org91ec2ad">Source</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org295a8f3">
-<h2 id="org295a8f3">Beginning</h2>
-<div class="outline-text-2" id="text-org295a8f3"></div>
-<div class="outline-3" id="outline-container-org6f008fe">
-<h3 id="org6f008fe">Imports</h3>
-<div class="outline-text-3" id="text-org6f008fe">
+<div class="outline-2" id="outline-container-org860f808">
+<h2 id="org860f808">Beginning</h2>
+<div class="outline-text-2" id="text-org860f808"></div>
+<div class="outline-3" id="outline-container-orgba750b2">
+<h3 id="orgba750b2">Imports</h3>
+<div class="outline-text-3" id="text-orgba750b2">
 <div class="highlight">
 <pre><span></span><span class="c1"># python</span>
 <span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">Namespace</span>
@@ -111,6 +113,7 @@
     <span class="n">expect</span><span class="p">,</span>    
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">default_rng</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
 <span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
 
 <span class="kn">import</span> <span class="nn">holoviews</span>
@@ -123,20 +126,20 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org169ccfe">
-<h3 id="org169ccfe">Randomness</h3>
-<div class="outline-text-3" id="text-org169ccfe">
+<div class="outline-3" id="outline-container-org160c467">
+<h3 id="org160c467">Randomness</h3>
+<div class="outline-text-3" id="text-org160c467">
 <div class="highlight">
 <pre><span></span><span class="n">numpy_random</span> <span class="o">=</span> <span class="n">default_rng</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org3559941">
-<h3 id="org3559941">Plotting, Tables, and a Timer</h3>
-<div class="outline-text-3" id="text-org3559941"></div>
-<div class="outline-4" id="outline-container-orgd669783">
-<h4 id="orgd669783">Plotting</h4>
-<div class="outline-text-4" id="text-orgd669783">
+<div class="outline-3" id="outline-container-orgebb1b48">
+<h3 id="orgebb1b48">Plotting, Tables, and a Timer</h3>
+<div class="outline-text-3" id="text-orgebb1b48"></div>
+<div class="outline-4" id="outline-container-org7365e11">
+<h4 id="org7365e11">Plotting</h4>
+<div class="outline-text-4" id="text-org7365e11">
 <div class="highlight">
 <pre><span></span><span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span>
                 <span class="n">folder_path</span><span class="o">=</span><span class="s2">"files/posts/gender-discrimination/"</span><span class="p">)</span>
@@ -152,17 +155,17 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgad0e99a">
-<h4 id="orgad0e99a">The Table</h4>
-<div class="outline-text-4" id="text-orgad0e99a">
+<div class="outline-4" id="outline-container-orgaa9fda6">
+<h4 id="orgaa9fda6">The Table</h4>
+<div class="outline-text-4" id="text-orgaa9fda6">
 <div class="highlight">
 <pre><span></span><span class="n">TABLE</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgf5ac163">
-<h4 id="orgf5ac163">The Timer</h4>
-<div class="outline-text-4" id="text-orgf5ac163">
+<div class="outline-4" id="outline-container-orgc205969">
+<h4 id="orgc205969">The Timer</h4>
+<div class="outline-text-4" id="text-orgc205969">
 <div class="highlight">
 <pre><span></span><span class="n">TIMER</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
 </pre></div>
@@ -170,13 +173,13 @@
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org174f5c7">
-<h2 id="org174f5c7">Middle</h2>
-<div class="outline-text-2" id="text-org174f5c7"></div>
-<div class="outline-3" id="outline-container-orgdc7b835">
-<h3 id="orgdc7b835">The Original Study</h3>
-<div class="outline-text-3" id="text-orgdc7b835">
-<p>This starts with a study where bank managers were each given a personnel file and asked to decide if they would promote the person represented by the file to branch manager. The files were identical but half of them were filled out as male and half as female. The researchers wanted to know if these manager were biased in favor of men. The table below shows their resuts.</p>
+<div class="outline-2" id="outline-container-org6453e31">
+<h2 id="org6453e31">Middle</h2>
+<div class="outline-text-2" id="text-org6453e31"></div>
+<div class="outline-3" id="outline-container-orgb04949f">
+<h3 id="orgb04949f">The Original Study</h3>
+<div class="outline-text-3" id="text-orgb04949f">
+<p>This starts with a study where bank managers were each given a personnel file and asked to decide if they would promote the person represented by the file to branch manager. The files were identical but half of them were filled out as male and half as female. The researchers wanted to know if these manager were biased in favor of men. There was actually two types of jobs, one described by the authors as "simple" and one as "complex". This only looks at the "simple" job. The table below shows their results.</p>
 <div class="highlight">
 <pre><span></span><span class="n">study</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">"Promoted"</span><span class="p">:</span> <span class="p">[</span><span class="mi">21</span><span class="p">,</span> <span class="mi">14</span><span class="p">],</span>
                           <span class="s2">"Not Promoted"</span><span class="p">:[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">]},</span>
@@ -215,8 +218,6 @@
 <td class="org-right">10</td>
 <td class="org-right">24</td>
 </tr>
-</tbody>
-<tbody>
 <tr>
 <td class="org-left">Total</td>
 <td class="org-right">35</td>
@@ -269,9 +270,9 @@
 </object>
 <p>This plot doesn't make the disparity look quite as extreme as the previous plot did, I think.</p>
 </div>
-<div class="outline-4" id="outline-container-org4062796">
-<h4 id="org4062796">About the Variables</h4>
-<div class="outline-text-4" id="text-org4062796">
+<div class="outline-4" id="outline-container-orgdef889b">
+<h4 id="orgdef889b">About the Variables</h4>
+<div class="outline-text-4" id="text-orgdef889b">
 <p>I started using them without explicity stating it but we have two variable here - <code>Promoted</code> and <code>Not Promoted</code> are part of the <code>decision</code> variable and <code>Male</code> and <code>Female</code> are part of the <code>gender</code> variable.</p>
 <p>Anyway… so more males were chosen for promotion than female, but by what proportion?</p>
 <div class="highlight">
@@ -361,7 +362,8 @@
 </table>
 <p>So about 88% of the males were promoted while only 58% of the females were promoted.</p>
 <div class="highlight">
-<pre><span></span><span class="n">POINT_ESTIMATE</span> <span class="o">=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Promoted</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">'Male'</span><span class="p">]</span> <span class="o">-</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Promoted</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">'Female'</span><span class="p">]</span>
+<pre><span></span><span class="n">POINT_ESTIMATE</span> <span class="o">=</span> <span class="p">(</span><span class="n">fractions</span><span class="o">.</span><span class="n">Promoted</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">'Male'</span><span class="p">]</span>
+                  <span class="o">-</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Promoted</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">'Female'</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">POINT_ESTIMATE</span><span class="si">:</span><span class="s2">0.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 <pre class="example">
@@ -371,14 +373,14 @@
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org3eef9ac">
-<h3 id="org3eef9ac">The Experiment</h3>
-<div class="outline-text-3" id="text-org3eef9ac">
+<div class="outline-3" id="outline-container-org0e5744f">
+<h3 id="org0e5744f">The Experiment</h3>
+<div class="outline-text-3" id="text-org0e5744f">
 <p>We have a <b>point estimate</b> of the difference of 0.29 - is this evidence of bias?</p>
 </div>
-<div class="outline-4" id="outline-container-orga8ee472">
-<h4 id="orga8ee472">Our Hypotheses</h4>
-<div class="outline-text-4" id="text-orga8ee472">
+<div class="outline-4" id="outline-container-orgdd97c19">
+<h4 id="orgdd97c19">Our Hypotheses</h4>
+<div class="outline-text-4" id="text-orgdd97c19">
 <ul class="org-ul">
 <li>\(H_0\): <b>Null Hypothesis.</b> The variables <code>gender</code> and =decision are independent and the observed difference was due to chance.</li>
 <li>\(H_A\): <b>Alternative Hypothesis.</b> The variables <code>gender</code> and <code>decision</code> are not independent and the difference was not due to chance, but rather women were less likely to be promoted than men.</li>
@@ -389,14 +391,14 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org3d2b3e5">
-<h4 id="org3d2b3e5">The Simulation</h4>
-<div class="outline-text-4" id="text-org3d2b3e5">
+<div class="outline-4" id="outline-container-orgfab64c0">
+<h4 id="orgfab64c0">The Simulation</h4>
+<div class="outline-text-4" id="text-orgfab64c0">
 <p>The basic method here is we'll create an "urn" with an equal number of "balls" for men and women (24 of each in this case) and then randomly select 35 balls representing the number that were promoted and see the difference in the fraction of males promoted vs the number of females. To make the math simple I'll run it a number of times that is a power of 10.</p>
 </div>
 <ul class="org-ul">
-<li><a id="org7f5d97e"></a>Some Setup<br>
-<div class="outline-text-5" id="text-org7f5d97e">
+<li><a id="org7749984"></a>Some Setup<br>
+<div class="outline-text-5" id="text-org7749984">
 <p>To make the counting easier I'll set males to be 1 and females to be 0 (so the number of males promoted is the sum and the females is the remainder).</p>
 <div class="highlight">
 <pre><span></span><span class="n">NUMBER_OF_MALES</span> <span class="o">=</span> <span class="n">NUMBER_OF_FEMALES</span> <span class="o">=</span> <span class="mi">24</span>
@@ -412,10 +414,10 @@
 </pre></div>
 </div>
 </li>
-<li><a id="org72d1859"></a>The Trials<br>
-<div class="outline-text-5" id="text-org72d1859">
+<li><a id="orgdd4889a"></a>The Trials<br>
+<div class="outline-text-5" id="text-orgdd4889a">
 <div class="highlight">
-<pre><span></span><span class="n">TRIALS</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**</span><span class="mi">7</span>
+<pre><span></span><span class="n">TRIALS</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="mi">7</span>
 <span class="n">males_promoted</span> <span class="o">=</span> <span class="p">[</span><span class="n">numpy_random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">URN</span><span class="p">,</span> <span class="n">PROMOTED</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
                   <span class="k">for</span> <span class="n">trial</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">TRIALS</span><span class="p">)]</span>
 <span class="n">females_promoted</span> <span class="o">=</span> <span class="p">[</span><span class="n">PROMOTED</span> <span class="o">-</span> <span class="n">males</span> <span class="k">for</span> <span class="n">males</span> <span class="ow">in</span> <span class="n">males_promoted</span><span class="p">]</span>
@@ -429,9 +431,9 @@
 </ul>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org61b5dda">
-<h3 id="org61b5dda">Looking at the Distribution</h3>
-<div class="outline-text-3" id="text-org61b5dda">
+<div class="outline-3" id="outline-container-org9ff33a9">
+<h3 id="org9ff33a9">Looking at the Distribution</h3>
+<div class="outline-text-3" id="text-org9ff33a9">
 <div class="highlight">
 <pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span>
     <span class="s2">"Point Estimate"</span><span class="p">:</span> <span class="n">differences</span><span class="p">,</span>
@@ -459,6 +461,59 @@
 </object>
 <p>The distribution looks <i>mostly</i> normal. As you might guess the distribution is centered around 0 (cases where exactly the same number of males and females were promoted - although 35 were promoted each time so the trials are never exactly 0). The cases where the difference in proportion is as great or greater than as it was in the original study are in the rightmost two bins.</p>
 <p>I should note that because the sample size is so small, there's a weird distribution of the points - there's not enough variation in the differences to make a smooth curve (thus the gaps in the histogram).</p>
+<div class="highlight">
+<pre><span></span><span class="n">output</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">probplot</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"Point Estimate"</span><span class="p">])</span>
+<span class="n">theoretical</span><span class="p">,</span> <span class="n">actual</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="n">first</span> <span class="o">=</span> <span class="n">theoretical</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+<span class="n">last</span> <span class="o">=</span> <span class="n">theoretical</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Curve</span><span class="p">([(</span><span class="n">first</span><span class="p">,</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">first</span> <span class="o">+</span> <span class="n">intercept</span><span class="p">),</span> <span class="p">(</span><span class="n">last</span><span class="p">,</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">last</span> <span class="o">+</span> <span class="n">intercept</span><span class="p">)],</span>
+                       <span class="n">color</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">red</span><span class="p">)</span>
+
+<span class="n">qq_frame</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span>
+    <span class="s2">"Theoretical Quantiles"</span><span class="p">:</span> <span class="n">theoretical</span><span class="p">,</span>
+    <span class="s2">"Differences In Hiring Rates"</span><span class="p">:</span> <span class="n">actual</span><span class="p">,</span>
+<span class="p">})</span>
+
+<span class="n">scatter</span> <span class="o">=</span> <span class="n">qq_frame</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Theoretical Quantiles"</span><span class="p">,</span>
+                                  <span class="n">y</span><span class="o">=</span><span class="s2">"Differences In Hiring Rates"</span><span class="p">,</span> <span class="n">datashade</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">scatter</span> <span class="o">*</span> <span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Hiring Probability Plot"</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="n">Plot</span><span class="o">.</span><span class="n">fontscale</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">outcome</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"differences_qq"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">outcome</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/gender-discrimination/differences_qq.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>Hmm… I'm not sure I'm doing that right. But it looks reasonable, I suppose.</p>
+<div class="highlight">
+<pre><span></span><span class="n">lowest</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"Point Estimate"</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+<span class="n">data_sorted</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"Point Estimate"</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span>
+
+<span class="n">max_loc</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_sorted</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.95</span><span class="p">)</span>
+<span class="n">highest</span> <span class="o">=</span> <span class="n">data_sorted</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">max_loc</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Point Estimate: </span><span class="si">{</span><span class="n">POINT_ESTIMATE</span><span class="si">:</span><span class="s2"> 0.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">lowest</span><span class="si">:</span><span class="s2"> 0.3f</span><span class="si">}</span><span class="s2"> , </span><span class="si">{</span><span class="n">highest</span><span class="si">:</span><span class="s2"> 0.3f</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+Point Estimate:  0.292
+(-0.542 ,  0.208)
+</pre>
+<p>Looking at the confidence interval we can see that the original point estimate is higher than 95 % of the values, but the original book example used a hypothesis test so let's finish it up.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org59be2da">
+<h3 id="org59be2da">A Hypothesis Test</h3>
+<div class="outline-text-3" id="text-org59be2da">
 <p>But anyway, what proportion of our simulations had as much or more of a difference than that found in the study?</p>
 <div class="highlight">
 <pre><span></span><span class="n">proportion</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">"Point Estimate"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">POINT_ESTIMATE</span><span class="p">])</span><span class="o">/</span><span class="n">TRIALS</span>
@@ -479,14 +534,14 @@ Our tolerance was 0.05.
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org20fa171">
-<h2 id="org20fa171">End</h2>
-<div class="outline-text-2" id="text-org20fa171">
+<div class="outline-2" id="outline-container-org2bb3d95">
+<h2 id="org2bb3d95">End</h2>
+<div class="outline-text-2" id="text-org2bb3d95">
 <p>Well, that was the replication (sort of) of this problem from <a href="/posts/introductory-statistics-with-randomization-and-simulation/">Introductory Statistics with Randomization and Simulation</a>. The point of it was to both review Hypothesis Testing and see how it can be done using simulation rather than a p-test.</p>
 </div>
-<div class="outline-3" id="outline-container-org6d84db2">
-<h3 id="org6d84db2">In Abstract</h3>
-<div class="outline-text-3" id="text-org6d84db2">
+<div class="outline-3" id="outline-container-org96959c6">
+<h3 id="org96959c6">In Abstract</h3>
+<div class="outline-text-3" id="text-org96959c6">
 <ol class="org-ol">
 <li>Is your problem that you suspect some kind of bias in outcomes for two groups?</li>
 <li>Get the <b>Point Estimate</b> for the value you want to test</li>
@@ -499,11 +554,12 @@ Our tolerance was 0.05.
 </ol>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgf8560d1">
-<h3 id="orgf8560d1">Source</h3>
-<div class="outline-text-3" id="text-orgf8560d1">
+<div class="outline-3" id="outline-container-org91ec2ad">
+<h3 id="org91ec2ad">Source</h3>
+<div class="outline-text-3" id="text-org91ec2ad">
 <ul class="org-ul">
 <li><a href="/posts/introductory-statistics-with-randomization-and-simulation/">Introductory Statistics with Randomization and Simulation</a></li>
+<li>Rosen B, Jerdee TH. Influence of sex role stereotypes on personnel decisions. Journal of Applied Psychology. 1974 Feb;59(1):9 <a href="https://pdfs.semanticscholar.org/39f6/d40e907ff08af4ddd3280c2ceee55ee1ddb6.pdf">Link to PDF</a></li>
 </ul>
 </div>
 </div>
@@ -513,6 +569,7 @@ Our tolerance was 0.05.
 <nav>
 <ul class="tags" itemprop="keywords">
 <li><a class="tag p-category" href="/categories/inference/" rel="tag">inference</a></li>
+<li><a class="tag p-category" href="/categories/openintro/" rel="tag">openintro</a></li>
 <li><a class="tag p-category" href="/categories/simulation/" rel="tag">simulation</a></li>
 <li><a class="tag p-category" href="/categories/statistics/" rel="tag">statistics</a></li>
 </ul>
@@ -522,19 +579,20 @@ Our tolerance was 0.05.
 </ul>
 </nav>
 </aside>
-</article>
-<!--End of body content-->
-<footer id="footer">Contents © 2020 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
-</div>
-</div>
-<script src="/assets/js/all-nocdn.js"></script>
+<script crossorigin="anonymous" integrity="sha384-3lJUsx1TJHt7BA4udB5KPnDrlkO8T6J6v/op7ui0BbCjvZ9WqV4Xm6DTP6kQ/iBH" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$latex ','$'], ['\\(','\\)']]}});
+</script><!--End of body content-->
+<footer id="footer">Contents © 2021 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+<script src="../../assets/js/all-nocdn.js"></script>
 <script>
 
     baguetteBox.run('div#content', {
         ignoreClass: 'islink',
-        captions: function(element) {
-            return element.getElementsByTagName('img')[0].alt;
-    }});
-</script> 
+        captions: function(element){var i=element.getElementsByTagName('img')[0];return i===undefined?'':i.alt;}});
+</script> </article>
+</div>
+</div>
 </body>
 </html>
