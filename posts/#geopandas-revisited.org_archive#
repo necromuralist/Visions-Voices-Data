@@ -1,0 +1,104 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/hades/projects/Visions-Voices-Data/posts/geopandas-revisited.org
+
+
+* What About All of Oregon
+   This time I'll use zip-codes.com, as they seem to have all the zip codes on one page, which I couldn't find at the previous site.
+
+#+begin_src python :results none
+URL = "https://www.zip-codes.com/state/or.asp#zipcodes"
+response = requests.get(URL)
+#+end_src
+
+#+begin_src python :results none
+oregon_tables = pandas.read_html(response.text)
+#+end_src
+
+There are four tables on the site. The one we want is the third table.
+
+#+begin_src python :results output :exports both
+table = oregon_tables[2]
+print(table.head())
+#+end_src
+
+#+RESULTS:
+:                 0            1           2         3
+: 0        ZIP Code         City      County      Type
+: 1  ZIP Code 97001     Antelope       Wasco  P.O. Box
+: 2  ZIP Code 97002       Aurora      Marion  Standard
+: 3  ZIP Code 97003    Beaverton  Washington  Standard
+: 4  ZIP Code 97004  Beavercreek   Clackamas  Standard
+
+#+begin_src python :results output :exports both
+table.columns = table.iloc[0]
+table = table.drop(0)
+print(table.head())
+#+end_src
+
+#+RESULTS:
+: 0        ZIP Code         City      County      Type
+: 1  ZIP Code 97001     Antelope       Wasco  P.O. Box
+: 2  ZIP Code 97002       Aurora      Marion  Standard
+: 3  ZIP Code 97003    Beaverton  Washington  Standard
+: 4  ZIP Code 97004  Beavercreek   Clackamas  Standard
+: 5  ZIP Code 97005    Beaverton  Washington  Standard
+
+#+begin_src python :results output :exports both
+table.loc[:, ZIPS_COLUMN] = table[ZIPS_COLUMN].str.rsplit(n=1, expand=True)[1]
+print(table.iloc[0])
+#+end_src
+
+#+RESULTS:
+: 0
+: ZIP Code       97001
+: City        Antelope
+: County         Wasco
+: Type        P.O. Box
+: Name: 1, dtype: object
+
+#+begin_src python :results output :exports both
+frame = frame.rename(columns={ZIP_COLUMN: ZIPS_COLUMN})
+oregon = pandas.merge(frame, table, on=ZIPS_COLUMN)
+print(oregon.iloc[0])
+#+end_src
+
+#+RESULTS:
+#+begin_example
+ZIP Code                                                  97824
+GEOID10                                                   97824
+CLASSFP10                                                    B5
+MTFCC10                                                   G6350
+FUNCSTAT10                                                    S
+ALAND10                                               565896585
+AWATER10                                                  20851
+INTPTLAT10                                          +45.3543012
+INTPTLON10                                         -117.7564700
+geometry      POLYGON ((-117.993812 45.369603, -117.993632 4...
+City                                                       Cove
+County                                                    Union
+Type                                                   Standard
+Name: 0, dtype: object
+#+end_example
+
+This turns out to work, but the file it creates is 29 Megabytes, so maybe not a great idea to use it with holoviews. I'll just do a regular PNG with no annotations.
+
+#+begin_src python :results none
+get_ipython().run_line_magic('matplotlib', 'inline')
+get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
+seaborn.set_style("whitegrid", rc={"axes.grid": False})
+FIGURE_SIZE = (12, 10)
+#+end_src
+
+#+begin_src python :results none
+figure, axe = pyplot.subplots(figsize=FIGURE_SIZE)
+plot = oregon.plot(ax=axe)
+figure.savefig("images/oregon_zip_codes.png")
+#+end_src
+
+#+ATTR_HTML: :alt Oregon Zip Codes
+#+ATTR_HTML: :class reference
+[[file:../../images/oregon_zip_codes.webp][file:../../images/oregon_zip_codes.thumbnail.png]]
+
+

@@ -1,0 +1,365 @@
+#+BEGIN_COMMENT
+.. title: Geopandas Revisited
+.. slug: geopandas-revisited
+.. date: 2021-03-07 11:41:22 UTC-08:00
+.. tags: geopandas,maps
+.. category: Maps
+.. link: 
+.. description: Looking at loading census shapefiles with geopandas.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-30736115-981a-41cb-8535-64fb573a274f-ssh.json
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Beginning
+  This is a look at the U.S. Census zip-code mapping data.
+** Dependencies
+  Besides [[https://geopandas.org/][geopandas]] this also requires [[https://geoviews.org/#][geoviews]] which in turn requires [[https://scitools.org.uk/cartopy/docs/v0.17/index.html][cartopy]] but if you use pypi you have to install [[https://proj.org/][proj]] first. You also need the python header files (so with debian it's =sudo apt install python3-dev=, note that =python-dev= will install the python-2 headers for some reason)... Oy.
+
+Take two.
+
+#+begin_example bash
+sudo apt install python3-dev
+sudo apt install proj-bin
+sudo apt install libgeos-dev
+sudo apt install libproj-dev
+#+end_example
+
+I'm not 100% sure about =proj-bin=, but, the rest are needed to build cartopy.
+
+#+begin_example bash
+pip install cartopy
+pip install geopandas
+pip install geoviews
+#+end_example
+
+The apt stuff has to come before the pip installs, but the actual ordering within each set doesn't matter. You can install geopandas by itself, it will just complain that geoviews isn't installed.
+
+Additionally, because I'm the plot file is so huge I'm using [[https://datashader.org/index.html][datashader]] (which I don't recall explicitly installing, I think holoviews pulled it in) we'll also need [[https://github.com/holoviz/spatialpandas][Spatial Pandas]]. Hokey smokes.
+** Imports
+#+begin_src python :results none
+# python
+from functools import partial
+from pathlib import Path
+
+import os
+
+# pypi
+from dotenv import load_dotenv
+from expects import equal, expect
+from tabulate import tabulate
+
+import geopandas
+import hvplot.pandas
+import matplotlib.pyplot as pyplot
+import pandas
+import requests
+import seaborn
+
+# my stuff
+from graeae import EmbedHoloviews
+#+end_src
+** Set Up
+#+begin_src python :results none
+load_dotenv("posts/.env")
+SLUG = "geopandas-revisited"
+Embed = partial(EmbedHoloviews, folder_path=f"files/posts/{SLUG}")
+#+end_src   
+* Middle
+** Loading the Data
+#+begin_src python :results none
+data_path = Path(os.environ["US_ZIP_CODE_SHAPEFILE"]).expanduser()
+frame = geopandas.read_file(data_path)
+#+end_src
+
+First, let's find the /Coordinate Reference System/ being used.
+
+#+begin_src python :results output :exports both
+print(frame.crs)
+#+end_src
+
+#+RESULTS:
+: epsg:4269
+
+According to [[https://epsg.io/4269][map tiler]] it's a North America specific reference system. I don't know if that's good or bad so let's try it as is first.
+
+#+begin_src python :results output :exports both
+print(frame.head())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ZCTA5CE10 GEOID10 CLASSFP10 MTFCC10 FUNCSTAT10    ALAND10  AWATER10  \
+0     43451   43451        B5   G6350          S   63484189    157689   
+1     43452   43452        B5   G6350          S  121525288  13721740   
+2     43456   43456        B5   G6350          S    9320978   1003775   
+3     43457   43457        B5   G6350          S   48004678         0   
+4     43458   43458        B5   G6350          S    2573816     39915   
+
+    INTPTLAT10    INTPTLON10  \
+0  +41.3183193  -083.6150363   
+1  +41.5202297  -082.9770334   
+2  +41.6318300  -082.8393923   
+3  +41.2673301  -083.4274872   
+4  +41.5304461  -083.2133648   
+
+                                            geometry  
+0  POLYGON ((-83.70873 41.32733, -83.70815 41.327...  
+1  POLYGON ((-83.08698 41.53780, -83.08256 41.537...  
+2  MULTIPOLYGON (((-82.83558 41.71082, -82.83515 ...  
+3  POLYGON ((-83.49650 41.25371, -83.48382 41.253...  
+4  POLYGON ((-83.22229 41.53102, -83.22228 41.532...  
+#+end_example
+
+#+begin_src python :results none
+ZIP_COLUMN = frame.columns[0]
+#+end_src
+
+Unfortunately this makes a huge plot so I'll have to use datashade with it (which isn't necessarily a bad thing, it just isn't what I prefer).
+
+#+begin_src python :results none
+plot = frame.hvplot(hover_cols=["ZCTASCE10"], legend=False, datashade=True).opts(
+    title="UNITED States Census Zip Codes",
+    width=800,
+    height=700,
+    fontscale=2,
+)
+
+outcome = Embed(plot=plot, file_name="us_zip_codes")()
+#+end_src
+
+Well, after all that there seems to be a bug in there somewhere. Datashader is doing something with numpy that raises an exception.
+
+#+begin_example python
+/usr/local/lib/python3.8/dist-packages/numpy/core/numerictypes.py in issubdtype(arg1, arg2)
+    386     """
+    387     if not issubclass_(arg1, generic):
+--> 388         arg1 = dtype(arg1).type
+    389     if not issubclass_(arg2, generic):
+    390         arg2 = dtype(arg2).type
+
+TypeError: Cannot interpret 'MultiPolygonDtype(float64)' as a data type
+#+end_example
+
+** Maybe Just Portland
+
+There's a site called [[https://www.zipdatamaps.com/index.php][zipdatamaps]] that has listings of zip codes (among other things) which I'll use to get the zip codes for Portland, Oregon. I'm going to use pandas' [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_html.html][read_html]] function which also requires you to install [[https://lxml.de/][lxml]].
+
+According to the pandas documentation you can't use https, but that seems to give me a 403 (Forbidden) error so I'll pull the HTML with requests first instead of having pandas pull it directly. The table also has a title above the column headers so we have to skip the first row to avoid a MultiIndex (or fix it later).
+
+#+begin_src python :results none
+URL = "https://www.zipdatamaps.com/zipcodes-portland-or"
+response = requests.get(URL)
+#+end_src
+
+#+begin_src python :results none
+tables = pandas.read_html(response.text, skiprows=1)
+#+end_src
+
+=read_html= returns a list so I'll pull out the first frame and do a little clean up (dropping the empty rows with [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.dropna.html][dropna]]).
+
+#+begin_src python :results output :exports both
+zips = tables[0]
+zips = zips.dropna()
+print(zips.head())
+#+end_src
+
+#+RESULTS:
+:   ZIP Code ZIP Code Name Population        Type
+:      97034   Lake Oswego      18905  Non-Unique
+: 0  97035.0   Lake Oswego    23912.0  Non-Unique
+: 1  97080.0       Gresham    40888.0  Non-Unique
+: 2  97086.0  Happy Valley    26010.0  Non-Unique
+: 3  97201.0      Portland    15484.0  Non-Unique
+: 4  97202.0      Portland    38762.0  Non-Unique
+
+So we still have a problem in that it used the first zip-code as part of the header... I'll just pull the row out and add it back in. One thing to note is that the header values are all strings so to be able to append the row we'll have to do some conversion.
+
+#+begin_src python :results output :exports both
+columns = zips.columns.map(lambda column: column[0])
+first_row = list(zips.columns.map(lambda column: column[1]))
+POPULATION_COLUMN = 2
+first_row[POPULATION_COLUMN] = int(first_row[POPULATION_COLUMN])
+
+zips.columns = columns
+
+zips.loc[:, "ZIP Code"] = zips["ZIP Code"].astype(int).astype(str)
+zips.loc[:, "Population"] = zips["Population"].astype(int)
+zips = zips.append(pandas.DataFrame([first_row], columns=columns), ignore_index=True)
+print(zips.head())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ZIP Code ZIP Code Name  Population        Type
+0    97035   Lake Oswego       23912  Non-Unique
+1    97080       Gresham       40888  Non-Unique
+2    97086  Happy Valley       26010  Non-Unique
+3    97201      Portland       15484  Non-Unique
+4    97202      Portland       38762  Non-Unique
+#+end_example
+
+I converted the zip codes into strings instead of integers because there are zip-codes with leading zeros, although not in Portland so I guess it could go either way.
+
+Now we'll pare down the original data set.
+
+#+begin_src python :results output :exports both
+ZIPS_COLUMN = "ZIP Code"
+expression = "|".join(zips[ZIPS_COLUMN])
+sub = frame[frame[ZIP_COLUMN].str.contains(expression, regex=True)]
+print(sub.shape)
+expect(len(sub)).to(equal(len(zips)))
+#+end_src
+
+#+RESULTS:
+: (35, 10)
+
+Once again with feeling. I'll add the population too, for no real good reason using [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.join.html][join]].
+
+#+begin_src python :results none
+sub = sub.rename(columns={ZIP_COLUMN: ZIPS_COLUMN})
+plotter = pandas.merge(sub, zips, on=ZIPS_COLUMN, how="left")
+expect(len(plotter)).to(equal(len(zips)))
+#+end_src
+
+I don't know why but when setting the hover columns for the plot if you put the zip-code column first
+it doesn't show up but it does if you put it second. Mysterious.
+
+#+begin_src python :results none
+plot = plotter.hvplot(hover_cols=["Population", ZIPS_COLUMN], legend=False).opts(
+    title="Portland by Zip Code",
+    width=700,
+    height=700,
+    fontscale=2,
+    xaxis=None,
+    yaxis=None,
+    colorbar=False,
+)    
+outcome = Embed(plot=plot, file_name="portland_zip_codes")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="portland_zip_codes.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+** What About All of Oregon
+
+#+begin_src python :results output :exports both
+URL = "https://www.zip-codes.com/state/or.asp"
+response = requests.get(URL)
+tables = pandas.read_html(response.text)
+table = tables[2]
+table.columns = table.iloc[0]
+table = table.drop(0)
+print(table.head(2))
+#+end_src
+
+#+RESULTS:
+: 0        ZIP Code      City  County      Type
+: 1  ZIP Code 97001  Antelope   Wasco  P.O. Box
+: 2  ZIP Code 97002    Aurora  Marion  Standard
+
+#+begin_src python :results output :exports both
+frame = frame.rename(columns={ZIP_COLUMN: ZIPS_COLUMN})
+oregon = pandas.merge(frame, table, on=ZIPS_COLUMN)
+print(oregon.iloc[0])
+#+end_src
+
+#+RESULTS:
+#+begin_example
+ZIP Code                                                  97824
+GEOID10                                                   97824
+CLASSFP10                                                    B5
+MTFCC10                                                   G6350
+FUNCSTAT10                                                    S
+ALAND10                                               565896585
+AWATER10                                                  20851
+INTPTLAT10                                          +45.3543012
+INTPTLON10                                         -117.7564700
+geometry      POLYGON ((-117.993812 45.369603, -117.993632 4...
+City                                                       Cove
+County                                                    Union
+Type                                                   Standard
+Name: 0, dtype: object
+#+end_example
+
+This turns out to work, but the file it creates is 29 Megabytes, so maybe not a great idea to use it with holoviews. I'll just do a regular PNG with no annotations.
+
+#+begin_src python :results none
+get_ipython().run_line_magic('matplotlib', 'inline')
+get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
+seaborn.set_style("whitegrid", rc={"axes.grid": False})
+FIGURE_SIZE = (12, 10)
+#+end_src
+
+#+begin_src python :results none
+figure, axe = pyplot.subplots(figsize=FIGURE_SIZE)
+plot = oregon.plot(ax=axe)
+figure.savefig("images/oregon_zip_codes.png")
+#+end_src
+
+#+ATTR_HTML: :alt Oregon Zip Codes
+#+ATTR_HTML: :class reference
+[[file:../../images/oregon_zip_codes.webp][file:../../images/oregon_zip_codes.thumbnail.png]]
+
+** Portland Again
+
+#+begin_src python :results none
+counties = "Clackamas|Multnomah|Washington"
+portland = oregon[[ZIPS_COLUMN, "City", "County"]]
+portland = portland[portland.County.str.contains(counties, regex=True)]
+portland = pandas.merge(portland, frame, on=ZIPS_COLUMN, how="left")
+portland = pandas.merge(portland, zips, on=ZIPS_COLUMN, how="left")
+
+portland = geopandas.GeoDataFrame(portland)
+
+plot = portland.hvplot(hover_cols=["Population", "City", "County", ZIPS_COLUMN], legend=False).opts(
+    title="Clackamas, Multnomah, and Washington Counties",
+    width=800,
+    height=700,
+    fontscale=2,
+    xaxis=None,
+    yaxis=None,
+    colorbar=False,
+)    
+outcome = Embed(plot=plot, file_name="portland_with_city")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="portland_with_city.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+This one looks a little better. The gray-areas are the cities that weren't in the first zip-code set. I guess they only count Portland, as Portland, not the Portland Metropolitan area altogether.
+
+It's kind of surprising that the zip code with the highest population is on the West side (the darkest blue area). I guess because it encompasses a larger area than the ones further east (Rock Creek, Cedar Mill, and Bethany, according to Google). It's odd, though, but some of the cities that come up (like Mollala, the furthest south) are listed on the [[https://www.oregonmetro.gov/regional-leadership/what-metro/cities-and-counties-region][Portland Metro list of cities]], maybe now there's too many cities.
+
+Okay, I just checked out the metro's [[https://www.oregonmetro.gov/jurisdictional-boundaries-maps][maps]] page and it looks like the metro area does cut through the outer counties instead of just taking them all in. To get just the metro area would take more work.
+* End
+  Well, that was a little harder than I thought it would be. The main thing to remember, I suppose, is that the maps quickly grow too big for holoviews, so if you want to do an overview it's better to do it in matplotlib and save the interactivity for a smaller section. 
+
+** Source
+  - TIGER/Line Shapefiles [Internet]. [cited 2021 Mar 7]. Available from: https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html
+  - Listing of all Zip Codes in the state of Oregon [Internet]. [cited 2021 Mar 7]. Available from: https://www.zip-codes.com/state/or.asp
+  - Map of All ZIP Codes in Portland, Oregon - Updated March 2021 [Internet]. Zipdatamaps.com. [cited 2021 Mar 7]. Available from: https://www.zipdatamaps.com/
+
