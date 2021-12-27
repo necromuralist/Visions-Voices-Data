@@ -1,0 +1,350 @@
+#+BEGIN_COMMENT
+.. title: Looking at Portland Crime Data
+.. slug: looking-at-portland-crime-data
+.. date: 2021-12-25 17:53:29 UTC-08:00
+.. tags: portland,crime,data,look
+.. category: Portland
+.. link: 
+.. description: A look at the Portland, Oregon crime data.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-26b517b2-3251-4fbd-94f1-e412406f2ab1-ssh.json
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+
+* Beginning
+** Imports
+#+begin_src python :results none
+# python
+from functools import partial
+from pathlib import Path
+
+# pypi
+from tabulate import tabulate
+
+import altair
+import pandas
+import yaml
+#+end_src
+** Set Up
+*** The Plot Path
+#+begin_src python :results none
+SLUG = "looking-at-portland-crime-data"
+PATH = Path(f"files/posts/{SLUG}")
+if not PATH.is_dir():
+    PATH.mkdir()
+#+end_src
+*** The Table Printer
+#+begin_src python :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", showindex=False, headers="keys")
+
+def print_table(table):
+    print(TABLE(table))
+    return
+#+end_src
+*** The Configuration
+#+begin_src python :results none
+with open("configurations/data.yaml") as reader:
+    configuration = yaml.safe_load(reader)
+
+portland = configuration["portland"]
+#+end_src
+* The Metadata
+#+begin_src python :results none
+metadata_path = Path(portland["crime-metadata"]).expanduser()
+
+if not metadata_path.is_file():
+    table = pandas.read_html(portland["crime-metadata-url"], skiprows=1)[0]
+    table.columns = "Column Description".split()
+    table.loc[:, "Description"] = table.Description.str.strip()
+    table.to_csv(metadata_path, sep="\t", index=False)
+else:
+    table = pandas.read_csv(metadata_path, sep="\t")
+#+end_src
+
+#+begin_src python :results output raw :exports both
+print_table(table)
+#+end_src
+
+| Column              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Case Number         | The case year and number for the reported incident (YY-######).Sensitive cases have been randomly assigned a case number and are denoted by an X following the case year (YY-X######).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Occur Month Year    | The Month and Year that the incident occured.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Occur Date          | Date the incident occurred. The exact occur date is sometimes unknown. In most situations, the first possible date the crime could have occurred is used as the occur date. (For example, victims return home from a week-long vacation to find their home burglarized. The burglary could have occurred at any point during the week. The first date of their vacation would be listed as the occur date.)                                                                                                                                                                                                                                                              |
+| Occur Time          | Time the incident occured. The exact occur time is sometimes unknown. In most situations, the first possible time the crime could have occured is used as the occur time.The time is reported in the 24-hour clock format, with the first two digits representing hour (ranges from 00 to 23) and the second two digits representing minutes (ranges from 00 to 59).Note: By default, Microsoft Excel removes leading zeroes when importing data. For more help with this issue, refer to Microsoft's help page.                                                                                                                                                         |
+| Address             | Address of reported incident at the 100 block level (e.g.: 1111 SW 2nd Ave would be 1100 Block SW 2nd Ave).To protect the identity of victims and other privacy concerns, the address location of certain case types are not released.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Open Data X / Y     | Generalized XY point of the reported incident. For offenses that occurred at a specific address, the point is mapped to the block's midpoint. Offenses that occurred at an intersection is mapped to the intersection centroid. To protect the identity of victims and other privacy concerns, the points of certain case types are not released.XY points use the Oregon State Plane North (3601), NAD83 HARN, US International Feet coordinate system.                                                                                                                                                                                                                 |
+| Open Data Lat / Lon | Generalized Latitude / Longitude of the reported incident. For offenses that occurred at a specific address, the point is mapped to the block's midpoint. Offenses that occurred at an intersection is mapped to the intersection centroid. To protect the identity of victims and other privacy concerns, the points of certain case types are not released.                                                                                                                                                                                                                                                                                                            |
+| Neighborhood        | Neighborhood where incident occurred.If the neighborhood name is missing, the incident occurred outside of the boundaries of the Portland neighborhoods or at a location that could not be assigned to a specific address in the system (e.g., Portland, near Washington Park, on the streetcar, etc.). Note: Neighborhood boundaries and designations vary slightly from those found on the Office of Community & Civic Life website.                                                                                                                                                                                                                                   |
+| Crime Against       | Crime against category (Person, Property, or Society)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Offense Category    | Category of offense (for example, Assault Offenses)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Offense Type        | Type of offense (for example, Aggravated Assault)Note: The statistic for Homicide Offenses has been updated in the Group A Crimes report to align with the 2019 FBI NIBRS definitions. The statistic for Homicide Offenses includes (09A) Murder & Non-negligent Manslaughter and (09B) Negligent Manslaughter. As of January 1, 2019, the FBI expanded the definition of negligent manslaughter to include traffic fatalities that result in an arrest for driving under the influence, distracted driving, or reckless driving. The change in definition impacts the 2019 homicide offenses statistic and the comparability of 2019 homicide statistics to prior year. |
+| Offense Count       | Number of offenses per incident. Offenses (i.e. this field) are summed for counting purposes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+
+* The Data
+
+#+begin_src python :results none
+data_path = Path(portland["crime"]).expanduser()
+data = pandas.concat(
+    pandas.read_csv(file_path)
+    for file_path in data_path.glob(portland["crime-glob"]))
+#+end_src
+
+#+begin_src python :results output raw :exports both
+print_table(data.head())
+#+end_src
+
+ |   Address | CaseNumber   | CrimeAgainst   | Neighborhood        | OccurDate   |   OccurTime | OffenseCategory   | OffenseType        |   OpenDataLat |   OpenDataLon | ReportDate   |   OffenseCount |   OpenDataX |   OpenDataY |
+ |-----------+--------------+----------------+---------------------+-------------+-------------+-------------------+--------------------+---------------+---------------+--------------+----------------+-------------+-------------|
+ |       nan | 21-X5543818  | Person         | Concordia           | 12/31/2020  |        1230 | Assault Offenses  | Aggravated Assault |           nan |           nan | 1/1/2021     |              1 |         nan |         nan |
+ |       nan | 21-X5543818  | Property       | Concordia           | 12/31/2020  |        1230 | Larceny Offenses  | All Other Larceny  |           nan |           nan | 1/1/2021     |              1 |         nan |         nan |
+ |       nan | 21-X5543827  | Person         | Pearl               | 1/1/2021    |         715 | Assault Offenses  | Simple Assault     |           nan |           nan | 1/1/2021     |              1 |         nan |         nan |
+ |       nan | 21-X5543859  | Person         | Centennial          | 1/1/2021    |        2013 | Assault Offenses  | Aggravated Assault |           nan |           nan | 1/1/2021     |              1 |         nan |         nan |
+ |       nan | 21-X5543864  | Person         | Powellhurst-Gilbert | 1/1/2021    |         816 | Assault Offenses  | Simple Assault     |           nan |           nan | 1/1/2021     |              1 |         nan |         nan |
+
+#+begin_src python :results output :exports both
+print(f"{len(data):,}")
+#+end_src
+
+#+RESULTS:
+: 390,824
+
+
+** Address
+   The description says that some addresses are removed, but are any kept?
+
+#+begin_src python :results output :exports both
+print(data.Address.isnull().all())
+#+end_src
+
+#+RESULTS:
+: False
+
+It looks like some are kept.
+
+#+begin_src python :results output :exports both
+addressed = data[~data.Address.isnull()]
+unaddressed = data[data.Address.isnull()]
+print(f"{len(addressed):,}")
+print(f"{len(unaddressed):,}")
+#+end_src
+
+#+RESULTS:
+: 356,668
+: 34,156
+
+Actually, it looks like a lot are kept.
+
+The method to force a side-by-side bar plot came from this [[https://github.com/altair-viz/altair/issues/2002][github bug report]].
+
+#+begin_src python :results none
+COUNT_COLUMN = {"CaseNumber": "Count"}
+
+data.loc[:, "Addressed"] = data.Address.isnull()
+data.loc[data["Addressed"], "Addressed"] = "Missing"
+data.loc[data["Addressed"] != "Missing", "Addressed"] = "Has Address"
+counts = data.groupby(["CrimeAgainst", "Addressed"]).count().reset_index()
+
+counts = counts.rename(columns=COUNT_COLUMN)
+counts = counts[["CrimeAgainst", "Addressed", "Count"]]
+addressed_chart = altair.Chart(counts)
+
+crime_against = addressed_chart.mark_bar().encode(
+    column=altair.Column("CrimeAgainst",
+                         spacing=5,
+                         header=altair.Header(labelOrient="bottom")),
+    x=altair.X("Addressed:N", sort=["Missing", "Has Address"], axis=None),
+    y="Count",
+    color="Addressed:N",
+    tooltip=["CrimeAgainst", "Count"]).properties(
+        title="Victim of a Crime with an Address",
+        width=250,
+        height=600,).interactive()
+
+crime_against.save(str(PATH/"addressed_crime_against.html"))
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="addressed_crime_against.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+
+** By Category
+#+begin_src python :results none
+grouped = data.groupby(["CrimeAgainst", "OffenseCategory"]).count().reset_index()
+grouped = grouped.rename(columns=COUNT_COLUMN)
+
+chart = altair.Chart(grouped)
+
+categories = chart.mark_bar().encode(
+    x="CrimeAgainst:O", y="Count", color="OffenseCategory",
+    tooltip=["CrimeAgainst", "Count", "OffenseCategory"]).properties(
+        title="Crime Category by Victim Type",
+        width=800,
+        height=600,).interactive()
+
+categories.save(str(PATH/"category_crime_against.html"))
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="category_crime_against.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+** Offense Type
+#+begin_src python :results none
+columns = ["CrimeAgainst", "OffenseCategory", "OffenseType"]
+grouped = data.groupby(columns).count().reset_index()
+grouped = grouped.rename(columns={"CaseNumber": "Count"})
+chart = altair.Chart(grouped[columns + ["Count"]])
+
+categories = chart.mark_bar().encode(
+    x="OffenseCategory:O", y="Count", color="OffenseType",
+    tooltip=["CrimeAgainst", "Count", "OffenseCategory", "OffenseType"]).properties(
+        title="Crime Type by Offense Category",
+        width=800,
+        height=600,).interactive()
+
+categories.save(str(PATH/"category_type_crime_against.html"))
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="category_type_crime_against.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+** Neighborhood
+#+begin_src python :results none
+columns = ["CrimeAgainst", "Neighborhood", "OffenseType"]
+grouped = data.groupby(columns).count().reset_index()
+grouped = grouped.rename(columns={"CaseNumber": "Count"})
+chart = altair.Chart(grouped[columns + ["Count"]])
+
+categories = chart.mark_bar().encode(
+    x="Neighborhood:O", y="Count", color="OffenseType",
+    tooltip=["Neighborhood",
+             "CrimeAgainst",
+             "Count",
+             "OffenseType"]).properties(
+        title="Crime Type by Neighborhood",
+        width=800,
+        height=600,).interactive()
+
+categories.save(str(PATH/"neighborhood_type_crime_against.html"))
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="neighborhood_type_crime_against.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+** By Date
+#+begin_src python :results none
+data.loc[:, "when"] = pandas.to_datetime(data.OccurDate)
+#+end_src
+
+#+begin_src python :results output :exports both
+print(data.when.min())
+#+end_src
+
+#+RESULTS:
+: 1971-01-01 00:00:00
+
+What?
+
+#+begin_src python :results output :exports both
+print(data[data.when==data.when.min()])
+#+end_src
+
+#+RESULTS:
+:      Address   CaseNumber CrimeAgainst Neighborhood OccurDate  OccurTime  \
+: 3770     NaN  20-X5515843       Person    Concordia  1/1/1971          0   
+: 
+:      OffenseCategory OffenseType  OpenDataLat  OpenDataLon  ReportDate  \
+: 3770    Sex Offenses    Fondling          NaN          NaN  10/14/2020   
+: 
+:       OffenseCount  OpenDataX  OpenDataY       when  
+: 3770             2        NaN        NaN 1971-01-01  
+
+So, there might be some mistakes in there... or maybe some people wait a long time to report a crime?
+
+*** By Year
+#+begin_src python :results none
+data.loc[:, "year"] = data.when.apply(lambda date: date.year)
+#+end_src
+
+#+begin_src python :results none
+columns = ["year", "OffenseType"]
+grouped = data.groupby(columns).count().reset_index()
+grouped = grouped.rename(columns={"CaseNumber": "Count"})
+
+chart = altair.Chart(grouped[columns + ["Count"]])
+
+categories = chart.mark_bar().encode(
+    x="year:N", y="Count", color="OffenseType",
+    tooltip=["year",
+             "Count",
+             "OffenseType"]).properties(
+        title="Crime Type by Year",
+        width=800,
+        height=600,).interactive()
+
+categories.save(str(PATH/"year_type.html"))
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="year_type.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+#+begin_src python :results none
+monthly = data.groupby(pandas.Grouper(key="OccurDate", freq="M")).count()
+#+end_src
+
+It's only supposed to go back to 2015, what's with the older rows?
+
+#+begin_src python :results none
+data.loc[:, "reported"] = pandas.to_datetime(data.ReportDate)
+data.loc[:, "report_year"] = data.reported.apply(lambda row: row.year)
+
+older = data[data.year< 2015]
+
+columns = ["report_year", "year", "OffenseType"]
+grouped = older.groupby(columns).count().reset_index()
+grouped = grouped.rename(columns={"CaseNumber": "Count"})
+
+chart = altair.Chart(grouped[columns + ["Count"]])
+categories = chart.mark_bar().encode(
+    x="report_year", y="Count", color="OffenseType",
+    tooltip=["year", "report_year",
+             "Count",
+             "OffenseType"]).properties(
+        title="Crime Type by Year/Reporting",
+        width=800,
+        height=600,).interactive()
+
+categories.save(str(PATH/"year_reported_type.html"))
+
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="year_reported_type.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+* Sources
+  - [[https://www.portlandoregon.gov/police/71673][Portland Police Bureau's Open Data]]: This is where you can get data from the PPB.
