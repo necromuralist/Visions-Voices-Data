@@ -30,11 +30,16 @@ from pathlib import Path
 from tabulate import tabulate
 
 import altair
+import geopandas
 import pandas
 import yaml
 #+end_src
 ** Set Up
 *** The Plot Path
+    - [[https://docs.python.org/3/library/pathlib.html][pathlib]]
+    - [[https://docs.python.org/3/library/pathlib.html][Path.is_dir]]
+    - [[https://docs.python.org/3/library/pathlib.html#pathlib.Path.mkdir][Path.mkdir]]
+
 #+begin_src python :results none
 SLUG = "looking-at-portland-crime-data"
 PATH = Path(f"files/posts/{SLUG}")
@@ -42,6 +47,8 @@ if not PATH.is_dir():
     PATH.mkdir()
 #+end_src
 *** The Table Printer
+    - [[https://pypi.org/project/tabulate/][tabulate]]
+
 #+begin_src python :results none
 TABLE = partial(tabulate, tablefmt="orgtbl", showindex=False, headers="keys")
 
@@ -50,13 +57,23 @@ def print_table(table):
     return
 #+end_src
 *** The Configuration
+    - [[https://pyyaml.org/][pyyaml]]
+
 #+begin_src python :results none
 with open("configurations/data.yaml") as reader:
     configuration = yaml.safe_load(reader)
 
 portland = configuration["portland"]
 #+end_src
-* The Metadata
+*** Set Up
+#+begin_src python :results none
+COUNT_COLUMN = {"CaseNumber": "Count"}
+#+end_src
+** The Metadata
+  - [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_html.html][pandas.read_html()]]
+  - [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html][pandas.read_csv]]
+  - [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_csv.html][pandas.to_csv]]
+
 #+begin_src python :results none
 metadata_path = Path(portland["crime-metadata"]).expanduser()
 
@@ -89,6 +106,9 @@ print_table(table)
 | Offense Count       | Number of offenses per incident. Offenses (i.e. this field) are summed for counting purposes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 * The Data
+  - [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html][Path.expanduser]]
+  - [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html][Path.glob]]
+  - [[https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html][pandas.concat]]
 
 #+begin_src python :results none
 data_path = Path(portland["crime"]).expanduser()
@@ -116,37 +136,82 @@ print(f"{len(data):,}")
 #+RESULTS:
 : 390,824
 
+** Dates and Times
+   Although these columns aren't the first ones, since they might be useful when looking at the other columns I thought I'd parse them first.
+
+- Python Time Formats: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
+
+** Times
+   Our first problem is that there's a bunch of times labeled "0" which doesn't match the formatting of the rest of the times. This might represent missing data, unknown data, or 0-o'clock (midnight). The documentation doesn't really say, although it does say that when the time isn't known it uses the earliest possible time, which would seem to be midnight, so that's what I'll assume it is.
+
+#+begin_src python :results none
+TIME = "%H%M"
+data.loc[:, "OccurTime"] = data.OccurTime.apply(lambda time: "0000" if time==0 else f"{time:04}")
+#+end_src
+
+#+begin_src python :results none
+data["Occured At"] = pandas.to_datetime(data.OccurTime, format=TIME).dt.hour
+#+end_src
+
+#+begin_src python :results none
+crime_time = data.groupby(["Occured At"]).count().reset_index()
+crime_time = crime_time.rename(columns=COUNT_COLUMN)
+chart = altair.Chart(crime_time[["Occured At", "Count"]]).mark_bar().encode(
+    x="Occured At",
+    y="Count",
+    tooltip=["Occured At", "Count"]).properties(
+        title="Time of Crime",
+        width=800,
+        height=600,).interactive()
+
+chart.save(str(PATH/"crime_time.html"))
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="crime_time.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+Since the times are mostly self-reported I'd assume that the spikes at midnight and noon are just convenient pegs for guessing the time.
+
+#+begin_src python :results none
+DATE = "%m/%d/%Y"
+
+data["Occurred"] = pandas.to_datetime(data.OccurDate, format=DATE)
+data["Reported"] = pandas.to_datetime(data.ReportDate, format=DATE)
+
+data["Year Occured"] = data.Occurred.dt.year
+data["Year Reported"] = data.Reported.dt.year
+#+end_src
+
+#+begin_src python :results none
+crime_year = data.groupby(["Year Reported"]).count().reset_index()
+crime_year = crime_year.rename(columns=COUNT_COLUMN)
+chart = altair.Chart(crime_year[["Year Reported", "Count"]]).mark_bar().encode(
+    x="Year Reported",
+    y="Count",
+    tooltip=["Year Reported", "Count"]).properties(
+        title="Crime by Year",
+        width=800,
+        height=600,).interactive()
+
+chart.save(str(PATH/"crime_year.html"))
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="crime_year.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
 
 ** Address
-   The description says that some addresses are removed, but are any kept?
+   Not all addresses are given, some are omitted if the case is considered sensitive. I'll look at those in the next section on "Case Number", but since we're here, let's look at what type of crime, based on who the victim is, is considered too sensitive to report the address.
 
-#+begin_src python :results output :exports both
-print(data.Address.isnull().all())
-#+end_src
-
-#+RESULTS:
-: False
-
-It looks like some are kept.
-
-#+begin_src python :results output :exports both
-addressed = data[~data.Address.isnull()]
-unaddressed = data[data.Address.isnull()]
-print(f"{len(addressed):,}")
-print(f"{len(unaddressed):,}")
-#+end_src
-
-#+RESULTS:
-: 356,668
-: 34,156
-
-Actually, it looks like a lot are kept.
 
 The method to force a side-by-side bar plot came from this [[https://github.com/altair-viz/altair/issues/2002][github bug report]].
 
 #+begin_src python :results none
-COUNT_COLUMN = {"CaseNumber": "Count"}
-
 data.loc[:, "Addressed"] = data.Address.isnull()
 data.loc[data["Addressed"], "Addressed"] = "Missing"
 data.loc[data["Addressed"] != "Missing", "Addressed"] = "Has Address"
@@ -165,7 +230,7 @@ crime_against = addressed_chart.mark_bar().encode(
     color="Addressed:N",
     tooltip=["CrimeAgainst", "Count"]).properties(
         title="Victim of a Crime with an Address",
-        width=250,
+        width=275,
         height=600,).interactive()
 
 crime_against.save(str(PATH/"addressed_crime_against.html"))
@@ -177,7 +242,48 @@ crime_against.save(str(PATH/"addressed_crime_against.html"))
 </object>
 #+end_export
 
+** Case Number
+   This is a unique identifier for each case. It doesn't seem like this would be interesting unless you wanted to look up a specific incident, but one possibly useful bit is that the case numbers are given a prefix of "X" if they are sensitive (by case number I mean just the number section - i.e. ~<year>-X<case number>~), which might be useful in figuring out the reason for missing location data.
 
+#+begin_src python :results none
+data["CaseNumber"] = data.CaseNumber.astype("string")
+data["Sensitive"] = data.CaseNumber.str.contains("X")
+#+end_src
+
+#+begin_src python :results none
+grouped = data.groupby(["Sensitive"]).count().reset_index()
+grouped = grouped.rename(columns=COUNT_COLUMN)
+#+end_src
+
+#+begin_src python :results output raw :exports both
+print_table(grouped[["Count", "Sensitive", "Address", "OpenDataLat",
+                     "OpenDataLon", "OpenDataX", "OpenDataY"]])
+#+end_src
+
+ |   Count | Sensitive   |   Address |   OpenDataLat |   OpenDataLon |   OpenDataX |   OpenDataY |
+ |---------+-------------+-----------+---------------+---------------+-------------+-------------|
+ |  356668 | False       |    356668 |        348421 |        348421 |      242807 |      242807 |
+ |   34156 | True        |         0 |             0 |             0 |           0 |           0 |
+
+So it looks like sensitive cases don't get their locations added to the dataset.
+
+#+begin_src python :results none
+chart = altair.Chart(grouped[["Count", "Sensitive"]]).mark_bar().encode(
+    x="Sensitive:O", y="Count",
+    tooltip=["Sensitive", "Count"]).properties(
+    title="Count of Sensitive Cases",
+    width=800,
+    height=600
+).interactive()
+
+chart.save(str(PATH/"sensitive_case_count.html"))
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="sensitive_case_count.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
 ** By Category
 #+begin_src python :results none
 grouped = data.groupby(["CrimeAgainst", "OffenseCategory"]).count().reset_index()
@@ -249,6 +355,22 @@ categories.save(str(PATH/"neighborhood_type_crime_against.html"))
   <p>Figure Missing</p>
 </object>
 #+end_export
+
+ - [[https://geopandas.org/en/stable/docs/user_guide/io.html][GeoPandas Read File]]
+
+#+begin_src python :results none
+neighborhoods = geopandas.read_file("https://opendata.arcgis.com/datasets/1ef75e34b8504ab9b14bef0c26cade2c_3.geojson")
+background = altair.Chart(neighborhoods).mark_geoshape().project().encode(shape="geometry", color="MAPLABEL").properties(width=800, height=600)
+
+background.save(str(PATH/"neighborhood_crime.html"))
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="neighborhood_crime.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
 
 ** By Date
 #+begin_src python :results none
