@@ -1,0 +1,257 @@
+#+BEGIN_COMMENT
+.. title: Altair Tutorial: Cars
+.. slug: altair-tutorial-cars
+.. date: 2021-12-29 17:54:40 UTC-08:00
+.. tags: altair,tutorial,visualization
+.. category: Visualization
+.. link: 
+.. description: A look at the first part of the altair tutorial using the cars dataset.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-353247fc-9f67-4b91-9ca1-25f38122cbe1-ssh.json
+#+OPTIONS: ^:{}
+
+#+TOC: headlines 3
+
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Beginning
+  This is a walk-through of the [[https://altair-viz.github.io/altair-tutorial/notebooks/01-Cars-Demo.html][Altair Cars Demonstration]].
+
+** Imports
+
+#+begin_src python :results none
+# python
+from pathlib import Path
+
+# pypi
+from tabulate import tabulate
+
+from vega_datasets import data
+import altair
+#+end_src
+
+** Some Setup
+
+#+begin_src python :results none
+PATH = Path("files/posts/altair-tutorial-cars/")
+
+if not PATH.is_dir():
+    PATH.mkdir()
+#+end_src
+
+* The Data
+  The data appears to come from the [[http://lib.stat.cmu.edu/datasets/][StatLib]] page. Here's the description.
+
+#+begin_quote
+This was the 1983 ASA Data Exposition dataset. The dataset was collected by Ernesto Ramos and David Donoho and dealt with automobiles. I don't remember the instructions for analysis. Data on mpg, cylinders, displacement, etc. (8 variables) for 406 different cars. The dataset includes the names of the cars.
+#+end_quote
+
+#+begin_src python :results output raw :exports both
+cars = data.cars()
+print(tabulate(cars.head(), showindex=False, tablefmt="orgtbl", headers="keys"))
+#+end_src
+
+#+RESULTS:
+| Name                      |   Miles_per_Gallon |   Cylinders |   Displacement |   Horsepower |   Weight_in_lbs |   Acceleration | Year                | Origin   |
+|---------------------------+--------------------+-------------+----------------+--------------+-----------------+----------------+---------------------+----------|
+| chevrolet chevelle malibu |                 18 |           8 |            307 |          130 |            3504 |           12   | 1970-01-01 00:00:00 | USA      |
+| buick skylark 320         |                 15 |           8 |            350 |          165 |            3693 |           11.5 | 1970-01-01 00:00:00 | USA      |
+| plymouth satellite        |                 18 |           8 |            318 |          150 |            3436 |           11   | 1970-01-01 00:00:00 | USA      |
+| amc rebel sst             |                 16 |           8 |            304 |          150 |            3433 |           12   | 1970-01-01 00:00:00 | USA      |
+| ford torino               |                 17 |           8 |            302 |          140 |            3449 |           10.5 | 1970-01-01 00:00:00 | USA      |
+
+#+begin_src python :results output :exports both
+print(cars.shape)
+#+end_src
+
+#+RESULTS:
+: (406, 9)
+
+It's not a huge dataset but it will do for this demo.
+
+** The Distribution
+   Let's try a simple boxplot.
+
+#+begin_src python :results none
+chart = altair.Chart(cars).mark_boxplot().encode(
+    x="Origin", y="Miles_per_Gallon").properties(
+    width=800, height=500).interactive()
+
+chart.save(str(PATH/"mpg_boxplots.html"))
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="mpg_boxplots.html" style="width:100%" height=600>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+Need a function for this or something.
+
+** A Histogram
+
+#+begin_src python :results output :exports both
+chart = altair.Chart(cars).mark_bar().encode(
+    x=altair.X("Gallons/Mile", bin=True),
+    y="count()",
+    color="Origin",
+).properties(
+    title="Fuel Efficiency Distribution",
+    width=800, height=500).interactive()
+
+save_chart(chart, "fuel_efficiency_histogram")
+#+end_src
+
+#+begin_export html
+<object type='text/html' data='fuel_efficiency_histogram.html' style='width:100%' height=600>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+** A Heatmap
+
+#+begin_src python :results output :exports both
+chart = altair.Chart(cars).mark_rect().encode(
+    x=altair.X("Gallons/Mile", bin=True),
+    y=altair.Y("Horsepower", bin=True),
+    color="count()",
+).properties(
+    title="Fuel Efficiency Distribution",
+    width=800, height=500).interactive()
+
+save_chart(chart, "fuel_efficiency_heatmap")
+#+end_src
+
+#+begin_export html
+<object type='text/html' data='fuel_efficiency_heatmap.html' style='width:100%' height=600>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+** Mean Heatmap
+
+#+begin_src python :results output :exports both
+chart = altair.Chart(cars).mark_rect().encode(
+    x=altair.X("Gallons/Mile", bin=True),
+    y=altair.Y("Horsepower", bin=True),
+    color="mean(Weight_in_lbs)",
+).properties(
+    title="Fuel Efficiency Heatmap",
+    width=800, height=500).interactive()
+
+save_chart(chart, "fuel_efficiency_weight_heatmap")
+#+end_src
+
+#+begin_export html
+<object type='text/html' data='fuel_efficiency_weight_heatmap.html' style='width:100%' height=600>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+** Horsepower Vs Gallons Per Mile
+
+#+begin_src python :results output raw :exports both
+cars["Gallons/Mile"] = 1/cars["Miles_per_Gallon"]
+
+chart = altair.Chart(cars).mark_point().encode(
+    x="Horsepower", y="Gallons/Mile",
+    color=altair.Color("Cylinders:O", scale=altair.Scale(scheme="dark2")),
+    tooltip=["Horsepower", altair.Tooltip("Gallons/Mile", format=".2f"), "Name"]).properties(
+    title="Horsepower vs Fuel Efficiency",
+    width=800, height=500).interactive()
+
+def save_chart(chart, name, emit: bool=True):
+    chart.save(str(PATH/f"{name}.html"))
+    if emit:
+        print(f"""
+,#+begin_export html
+<object type='text/html' data='{name}.html' style='width:100%' height=600>
+  <p>Figure Missing</p>
+</object>
+,#+end_export
+""")
+    return
+
+save_chart(chart, "horsepower-vs-gpm", emit=False)
+    
+#+end_src
+
+#+begin_export html
+<object type='text/html' data='horsepower-vs-gpm.html' style='width:100%' height=600>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+A pretty convincing linear relationship between horsepower and the amount of gas used per mile.
+
+** By Year
+
+#+begin_src python :results output raw :exports both
+WIDTH = 800
+spread = altair.Chart(cars).mark_area(opacity=0.4).encode(
+    x=altair.X("Year", timeUnit="year"),
+    y=altair.Y("ci0(Gallons/Mile)", axis=altair.Axis(title="Gallons Per Mile")),
+    y2="ci1(Gallons/Mile)",
+    color="Origin").properties(
+        width=WIDTH)
+
+line = altair.Chart(cars).mark_line().encode(
+    x=altair.X("Year", timeUnit="year"),
+    y="mean(Gallons/Mile)",
+    color="Origin"
+).properties(width=WIDTH, height=500, title="Mean Gallons/Mile With Confidence Interval")
+
+chart = spread + line
+
+save_chart(chart, "confidence-intervals")
+#+end_src
+
+#+begin_export html
+<object type='text/html' data='confidence-intervals.html' style='width:100%' height=600>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+** Selection Histogram
+
+#+begin_src python :results output :exports both
+interval = altair.selection_interval()
+
+# turn everything not selected to gray
+
+base = altair.Chart(cars).mark_point().encode(
+    y="Horsepower",
+    color=altair.condition(interval, "Origin", altair.value("lightgray")),
+    tooltip="Name"
+).add_selection(interval)
+
+# make a histogram that only counts what's selected
+histogram = altair.Chart(cars).mark_bar().encode(
+    x="count()",
+    y="Origin",
+    color="Origin"
+).properties(
+    width=800,
+    height=80
+).transform_filter(interval)
+
+scatter = base.encode(x="Gallons/Mile") | base.encode(x="Displacement")
+
+chart = scatter & histogram
+
+save_chart(chart, "selection-histogram")
+#+end_src
+
+
+#+begin_export html
+<object type='text/html' data='selection-histogram.html' style='width:100%' height=600>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
