@@ -1,0 +1,105 @@
+#+BEGIN_COMMENT
+.. title: GeoPandas and Portland Neighborhoods
+.. slug: geopandas-and-portland-neighborhoods
+.. date: 2021-12-29 12:57:26 UTC-08:00
+.. tags: 
+.. category: 
+.. link: 
+.. description: 
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-114273e5-2d2e-43cb-84c1-56cf99273ac8-ssh.json
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Prelude: The Lastest GeoPandas Debacle
+
+As I noted in a {{% lancelot "previous post" %}}geopandas-revisited{{% /lancelot %}} you can't just install [[https://geopandas.org/][geopandas]], you also need to install [[https://scitools.org.uk/cartopy/docs/v0.17/index.html][cartopy]], but ~cartopy~ [[https://github.com/SciTools/cartopy/issues/1879][currently requires version 8]] of  [[https://proj.org/][proj]] while the stable versions of ~debian~ and ~ubuntu~ both have version 7.2. I originally tried to download the (unstable) ~.deb~  files and install them, but ~libproj-dev~ is dependent of ~libproj22~ which requires a newer version of the C++ libraries than is currently in debian-stable... and at that point I decided to give up on it and run everything on 
+
+* Beginning
+ - [[https://geopandas.org/en/stable/docs/user_guide/io.html][GeoPandas Read File]]
+
+** Imports
+#+begin_src python :results none
+# python
+from functools import partial
+from pathlib import Path
+
+# pypi
+import hvplot.pandas
+import geopandas
+import geoviews
+import yaml
+
+# my stuff
+from graeae import EmbedHoloviews
+#+end_src
+
+** Set Up
+*** Plotting
+#+begin_src python :results none
+SLUG = "geopandas-and-portland-neighborhoods"
+Embed = partial(EmbedHoloviews, folder_path=f"files/posts/{SLUG}")
+#+end_src
+
+*** Configurations
+
+#+begin_src python :results none
+with open("configurations/data.yaml") as reader:
+    configuration = yaml.safe_load(reader)["portland"]["neighborhoods"]
+#+end_src
+* The Neighborhoods
+
+#+begin_src python :results none
+path = Path(configuration["folder"]).expanduser()
+geojson_file = path/configuration["geojson"]
+if not path.is_dir():
+    path.mkdir()
+
+if geojson_file.is_file():
+    neighborhoods = geopandas.read_file(geojson_file)
+else:
+    neighborhoods = geopandas.read_file(configuration["geojson-url"])
+#+end_src
+
+#+begin_src python :results none
+neighborhoods = neighborhoods.rename(columns=dict(MAPLABEL="Neighborhood"))
+#+end_src
+* Plot
+#+begin_src python :results none
+plot = neighborhoods.hvplot(hover_cols=["Neighborhood"], legend=False).opts(
+    width=800,
+    height=600,
+    title="Portland Neighborhoods",
+    tools=["hover"])
+
+output = Embed(plot=plot, file_name="neighborhood_plot")()
+#+end_src
+
+#+begin_src python :results output html :exports results
+print(output)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="neighborhood_plot.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+* Portland Open Data
+  To get the boundary information, click on the Boundaries Icon and find the dataset you want in the list that comes up. Once you're on the map, to get the dataset you need to click on a little bar at the bottom-left that says "I want to use this" which will change the user-interface. Click on the "View API Resources" tab and it will bring up two URLs, one of which is a GeoJSON link.
+
+ - [[https://gis-pdx.opendata.arcgis.com/][Portland Open Data]]: has the links to different map data.
+ - [[https://gis-pdx.opendata.arcgis.com/datasets/PDX::pbot-equity-index/about][Portland Equity Index]]: Has census population, income, and ethnicity information.
+
+* Other Interesting Sites
+
+  - [[https://guides.library.pdx.edu/c.php?g=271294&p=1811001][PSU Library's Page With Links]] to Statistical and Census Data
+  - [[https://www.pdx.edu/population-research/census-data-oregon][PSU's Population Research Census Data]]
