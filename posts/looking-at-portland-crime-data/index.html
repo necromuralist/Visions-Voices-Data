@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="A look at the Portland, Oregon crime data." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Looking at Portland Crime Data | Visions, Voices, Data</title>
+<link href="../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../rss.xml" hreflang="en" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/looking-at-portland-crime-data/" rel="canonical"><!--[if lt IE 9]><script src="../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="../../javascript/p5.min.js" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="/posts/bureau-of-labor-statistics-employment-data-march-2021/" rel="prev" title="Bureau of Labor Statistics Employment Data (March 2021)" type="text/html">
+<link href="/posts/geopandas-and-portland-neighborhoods/" rel="next" title="GeoPandas and Portland Neighborhoods" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Looking at Portland Crime Data" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/looking-at-portland-crime-data/" property="og:url">
+<meta content="A look at the Portland, Oregon crime data." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2021-12-25T17:53:29-08:00" property="article:published_time">
+<meta content="crime" property="article:tag">
+<meta content="data" property="article:tag">
+<meta content="look" property="article:tag">
+<meta content="portland" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="/archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="/categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="/rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="/pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"> <input name="k8" type="hidden" value="#444444"> <input name="k9" type="hidden" value="#D51920"> <input name="kt" type="hidden" value="h"> <input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"> <input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="/posts/looking-at-portland-crime-data/index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href="/posts/looking-at-portland-crime-data/">Looking at Portland Crime Data</a></h1>
+<div class="metadata">
+<p class="byline author vcard p-author h-card"><span class="byline-name fn p-name" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/looking-at-portland-crime-data/" rel="bookmark"><time class="published dt-published" datetime="2021-12-25T17:53:29-08:00" itemprop="datePublished" title="2021-12-25 17:53">2021-12-25 17:53</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="/posts/looking-at-portland-crime-data/index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/looking-at-portland-crime-data/#orgd727be9">Beginning</a>
+<ul>
+<li><a href="/posts/looking-at-portland-crime-data/#org284687a">Imports</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#orgc41ad0b">Set Up</a>
+<ul>
+<li><a href="/posts/looking-at-portland-crime-data/#org31c8c04">The Plot Path</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org6163e14">The Table Printer</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org200ec18">The Configuration</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org2c5e1ea">Set Up</a></li>
+</ul>
+</li>
+<li><a href="/posts/looking-at-portland-crime-data/#org1902f15">The Metadata</a></li>
+</ul>
+</li>
+<li><a href="/posts/looking-at-portland-crime-data/#org57e129c">The Data</a>
+<ul>
+<li><a href="/posts/looking-at-portland-crime-data/#org3dfcffe">Dates and Times</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org57c2326">Times</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org78d30f4">Address</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org1d03557">Case Number</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#orgffa9a9c">By Category</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org73878f6">Offense Type</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org05cdd00">Neighborhood</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org02ea18e">By Date</a>
+<ul>
+<li><a href="/posts/looking-at-portland-crime-data/#org3b5e8dd">By Year</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/looking-at-portland-crime-data/#orgfd213e2">Sources</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgd727be9">
+<h2 id="orgd727be9">Beginning</h2>
+<div class="outline-text-2" id="text-orgd727be9"></div>
+<div class="outline-3" id="outline-container-org284687a">
+<h3 id="org284687a">Imports</h3>
+<div class="outline-text-3" id="text-org284687a">
+<div class="highlight">
+<pre><span></span><span class="c1"># python</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="c1"># pypi</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+
+<span class="kn">import</span> <span class="nn">altair</span>
+<span class="kn">import</span> <span class="nn">geopandas</span>
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+
+<span class="c1"># my stuff</span>
+<span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgc41ad0b">
+<h3 id="orgc41ad0b">Set Up</h3>
+<div class="outline-text-3" id="text-orgc41ad0b"></div>
+<div class="outline-4" id="outline-container-org31c8c04">
+<h4 id="org31c8c04">The Plot Path</h4>
+<div class="outline-text-4" id="text-org31c8c04">
+<ul class="org-ul">
+<li><a href="https://docs.python.org/3/library/pathlib.html">pathlib</a></li>
+<li><a href="https://docs.python.org/3/library/pathlib.html">Path.is_dir</a></li>
+<li><a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.mkdir">Path.mkdir</a></li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"looking-at-portland-crime-data"</span>
+<span class="n">PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">"files/posts/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">PATH</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+    <span class="n">PATH</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org6163e14">
+<h4 id="org6163e14">The Table Printer</h4>
+<div class="outline-text-4" id="text-org6163e14">
+<ul class="org-ul">
+<li><a href="https://pypi.org/project/tabulate/">tabulate</a></li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="n">TABLE</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">print_table</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">table</span><span class="p">))</span>
+    <span class="k">return</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org200ec18">
+<h4 id="org200ec18">The Configuration</h4>
+<div class="outline-text-4" id="text-org200ec18">
+<ul class="org-ul">
+<li><a href="https://pyyaml.org/">pyyaml</a></li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"configurations/data.yaml"</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+    <span class="n">configuration</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
+
+<span class="n">portland</span> <span class="o">=</span> <span class="n">configuration</span><span class="p">[</span><span class="s2">"portland"</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org2c5e1ea">
+<h4 id="org2c5e1ea">Set Up</h4>
+<div class="outline-text-4" id="text-org2c5e1ea">
+<div class="highlight">
+<pre><span></span><span class="n">COUNT_COLUMN</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"CaseNumber"</span><span class="p">:</span> <span class="s2">"Count"</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org1902f15">
+<h3 id="org1902f15">The Metadata</h3>
+<div class="outline-text-3" id="text-org1902f15">
+<ul class="org-ul">
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_html.html">pandas.read_html()</a></li>
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html">pandas.read_csv</a></li>
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_csv.html">pandas.to_csv</a></li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="n">metadata_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">portland</span><span class="p">[</span><span class="s2">"crime-metadata"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">metadata_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="n">portland</span><span class="p">[</span><span class="s2">"crime-metadata-url"</span><span class="p">],</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="s2">"Column Description"</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"Description"</span><span class="p">]</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">Description</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">metadata_path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">metadata_path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">print_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Column</th>
+<th class="org-left" scope="col">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Case Number</td>
+<td class="org-left">The case year and number for the reported incident (YY-######).Sensitive cases have been randomly assigned a case number and are denoted by an X following the case year (YY-X######).</td>
+</tr>
+<tr>
+<td class="org-left">Occur Month Year</td>
+<td class="org-left">The Month and Year that the incident occured.</td>
+</tr>
+<tr>
+<td class="org-left">Occur Date</td>
+<td class="org-left">Date the incident occurred. The exact occur date is sometimes unknown. In most situations, the first possible date the crime could have occurred is used as the occur date.&nbsp;(For example, victims return home from a week-long vacation to find their home burglarized. The burglary could have occurred at any point during the week. The first date of their vacation would be listed as the occur date.)</td>
+</tr>
+<tr>
+<td class="org-left">Occur Time</td>
+<td class="org-left">Time the incident occured. The exact occur time is sometimes unknown. In most situations, the first possible time the crime could have occured is used as the occur time.The time is reported in the 24-hour clock format, with the first two digits representing hour (ranges from 00 to 23) and the second two digits representing minutes (ranges from 00 to 59).Note: By default, Microsoft Excel removes leading zeroes when importing data. For more help with this issue, refer to&nbsp;Microsoft's help page.</td>
+</tr>
+<tr>
+<td class="org-left">Address</td>
+<td class="org-left">Address of reported incident at the 100 block level (e.g.: 1111 SW 2nd Ave would be 1100 Block SW 2nd Ave).To protect the identity of victims and other privacy concerns, the address location of certain case types are not released.</td>
+</tr>
+<tr>
+<td class="org-left">Open Data X / Y</td>
+<td class="org-left">Generalized XY point of the reported incident. For offenses that occurred at a specific address, the point is mapped to the block's midpoint. Offenses that occurred at an intersection is mapped to the intersection centroid.&nbsp;To protect the identity of victims and other privacy concerns, the points of certain case types are not released.XY points use the Oregon State Plane North (3601), NAD83 HARN, US International Feet&nbsp;coordinate system.</td>
+</tr>
+<tr>
+<td class="org-left">Open Data Lat / Lon</td>
+<td class="org-left">Generalized Latitude / Longitude of the reported incident.&nbsp;For offenses that occurred at a specific address, the point is mapped to the block's midpoint. Offenses that occurred at an intersection is mapped to the intersection centroid.&nbsp;To protect the identity of victims and other privacy concerns, the points of certain case types are not released.</td>
+</tr>
+<tr>
+<td class="org-left">Neighborhood</td>
+<td class="org-left">Neighborhood where incident occurred.If the neighborhood name is missing, the incident occurred outside of the boundaries of the Portland neighborhoods or at a location that could not be assigned to a specific address in the system (e.g., Portland, near Washington Park, on the streetcar, etc.). Note: Neighborhood boundaries and designations vary slightly from those found on the Office of Community & Civic Life website.</td>
+</tr>
+<tr>
+<td class="org-left">Crime Against</td>
+<td class="org-left">Crime against category (Person, Property, or Society)</td>
+</tr>
+<tr>
+<td class="org-left">Offense Category</td>
+<td class="org-left">Category of offense (for example, Assault Offenses)</td>
+</tr>
+<tr>
+<td class="org-left">Offense Type</td>
+<td class="org-left">Type of offense (for example, Aggravated Assault)Note: The statistic for Homicide Offenses has been updated in the Group A Crimes report to align with the 2019 FBI NIBRS definitions. The statistic for Homicide Offenses includes (09A) Murder & Non-negligent Manslaughter and (09B) Negligent Manslaughter. As of January 1, 2019, the FBI expanded the definition of negligent manslaughter to include traffic fatalities that result in an arrest for driving under the influence, distracted driving, or reckless driving. The change in definition impacts the 2019 homicide offenses statistic and the comparability of 2019 homicide statistics to prior year.</td>
+</tr>
+<tr>
+<td class="org-left">Offense Count</td>
+<td class="org-left">Number of offenses&nbsp;per incident. Offenses (i.e. this field)&nbsp;are summed for counting purposes.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org57e129c">
+<h2 id="org57e129c">The Data</h2>
+<div class="outline-text-2" id="text-org57e129c">
+<ul class="org-ul">
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html">Path.expanduser</a></li>
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html">Path.glob</a></li>
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html">pandas.concat</a></li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="n">data_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">portland</span><span class="p">[</span><span class="s2">"crime"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+    <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">data_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">portland</span><span class="p">[</span><span class="s2">"crime-glob"</span><span class="p">]))</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">print_table</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-right">
+<col class="org-right">
+<col class="org-left">
+<col class="org-left">
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-right" scope="col">Address</th>
+<th class="org-right" scope="col">CaseNumber</th>
+<th class="org-left" scope="col">CrimeAgainst</th>
+<th class="org-left" scope="col">Neighborhood</th>
+<th class="org-left" scope="col">OccurDate</th>
+<th class="org-right" scope="col">OccurTime</th>
+<th class="org-left" scope="col">OffenseCategory</th>
+<th class="org-left" scope="col">OffenseType</th>
+<th class="org-right" scope="col">OpenDataLat</th>
+<th class="org-right" scope="col">OpenDataLon</th>
+<th class="org-left" scope="col">ReportDate</th>
+<th class="org-right" scope="col">OffenseCount</th>
+<th class="org-right" scope="col">OpenDataX</th>
+<th class="org-right" scope="col">OpenDataY</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">nan</td>
+<td class="org-right">21-X5543818</td>
+<td class="org-left">Person</td>
+<td class="org-left">Concordia</td>
+<td class="org-left">12/31/2020</td>
+<td class="org-right">1230</td>
+<td class="org-left">Assault Offenses</td>
+<td class="org-left">Aggravated Assault</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">1</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-right">nan</td>
+<td class="org-right">21-X5543818</td>
+<td class="org-left">Property</td>
+<td class="org-left">Concordia</td>
+<td class="org-left">12/31/2020</td>
+<td class="org-right">1230</td>
+<td class="org-left">Larceny Offenses</td>
+<td class="org-left">All Other Larceny</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">1</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-right">nan</td>
+<td class="org-right">21-X5543827</td>
+<td class="org-left">Person</td>
+<td class="org-left">Pearl</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">715</td>
+<td class="org-left">Assault Offenses</td>
+<td class="org-left">Simple Assault</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">1</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-right">nan</td>
+<td class="org-right">21-X5543859</td>
+<td class="org-left">Person</td>
+<td class="org-left">Centennial</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">2013</td>
+<td class="org-left">Assault Offenses</td>
+<td class="org-left">Aggravated Assault</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">1</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-right">nan</td>
+<td class="org-right">21-X5543864</td>
+<td class="org-left">Person</td>
+<td class="org-left">Powellhurst-Gilbert</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">816</td>
+<td class="org-left">Assault Offenses</td>
+<td class="org-left">Simple Assault</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">1</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+390,824
+</pre></div>
+<div class="outline-3" id="outline-container-org3dfcffe">
+<h3 id="org3dfcffe">Dates and Times</h3>
+<div class="outline-text-3" id="text-org3dfcffe">
+<p>Although these columns aren't the first ones, since they might be useful when looking at the other columns I thought I'd parse them first.</p>
+<ul class="org-ul">
+<li>Python Time Formats: <a href="https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior">https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org57c2326">
+<h3 id="org57c2326">Times</h3>
+<div class="outline-text-3" id="text-org57c2326">
+<p>Our first problem is that there's a bunch of times labeled "0" which doesn't match the formatting of the rest of the times. This might represent missing data, unknown data, or 0-o'clock (midnight). The documentation doesn't really say, although it does say that when the time isn't known it uses the earliest possible time, which would seem to be midnight, so that's what I'll assume it is.</p>
+<div class="highlight">
+<pre><span></span><span class="n">TIME</span> <span class="o">=</span> <span class="s2">"%H%M"</span>
+<span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"OccurTime"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">OccurTime</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">time</span><span class="p">:</span> <span class="s2">"0000"</span> <span class="k">if</span> <span class="n">time</span><span class="o">==</span><span class="mi">0</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">time</span><span class="si">:</span><span class="s2">04</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="p">[</span><span class="s2">"Occured At"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">OccurTime</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">TIME</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">hour</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">crime_time</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"Occured At"</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">crime_time</span> <span class="o">=</span> <span class="n">crime_time</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">COUNT_COLUMN</span><span class="p">)</span>
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">crime_time</span><span class="p">[[</span><span class="s2">"Occured At"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">]])</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"Occured At"</span><span class="p">,</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"Occured At"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Time of Crime"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">chart</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"crime_time.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/crime_time.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>Since the times are mostly self-reported I'd assume that the spikes at midnight and noon are just convenient pegs for guessing the time.</p>
+<div class="highlight">
+<pre><span></span><span class="n">DATE</span> <span class="o">=</span> <span class="s2">"%m/</span><span class="si">%d</span><span class="s2">/%Y"</span>
+
+<span class="n">data</span><span class="p">[</span><span class="s2">"Occurred"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">OccurDate</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">DATE</span><span class="p">)</span>
+<span class="n">data</span><span class="p">[</span><span class="s2">"Reported"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">ReportDate</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">DATE</span><span class="p">)</span>
+
+<span class="n">data</span><span class="p">[</span><span class="s2">"Year Occured"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">Occurred</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span>
+<span class="n">data</span><span class="p">[</span><span class="s2">"Year Reported"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">Reported</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">crime_year</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"Year Reported"</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">crime_year</span> <span class="o">=</span> <span class="n">crime_year</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">COUNT_COLUMN</span><span class="p">)</span>
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">crime_year</span><span class="p">[[</span><span class="s2">"Year Reported"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">]])</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"Year Reported"</span><span class="p">,</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"Year Reported"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Crime by Year"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">chart</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"crime_year.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/crime_year.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-3" id="outline-container-org78d30f4">
+<h3 id="org78d30f4">Address</h3>
+<div class="outline-text-3" id="text-org78d30f4">
+<p>Not all addresses are given, some are omitted if the case is considered sensitive. I'll look at those in the next section on "Case Number", but since we're here, let's look at what type of crime, based on who the victim is, is considered too sensitive to report the address.</p>
+<p>The method to force a side-by-side bar plot came from this <a href="https://github.com/altair-viz/altair/issues/2002">github bug report</a>.</p>
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"Addressed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">Address</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span>
+<span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">"Addressed"</span><span class="p">],</span> <span class="s2">"Addressed"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Missing"</span>
+<span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">"Addressed"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"Missing"</span><span class="p">,</span> <span class="s2">"Addressed"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Has Address"</span>
+<span class="n">counts</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"Addressed"</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+<span class="n">counts</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">COUNT_COLUMN</span><span class="p">)</span>
+<span class="n">counts</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[[</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"Addressed"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">]]</span>
+<span class="n">addressed_chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+
+<span class="n">crime_against</span> <span class="o">=</span> <span class="n">addressed_chart</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">column</span><span class="o">=</span><span class="n">altair</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span>
+                         <span class="n">spacing</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                         <span class="n">header</span><span class="o">=</span><span class="n">altair</span><span class="o">.</span><span class="n">Header</span><span class="p">(</span><span class="n">labelOrient</span><span class="o">=</span><span class="s2">"bottom"</span><span class="p">)),</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">altair</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">"Addressed:N"</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="p">[</span><span class="s2">"Missing"</span><span class="p">,</span> <span class="s2">"Has Address"</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"Addressed:N"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Victim of a Crime with an Address"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">275</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">crime_against</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"addressed_crime_against.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/addressed_crime_against.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-3" id="outline-container-org1d03557">
+<h3 id="org1d03557">Case Number</h3>
+<div class="outline-text-3" id="text-org1d03557">
+<p>This is a unique identifier for each case. It doesn't seem like this would be interesting unless you wanted to look up a specific incident, but one possibly useful bit is that the case numbers are given a prefix of "X" if they are sensitive (by case number I mean just the number section - i.e. <code>&lt;year&gt;-X&lt;case number&gt;</code>), which might be useful in figuring out the reason for missing location data.</p>
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="p">[</span><span class="s2">"CaseNumber"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">CaseNumber</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">"string"</span><span class="p">)</span>
+<span class="n">data</span><span class="p">[</span><span class="s2">"Sensitive"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">CaseNumber</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">"X"</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">grouped</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"Sensitive"</span><span class="p">,</span> <span class="s2">"Year Reported"</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">COUNT_COLUMN</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">grouped</span><span class="p">[[</span><span class="s2">"Count"</span><span class="p">,</span> <span class="s2">"Sensitive"</span><span class="p">,</span> <span class="s2">"Year Reported"</span><span class="p">]])</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"Sensitive:O"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">"Year Reported:O"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"Sensitive"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">,</span> <span class="s2">"Year Reported"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Count of Sensitive Cases"</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">600</span>
+<span class="p">)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">chart</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"sensitive_case_count.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/sensitive_case_count.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-3" id="outline-container-orgffa9a9c">
+<h3 id="orgffa9a9c">By Category</h3>
+<div class="outline-text-3" id="text-orgffa9a9c">
+<div class="highlight">
+<pre><span></span><span class="n">grouped</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"OffenseCategory"</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">COUNT_COLUMN</span><span class="p">)</span>
+
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">grouped</span><span class="p">)</span>
+
+<span class="n">categories</span> <span class="o">=</span> <span class="n">chart</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"CrimeAgainst:O"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"OffenseCategory"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">,</span> <span class="s2">"OffenseCategory"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Crime Category by Victim Type"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">categories</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"category_crime_against.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/category_crime_against.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-3" id="outline-container-org73878f6">
+<h3 id="org73878f6">Offense Type</h3>
+<div class="outline-text-3" id="text-org73878f6">
+<div class="highlight">
+<pre><span></span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"OffenseCategory"</span><span class="p">,</span> <span class="s2">"OffenseType"</span><span class="p">]</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"CaseNumber"</span><span class="p">:</span> <span class="s2">"Count"</span><span class="p">})</span>
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">grouped</span><span class="p">[</span><span class="n">columns</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"Count"</span><span class="p">]])</span>
+
+<span class="n">categories</span> <span class="o">=</span> <span class="n">chart</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"OffenseCategory:O"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"OffenseType"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">,</span> <span class="s2">"OffenseCategory"</span><span class="p">,</span> <span class="s2">"OffenseType"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Crime Type by Offense Category"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">categories</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"category_type_crime_against.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/category_type_crime_against.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-3" id="outline-container-org05cdd00">
+<h3 id="org05cdd00">Neighborhood</h3>
+<div class="outline-text-3" id="text-org05cdd00">
+<p><a href="https://www.usgs.gov/faqs/what-state-plane-coordinate-system-can-gps-provide-coordinates-these-values">https://www.usgs.gov/faqs/what-state-plane-coordinate-system-can-gps-provide-coordinates-these-values</a></p>
+<div class="highlight">
+<pre><span></span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"Neighborhood"</span><span class="p">,</span> <span class="s2">"OffenseType"</span><span class="p">]</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"CaseNumber"</span><span class="p">:</span> <span class="s2">"Count"</span><span class="p">})</span>
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">grouped</span><span class="p">[</span><span class="n">columns</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"Count"</span><span class="p">]])</span>
+
+<span class="n">categories</span> <span class="o">=</span> <span class="n">chart</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"Neighborhood:O"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"OffenseType"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"Neighborhood"</span><span class="p">,</span>
+             <span class="s2">"CrimeAgainst"</span><span class="p">,</span>
+             <span class="s2">"Count"</span><span class="p">,</span>
+             <span class="s2">"OffenseType"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Crime Type by Neighborhood"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">categories</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"neighborhood_type_crime_against.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/neighborhood_type_crime_against.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<ul class="org-ul">
+<li><a href="https://geopandas.org/en/stable/docs/user_guide/io.html">GeoPandas Read File</a></li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="n">GEOJSON_URL</span> <span class="o">=</span> <span class="s2">"https://opendata.arcgis.com/datasets/1ef75e34b8504ab9b14bef0c26cade2c_3.geojson"</span>
+<span class="n">neighborhoods</span> <span class="o">=</span> <span class="n">geopandas</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">GEOJSON_URL</span><span class="p">)</span>
+
+<span class="n">background</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">neighborhoods</span><span class="p">)</span><span class="o">.</span><span class="n">mark_geoshape</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"MAPLABEL"</span><span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span><span class="o">.</span><span class="n">transform_aggregate</span><span class="p">(</span><span class="n">groupby</span><span class="o">=</span><span class="p">[</span><span class="s2">"type"</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">])</span>
+
+<span class="n">background</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"neighborhood_crime.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/neighborhood_crime.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-3" id="outline-container-org02ea18e">
+<h3 id="org02ea18e">By Date</h3>
+<div class="outline-text-3" id="text-org02ea18e">
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"when"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">OccurDate</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">when</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+</pre></div>
+<pre class="example">
+1971-01-01 00:00:00
+</pre>
+<p>What?</p>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">when</span><span class="o">==</span><span class="n">data</span><span class="o">.</span><span class="n">when</span><span class="o">.</span><span class="n">min</span><span class="p">()])</span>
+</pre></div>
+<pre class="example">
+     Address   CaseNumber CrimeAgainst Neighborhood OccurDate  OccurTime  \
+3770     NaN  20-X5515843       Person    Concordia  1/1/1971          0   
+
+     OffenseCategory OffenseType  OpenDataLat  OpenDataLon  ReportDate  \
+3770    Sex Offenses    Fondling          NaN          NaN  10/14/2020   
+
+      OffenseCount  OpenDataX  OpenDataY       when  
+3770             2        NaN        NaN 1971-01-01  
+</pre>
+<p>So, there might be some mistakes in there… or maybe some people wait a long time to report a crime?</p>
+</div>
+<div class="outline-4" id="outline-container-org3b5e8dd">
+<h4 id="org3b5e8dd">By Year</h4>
+<div class="outline-text-4" id="text-org3b5e8dd">
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"year"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">when</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">date</span><span class="p">:</span> <span class="n">date</span><span class="o">.</span><span class="n">year</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"year"</span><span class="p">,</span> <span class="s2">"OffenseType"</span><span class="p">]</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"CaseNumber"</span><span class="p">:</span> <span class="s2">"Count"</span><span class="p">})</span>
+
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">grouped</span><span class="p">[</span><span class="n">columns</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"Count"</span><span class="p">]])</span>
+
+<span class="n">categories</span> <span class="o">=</span> <span class="n">chart</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"year:N"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"OffenseType"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"year"</span><span class="p">,</span>
+             <span class="s2">"Count"</span><span class="p">,</span>
+             <span class="s2">"OffenseType"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Crime Type by Year"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">categories</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"year_type.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/year_type.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span><span class="n">monthly</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">pandas</span><span class="o">.</span><span class="n">Grouper</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">"OccurDate"</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s2">"M"</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</pre></div>
+<p>It's only supposed to go back to 2015, what's with the older rows?</p>
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"reported"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">ReportDate</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"report_year"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reported</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">row</span><span class="o">.</span><span class="n">year</span><span class="p">)</span>
+
+<span class="n">older</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">year</span><span class="o">&lt;</span> <span class="mi">2015</span><span class="p">]</span>
+
+<span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"report_year"</span><span class="p">,</span> <span class="s2">"year"</span><span class="p">,</span> <span class="s2">"OffenseType"</span><span class="p">]</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">older</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"CaseNumber"</span><span class="p">:</span> <span class="s2">"Count"</span><span class="p">})</span>
+
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">grouped</span><span class="p">[</span><span class="n">columns</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"Count"</span><span class="p">]])</span>
+<span class="n">categories</span> <span class="o">=</span> <span class="n">chart</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"report_year"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"OffenseType"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"year"</span><span class="p">,</span> <span class="s2">"report_year"</span><span class="p">,</span>
+             <span class="s2">"Count"</span><span class="p">,</span>
+             <span class="s2">"OffenseType"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Crime Type by Year/Reporting"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">categories</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"year_reported_type.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/year_reported_type.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgfd213e2">
+<h2 id="orgfd213e2">Sources</h2>
+<div class="outline-text-2" id="text-orgfd213e2">
+<ul class="org-ul">
+<li><a href="https://www.portlandoregon.gov/police/71673">Portland Police Bureau's Open Data</a>: This is where you can get data from the PPB.</li>
+</ul>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="/categories/crime/" rel="tag">crime</a></li>
+<li><a class="tag p-category" href="/categories/data/" rel="tag">data</a></li>
+<li><a class="tag p-category" href="/categories/look/" rel="tag">look</a></li>
+<li><a class="tag p-category" href="/categories/portland/" rel="tag">portland</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/" rel="prev" title="Bureau of Labor Statistics Employment Data (March 2021)">Previous post</a></li>
+<li class="next"><a href="/posts/geopandas-and-portland-neighborhoods/" rel="next" title="GeoPandas and Portland Neighborhoods">Next post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2021 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element){var i=element.getElementsByTagName('img')[0];return i===undefined?'':i.alt;}});
+</script> 
+</body>
+</html>

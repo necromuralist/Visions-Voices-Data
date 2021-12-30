@@ -20,6 +20,7 @@
 <script async src="../../javascript/p5.min.js" type="text/javascript"></script>
 <meta content="Cloistered Monkey" name="author">
 <link href="/posts/openintro-statistics/" rel="prev" title="OpenIntro Statistics" type="text/html">
+<link href="/posts/bureau-of-labor-statistics-employment-data-march-2021/" rel="next" title="Bureau of Labor Statistics Employment Data (March 2021)" type="text/html">
 <meta content="Visions, Voices, Data" property="og:site_name">
 <meta content="Geopandas Revisited" property="og:title">
 <meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/geopandas-revisited/" property="og:url">
@@ -69,58 +70,60 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/geopandas-revisited/#org737f14f">Beginning</a>
+<li><a href="/posts/geopandas-revisited/#org52ec96b">Beginning</a>
 <ul>
-<li><a href="/posts/geopandas-revisited/#org360d1db">Dependencies</a></li>
-<li><a href="/posts/geopandas-revisited/#orgf814388">Imports</a></li>
-<li><a href="/posts/geopandas-revisited/#orge2c48cb">Set Up</a></li>
+<li><a href="/posts/geopandas-revisited/#orgb6ef575">Dependencies</a></li>
+<li><a href="/posts/geopandas-revisited/#org365439e">Imports</a></li>
+<li><a href="/posts/geopandas-revisited/#org3af170e">Set Up</a></li>
 </ul>
 </li>
-<li><a href="/posts/geopandas-revisited/#orga76e9b0">Middle</a>
+<li><a href="/posts/geopandas-revisited/#orgb79df7c">Middle</a>
 <ul>
-<li><a href="/posts/geopandas-revisited/#org3cd7d71">Loading the Data</a></li>
-<li><a href="/posts/geopandas-revisited/#orgb456248">Maybe Just Portland</a></li>
-<li><a href="/posts/geopandas-revisited/#orge9d4f22">What About All of Oregon</a></li>
-<li><a href="/posts/geopandas-revisited/#org628a0f0">Portland Again</a></li>
+<li><a href="/posts/geopandas-revisited/#org93518e8">Loading the Data</a></li>
+<li><a href="/posts/geopandas-revisited/#org91e10da">Maybe Just Portland</a></li>
+<li><a href="/posts/geopandas-revisited/#orgda90346">What About All of Oregon</a></li>
+<li><a href="/posts/geopandas-revisited/#org48ff7a8">Portland Again</a></li>
 </ul>
 </li>
-<li><a href="/posts/geopandas-revisited/#org33c0625">End</a>
+<li><a href="/posts/geopandas-revisited/#org840dc61">End</a>
 <ul>
-<li><a href="/posts/geopandas-revisited/#orgad00c84">Source</a></li>
+<li><a href="/posts/geopandas-revisited/#org7dfb26d">Source</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org737f14f">
-<h2 id="org737f14f">Beginning</h2>
-<div class="outline-text-2" id="text-org737f14f">
+<div class="outline-2" id="outline-container-org52ec96b">
+<h2 id="org52ec96b">Beginning</h2>
+<div class="outline-text-2" id="text-org52ec96b">
 <p>This is a look at the U.S. Census zip-code mapping data.</p>
 </div>
-<div class="outline-3" id="outline-container-org360d1db">
-<h3 id="org360d1db">Dependencies</h3>
-<div class="outline-text-3" id="text-org360d1db">
+<div class="outline-3" id="outline-container-orgb6ef575">
+<h3 id="orgb6ef575">Dependencies</h3>
+<div class="outline-text-3" id="text-orgb6ef575">
 <p>Besides <a href="https://geopandas.org/">geopandas</a> this also requires <a href="https://geoviews.org/#">geoviews</a> which in turn requires <a href="https://scitools.org.uk/cartopy/docs/v0.17/index.html">cartopy</a> but if you use pypi you have to install <a href="https://proj.org/">proj</a> first. You also need the python header files (so with debian it's <code>sudo apt install python3-dev</code>, note that <code>python-dev</code> will install the python-2 headers for some reason)… Oy.</p>
 <p>Take two.</p>
-<pre class="example" id="orgc726f7f">
+<pre class="example">
 sudo apt install python3-dev
 sudo apt install proj-bin
 sudo apt install libgeos-dev
 sudo apt install libproj-dev
 </pre>
 <p>I'm not 100% sure about <code>proj-bin</code>, but, the rest are needed to build cartopy.</p>
-<pre class="example" id="org954e865">
+<p><b>Note:</b> I tested it without <code>proj-bin</code> and the <code>cartopy</code> installation fails. Also, as of December 29, 2021 cartopy requires a newer version of <code>proj</code> than is in the stable releases for ubuntu and debian.</p>
+<pre class="example">
 pip install cartopy
 pip install geopandas
 pip install geoviews
 </pre>
 <p>The apt stuff has to come before the pip installs, but the actual ordering within each set doesn't matter. You can install geopandas by itself, it will just complain that geoviews isn't installed.</p>
+<p><b>Another Note:</b> Geoviews will install cartopy so you don't need to install it separately (and maybe you shouldn't since this will keep the versions matched).</p>
 <p>Additionally, because I'm the plot file is so huge I'm using <a href="https://datashader.org/index.html">datashader</a> (which I don't recall explicitly installing, I think holoviews pulled it in) we'll also need <a href="https://github.com/holoviz/spatialpandas">Spatial Pandas</a>. Hokey smokes.</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgf814388">
-<h3 id="orgf814388">Imports</h3>
-<div class="outline-text-3" id="text-orgf814388">
+<div class="outline-3" id="outline-container-org365439e">
+<h3 id="org365439e">Imports</h3>
+<div class="outline-text-3" id="text-org365439e">
 <div class="highlight">
 <pre><span></span><span class="c1"># python</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
@@ -145,9 +148,9 @@ pip install geoviews
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orge2c48cb">
-<h3 id="orge2c48cb">Set Up</h3>
-<div class="outline-text-3" id="text-orge2c48cb">
+<div class="outline-3" id="outline-container-org3af170e">
+<h3 id="org3af170e">Set Up</h3>
+<div class="outline-text-3" id="text-org3af170e">
 <div class="highlight">
 <pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">"posts/.env"</span><span class="p">)</span>
 <span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"geopandas-revisited"</span>
@@ -156,12 +159,12 @@ pip install geoviews
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orga76e9b0">
-<h2 id="orga76e9b0">Middle</h2>
-<div class="outline-text-2" id="text-orga76e9b0"></div>
-<div class="outline-3" id="outline-container-org3cd7d71">
-<h3 id="org3cd7d71">Loading the Data</h3>
-<div class="outline-text-3" id="text-org3cd7d71">
+<div class="outline-2" id="outline-container-orgb79df7c">
+<h2 id="orgb79df7c">Middle</h2>
+<div class="outline-text-2" id="text-orgb79df7c"></div>
+<div class="outline-3" id="outline-container-org93518e8">
+<h3 id="org93518e8">Loading the Data</h3>
+<div class="outline-text-3" id="text-org93518e8">
 <div class="highlight">
 <pre><span></span><span class="n">data_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"US_ZIP_CODE_SHAPEFILE"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
 <span class="n">frame</span> <span class="o">=</span> <span class="n">geopandas</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
@@ -177,7 +180,7 @@ epsg:4269
 <div class="highlight">
 <pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </pre></div>
-<pre class="example" id="org37556c8">
+<pre class="example">
   ZCTA5CE10 GEOID10 CLASSFP10 MTFCC10 FUNCSTAT10    ALAND10  AWATER10  \
 0     43451   43451        B5   G6350          S   63484189    157689   
 1     43452   43452        B5   G6350          S  121525288  13721740   
@@ -214,7 +217,7 @@ epsg:4269
 <span class="n">outcome</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"us_zip_codes"</span><span class="p">)()</span>
 </pre></div>
 <p>Well, after all that there seems to be a bug in there somewhere. Datashader is doing something with numpy that raises an exception.</p>
-<pre class="example" id="org06e1273">
+<pre class="example">
 /usr/local/lib/python3.8/dist-packages/numpy/core/numerictypes.py in issubdtype(arg1, arg2)
     386     """
     387     if not issubclass_(arg1, generic):
@@ -225,9 +228,9 @@ epsg:4269
 TypeError: Cannot interpret 'MultiPolygonDtype(float64)' as a data type
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-orgb456248">
-<h3 id="orgb456248">Maybe Just Portland</h3>
-<div class="outline-text-3" id="text-orgb456248">
+<div class="outline-3" id="outline-container-org91e10da">
+<h3 id="org91e10da">Maybe Just Portland</h3>
+<div class="outline-text-3" id="text-org91e10da">
 <p>There's a site called <a href="https://www.zipdatamaps.com/index.php">zipdatamaps</a> that has listings of zip codes (among other things) which I'll use to get the zip codes for Portland, Oregon. I'm going to use pandas' <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_html.html">read_html</a> function which also requires you to install <a href="https://lxml.de/">lxml</a>.</p>
 <p>According to the pandas documentation you can't use https, but that seems to give me a 403 (Forbidden) error so I'll pull the HTML with requests first instead of having pandas pull it directly. The table also has a title above the column headers so we have to skip the first row to avoid a MultiIndex (or fix it later).</p>
 <div class="highlight">
@@ -266,7 +269,7 @@ TypeError: Cannot interpret 'MultiPolygonDtype(float64)' as a data type
 <span class="n">zips</span> <span class="o">=</span> <span class="n">zips</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">first_row</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">),</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">zips</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </pre></div>
-<pre class="example" id="org5acc188">
+<pre class="example">
   ZIP Code ZIP Code Name  Population        Type
 0    97035   Lake Oswego       23912  Non-Unique
 1    97080       Gresham       40888  Non-Unique
@@ -312,9 +315,9 @@ TypeError: Cannot interpret 'MultiPolygonDtype(float64)' as a data type
 <p>Figure Missing</p>
 </object></div>
 </div>
-<div class="outline-3" id="outline-container-orge9d4f22">
-<h3 id="orge9d4f22">What About All of Oregon</h3>
-<div class="outline-text-3" id="text-orge9d4f22">
+<div class="outline-3" id="outline-container-orgda90346">
+<h3 id="orgda90346">What About All of Oregon</h3>
+<div class="outline-text-3" id="text-orgda90346">
 <div class="highlight">
 <pre><span></span><span class="n">URL</span> <span class="o">=</span> <span class="s2">"https://www.zip-codes.com/state/or.asp"</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL</span><span class="p">)</span>
@@ -334,7 +337,7 @@ TypeError: Cannot interpret 'MultiPolygonDtype(float64)' as a data type
 <span class="n">oregon</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">ZIPS_COLUMN</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">oregon</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </pre></div>
-<pre class="example" id="org77a53f1">
+<pre class="example">
 ZIP Code                                                  97824
 GEOID10                                                   97824
 CLASSFP10                                                    B5
@@ -362,14 +365,14 @@ Name: 0, dtype: object
 <span class="n">plot</span> <span class="o">=</span> <span class="n">oregon</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axe</span><span class="p">)</span>
 <span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"images/oregon_zip_codes.png"</span><span class="p">)</span>
 </pre></div>
-<div class="figure" id="org40ed130">
+<div class="figure">
 <p><a alt="Oregon Zip Codes" class="reference" href="/images/oregon_zip_codes.webp"><img alt="Oregon Zip Codes" class="reference" src="/images/oregon_zip_codes.thumbnail.png"></a></p>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org628a0f0">
-<h3 id="org628a0f0">Portland Again</h3>
-<div class="outline-text-3" id="text-org628a0f0">
+<div class="outline-3" id="outline-container-org48ff7a8">
+<h3 id="org48ff7a8">Portland Again</h3>
+<div class="outline-text-3" id="text-org48ff7a8">
 <div class="highlight">
 <pre><span></span><span class="n">counties</span> <span class="o">=</span> <span class="s2">"Clackamas|Multnomah|Washington"</span>
 <span class="n">portland</span> <span class="o">=</span> <span class="n">oregon</span><span class="p">[[</span><span class="n">ZIPS_COLUMN</span><span class="p">,</span> <span class="s2">"City"</span><span class="p">,</span> <span class="s2">"County"</span><span class="p">]]</span>
@@ -402,14 +405,14 @@ Name: 0, dtype: object
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org33c0625">
-<h2 id="org33c0625">End</h2>
-<div class="outline-text-2" id="text-org33c0625">
+<div class="outline-2" id="outline-container-org840dc61">
+<h2 id="org840dc61">End</h2>
+<div class="outline-text-2" id="text-org840dc61">
 <p>Well, that was a little harder than I thought it would be. The main thing to remember, I suppose, is that the maps quickly grow too big for holoviews, so if you want to do an overview it's better to do it in matplotlib and save the interactivity for a smaller section.</p>
 </div>
-<div class="outline-3" id="outline-container-orgad00c84">
-<h3 id="orgad00c84">Source</h3>
-<div class="outline-text-3" id="text-orgad00c84">
+<div class="outline-3" id="outline-container-org7dfb26d">
+<h3 id="org7dfb26d">Source</h3>
+<div class="outline-text-3" id="text-org7dfb26d">
 <ul class="org-ul">
 <li>TIGER/Line Shapefiles [Internet]. [cited 2021 Mar 7]. Available from: <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html">https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html</a></li>
 <li>Listing of all Zip Codes in the state of Oregon [Internet]. [cited 2021 Mar 7]. Available from: <a href="https://www.zip-codes.com/state/or.asp">https://www.zip-codes.com/state/or.asp</a></li>
@@ -427,6 +430,7 @@ Name: 0, dtype: object
 </ul>
 <ul class="pager hidden-print">
 <li class="previous"><a href="/posts/openintro-statistics/" rel="prev" title="OpenIntro Statistics">Previous post</a></li>
+<li class="next"><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/" rel="next" title="Bureau of Labor Statistics Employment Data (March 2021)">Next post</a></li>
 </ul>
 </nav>
 </aside>

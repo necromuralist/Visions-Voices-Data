@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Bureau of Labor Statistics Employment Data (March 2021) | Visions, Voices, Data</title>
+<link href="../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../rss.xml" hreflang="en" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/bureau-of-labor-statistics-employment-data-march-2021/" rel="canonical"><!--[if lt IE 9]><script src="../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="../../javascript/p5.min.js" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="/posts/geopandas-revisited/" rel="prev" title="Geopandas Revisited" type="text/html">
+<link href="/posts/looking-at-portland-crime-data/" rel="next" title="Looking at Portland Crime Data" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="Bureau of Labor Statistics Employment Data (March 2021)" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/bureau-of-labor-statistics-employment-data-march-2021/" property="og:url">
+<meta content="Table of Contents Beginning Imports Some Setup A Table Printer The Environment Plotting Middle The Data Employment Earnings End Beginning Imports # python from collections import" property="og:description">
+<meta content="article" property="og:type">
+<meta content="2021-04-02T17:02:47-07:00" property="article:published_time">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="/archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="/categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="/rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="/pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"> <input name="k8" type="hidden" value="#444444"> <input name="k9" type="hidden" value="#D51920"> <input name="kt" type="hidden" value="h"> <input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"> <input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="/posts/bureau-of-labor-statistics-employment-data-march-2021/index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href="/posts/bureau-of-labor-statistics-employment-data-march-2021/">Bureau of Labor Statistics Employment Data (March 2021)</a></h1>
+<div class="metadata">
+<p class="byline author vcard p-author h-card"><span class="byline-name fn p-name" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/" rel="bookmark"><time class="published dt-published" datetime="2021-04-02T17:02:47-07:00" itemprop="datePublished" title="2021-04-02 17:02">2021-04-02 17:02</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="/posts/bureau-of-labor-statistics-employment-data-march-2021/index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#orgc027ad5">Beginning</a>
+<ul>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org677c753">Imports</a></li>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org4a4c331">Some Setup</a>
+<ul>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#orgbec3ab8">A Table Printer</a></li>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org6002850">The Environment</a></li>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org57545d2">Plotting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org648b8fa">Middle</a>
+<ul>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org1e6c756">The Data</a>
+<ul>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org2dfa0e6">Employment</a></li>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org127752c">Earnings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#orgca478ae">End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc027ad5">
+<h2 id="orgc027ad5">Beginning</h2>
+<div class="outline-text-2" id="text-orgc027ad5"></div>
+<div class="outline-3" id="outline-container-org677c753">
+<h3 id="org677c753">Imports</h3>
+<div class="outline-text-3" id="text-org677c753">
+<div class="highlight">
+<pre><span></span><span class="c1"># python</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># pypi</span>
+<span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">from</span> <span class="nn">expects</span> <span class="kn">import</span> <span class="n">be_true</span><span class="p">,</span> <span class="n">expect</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+
+<span class="c1"># my stuff</span>
+<span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org4a4c331">
+<h3 id="org4a4c331">Some Setup</h3>
+<div class="outline-text-3" id="text-org4a4c331"></div>
+<div class="outline-4" id="outline-container-orgbec3ab8">
+<h4 id="orgbec3ab8">A Table Printer</h4>
+<div class="outline-text-4" id="text-orgbec3ab8">
+<div class="highlight">
+<pre><span></span><span class="n">TABLE</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org6002850">
+<h4 id="org6002850">The Environment</h4>
+<div class="outline-text-4" id="text-org6002850">
+<div class="highlight">
+<pre><span></span><span class="n">env_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"~/.env"</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">env_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">be_true</span><span class="p">)</span>
+<span class="n">load_dotenv</span><span class="p">(</span><span class="n">env_path</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org57545d2">
+<h4 id="org57545d2">Plotting</h4>
+<div class="outline-text-4" id="text-org57545d2">
+<div class="highlight">
+<pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"bureau-of-labor-statistics-employment-data-march-2021"</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"files/posts/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">Plot</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">"Plot"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"width"</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">,</span> <span class="s2">"fontscale"</span><span class="p">,</span>
+                           <span class="s2">"tan"</span><span class="p">,</span> <span class="s2">"blue"</span><span class="p">,</span>
+                           <span class="s2">"red"</span><span class="p">])</span>
+<span class="n">PLOT</span> <span class="o">=</span> <span class="n">Plot</span><span class="p">(</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">750</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">tan</span><span class="o">=</span><span class="s2">"#ddb377"</span><span class="p">,</span>
+    <span class="n">blue</span><span class="o">=</span><span class="s2">"#4687b7"</span><span class="p">,</span>
+    <span class="n">red</span><span class="o">=</span><span class="s2">"#ce7b6d"</span><span class="p">,</span>
+ <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org648b8fa">
+<h2 id="org648b8fa">Middle</h2>
+<div class="outline-text-2" id="text-org648b8fa"></div>
+<div class="outline-3" id="outline-container-org1e6c756">
+<h3 id="org1e6c756">The Data</h3>
+<div class="outline-text-3" id="text-org1e6c756">
+<p>The data comes from the <a href="https://www.bls.gov/ces/">U.S. Bureau of Labor Statistics</a> Current Employment Statistics (CES) page.</p>
+</div>
+<div class="outline-4" id="outline-container-org2dfa0e6">
+<h4 id="org2dfa0e6">Employment</h4>
+<div class="outline-text-4" id="text-org2dfa0e6">
+<p>The first set is the seasonally adjusted employment employment for all employees in the united states.</p>
+<div class="highlight">
+<pre><span></span><span class="n">employment_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"SEASONALLY_ADJUSTED_EMPLOYMENT"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">employment_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">be_true</span><span class="p">)</span>
+<span class="n">employment</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">employment_path</span><span class="p">,</span> <span class="n">delim_whitespace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">employment</span><span class="o">.</span><span class="n">shape</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Rows: </span><span class="si">{</span><span class="n">rows</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> Columns: </span><span class="si">{</span><span class="n">columns</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+Rows: 360,008 Columns: 5
+</pre>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">employment</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span> <span class="mi">2</span><span class="p">]))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">series_id</th>
+<th class="org-right" scope="col">year</th>
+<th class="org-left" scope="col">period</th>
+<th class="org-right" scope="col">value</th>
+<th class="org-right" scope="col">footnote_codes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">CES0000000001</td>
+<td class="org-right">1939</td>
+<td class="org-left">M01</td>
+<td class="org-right">29923</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-left">CES0000000001</td>
+<td class="org-right">1939</td>
+<td class="org-left">M02</td>
+<td class="org-right">30100</td>
+<td class="org-right">nan</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">employment</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">series_id</th>
+<th class="org-right" scope="col">year</th>
+<th class="org-left" scope="col">period</th>
+<th class="org-right" scope="col">value</th>
+<th class="org-left" scope="col">footnote_codes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M01</td>
+<td class="org-right">943.3</td>
+<td class="org-left">nan</td>
+</tr>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M02</td>
+<td class="org-right">945.3</td>
+<td class="org-left">P</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">employment</span><span class="o">.</span><span class="n">footnote_codes</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span>
+</pre></div>
+<pre class="example">
+P    1047
+Name: footnote_codes, dtype: int64
+</pre>
+<p>Our data set runs from january 1939 through February 2021, but looking at the values it seems they must have changed the way that they calculate it, or else there was a lot more employment in 1939. The "series" referred to in the <code>series_id</code> column is a time series. The <code>period</code> is the month and the "P" footnote code means preliminary (which seems odd given that there are 1,047).</p>
+<p>They provide some files to map the more obscure values to names so I guess I'll take advantage of that.</p>
+<div class="highlight">
+<pre><span></span><span class="n">notes_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"CES_FOOTNOTES"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">notes_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">be_true</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">notes_path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+    <span class="c1"># get rid of the header</span>
+    <span class="n">reader</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+    <span class="c1"># get the map</span>
+    <span class="n">CODE</span><span class="p">,</span> <span class="n">TEXT</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">)</span>
+    <span class="n">notes_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">line</span><span class="p">[</span><span class="n">CODE</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span> <span class="n">line</span><span class="p">[</span><span class="n">TEXT</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">}</span>
+
+<span class="n">notes_map</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"none"</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">employment</span><span class="p">[</span><span class="s2">"notes"</span><span class="p">]</span> <span class="o">=</span> <span class="n">employment</span><span class="o">.</span><span class="n">footnote_codes</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">notes_map</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">employment</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">series_id</th>
+<th class="org-right" scope="col">year</th>
+<th class="org-left" scope="col">period</th>
+<th class="org-right" scope="col">value</th>
+<th class="org-left" scope="col">footnote_codes</th>
+<th class="org-left" scope="col">notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M01</td>
+<td class="org-right">943.3</td>
+<td class="org-left">nan</td>
+<td class="org-left">none</td>
+</tr>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M02</td>
+<td class="org-right">945.3</td>
+<td class="org-left">P</td>
+<td class="org-left">preliminary</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span><span class="k">del</span><span class="p">(</span><span class="n">employment</span><span class="p">[</span><span class="s2">"footnote_codes"</span><span class="p">])</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">period_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"CES_PERIODS"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">period_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">be_true</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">period_path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+    <span class="n">reader</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+    <span class="n">PERIOD</span><span class="p">,</span> <span class="n">SHORT_MONTH</span><span class="p">,</span> <span class="n">LONG_MONTH</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">)</span>
+    <span class="n">period_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">line</span><span class="p">[</span><span class="n">PERIOD</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span> <span class="n">line</span><span class="p">[</span><span class="n">LONG_MONTH</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">}</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">employment</span><span class="p">[</span><span class="s2">"month"</span><span class="p">]</span> <span class="o">=</span> <span class="n">employment</span><span class="o">.</span><span class="n">period</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">period_map</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">employment</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">series_id</th>
+<th class="org-right" scope="col">year</th>
+<th class="org-left" scope="col">period</th>
+<th class="org-right" scope="col">value</th>
+<th class="org-left" scope="col">notes</th>
+<th class="org-left" scope="col">month</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M01</td>
+<td class="org-right">943.3</td>
+<td class="org-left">none</td>
+<td class="org-left">January</td>
+</tr>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M02</td>
+<td class="org-right">945.3</td>
+<td class="org-left">preliminary</td>
+<td class="org-left">February</td>
+</tr>
+</tbody>
+</table>
+<p>Actualy, now that I think about it I want a datetime object, not a string anyway.</p>
+<div class="highlight">
+<pre><span></span><span class="n">month_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">period</span><span class="p">:</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">period</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">period_map</span><span class="p">))}</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">month_map</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+{'M01': 1, 'M02': 2, 'M03': 3, 'M04': 4, 'M05': 5, 'M06': 6, 'M07': 7, 'M08': 8, 'M09': 9, 'M10': 10, 'M11': 11, 'M12': 12, 'M13': 13}
+</pre>
+<p>What's M13?</p>
+<p>According to the data element dictionary it means "Annual Average", but this particular data set doesn't have it.</p>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">employment</span><span class="o">.</span><span class="n">period</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+</pre></div>
+<pre class="example">
+['M01' 'M02' 'M03' 'M04' 'M05' 'M06' 'M07' 'M08' 'M09' 'M10' 'M11' 'M12']
+</pre>
+<div class="highlight">
+<pre><span></span><span class="n">APPLY_TO_ROWS</span> <span class="o">=</span> <span class="s2">"columns"</span>
+
+<span class="n">employment</span><span class="p">[</span><span class="s2">"date"</span><span class="p">]</span> <span class="o">=</span> <span class="n">employment</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">datetime</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">month_map</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">period</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">APPLY_TO_ROWS</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">employment</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">series_id</th>
+<th class="org-right" scope="col">year</th>
+<th class="org-left" scope="col">period</th>
+<th class="org-right" scope="col">value</th>
+<th class="org-left" scope="col">notes</th>
+<th class="org-left" scope="col">month</th>
+<th class="org-left" scope="col">date</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M01</td>
+<td class="org-right">943.3</td>
+<td class="org-left">none</td>
+<td class="org-left">January</td>
+<td class="org-left">2021-01-01 00:00:00</td>
+</tr>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M02</td>
+<td class="org-right">945.3</td>
+<td class="org-left">preliminary</td>
+<td class="org-left">February</td>
+<td class="org-left">2021-02-01 00:00:00</td>
+</tr>
+</tbody>
+</table>
+<p>There's a lot of data there, maybe we can start by aggregating by year.</p>
+<div class="highlight">
+<pre><span></span><span class="n">employment</span> <span class="o">=</span> <span class="n">employment</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"date"</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">yearly</span> <span class="o">=</span> <span class="n">employment</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"AS"</span><span class="p">)</span>
+<span class="n">sums</span> <span class="o">=</span> <span class="n">yearly</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">sums</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:],</span> <span class="n">showindex</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">date</th>
+<th class="org-right" scope="col">year</th>
+<th class="org-right" scope="col">value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">2020-01-01 00:00:00</td>
+<td class="org-right">2.1113e+07</td>
+<td class="org-right">1.37505e+07</td>
+</tr>
+<tr>
+<td class="org-left">2021-01-01 00:00:00</td>
+<td class="org-right">3.87628e+06</td>
+<td class="org-right">3.28994e+06</td>
+</tr>
+</tbody>
+</table>
+<p>So the year becomes nonsense, and since I'm using the seasonally adjusted the values might not make sense either, but this is just an exploration so let's see what we have.</p>
+<div class="highlight">
+<pre><span></span><span class="n">limit</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">sums</span> <span class="o">=</span> <span class="n">sums</span><span class="p">[</span><span class="n">sums</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">]</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">sums</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"value"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">blue</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">fontscale</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Seasonally Adjusted Yearly Employment Totals"</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"yearly_employment_sums"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/bureau-of-labor-statistics-employment-data-march-2021/yearly_employment_sums.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-4" id="outline-container-org127752c">
+<h4 id="org127752c">Earnings</h4>
+<div class="outline-text-4" id="text-org127752c">
+<div class="highlight">
+<pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"BLS_EARNINGS"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">be_true</span><span class="p">)</span>
+<span class="n">earnings</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">delim_whitespace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgca478ae">
+<h2 id="orgca478ae">End</h2>
+<div class="outline-text-2" id="text-orgca478ae">
+<ul class="org-ul">
+<li>Triggered by listening to a "The Indicator" episode from December 8, 2017: <a href="https://www.npr.org/2017/12/08/569461387/wheres-my-raise">Where's My Raise?</a></li>
+</ul>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="pager hidden-print">
+<li class="previous"><a href="/posts/geopandas-revisited/" rel="prev" title="Geopandas Revisited">Previous post</a></li>
+<li class="next"><a href="/posts/looking-at-portland-crime-data/" rel="next" title="Looking at Portland Crime Data">Next post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2021 <a href="mailto:necromuralist@protonmail.com">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element){var i=element.getElementsByTagName('img')[0];return i===undefined?'':i.alt;}});
+</script> 
+</body>
+</html>

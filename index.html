@@ -19,7 +19,7 @@
 </script>
 -->
 <script async src="javascript/p5.min.js" type="text/javascript"></script>
-<link href="/posts/geopandas-revisited/" rel="prefetch" type="text/html">
+<link href="/posts/geopandas-and-portland-neighborhoods/" rel="prefetch" type="text/html">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -48,6 +48,1314 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/geopandas-and-portland-neighborhoods/">GeoPandas and Portland Neighborhoods</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/geopandas-and-portland-neighborhoods/" rel="bookmark"><time class="published dt-published" datetime="2021-12-29T12:57:26-08:00" itemprop="datePublished" title="2021-12-29 12:57">2021-12-29 12:57</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#orgc5bed39">Prelude: The Lastest GeoPandas Debacle</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org28c903a">Beginning</a>
+<ul>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org82b906d">Imports</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org4decd36">Set Up</a>
+<ul>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org24c9a26">Plotting</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#orgdadf6ef">Configurations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org42af186">The Neighborhoods</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#orge057bf7">Plot</a>
+<ul>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org9717a84">Try Altair</a></li>
+</ul>
+</li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#orgf462553">Some Stuff To Check Out</a>
+<ul>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org676453f">Portland Open Data</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org57e9d07">Other Interesting Sites</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc5bed39">
+<h2 id="orgc5bed39">Prelude: The Lastest GeoPandas Debacle</h2>
+<div class="outline-text-2" id="text-orgc5bed39">
+<p>As I noted in a <a href="/posts/geopandas-revisited/">previous post</a> you can't just install <a href="https://geopandas.org/">geopandas</a> and <a href="https://geoviews.org/#">geoviews</a> you also need to install <a href="https://scitools.org.uk/cartopy/docs/v0.17/index.html">cartopy</a>, but <code>cartopy</code> <a href="https://github.com/SciTools/cartopy/issues/1879">currently requires version 8</a> of <a href="https://proj.org/">proj</a> while the stable versions of <code>debian</code> and <code>ubuntu</code> both have version 7.2. I originally tried to download the (unstable) <code>.deb</code> files and install them, but <code>libproj-dev</code> requires <code>libproj22</code> which requires a newer version of the C++ libraries than is currently in debian-stable… and at that point I decided to give up on it and run everything on <a href="https://wiki.debian.org/DebianBookworm">debian bookworm</a> (currently in testing) which has the newer versions of the stuff you need for cartopy.</p>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org28c903a">
+<h2 id="org28c903a">Beginning</h2>
+<div class="outline-text-2" id="text-org28c903a">
+<p>This is going to be a simple plot of Portland neighborhods using GeoPandas/GeoJSON. I started doing this post to get Portland Crime Data mapped to the neighborhoods, which is what they (the Portland Police Bureau) uses, but it wasn't as straightforward as I though it'd be so I'm pulling it out here to see if I can keep it simpler for future reference.</p>
+</div>
+<div class="outline-3" id="outline-container-org82b906d">
+<h3 id="org82b906d">Imports</h3>
+<div class="outline-text-3" id="text-org82b906d">
+<div class="highlight">
+<pre><span></span><span class="c1"># python</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="c1"># pypi</span>
+<span class="kn">import</span> <span class="nn">altair</span>
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+<span class="kn">import</span> <span class="nn">geopandas</span>
+<span class="kn">import</span> <span class="nn">geoviews</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+
+<span class="c1"># my stuff</span>
+<span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org4decd36">
+<h3 id="org4decd36">Set Up</h3>
+<div class="outline-text-3" id="text-org4decd36"></div>
+<div class="outline-4" id="outline-container-org24c9a26">
+<h4 id="org24c9a26">Plotting</h4>
+<div class="outline-text-4" id="text-org24c9a26">
+<div class="highlight">
+<pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"geopandas-and-portland-neighborhoods"</span>
+<span class="n">OUTPUT</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">"files/posts/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="n">OUTPUT</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-orgdadf6ef">
+<h4 id="orgdadf6ef">Configurations</h4>
+<div class="outline-text-4" id="text-orgdadf6ef">
+<p>This holds were the data files are (or their URLs).</p>
+<div class="highlight">
+<pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"configurations/data.yaml"</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+    <span class="n">configuration</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">reader</span><span class="p">)[</span><span class="s2">"portland"</span><span class="p">][</span><span class="s2">"neighborhoods"</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org42af186">
+<h2 id="org42af186">The Neighborhoods</h2>
+<div class="outline-text-2" id="text-org42af186">
+<p>Now we can load the data.</p>
+<div class="highlight">
+<pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">configuration</span><span class="p">[</span><span class="s2">"folder"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">geojson_file</span> <span class="o">=</span> <span class="n">path</span><span class="o">/</span><span class="n">configuration</span><span class="p">[</span><span class="s2">"geojson"</span><span class="p">]</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">geojson_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+    <span class="n">neighborhoods</span> <span class="o">=</span> <span class="n">geopandas</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">geojson_file</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">neighborhoods</span> <span class="o">=</span> <span class="n">geopandas</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">configuration</span><span class="p">[</span><span class="s2">"geojson-url"</span><span class="p">])</span>
+    <span class="n">neighborhoods</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="n">geojson_file</span><span class="p">,</span> <span class="n">driver</span><span class="o">=</span><span class="s2">"GeoJSON"</span><span class="p">)</span>
+</pre></div>
+<p>Since I'm going to use the names of the neighborhoods I'll rename the column that holds them to something clearer (to me).</p>
+<div class="highlight">
+<pre><span></span><span class="n">neighborhoods</span> <span class="o">=</span> <span class="n">neighborhoods</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">MAPLABEL</span><span class="o">=</span><span class="s2">"Neighborhood"</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orge057bf7">
+<h2 id="orge057bf7">Plot</h2>
+<div class="outline-text-2" id="text-orge057bf7">
+<p>Now we'll do the actual plot.</p>
+<div class="highlight">
+<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">neighborhoods</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">hover_cols</span><span class="o">=</span><span class="p">[</span><span class="s2">"Neighborhood"</span><span class="p">],</span> <span class="n">legend</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Portland Neighborhoods"</span><span class="p">,</span>
+    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s2">"hover"</span><span class="p">])</span>
+
+<span class="n">output</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"neighborhood_plot"</span><span class="p">)()</span>
+</pre></div>
+<object data="/posts/geopandas-and-portland-neighborhoods/neighborhood_plot.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+<div class="outline-3" id="outline-container-org9717a84">
+<h3 id="org9717a84">Try Altair</h3>
+<div class="outline-text-3" id="text-org9717a84">
+<p>This was taken from <a href="https://stackoverflow.com/questions/55923300/how-can-i-make-a-map-using-geojson-data-in-altair">this Stack Overflow post</a>.</p>
+<div class="highlight">
+<pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">configuration</span><span class="p">[</span><span class="s2">"geojson-url"</span><span class="p">],</span>
+                   <span class="nb">format</span><span class="o">=</span><span class="n">altair</span><span class="o">.</span><span class="n">DataFormat</span><span class="p">(</span><span class="nb">property</span><span class="o">=</span><span class="s2">"features"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">"json"</span><span class="p">))</span>
+
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">neighborhoods</span><span class="p">)</span><span class="o">.</span><span class="n">mark_geoshape</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"Neighborhood:N"</span>
+ <span class="p">)</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"identity"</span><span class="p">,</span> <span class="n">reflectY</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+     <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+     <span class="n">height</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+     <span class="n">title</span><span class="o">=</span><span class="s2">"Portland Neighborhoods (Altair)"</span><span class="p">,</span>
+ <span class="p">)</span>
+
+<span class="n">chart</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">OUTPUT</span><span class="o">/</span><span class="s2">"portland_neighborhoods_altair.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/geopandas-and-portland-neighborhoods/portland_neighborhoods_altair.html" height="600" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>Looking at <a href="https://github.com/altair-viz/altair/issues/679">this bug report</a> for altair, it appears that vega-lite doesn't support an interactive map so it seems like it'd be better to stick with GeoPandas for now.</p>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgf462553">
+<h2 id="orgf462553">Some Stuff To Check Out</h2>
+<div class="outline-text-2" id="text-orgf462553">
+<p>I ran into these while looking for the neighborhood data, maybe I'll check them out later.</p>
+</div>
+<div class="outline-3" id="outline-container-org676453f">
+<h3 id="org676453f">Portland Open Data</h3>
+<div class="outline-text-3" id="text-org676453f">
+<p>To get the boundary information, click on the Boundaries Icon and find the dataset you want in the list that comes up. Once you're on the map, to get the dataset you need to click on a little bar at the bottom-left that says "I want to use this" which will change the user-interface. Click on the "View API Resources" tab and it will bring up two URLs, one of which is a GeoJSON link.</p>
+<ul class="org-ul">
+<li><a href="https://gis-pdx.opendata.arcgis.com/">Portland Open Data</a>: has the links to different map data.</li>
+<li><a href="https://gis-pdx.opendata.arcgis.com/datasets/PDX::pbot-equity-index/about">Portland Equity Index</a>: Has census population, income, and ethnicity information.</li>
+</ul>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org57e9d07">
+<h3 id="org57e9d07">Other Interesting Sites</h3>
+<div class="outline-text-3" id="text-org57e9d07">
+<ul class="org-ul">
+<li><a href="https://guides.library.pdx.edu/c.php?g=271294&amp;p=1811001">PSU Library's Page With Links</a> to Statistical and Census Data</li>
+<li><a href="https://www.pdx.edu/population-research/census-data-oregon">PSU's Population Research Census Data</a></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/looking-at-portland-crime-data/">Looking at Portland Crime Data</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/looking-at-portland-crime-data/" rel="bookmark"><time class="published dt-published" datetime="2021-12-25T17:53:29-08:00" itemprop="datePublished" title="2021-12-25 17:53">2021-12-25 17:53</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/looking-at-portland-crime-data/#orgd727be9">Beginning</a>
+<ul>
+<li><a href="/posts/looking-at-portland-crime-data/#org284687a">Imports</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#orgc41ad0b">Set Up</a>
+<ul>
+<li><a href="/posts/looking-at-portland-crime-data/#org31c8c04">The Plot Path</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org6163e14">The Table Printer</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org200ec18">The Configuration</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org2c5e1ea">Set Up</a></li>
+</ul>
+</li>
+<li><a href="/posts/looking-at-portland-crime-data/#org1902f15">The Metadata</a></li>
+</ul>
+</li>
+<li><a href="/posts/looking-at-portland-crime-data/#org57e129c">The Data</a>
+<ul>
+<li><a href="/posts/looking-at-portland-crime-data/#org3dfcffe">Dates and Times</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org57c2326">Times</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org78d30f4">Address</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org1d03557">Case Number</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#orgffa9a9c">By Category</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org73878f6">Offense Type</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org05cdd00">Neighborhood</a></li>
+<li><a href="/posts/looking-at-portland-crime-data/#org02ea18e">By Date</a>
+<ul>
+<li><a href="/posts/looking-at-portland-crime-data/#org3b5e8dd">By Year</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/looking-at-portland-crime-data/#orgfd213e2">Sources</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgd727be9">
+<h2 id="orgd727be9">Beginning</h2>
+<div class="outline-text-2" id="text-orgd727be9"></div>
+<div class="outline-3" id="outline-container-org284687a">
+<h3 id="org284687a">Imports</h3>
+<div class="outline-text-3" id="text-org284687a">
+<div class="highlight">
+<pre><span></span><span class="c1"># python</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="c1"># pypi</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+
+<span class="kn">import</span> <span class="nn">altair</span>
+<span class="kn">import</span> <span class="nn">geopandas</span>
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+
+<span class="c1"># my stuff</span>
+<span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-orgc41ad0b">
+<h3 id="orgc41ad0b">Set Up</h3>
+<div class="outline-text-3" id="text-orgc41ad0b"></div>
+<div class="outline-4" id="outline-container-org31c8c04">
+<h4 id="org31c8c04">The Plot Path</h4>
+<div class="outline-text-4" id="text-org31c8c04">
+<ul class="org-ul">
+<li><a href="https://docs.python.org/3/library/pathlib.html">pathlib</a></li>
+<li><a href="https://docs.python.org/3/library/pathlib.html">Path.is_dir</a></li>
+<li><a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.mkdir">Path.mkdir</a></li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"looking-at-portland-crime-data"</span>
+<span class="n">PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">"files/posts/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">PATH</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+    <span class="n">PATH</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org6163e14">
+<h4 id="org6163e14">The Table Printer</h4>
+<div class="outline-text-4" id="text-org6163e14">
+<ul class="org-ul">
+<li><a href="https://pypi.org/project/tabulate/">tabulate</a></li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="n">TABLE</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">print_table</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">table</span><span class="p">))</span>
+    <span class="k">return</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org200ec18">
+<h4 id="org200ec18">The Configuration</h4>
+<div class="outline-text-4" id="text-org200ec18">
+<ul class="org-ul">
+<li><a href="https://pyyaml.org/">pyyaml</a></li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"configurations/data.yaml"</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+    <span class="n">configuration</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
+
+<span class="n">portland</span> <span class="o">=</span> <span class="n">configuration</span><span class="p">[</span><span class="s2">"portland"</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org2c5e1ea">
+<h4 id="org2c5e1ea">Set Up</h4>
+<div class="outline-text-4" id="text-org2c5e1ea">
+<div class="highlight">
+<pre><span></span><span class="n">COUNT_COLUMN</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"CaseNumber"</span><span class="p">:</span> <span class="s2">"Count"</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org1902f15">
+<h3 id="org1902f15">The Metadata</h3>
+<div class="outline-text-3" id="text-org1902f15">
+<ul class="org-ul">
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_html.html">pandas.read_html()</a></li>
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html">pandas.read_csv</a></li>
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_csv.html">pandas.to_csv</a></li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="n">metadata_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">portland</span><span class="p">[</span><span class="s2">"crime-metadata"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">metadata_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="n">portland</span><span class="p">[</span><span class="s2">"crime-metadata-url"</span><span class="p">],</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="s2">"Column Description"</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"Description"</span><span class="p">]</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">Description</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">metadata_path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">metadata_path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">print_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">Column</th>
+<th class="org-left" scope="col">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Case Number</td>
+<td class="org-left">The case year and number for the reported incident (YY-######).Sensitive cases have been randomly assigned a case number and are denoted by an X following the case year (YY-X######).</td>
+</tr>
+<tr>
+<td class="org-left">Occur Month Year</td>
+<td class="org-left">The Month and Year that the incident occured.</td>
+</tr>
+<tr>
+<td class="org-left">Occur Date</td>
+<td class="org-left">Date the incident occurred. The exact occur date is sometimes unknown. In most situations, the first possible date the crime could have occurred is used as the occur date.&nbsp;(For example, victims return home from a week-long vacation to find their home burglarized. The burglary could have occurred at any point during the week. The first date of their vacation would be listed as the occur date.)</td>
+</tr>
+<tr>
+<td class="org-left">Occur Time</td>
+<td class="org-left">Time the incident occured. The exact occur time is sometimes unknown. In most situations, the first possible time the crime could have occured is used as the occur time.The time is reported in the 24-hour clock format, with the first two digits representing hour (ranges from 00 to 23) and the second two digits representing minutes (ranges from 00 to 59).Note: By default, Microsoft Excel removes leading zeroes when importing data. For more help with this issue, refer to&nbsp;Microsoft's help page.</td>
+</tr>
+<tr>
+<td class="org-left">Address</td>
+<td class="org-left">Address of reported incident at the 100 block level (e.g.: 1111 SW 2nd Ave would be 1100 Block SW 2nd Ave).To protect the identity of victims and other privacy concerns, the address location of certain case types are not released.</td>
+</tr>
+<tr>
+<td class="org-left">Open Data X / Y</td>
+<td class="org-left">Generalized XY point of the reported incident. For offenses that occurred at a specific address, the point is mapped to the block's midpoint. Offenses that occurred at an intersection is mapped to the intersection centroid.&nbsp;To protect the identity of victims and other privacy concerns, the points of certain case types are not released.XY points use the Oregon State Plane North (3601), NAD83 HARN, US International Feet&nbsp;coordinate system.</td>
+</tr>
+<tr>
+<td class="org-left">Open Data Lat / Lon</td>
+<td class="org-left">Generalized Latitude / Longitude of the reported incident.&nbsp;For offenses that occurred at a specific address, the point is mapped to the block's midpoint. Offenses that occurred at an intersection is mapped to the intersection centroid.&nbsp;To protect the identity of victims and other privacy concerns, the points of certain case types are not released.</td>
+</tr>
+<tr>
+<td class="org-left">Neighborhood</td>
+<td class="org-left">Neighborhood where incident occurred.If the neighborhood name is missing, the incident occurred outside of the boundaries of the Portland neighborhoods or at a location that could not be assigned to a specific address in the system (e.g., Portland, near Washington Park, on the streetcar, etc.). Note: Neighborhood boundaries and designations vary slightly from those found on the Office of Community & Civic Life website.</td>
+</tr>
+<tr>
+<td class="org-left">Crime Against</td>
+<td class="org-left">Crime against category (Person, Property, or Society)</td>
+</tr>
+<tr>
+<td class="org-left">Offense Category</td>
+<td class="org-left">Category of offense (for example, Assault Offenses)</td>
+</tr>
+<tr>
+<td class="org-left">Offense Type</td>
+<td class="org-left">Type of offense (for example, Aggravated Assault)Note: The statistic for Homicide Offenses has been updated in the Group A Crimes report to align with the 2019 FBI NIBRS definitions. The statistic for Homicide Offenses includes (09A) Murder & Non-negligent Manslaughter and (09B) Negligent Manslaughter. As of January 1, 2019, the FBI expanded the definition of negligent manslaughter to include traffic fatalities that result in an arrest for driving under the influence, distracted driving, or reckless driving. The change in definition impacts the 2019 homicide offenses statistic and the comparability of 2019 homicide statistics to prior year.</td>
+</tr>
+<tr>
+<td class="org-left">Offense Count</td>
+<td class="org-left">Number of offenses&nbsp;per incident. Offenses (i.e. this field)&nbsp;are summed for counting purposes.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org57e129c">
+<h2 id="org57e129c">The Data</h2>
+<div class="outline-text-2" id="text-org57e129c">
+<ul class="org-ul">
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html">Path.expanduser</a></li>
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html">Path.glob</a></li>
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html">pandas.concat</a></li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="n">data_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">portland</span><span class="p">[</span><span class="s2">"crime"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+    <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">data_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">portland</span><span class="p">[</span><span class="s2">"crime-glob"</span><span class="p">]))</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">print_table</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-right">
+<col class="org-right">
+<col class="org-left">
+<col class="org-left">
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-right" scope="col">Address</th>
+<th class="org-right" scope="col">CaseNumber</th>
+<th class="org-left" scope="col">CrimeAgainst</th>
+<th class="org-left" scope="col">Neighborhood</th>
+<th class="org-left" scope="col">OccurDate</th>
+<th class="org-right" scope="col">OccurTime</th>
+<th class="org-left" scope="col">OffenseCategory</th>
+<th class="org-left" scope="col">OffenseType</th>
+<th class="org-right" scope="col">OpenDataLat</th>
+<th class="org-right" scope="col">OpenDataLon</th>
+<th class="org-left" scope="col">ReportDate</th>
+<th class="org-right" scope="col">OffenseCount</th>
+<th class="org-right" scope="col">OpenDataX</th>
+<th class="org-right" scope="col">OpenDataY</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">nan</td>
+<td class="org-right">21-X5543818</td>
+<td class="org-left">Person</td>
+<td class="org-left">Concordia</td>
+<td class="org-left">12/31/2020</td>
+<td class="org-right">1230</td>
+<td class="org-left">Assault Offenses</td>
+<td class="org-left">Aggravated Assault</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">1</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-right">nan</td>
+<td class="org-right">21-X5543818</td>
+<td class="org-left">Property</td>
+<td class="org-left">Concordia</td>
+<td class="org-left">12/31/2020</td>
+<td class="org-right">1230</td>
+<td class="org-left">Larceny Offenses</td>
+<td class="org-left">All Other Larceny</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">1</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-right">nan</td>
+<td class="org-right">21-X5543827</td>
+<td class="org-left">Person</td>
+<td class="org-left">Pearl</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">715</td>
+<td class="org-left">Assault Offenses</td>
+<td class="org-left">Simple Assault</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">1</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-right">nan</td>
+<td class="org-right">21-X5543859</td>
+<td class="org-left">Person</td>
+<td class="org-left">Centennial</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">2013</td>
+<td class="org-left">Assault Offenses</td>
+<td class="org-left">Aggravated Assault</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">1</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-right">nan</td>
+<td class="org-right">21-X5543864</td>
+<td class="org-left">Person</td>
+<td class="org-left">Powellhurst-Gilbert</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">816</td>
+<td class="org-left">Assault Offenses</td>
+<td class="org-left">Simple Assault</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+<td class="org-left">1/1/2021</td>
+<td class="org-right">1</td>
+<td class="org-right">nan</td>
+<td class="org-right">nan</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+390,824
+</pre></div>
+<div class="outline-3" id="outline-container-org3dfcffe">
+<h3 id="org3dfcffe">Dates and Times</h3>
+<div class="outline-text-3" id="text-org3dfcffe">
+<p>Although these columns aren't the first ones, since they might be useful when looking at the other columns I thought I'd parse them first.</p>
+<ul class="org-ul">
+<li>Python Time Formats: <a href="https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior">https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org57c2326">
+<h3 id="org57c2326">Times</h3>
+<div class="outline-text-3" id="text-org57c2326">
+<p>Our first problem is that there's a bunch of times labeled "0" which doesn't match the formatting of the rest of the times. This might represent missing data, unknown data, or 0-o'clock (midnight). The documentation doesn't really say, although it does say that when the time isn't known it uses the earliest possible time, which would seem to be midnight, so that's what I'll assume it is.</p>
+<div class="highlight">
+<pre><span></span><span class="n">TIME</span> <span class="o">=</span> <span class="s2">"%H%M"</span>
+<span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"OccurTime"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">OccurTime</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">time</span><span class="p">:</span> <span class="s2">"0000"</span> <span class="k">if</span> <span class="n">time</span><span class="o">==</span><span class="mi">0</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">time</span><span class="si">:</span><span class="s2">04</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="p">[</span><span class="s2">"Occured At"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">OccurTime</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">TIME</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">hour</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">crime_time</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"Occured At"</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">crime_time</span> <span class="o">=</span> <span class="n">crime_time</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">COUNT_COLUMN</span><span class="p">)</span>
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">crime_time</span><span class="p">[[</span><span class="s2">"Occured At"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">]])</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"Occured At"</span><span class="p">,</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"Occured At"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Time of Crime"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">chart</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"crime_time.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/crime_time.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<p>Since the times are mostly self-reported I'd assume that the spikes at midnight and noon are just convenient pegs for guessing the time.</p>
+<div class="highlight">
+<pre><span></span><span class="n">DATE</span> <span class="o">=</span> <span class="s2">"%m/</span><span class="si">%d</span><span class="s2">/%Y"</span>
+
+<span class="n">data</span><span class="p">[</span><span class="s2">"Occurred"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">OccurDate</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">DATE</span><span class="p">)</span>
+<span class="n">data</span><span class="p">[</span><span class="s2">"Reported"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">ReportDate</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">DATE</span><span class="p">)</span>
+
+<span class="n">data</span><span class="p">[</span><span class="s2">"Year Occured"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">Occurred</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span>
+<span class="n">data</span><span class="p">[</span><span class="s2">"Year Reported"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">Reported</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">crime_year</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"Year Reported"</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">crime_year</span> <span class="o">=</span> <span class="n">crime_year</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">COUNT_COLUMN</span><span class="p">)</span>
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">crime_year</span><span class="p">[[</span><span class="s2">"Year Reported"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">]])</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"Year Reported"</span><span class="p">,</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"Year Reported"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Crime by Year"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">chart</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"crime_year.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/crime_year.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-3" id="outline-container-org78d30f4">
+<h3 id="org78d30f4">Address</h3>
+<div class="outline-text-3" id="text-org78d30f4">
+<p>Not all addresses are given, some are omitted if the case is considered sensitive. I'll look at those in the next section on "Case Number", but since we're here, let's look at what type of crime, based on who the victim is, is considered too sensitive to report the address.</p>
+<p>The method to force a side-by-side bar plot came from this <a href="https://github.com/altair-viz/altair/issues/2002">github bug report</a>.</p>
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"Addressed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">Address</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span>
+<span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">"Addressed"</span><span class="p">],</span> <span class="s2">"Addressed"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Missing"</span>
+<span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">"Addressed"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"Missing"</span><span class="p">,</span> <span class="s2">"Addressed"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Has Address"</span>
+<span class="n">counts</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"Addressed"</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+<span class="n">counts</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">COUNT_COLUMN</span><span class="p">)</span>
+<span class="n">counts</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[[</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"Addressed"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">]]</span>
+<span class="n">addressed_chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+
+<span class="n">crime_against</span> <span class="o">=</span> <span class="n">addressed_chart</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">column</span><span class="o">=</span><span class="n">altair</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span>
+                         <span class="n">spacing</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                         <span class="n">header</span><span class="o">=</span><span class="n">altair</span><span class="o">.</span><span class="n">Header</span><span class="p">(</span><span class="n">labelOrient</span><span class="o">=</span><span class="s2">"bottom"</span><span class="p">)),</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">altair</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">"Addressed:N"</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="p">[</span><span class="s2">"Missing"</span><span class="p">,</span> <span class="s2">"Has Address"</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"Addressed:N"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Victim of a Crime with an Address"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">275</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">crime_against</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"addressed_crime_against.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/addressed_crime_against.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-3" id="outline-container-org1d03557">
+<h3 id="org1d03557">Case Number</h3>
+<div class="outline-text-3" id="text-org1d03557">
+<p>This is a unique identifier for each case. It doesn't seem like this would be interesting unless you wanted to look up a specific incident, but one possibly useful bit is that the case numbers are given a prefix of "X" if they are sensitive (by case number I mean just the number section - i.e. <code>&lt;year&gt;-X&lt;case number&gt;</code>), which might be useful in figuring out the reason for missing location data.</p>
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="p">[</span><span class="s2">"CaseNumber"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">CaseNumber</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">"string"</span><span class="p">)</span>
+<span class="n">data</span><span class="p">[</span><span class="s2">"Sensitive"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">CaseNumber</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">"X"</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">grouped</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"Sensitive"</span><span class="p">,</span> <span class="s2">"Year Reported"</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">COUNT_COLUMN</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">grouped</span><span class="p">[[</span><span class="s2">"Count"</span><span class="p">,</span> <span class="s2">"Sensitive"</span><span class="p">,</span> <span class="s2">"Year Reported"</span><span class="p">]])</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"Sensitive:O"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">"Year Reported:O"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"Sensitive"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">,</span> <span class="s2">"Year Reported"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Count of Sensitive Cases"</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">600</span>
+<span class="p">)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">chart</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"sensitive_case_count.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/sensitive_case_count.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-3" id="outline-container-orgffa9a9c">
+<h3 id="orgffa9a9c">By Category</h3>
+<div class="outline-text-3" id="text-orgffa9a9c">
+<div class="highlight">
+<pre><span></span><span class="n">grouped</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"OffenseCategory"</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">COUNT_COLUMN</span><span class="p">)</span>
+
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">grouped</span><span class="p">)</span>
+
+<span class="n">categories</span> <span class="o">=</span> <span class="n">chart</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"CrimeAgainst:O"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"OffenseCategory"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">,</span> <span class="s2">"OffenseCategory"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Crime Category by Victim Type"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">categories</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"category_crime_against.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/category_crime_against.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-3" id="outline-container-org73878f6">
+<h3 id="org73878f6">Offense Type</h3>
+<div class="outline-text-3" id="text-org73878f6">
+<div class="highlight">
+<pre><span></span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"OffenseCategory"</span><span class="p">,</span> <span class="s2">"OffenseType"</span><span class="p">]</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"CaseNumber"</span><span class="p">:</span> <span class="s2">"Count"</span><span class="p">})</span>
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">grouped</span><span class="p">[</span><span class="n">columns</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"Count"</span><span class="p">]])</span>
+
+<span class="n">categories</span> <span class="o">=</span> <span class="n">chart</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"OffenseCategory:O"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"OffenseType"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"Count"</span><span class="p">,</span> <span class="s2">"OffenseCategory"</span><span class="p">,</span> <span class="s2">"OffenseType"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Crime Type by Offense Category"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">categories</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"category_type_crime_against.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/category_type_crime_against.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-3" id="outline-container-org05cdd00">
+<h3 id="org05cdd00">Neighborhood</h3>
+<div class="outline-text-3" id="text-org05cdd00">
+<p><a href="https://www.usgs.gov/faqs/what-state-plane-coordinate-system-can-gps-provide-coordinates-these-values">https://www.usgs.gov/faqs/what-state-plane-coordinate-system-can-gps-provide-coordinates-these-values</a></p>
+<div class="highlight">
+<pre><span></span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"CrimeAgainst"</span><span class="p">,</span> <span class="s2">"Neighborhood"</span><span class="p">,</span> <span class="s2">"OffenseType"</span><span class="p">]</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"CaseNumber"</span><span class="p">:</span> <span class="s2">"Count"</span><span class="p">})</span>
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">grouped</span><span class="p">[</span><span class="n">columns</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"Count"</span><span class="p">]])</span>
+
+<span class="n">categories</span> <span class="o">=</span> <span class="n">chart</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"Neighborhood:O"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"OffenseType"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"Neighborhood"</span><span class="p">,</span>
+             <span class="s2">"CrimeAgainst"</span><span class="p">,</span>
+             <span class="s2">"Count"</span><span class="p">,</span>
+             <span class="s2">"OffenseType"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Crime Type by Neighborhood"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">categories</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"neighborhood_type_crime_against.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/neighborhood_type_crime_against.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<ul class="org-ul">
+<li><a href="https://geopandas.org/en/stable/docs/user_guide/io.html">GeoPandas Read File</a></li>
+</ul>
+<div class="highlight">
+<pre><span></span><span class="n">GEOJSON_URL</span> <span class="o">=</span> <span class="s2">"https://opendata.arcgis.com/datasets/1ef75e34b8504ab9b14bef0c26cade2c_3.geojson"</span>
+<span class="n">neighborhoods</span> <span class="o">=</span> <span class="n">geopandas</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">GEOJSON_URL</span><span class="p">)</span>
+
+<span class="n">background</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">neighborhoods</span><span class="p">)</span><span class="o">.</span><span class="n">mark_geoshape</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"MAPLABEL"</span><span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span><span class="o">.</span><span class="n">transform_aggregate</span><span class="p">(</span><span class="n">groupby</span><span class="o">=</span><span class="p">[</span><span class="s2">"type"</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">])</span>
+
+<span class="n">background</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"neighborhood_crime.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/neighborhood_crime.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-3" id="outline-container-org02ea18e">
+<h3 id="org02ea18e">By Date</h3>
+<div class="outline-text-3" id="text-org02ea18e">
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"when"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">OccurDate</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">when</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+</pre></div>
+<pre class="example">
+1971-01-01 00:00:00
+</pre>
+<p>What?</p>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">when</span><span class="o">==</span><span class="n">data</span><span class="o">.</span><span class="n">when</span><span class="o">.</span><span class="n">min</span><span class="p">()])</span>
+</pre></div>
+<pre class="example">
+     Address   CaseNumber CrimeAgainst Neighborhood OccurDate  OccurTime  \
+3770     NaN  20-X5515843       Person    Concordia  1/1/1971          0   
+
+     OffenseCategory OffenseType  OpenDataLat  OpenDataLon  ReportDate  \
+3770    Sex Offenses    Fondling          NaN          NaN  10/14/2020   
+
+      OffenseCount  OpenDataX  OpenDataY       when  
+3770             2        NaN        NaN 1971-01-01  
+</pre>
+<p>So, there might be some mistakes in there… or maybe some people wait a long time to report a crime?</p>
+</div>
+<div class="outline-4" id="outline-container-org3b5e8dd">
+<h4 id="org3b5e8dd">By Year</h4>
+<div class="outline-text-4" id="text-org3b5e8dd">
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"year"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">when</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">date</span><span class="p">:</span> <span class="n">date</span><span class="o">.</span><span class="n">year</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"year"</span><span class="p">,</span> <span class="s2">"OffenseType"</span><span class="p">]</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"CaseNumber"</span><span class="p">:</span> <span class="s2">"Count"</span><span class="p">})</span>
+
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">grouped</span><span class="p">[</span><span class="n">columns</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"Count"</span><span class="p">]])</span>
+
+<span class="n">categories</span> <span class="o">=</span> <span class="n">chart</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"year:N"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"OffenseType"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"year"</span><span class="p">,</span>
+             <span class="s2">"Count"</span><span class="p">,</span>
+             <span class="s2">"OffenseType"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Crime Type by Year"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">categories</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"year_type.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/year_type.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span><span class="n">monthly</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">pandas</span><span class="o">.</span><span class="n">Grouper</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">"OccurDate"</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s2">"M"</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</pre></div>
+<p>It's only supposed to go back to 2015, what's with the older rows?</p>
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"reported"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">ReportDate</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">"report_year"</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reported</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">row</span><span class="o">.</span><span class="n">year</span><span class="p">)</span>
+
+<span class="n">older</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">year</span><span class="o">&lt;</span> <span class="mi">2015</span><span class="p">]</span>
+
+<span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"report_year"</span><span class="p">,</span> <span class="s2">"year"</span><span class="p">,</span> <span class="s2">"OffenseType"</span><span class="p">]</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">older</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">grouped</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"CaseNumber"</span><span class="p">:</span> <span class="s2">"Count"</span><span class="p">})</span>
+
+<span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">grouped</span><span class="p">[</span><span class="n">columns</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"Count"</span><span class="p">]])</span>
+<span class="n">categories</span> <span class="o">=</span> <span class="n">chart</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"report_year"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"OffenseType"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">"year"</span><span class="p">,</span> <span class="s2">"report_year"</span><span class="p">,</span>
+             <span class="s2">"Count"</span><span class="p">,</span>
+             <span class="s2">"OffenseType"</span><span class="p">])</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Crime Type by Year/Reporting"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,)</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="n">categories</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="s2">"year_reported_type.html"</span><span class="p">))</span>
+</pre></div>
+<object data="/posts/looking-at-portland-crime-data/year_reported_type.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgfd213e2">
+<h2 id="orgfd213e2">Sources</h2>
+<div class="outline-text-2" id="text-orgfd213e2">
+<ul class="org-ul">
+<li><a href="https://www.portlandoregon.gov/police/71673">Portland Police Bureau's Open Data</a>: This is where you can get data from the PPB.</li>
+</ul>
+</div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/bureau-of-labor-statistics-employment-data-march-2021/">Bureau of Labor Statistics Employment Data (March 2021)</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/" rel="bookmark"><time class="published dt-published" datetime="2021-04-02T17:02:47-07:00" itemprop="datePublished" title="2021-04-02 17:02">2021-04-02 17:02</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#orgc027ad5">Beginning</a>
+<ul>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org677c753">Imports</a></li>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org4a4c331">Some Setup</a>
+<ul>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#orgbec3ab8">A Table Printer</a></li>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org6002850">The Environment</a></li>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org57545d2">Plotting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org648b8fa">Middle</a>
+<ul>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org1e6c756">The Data</a>
+<ul>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org2dfa0e6">Employment</a></li>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#org127752c">Earnings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/posts/bureau-of-labor-statistics-employment-data-march-2021/#orgca478ae">End</a></li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgc027ad5">
+<h2 id="orgc027ad5">Beginning</h2>
+<div class="outline-text-2" id="text-orgc027ad5"></div>
+<div class="outline-3" id="outline-container-org677c753">
+<h3 id="org677c753">Imports</h3>
+<div class="outline-text-3" id="text-org677c753">
+<div class="highlight">
+<pre><span></span><span class="c1"># python</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># pypi</span>
+<span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">from</span> <span class="nn">expects</span> <span class="kn">import</span> <span class="n">be_true</span><span class="p">,</span> <span class="n">expect</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+
+<span class="c1"># my stuff</span>
+<span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org4a4c331">
+<h3 id="org4a4c331">Some Setup</h3>
+<div class="outline-text-3" id="text-org4a4c331"></div>
+<div class="outline-4" id="outline-container-orgbec3ab8">
+<h4 id="orgbec3ab8">A Table Printer</h4>
+<div class="outline-text-4" id="text-orgbec3ab8">
+<div class="highlight">
+<pre><span></span><span class="n">TABLE</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org6002850">
+<h4 id="org6002850">The Environment</h4>
+<div class="outline-text-4" id="text-org6002850">
+<div class="highlight">
+<pre><span></span><span class="n">env_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"~/.env"</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">env_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">be_true</span><span class="p">)</span>
+<span class="n">load_dotenv</span><span class="p">(</span><span class="n">env_path</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-4" id="outline-container-org57545d2">
+<h4 id="org57545d2">Plotting</h4>
+<div class="outline-text-4" id="text-org57545d2">
+<div class="highlight">
+<pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"bureau-of-labor-statistics-employment-data-march-2021"</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"files/posts/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">Plot</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">"Plot"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"width"</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">,</span> <span class="s2">"fontscale"</span><span class="p">,</span>
+                           <span class="s2">"tan"</span><span class="p">,</span> <span class="s2">"blue"</span><span class="p">,</span>
+                           <span class="s2">"red"</span><span class="p">])</span>
+<span class="n">PLOT</span> <span class="o">=</span> <span class="n">Plot</span><span class="p">(</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">750</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">tan</span><span class="o">=</span><span class="s2">"#ddb377"</span><span class="p">,</span>
+    <span class="n">blue</span><span class="o">=</span><span class="s2">"#4687b7"</span><span class="p">,</span>
+    <span class="n">red</span><span class="o">=</span><span class="s2">"#ce7b6d"</span><span class="p">,</span>
+ <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org648b8fa">
+<h2 id="org648b8fa">Middle</h2>
+<div class="outline-text-2" id="text-org648b8fa"></div>
+<div class="outline-3" id="outline-container-org1e6c756">
+<h3 id="org1e6c756">The Data</h3>
+<div class="outline-text-3" id="text-org1e6c756">
+<p>The data comes from the <a href="https://www.bls.gov/ces/">U.S. Bureau of Labor Statistics</a> Current Employment Statistics (CES) page.</p>
+</div>
+<div class="outline-4" id="outline-container-org2dfa0e6">
+<h4 id="org2dfa0e6">Employment</h4>
+<div class="outline-text-4" id="text-org2dfa0e6">
+<p>The first set is the seasonally adjusted employment employment for all employees in the united states.</p>
+<div class="highlight">
+<pre><span></span><span class="n">employment_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"SEASONALLY_ADJUSTED_EMPLOYMENT"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">employment_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">be_true</span><span class="p">)</span>
+<span class="n">employment</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">employment_path</span><span class="p">,</span> <span class="n">delim_whitespace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">employment</span><span class="o">.</span><span class="n">shape</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Rows: </span><span class="si">{</span><span class="n">rows</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> Columns: </span><span class="si">{</span><span class="n">columns</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+Rows: 360,008 Columns: 5
+</pre>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">employment</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span> <span class="mi">2</span><span class="p">]))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">series_id</th>
+<th class="org-right" scope="col">year</th>
+<th class="org-left" scope="col">period</th>
+<th class="org-right" scope="col">value</th>
+<th class="org-right" scope="col">footnote_codes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">CES0000000001</td>
+<td class="org-right">1939</td>
+<td class="org-left">M01</td>
+<td class="org-right">29923</td>
+<td class="org-right">nan</td>
+</tr>
+<tr>
+<td class="org-left">CES0000000001</td>
+<td class="org-right">1939</td>
+<td class="org-left">M02</td>
+<td class="org-right">30100</td>
+<td class="org-right">nan</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">employment</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">series_id</th>
+<th class="org-right" scope="col">year</th>
+<th class="org-left" scope="col">period</th>
+<th class="org-right" scope="col">value</th>
+<th class="org-left" scope="col">footnote_codes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M01</td>
+<td class="org-right">943.3</td>
+<td class="org-left">nan</td>
+</tr>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M02</td>
+<td class="org-right">945.3</td>
+<td class="org-left">P</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">employment</span><span class="o">.</span><span class="n">footnote_codes</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span>
+</pre></div>
+<pre class="example">
+P    1047
+Name: footnote_codes, dtype: int64
+</pre>
+<p>Our data set runs from january 1939 through February 2021, but looking at the values it seems they must have changed the way that they calculate it, or else there was a lot more employment in 1939. The "series" referred to in the <code>series_id</code> column is a time series. The <code>period</code> is the month and the "P" footnote code means preliminary (which seems odd given that there are 1,047).</p>
+<p>They provide some files to map the more obscure values to names so I guess I'll take advantage of that.</p>
+<div class="highlight">
+<pre><span></span><span class="n">notes_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"CES_FOOTNOTES"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">notes_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">be_true</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">notes_path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+    <span class="c1"># get rid of the header</span>
+    <span class="n">reader</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+    <span class="c1"># get the map</span>
+    <span class="n">CODE</span><span class="p">,</span> <span class="n">TEXT</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">)</span>
+    <span class="n">notes_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">line</span><span class="p">[</span><span class="n">CODE</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span> <span class="n">line</span><span class="p">[</span><span class="n">TEXT</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">}</span>
+
+<span class="n">notes_map</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"none"</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">employment</span><span class="p">[</span><span class="s2">"notes"</span><span class="p">]</span> <span class="o">=</span> <span class="n">employment</span><span class="o">.</span><span class="n">footnote_codes</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">notes_map</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">employment</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">series_id</th>
+<th class="org-right" scope="col">year</th>
+<th class="org-left" scope="col">period</th>
+<th class="org-right" scope="col">value</th>
+<th class="org-left" scope="col">footnote_codes</th>
+<th class="org-left" scope="col">notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M01</td>
+<td class="org-right">943.3</td>
+<td class="org-left">nan</td>
+<td class="org-left">none</td>
+</tr>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M02</td>
+<td class="org-right">945.3</td>
+<td class="org-left">P</td>
+<td class="org-left">preliminary</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight">
+<pre><span></span><span class="k">del</span><span class="p">(</span><span class="n">employment</span><span class="p">[</span><span class="s2">"footnote_codes"</span><span class="p">])</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">period_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"CES_PERIODS"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">period_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">be_true</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">period_path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+    <span class="n">reader</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+    <span class="n">PERIOD</span><span class="p">,</span> <span class="n">SHORT_MONTH</span><span class="p">,</span> <span class="n">LONG_MONTH</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">)</span>
+    <span class="n">period_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">line</span><span class="p">[</span><span class="n">PERIOD</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span> <span class="n">line</span><span class="p">[</span><span class="n">LONG_MONTH</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">}</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">employment</span><span class="p">[</span><span class="s2">"month"</span><span class="p">]</span> <span class="o">=</span> <span class="n">employment</span><span class="o">.</span><span class="n">period</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">period_map</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">employment</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">series_id</th>
+<th class="org-right" scope="col">year</th>
+<th class="org-left" scope="col">period</th>
+<th class="org-right" scope="col">value</th>
+<th class="org-left" scope="col">notes</th>
+<th class="org-left" scope="col">month</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M01</td>
+<td class="org-right">943.3</td>
+<td class="org-left">none</td>
+<td class="org-left">January</td>
+</tr>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M02</td>
+<td class="org-right">945.3</td>
+<td class="org-left">preliminary</td>
+<td class="org-left">February</td>
+</tr>
+</tbody>
+</table>
+<p>Actualy, now that I think about it I want a datetime object, not a string anyway.</p>
+<div class="highlight">
+<pre><span></span><span class="n">month_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">period</span><span class="p">:</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">period</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">period_map</span><span class="p">))}</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">month_map</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+{'M01': 1, 'M02': 2, 'M03': 3, 'M04': 4, 'M05': 5, 'M06': 6, 'M07': 7, 'M08': 8, 'M09': 9, 'M10': 10, 'M11': 11, 'M12': 12, 'M13': 13}
+</pre>
+<p>What's M13?</p>
+<p>According to the data element dictionary it means "Annual Average", but this particular data set doesn't have it.</p>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">employment</span><span class="o">.</span><span class="n">period</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+</pre></div>
+<pre class="example">
+['M01' 'M02' 'M03' 'M04' 'M05' 'M06' 'M07' 'M08' 'M09' 'M10' 'M11' 'M12']
+</pre>
+<div class="highlight">
+<pre><span></span><span class="n">APPLY_TO_ROWS</span> <span class="o">=</span> <span class="s2">"columns"</span>
+
+<span class="n">employment</span><span class="p">[</span><span class="s2">"date"</span><span class="p">]</span> <span class="o">=</span> <span class="n">employment</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">datetime</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">month_map</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">period</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">APPLY_TO_ROWS</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">employment</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-right">
+<col class="org-left">
+<col class="org-left">
+<col class="org-left"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">series_id</th>
+<th class="org-right" scope="col">year</th>
+<th class="org-left" scope="col">period</th>
+<th class="org-right" scope="col">value</th>
+<th class="org-left" scope="col">notes</th>
+<th class="org-left" scope="col">month</th>
+<th class="org-left" scope="col">date</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M01</td>
+<td class="org-right">943.3</td>
+<td class="org-left">none</td>
+<td class="org-left">January</td>
+<td class="org-left">2021-01-01 00:00:00</td>
+</tr>
+<tr>
+<td class="org-left">CES9093299901</td>
+<td class="org-right">2021</td>
+<td class="org-left">M02</td>
+<td class="org-right">945.3</td>
+<td class="org-left">preliminary</td>
+<td class="org-left">February</td>
+<td class="org-left">2021-02-01 00:00:00</td>
+</tr>
+</tbody>
+</table>
+<p>There's a lot of data there, maybe we can start by aggregating by year.</p>
+<div class="highlight">
+<pre><span></span><span class="n">employment</span> <span class="o">=</span> <span class="n">employment</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"date"</span><span class="p">)</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">yearly</span> <span class="o">=</span> <span class="n">employment</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">"AS"</span><span class="p">)</span>
+<span class="n">sums</span> <span class="o">=</span> <span class="n">yearly</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">TABLE</span><span class="p">(</span><span class="n">sums</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:],</span> <span class="n">showindex</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-left">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-left" scope="col">date</th>
+<th class="org-right" scope="col">year</th>
+<th class="org-right" scope="col">value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">2020-01-01 00:00:00</td>
+<td class="org-right">2.1113e+07</td>
+<td class="org-right">1.37505e+07</td>
+</tr>
+<tr>
+<td class="org-left">2021-01-01 00:00:00</td>
+<td class="org-right">3.87628e+06</td>
+<td class="org-right">3.28994e+06</td>
+</tr>
+</tbody>
+</table>
+<p>So the year becomes nonsense, and since I'm using the seasonally adjusted the values might not make sense either, but this is just an exploration so let's see what we have.</p>
+<div class="highlight">
+<pre><span></span><span class="n">limit</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">sums</span> <span class="o">=</span> <span class="n">sums</span><span class="p">[</span><span class="n">sums</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">]</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">sums</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"value"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">blue</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">fontscale</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Seasonally Adjusted Yearly Employment Totals"</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"yearly_employment_sums"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/bureau-of-labor-statistics-employment-data-march-2021/yearly_employment_sums.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-4" id="outline-container-org127752c">
+<h4 id="org127752c">Earnings</h4>
+<div class="outline-text-4" id="text-org127752c">
+<div class="highlight">
+<pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"BLS_EARNINGS"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">be_true</span><span class="p">)</span>
+<span class="n">earnings</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">delim_whitespace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgca478ae">
+<h2 id="orgca478ae">End</h2>
+<div class="outline-text-2" id="text-orgca478ae">
+<ul class="org-ul">
+<li>Triggered by listening to a "The Indicator" episode from December 8, 2017: <a href="https://www.npr.org/2017/12/08/569461387/wheres-my-raise">Where's My Raise?</a></li>
+</ul>
+</div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/geopandas-revisited/">Geopandas Revisited</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
@@ -59,58 +1367,60 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/geopandas-revisited/#org737f14f">Beginning</a>
+<li><a href="/posts/geopandas-revisited/#org52ec96b">Beginning</a>
 <ul>
-<li><a href="/posts/geopandas-revisited/#org360d1db">Dependencies</a></li>
-<li><a href="/posts/geopandas-revisited/#orgf814388">Imports</a></li>
-<li><a href="/posts/geopandas-revisited/#orge2c48cb">Set Up</a></li>
+<li><a href="/posts/geopandas-revisited/#orgb6ef575">Dependencies</a></li>
+<li><a href="/posts/geopandas-revisited/#org365439e">Imports</a></li>
+<li><a href="/posts/geopandas-revisited/#org3af170e">Set Up</a></li>
 </ul>
 </li>
-<li><a href="/posts/geopandas-revisited/#orga76e9b0">Middle</a>
+<li><a href="/posts/geopandas-revisited/#orgb79df7c">Middle</a>
 <ul>
-<li><a href="/posts/geopandas-revisited/#org3cd7d71">Loading the Data</a></li>
-<li><a href="/posts/geopandas-revisited/#orgb456248">Maybe Just Portland</a></li>
-<li><a href="/posts/geopandas-revisited/#orge9d4f22">What About All of Oregon</a></li>
-<li><a href="/posts/geopandas-revisited/#org628a0f0">Portland Again</a></li>
+<li><a href="/posts/geopandas-revisited/#org93518e8">Loading the Data</a></li>
+<li><a href="/posts/geopandas-revisited/#org91e10da">Maybe Just Portland</a></li>
+<li><a href="/posts/geopandas-revisited/#orgda90346">What About All of Oregon</a></li>
+<li><a href="/posts/geopandas-revisited/#org48ff7a8">Portland Again</a></li>
 </ul>
 </li>
-<li><a href="/posts/geopandas-revisited/#org33c0625">End</a>
+<li><a href="/posts/geopandas-revisited/#org840dc61">End</a>
 <ul>
-<li><a href="/posts/geopandas-revisited/#orgad00c84">Source</a></li>
+<li><a href="/posts/geopandas-revisited/#org7dfb26d">Source</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org737f14f">
-<h2 id="org737f14f">Beginning</h2>
-<div class="outline-text-2" id="text-org737f14f">
+<div class="outline-2" id="outline-container-org52ec96b">
+<h2 id="org52ec96b">Beginning</h2>
+<div class="outline-text-2" id="text-org52ec96b">
 <p>This is a look at the U.S. Census zip-code mapping data.</p>
 </div>
-<div class="outline-3" id="outline-container-org360d1db">
-<h3 id="org360d1db">Dependencies</h3>
-<div class="outline-text-3" id="text-org360d1db">
+<div class="outline-3" id="outline-container-orgb6ef575">
+<h3 id="orgb6ef575">Dependencies</h3>
+<div class="outline-text-3" id="text-orgb6ef575">
 <p>Besides <a href="https://geopandas.org/">geopandas</a> this also requires <a href="https://geoviews.org/#">geoviews</a> which in turn requires <a href="https://scitools.org.uk/cartopy/docs/v0.17/index.html">cartopy</a> but if you use pypi you have to install <a href="https://proj.org/">proj</a> first. You also need the python header files (so with debian it's <code>sudo apt install python3-dev</code>, note that <code>python-dev</code> will install the python-2 headers for some reason)… Oy.</p>
 <p>Take two.</p>
-<pre class="example" id="orgc726f7f">
+<pre class="example">
 sudo apt install python3-dev
 sudo apt install proj-bin
 sudo apt install libgeos-dev
 sudo apt install libproj-dev
 </pre>
 <p>I'm not 100% sure about <code>proj-bin</code>, but, the rest are needed to build cartopy.</p>
-<pre class="example" id="org954e865">
+<p><b>Note:</b> I tested it without <code>proj-bin</code> and the <code>cartopy</code> installation fails. Also, as of December 29, 2021 cartopy requires a newer version of <code>proj</code> than is in the stable releases for ubuntu and debian.</p>
+<pre class="example">
 pip install cartopy
 pip install geopandas
 pip install geoviews
 </pre>
 <p>The apt stuff has to come before the pip installs, but the actual ordering within each set doesn't matter. You can install geopandas by itself, it will just complain that geoviews isn't installed.</p>
+<p><b>Another Note:</b> Geoviews will install cartopy so you don't need to install it separately (and maybe you shouldn't since this will keep the versions matched).</p>
 <p>Additionally, because I'm the plot file is so huge I'm using <a href="https://datashader.org/index.html">datashader</a> (which I don't recall explicitly installing, I think holoviews pulled it in) we'll also need <a href="https://github.com/holoviz/spatialpandas">Spatial Pandas</a>. Hokey smokes.</p>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgf814388">
-<h3 id="orgf814388">Imports</h3>
-<div class="outline-text-3" id="text-orgf814388">
+<div class="outline-3" id="outline-container-org365439e">
+<h3 id="org365439e">Imports</h3>
+<div class="outline-text-3" id="text-org365439e">
 <div class="highlight">
 <pre><span></span><span class="c1"># python</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
@@ -135,9 +1445,9 @@ pip install geoviews
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orge2c48cb">
-<h3 id="orge2c48cb">Set Up</h3>
-<div class="outline-text-3" id="text-orge2c48cb">
+<div class="outline-3" id="outline-container-org3af170e">
+<h3 id="org3af170e">Set Up</h3>
+<div class="outline-text-3" id="text-org3af170e">
 <div class="highlight">
 <pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">"posts/.env"</span><span class="p">)</span>
 <span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"geopandas-revisited"</span>
@@ -146,12 +1456,12 @@ pip install geoviews
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orga76e9b0">
-<h2 id="orga76e9b0">Middle</h2>
-<div class="outline-text-2" id="text-orga76e9b0"></div>
-<div class="outline-3" id="outline-container-org3cd7d71">
-<h3 id="org3cd7d71">Loading the Data</h3>
-<div class="outline-text-3" id="text-org3cd7d71">
+<div class="outline-2" id="outline-container-orgb79df7c">
+<h2 id="orgb79df7c">Middle</h2>
+<div class="outline-text-2" id="text-orgb79df7c"></div>
+<div class="outline-3" id="outline-container-org93518e8">
+<h3 id="org93518e8">Loading the Data</h3>
+<div class="outline-text-3" id="text-org93518e8">
 <div class="highlight">
 <pre><span></span><span class="n">data_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"US_ZIP_CODE_SHAPEFILE"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
 <span class="n">frame</span> <span class="o">=</span> <span class="n">geopandas</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
@@ -167,7 +1477,7 @@ epsg:4269
 <div class="highlight">
 <pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </pre></div>
-<pre class="example" id="org37556c8">
+<pre class="example">
   ZCTA5CE10 GEOID10 CLASSFP10 MTFCC10 FUNCSTAT10    ALAND10  AWATER10  \
 0     43451   43451        B5   G6350          S   63484189    157689   
 1     43452   43452        B5   G6350          S  121525288  13721740   
@@ -204,7 +1514,7 @@ epsg:4269
 <span class="n">outcome</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"us_zip_codes"</span><span class="p">)()</span>
 </pre></div>
 <p>Well, after all that there seems to be a bug in there somewhere. Datashader is doing something with numpy that raises an exception.</p>
-<pre class="example" id="org06e1273">
+<pre class="example">
 /usr/local/lib/python3.8/dist-packages/numpy/core/numerictypes.py in issubdtype(arg1, arg2)
     386     """
     387     if not issubclass_(arg1, generic):
@@ -215,9 +1525,9 @@ epsg:4269
 TypeError: Cannot interpret 'MultiPolygonDtype(float64)' as a data type
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-orgb456248">
-<h3 id="orgb456248">Maybe Just Portland</h3>
-<div class="outline-text-3" id="text-orgb456248">
+<div class="outline-3" id="outline-container-org91e10da">
+<h3 id="org91e10da">Maybe Just Portland</h3>
+<div class="outline-text-3" id="text-org91e10da">
 <p>There's a site called <a href="https://www.zipdatamaps.com/index.php">zipdatamaps</a> that has listings of zip codes (among other things) which I'll use to get the zip codes for Portland, Oregon. I'm going to use pandas' <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_html.html">read_html</a> function which also requires you to install <a href="https://lxml.de/">lxml</a>.</p>
 <p>According to the pandas documentation you can't use https, but that seems to give me a 403 (Forbidden) error so I'll pull the HTML with requests first instead of having pandas pull it directly. The table also has a title above the column headers so we have to skip the first row to avoid a MultiIndex (or fix it later).</p>
 <div class="highlight">
@@ -256,7 +1566,7 @@ TypeError: Cannot interpret 'MultiPolygonDtype(float64)' as a data type
 <span class="n">zips</span> <span class="o">=</span> <span class="n">zips</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">first_row</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">),</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">zips</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </pre></div>
-<pre class="example" id="org5acc188">
+<pre class="example">
   ZIP Code ZIP Code Name  Population        Type
 0    97035   Lake Oswego       23912  Non-Unique
 1    97080       Gresham       40888  Non-Unique
@@ -302,9 +1612,9 @@ TypeError: Cannot interpret 'MultiPolygonDtype(float64)' as a data type
 <p>Figure Missing</p>
 </object></div>
 </div>
-<div class="outline-3" id="outline-container-orge9d4f22">
-<h3 id="orge9d4f22">What About All of Oregon</h3>
-<div class="outline-text-3" id="text-orge9d4f22">
+<div class="outline-3" id="outline-container-orgda90346">
+<h3 id="orgda90346">What About All of Oregon</h3>
+<div class="outline-text-3" id="text-orgda90346">
 <div class="highlight">
 <pre><span></span><span class="n">URL</span> <span class="o">=</span> <span class="s2">"https://www.zip-codes.com/state/or.asp"</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL</span><span class="p">)</span>
@@ -324,7 +1634,7 @@ TypeError: Cannot interpret 'MultiPolygonDtype(float64)' as a data type
 <span class="n">oregon</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">ZIPS_COLUMN</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">oregon</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </pre></div>
-<pre class="example" id="org77a53f1">
+<pre class="example">
 ZIP Code                                                  97824
 GEOID10                                                   97824
 CLASSFP10                                                    B5
@@ -352,14 +1662,14 @@ Name: 0, dtype: object
 <span class="n">plot</span> <span class="o">=</span> <span class="n">oregon</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axe</span><span class="p">)</span>
 <span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"images/oregon_zip_codes.png"</span><span class="p">)</span>
 </pre></div>
-<div class="figure" id="org40ed130">
+<div class="figure">
 <p><a alt="Oregon Zip Codes" class="reference" href="/images/oregon_zip_codes.webp"><img alt="Oregon Zip Codes" class="reference" src="/images/oregon_zip_codes.thumbnail.png"></a></p>
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org628a0f0">
-<h3 id="org628a0f0">Portland Again</h3>
-<div class="outline-text-3" id="text-org628a0f0">
+<div class="outline-3" id="outline-container-org48ff7a8">
+<h3 id="org48ff7a8">Portland Again</h3>
+<div class="outline-text-3" id="text-org48ff7a8">
 <div class="highlight">
 <pre><span></span><span class="n">counties</span> <span class="o">=</span> <span class="s2">"Clackamas|Multnomah|Washington"</span>
 <span class="n">portland</span> <span class="o">=</span> <span class="n">oregon</span><span class="p">[[</span><span class="n">ZIPS_COLUMN</span><span class="p">,</span> <span class="s2">"City"</span><span class="p">,</span> <span class="s2">"County"</span><span class="p">]]</span>
@@ -392,14 +1702,14 @@ Name: 0, dtype: object
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org33c0625">
-<h2 id="org33c0625">End</h2>
-<div class="outline-text-2" id="text-org33c0625">
+<div class="outline-2" id="outline-container-org840dc61">
+<h2 id="org840dc61">End</h2>
+<div class="outline-text-2" id="text-org840dc61">
 <p>Well, that was a little harder than I thought it would be. The main thing to remember, I suppose, is that the maps quickly grow too big for holoviews, so if you want to do an overview it's better to do it in matplotlib and save the interactivity for a smaller section.</p>
 </div>
-<div class="outline-3" id="outline-container-orgad00c84">
-<h3 id="orgad00c84">Source</h3>
-<div class="outline-text-3" id="text-orgad00c84">
+<div class="outline-3" id="outline-container-org7dfb26d">
+<h3 id="org7dfb26d">Source</h3>
+<div class="outline-text-3" id="text-org7dfb26d">
 <ul class="org-ul">
 <li>TIGER/Line Shapefiles [Internet]. [cited 2021 Mar 7]. Available from: <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html">https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html</a></li>
 <li>Listing of all Zip Codes in the state of Oregon [Internet]. [cited 2021 Mar 7]. Available from: <a href="https://www.zip-codes.com/state/or.asp">https://www.zip-codes.com/state/or.asp</a></li>
@@ -419,9 +1729,9 @@ Name: 0, dtype: object
 </div>
 </header>
 <div class="e-content entry-content">
-<div class="outline-2" id="outline-container-org662de61">
-<h2 id="org662de61">Cite</h2>
-<div class="outline-text-2" id="text-org662de61">
+<div class="outline-2" id="outline-container-org5213a6e">
+<h2 id="org5213a6e">Cite</h2>
+<div class="outline-text-2" id="text-org5213a6e">
 <ul class="org-ul">
 <li>1. Diez DM, Barr CD, Çetinkaya-Rundel M. OpenIntro statistics. 2012.</li>
 </ul>
@@ -442,32 +1752,32 @@ Name: 0, dtype: object
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/t-confidence-intervals/#orgb71d812">Imports</a></li>
-<li><a href="/posts/t-confidence-intervals/#org78fb3d4">Whale Mercury</a>
+<li><a href="/posts/t-confidence-intervals/#orgb2a5183">Imports</a></li>
+<li><a href="/posts/t-confidence-intervals/#org66b1161">Whale Mercury</a>
 <ul>
-<li><a href="/posts/t-confidence-intervals/#org926bd20">Beginning</a>
+<li><a href="/posts/t-confidence-intervals/#orgb0b099d">Beginning</a>
 <ul>
-<li><a href="/posts/t-confidence-intervals/#orgae22b01">Checking the Skew</a></li>
+<li><a href="/posts/t-confidence-intervals/#org33d1326">Checking the Skew</a></li>
 </ul>
 </li>
-<li><a href="/posts/t-confidence-intervals/#org239e74a">Middle</a>
+<li><a href="/posts/t-confidence-intervals/#org3c483d8">Middle</a>
 <ul>
-<li><a href="/posts/t-confidence-intervals/#org2e90006">Standard Error</a></li>
-<li><a href="/posts/t-confidence-intervals/#org1319d13">t Star</a></li>
-<li><a href="/posts/t-confidence-intervals/#orgb2d7dcb">Margin Of Error</a></li>
-<li><a href="/posts/t-confidence-intervals/#org6bf7080">The Confidence Interval</a></li>
+<li><a href="/posts/t-confidence-intervals/#org8d78626">Standard Error</a></li>
+<li><a href="/posts/t-confidence-intervals/#org9a58aa5">t Star</a></li>
+<li><a href="/posts/t-confidence-intervals/#org0b334b1">Margin Of Error</a></li>
+<li><a href="/posts/t-confidence-intervals/#org9b2f92b">The Confidence Interval</a></li>
 </ul>
 </li>
-<li><a href="/posts/t-confidence-intervals/#orgeca9e12">End</a></li>
+<li><a href="/posts/t-confidence-intervals/#org7e6de24">End</a></li>
 </ul>
 </li>
-<li><a href="/posts/t-confidence-intervals/#org1a17677">Sources</a></li>
+<li><a href="/posts/t-confidence-intervals/#org6cd9b68">Sources</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgb71d812">
-<h2 id="orgb71d812">Imports</h2>
-<div class="outline-text-2" id="text-orgb71d812">
+<div class="outline-2" id="outline-container-orgb2a5183">
+<h2 id="orgb2a5183">Imports</h2>
+<div class="outline-text-2" id="text-orgb2a5183">
 <div class="highlight">
 <pre><span></span><span class="c1"># from python</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
@@ -478,12 +1788,12 @@ Name: 0, dtype: object
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org78fb3d4">
-<h2 id="org78fb3d4">Whale Mercury</h2>
-<div class="outline-text-2" id="text-org78fb3d4"></div>
-<div class="outline-3" id="outline-container-org926bd20">
-<h3 id="org926bd20">Beginning</h3>
-<div class="outline-text-3" id="text-org926bd20">
+<div class="outline-2" id="outline-container-org66b1161">
+<h2 id="org66b1161">Whale Mercury</h2>
+<div class="outline-text-2" id="text-org66b1161"></div>
+<div class="outline-3" id="outline-container-orgb0b099d">
+<h3 id="orgb0b099d">Beginning</h3>
+<div class="outline-text-3" id="text-orgb0b099d">
 <table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
 <colgroup>
 <col class="org-right">
@@ -525,9 +1835,9 @@ Name: 0, dtype: object
                       <span class="n">maximum</span><span class="o">=</span><span class="mf">9.2</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-orgae22b01">
-<h4 id="orgae22b01">Checking the Skew</h4>
-<div class="outline-text-4" id="text-orgae22b01">
+<div class="outline-4" id="outline-container-org33d1326">
+<h4 id="org33d1326">Checking the Skew</h4>
+<div class="outline-text-4" id="text-org33d1326">
 <div class="highlight">
 <pre><span></span><span class="n">scalar</span> <span class="o">=</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">WHALES</span><span class="o">.</span><span class="n">standard_deviation</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">WHALES</span><span class="o">.</span><span class="n">mean</span> <span class="o">-</span> <span class="n">scalar</span><span class="si">:</span><span class="s2"> 0.2f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">WHALES</span><span class="o">.</span><span class="n">mean</span> <span class="o">+</span> <span class="n">scalar</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
@@ -539,14 +1849,14 @@ Name: 0, dtype: object
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org239e74a">
-<h3 id="org239e74a">Middle</h3>
-<div class="outline-text-3" id="text-org239e74a">
+<div class="outline-3" id="outline-container-org3c483d8">
+<h3 id="org3c483d8">Middle</h3>
+<div class="outline-text-3" id="text-org3c483d8">
 <p>\[ \textrm{Confidence Interval} = \overline{x} \pm t^*_{df} SE \]</p>
 </div>
-<div class="outline-4" id="outline-container-org2e90006">
-<h4 id="org2e90006">Standard Error</h4>
-<div class="outline-text-4" id="text-org2e90006">
+<div class="outline-4" id="outline-container-org8d78626">
+<h4 id="org8d78626">Standard Error</h4>
+<div class="outline-text-4" id="text-org8d78626">
 <p>\[ SE = \frac{s}{\sqrt{n}} \]</p>
 <div class="highlight">
 <pre><span></span><span class="n">standard_error</span> <span class="o">=</span> <span class="n">WHALES</span><span class="o">.</span><span class="n">standard_deviation</span><span class="o">/</span><span class="n">sqrt</span><span class="p">(</span><span class="n">WHALES</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
@@ -556,9 +1866,9 @@ Name: 0, dtype: object
 Standard Error:  0.53
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org1319d13">
-<h4 id="org1319d13">t Star</h4>
-<div class="outline-text-4" id="text-org1319d13">
+<div class="outline-4" id="outline-container-org9a58aa5">
+<h4 id="org9a58aa5">t Star</h4>
+<div class="outline-text-4" id="text-org9a58aa5">
 <p>To get the \(t^*_{18}\) value we can use the <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.t.html">scipy t</a> module which has a <code>ppf</code> (percent point function) that will get it for us. We're going to calculate the 95 % confidence error so we would need to pass in <i>1 - 0.95</i> (because we want the area in the tail), but the function actually gives you the one-tailed value so we need to divide this value by two \(\frac{1 - 0.95}{2}\) to get the two-tailed value.</p>
 <div class="highlight">
 <pre><span></span><span class="n">confidence</span> <span class="o">=</span> <span class="mf">0.95</span>
@@ -572,9 +1882,9 @@ Standard Error:  0.53
 t: 2.101
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-orgb2d7dcb">
-<h4 id="orgb2d7dcb">Margin Of Error</h4>
-<div class="outline-text-4" id="text-orgb2d7dcb">
+<div class="outline-4" id="outline-container-org0b334b1">
+<h4 id="org0b334b1">Margin Of Error</h4>
+<div class="outline-text-4" id="text-org0b334b1">
 <p>\[ \textrm{Margin of Error} = t^*_{18} SE \]</p>
 <div class="highlight">
 <pre><span></span><span class="n">margin_of_error</span> <span class="o">=</span> <span class="n">t_star_18</span> <span class="o">*</span> <span class="n">standard_error</span>
@@ -584,9 +1894,9 @@ t: 2.101
 Margin of Error:  1.11
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org6bf7080">
-<h4 id="org6bf7080">The Confidence Interval</h4>
-<div class="outline-text-4" id="text-org6bf7080">
+<div class="outline-4" id="outline-container-org9b2f92b">
+<h4 id="org9b2f92b">The Confidence Interval</h4>
+<div class="outline-text-4" id="text-org9b2f92b">
 <div class="highlight">
 <pre><span></span><span class="n">lower</span> <span class="o">=</span> <span class="n">WHALES</span><span class="o">.</span><span class="n">mean</span> <span class="o">-</span> <span class="n">margin_of_error</span>
 <span class="n">upper</span> <span class="o">=</span> <span class="n">WHALES</span><span class="o">.</span><span class="n">mean</span> <span class="o">+</span> <span class="n">margin_of_error</span>
@@ -600,17 +1910,17 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-orgeca9e12">
-<h3 id="orgeca9e12">End</h3>
-<div class="outline-text-3" id="text-orgeca9e12">
+<div class="outline-3" id="outline-container-org7e6de24">
+<h3 id="org7e6de24">End</h3>
+<div class="outline-text-3" id="text-org7e6de24">
 <p>We can say with 91% confidence that the mean Methyl-Mercury levels for Pilot Whale red meat in Taiji is within 3.291 and 5.509 \(\frac{\mu g}{\textrm{wet g}}\) (the FDA suggested limit is \(1.0 \frac{\mu g}{\textit{wet g}}\).</p>
 <p>There's a couple of things to note. One is that although the original paper is behind a paywall so I can't read it, the abstract is available through <a href="https://www.researchgate.net/publication/40833219_High_mercury_levels_in_hair_samples_from_residents_of_Taiji_a_Japanese_whaling_town">Research Gate</a> (and Elsevier) and in it the mean is given as 5.9, not 4.4. In addition, the book that I got the values from (OpenIntro Statistics) had the wrong values <i>(3.87, 4.93)</i> when they calculated the confidence interval, so I don't know how accurate the starting numbers are. Also, if you poke around the web there are other researchers who've found that there is a lot of variation in mercury levels found by different researchers.</p>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org1a17677">
-<h2 id="org1a17677">Sources</h2>
-<div class="outline-text-2" id="text-org1a17677">
+<div class="outline-2" id="outline-container-org6cd9b68">
+<h2 id="org6cd9b68">Sources</h2>
+<div class="outline-text-2" id="text-org6cd9b68">
 <ul class="org-ul">
 <li><a href="/posts/openintro-statistics/">OpenIntro Statistics</a></li>
 <li>Endo T, Haraguchi K. High mercury levels in hair samples from residents of Taiji, a Japanese whaling town. Marine Pollution Bulletin. 2010 May 1;60(5):743-7.</li>
@@ -632,34 +1942,34 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/galton-pearson-and-the-peas/#org4d13360">Abstract Summary</a></li>
-<li><a href="/posts/galton-pearson-and-the-peas/#org0ae4369">Bullets</a></li>
-<li><a href="/posts/galton-pearson-and-the-peas/#org8a279ce">The Sweet Peas</a></li>
-<li><a href="/posts/galton-pearson-and-the-peas/#orgf726c8f">Galton and Correlation</a></li>
-<li><a href="/posts/galton-pearson-and-the-peas/#org2c46971">Other Stuff</a></li>
-<li><a href="/posts/galton-pearson-and-the-peas/#orge0a0d7e">So, what again?</a></li>
-<li><a href="/posts/galton-pearson-and-the-peas/#orgd485329">Source</a></li>
+<li><a href="/posts/galton-pearson-and-the-peas/#org2e8e5f7">Abstract Summary</a></li>
+<li><a href="/posts/galton-pearson-and-the-peas/#org37334f1">Bullets</a></li>
+<li><a href="/posts/galton-pearson-and-the-peas/#org4dfb983">The Sweet Peas</a></li>
+<li><a href="/posts/galton-pearson-and-the-peas/#orge80c4bc">Galton and Correlation</a></li>
+<li><a href="/posts/galton-pearson-and-the-peas/#orgd343483">Other Stuff</a></li>
+<li><a href="/posts/galton-pearson-and-the-peas/#org26ca136">So, what again?</a></li>
+<li><a href="/posts/galton-pearson-and-the-peas/#orgd71914d">Source</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org4d13360">
-<h2 id="org4d13360">Abstract Summary</h2>
-<div class="outline-text-2" id="text-org4d13360">
+<div class="outline-2" id="outline-container-org2e8e5f7">
+<h2 id="org2e8e5f7">Abstract Summary</h2>
+<div class="outline-text-2" id="text-org2e8e5f7">
 <p>Most textbooks explain correlation before linear regression, but the publications of <a href="https://en.wikipedia.org/wiki/Francis_Galton">Francis Galton</a> and <a href="https://en.wikipedia.org/wiki/Karl_Pearson">Karl Pearson</a> indicate that Galton's work studying the inheritance of <a href="https://en.wikipedia.org/wiki/Sweet_pea">sweet pea</a> characteristics lead to his initial concept of linear regression first and the development of correlation and multiple regression came from later work by Galton and Pearson. So this paper gives a history of how Galton came up with linear regression which instructors can use to introduce linear regression.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org0ae4369">
-<h2 id="org0ae4369">Bullets</h2>
-<div class="outline-text-2" id="text-org0ae4369">
+<div class="outline-2" id="outline-container-org37334f1">
+<h2 id="org37334f1">Bullets</h2>
+<div class="outline-text-2" id="text-org37334f1">
 <ul class="org-ul">
 <li>Galton came up with the concepts of linear regression and correlation (he wasn't the first, but this is about Galton and Pearson's discoveries) but Pearson developed it mathematically so it is commonly known as the <a href="https://en.wikipedia.org/wiki/Pearson_correlation_coefficient">Pearson Correlation Coefficient</a> (or some variant of that), leading many students to think that Pearson came up with it (see also <a href="https://en.wikipedia.org/wiki/Auguste_Bravais">Auguste Bravais</a>).</li>
 <li>Galton's Question: How much influence does a generation have on the characteristics of the next?</li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org8a279ce">
-<h2 id="org8a279ce">The Sweet Peas</h2>
-<div class="outline-text-2" id="text-org8a279ce">
+<div class="outline-2" id="outline-container-org4dfb983">
+<h2 id="org4dfb983">The Sweet Peas</h2>
+<div class="outline-text-2" id="text-org4dfb983">
 <ul class="org-ul">
 <li>1875: Galton gave seven friends 700 sweet pea seeds. The friends planted the seeds, harvested the peas, and returned them to Galton.</li>
 <li>Galton chose sweet peas because they can self-fertilize so he didn't have to deal with the influence of two parents.</li>
@@ -673,9 +1983,9 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgf726c8f">
-<h2 id="orgf726c8f">Galton and Correlation</h2>
-<div class="outline-text-2" id="text-orgf726c8f">
+<div class="outline-2" id="outline-container-orge80c4bc">
+<h2 id="orge80c4bc">Galton and Correlation</h2>
+<div class="outline-text-2" id="text-orge80c4bc">
 <ul class="org-ul">
 <li>If the correlation for the characteristic between the parent and child are the same for different data but the slope is different then the variance is what is causing the difference</li>
 <li>The more difference there is in the variance, the steeper the slope of the line</li>
@@ -687,21 +1997,21 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 <p>Where <i>r</i> is the correlation between the parent and child's size, \(S_y\) is the sample standard deviation of the Daughter seed-sizes and \(S_x\) is the sample standard deviation of the Parent seed-sizes. There's a slope intercept too, but the point of it was to show how the spread for the two data variables affects the slope. The less variance there is for the daughter seeds, the smaller the slope would be (of course the same is true of the correlation, but Galton thought this was a fixed value anyway).</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org2c46971">
-<h2 id="org2c46971">Other Stuff</h2>
-<div class="outline-text-2" id="text-org2c46971">
+<div class="outline-2" id="outline-container-orgd343483">
+<h2 id="orgd343483">Other Stuff</h2>
+<div class="outline-text-2" id="text-orgd343483">
 <p>It also touches on the fact that Galton recognized that prior generations also affected the size of the daughter's seeds, giving rise to the idea of multiple regression. And there is a table of the original measurements that Galton gathered for the seeds.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge0a0d7e">
-<h2 id="orge0a0d7e">So, what again?</h2>
-<div class="outline-text-2" id="text-orge0a0d7e">
+<div class="outline-2" id="outline-container-org26ca136">
+<h2 id="org26ca136">So, what again?</h2>
+<div class="outline-text-2" id="text-org26ca136">
 <p>Galton's <i>Regression Towards Mediocrity</i> - or <i>Regression to the Mean</i> as it's more commonly referred to nowadays shows why humans don't split up into giants and little people. A person who is much larger than the mean might have a child that's also larger than the mean, but that child is likely to be closer to the mean than the parent was, just as parents that are smaller than the mean will tend to have children that are larger than they are.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgd485329">
-<h2 id="orgd485329">Source</h2>
-<div class="outline-text-2" id="text-orgd485329">
+<div class="outline-2" id="outline-container-orgd71914d">
+<h2 id="orgd71914d">Source</h2>
+<div class="outline-text-2" id="text-orgd71914d">
 <ul class="org-ul">
 <li>Stanton JM. Galton, Pearson, and the peas: A brief history of linear regression for statistics instructors. Journal of Statistics Education. 2001 Jan 1;9(3). (<a href="http://jse.amstat.org/v9n3/stanton.html">Link</a>)</li>
 </ul>
@@ -722,31 +2032,31 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/galtons-sweet-pea-data/#orgbc83901">Beginning</a>
+<li><a href="/posts/galtons-sweet-pea-data/#org4fe4cac">Beginning</a>
 <ul>
-<li><a href="/posts/galtons-sweet-pea-data/#org7cfbaf8">Imports</a></li>
-<li><a href="/posts/galtons-sweet-pea-data/#org7a1615f">Set Up</a></li>
+<li><a href="/posts/galtons-sweet-pea-data/#org2cce41b">Imports</a></li>
+<li><a href="/posts/galtons-sweet-pea-data/#org359a2f1">Set Up</a></li>
 </ul>
 </li>
-<li><a href="/posts/galtons-sweet-pea-data/#orgbdb6913">Middle</a>
+<li><a href="/posts/galtons-sweet-pea-data/#org16e1c86">Middle</a>
 <ul>
-<li><a href="/posts/galtons-sweet-pea-data/#orgafe890b">The Data</a></li>
+<li><a href="/posts/galtons-sweet-pea-data/#org6f83718">The Data</a></li>
 </ul>
 </li>
-<li><a href="/posts/galtons-sweet-pea-data/#org3179c0f">End</a>
+<li><a href="/posts/galtons-sweet-pea-data/#orgff3d839">End</a>
 <ul>
-<li><a href="/posts/galtons-sweet-pea-data/#org202913d">Source</a></li>
+<li><a href="/posts/galtons-sweet-pea-data/#org33fec38">Source</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgbc83901">
-<h2 id="orgbc83901">Beginning</h2>
-<div class="outline-text-2" id="text-orgbc83901"></div>
-<div class="outline-3" id="outline-container-org7cfbaf8">
-<h3 id="org7cfbaf8">Imports</h3>
-<div class="outline-text-3" id="text-org7cfbaf8">
+<div class="outline-2" id="outline-container-org4fe4cac">
+<h2 id="org4fe4cac">Beginning</h2>
+<div class="outline-text-2" id="text-org4fe4cac"></div>
+<div class="outline-3" id="outline-container-org2cce41b">
+<h3 id="org2cce41b">Imports</h3>
+<div class="outline-text-3" id="text-org2cce41b">
 <div class="highlight">
 <pre><span></span><span class="c1"># python</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
@@ -764,9 +2074,9 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org7a1615f">
-<h3 id="org7a1615f">Set Up</h3>
-<div class="outline-text-3" id="text-org7a1615f">
+<div class="outline-3" id="outline-container-org359a2f1">
+<h3 id="org359a2f1">Set Up</h3>
+<div class="outline-text-3" id="text-org359a2f1">
 <div class="highlight">
 <pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"galtons-sweet-pea-data"</span>
 <span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"files/posts/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -786,12 +2096,12 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgbdb6913">
-<h2 id="orgbdb6913">Middle</h2>
-<div class="outline-text-2" id="text-orgbdb6913"></div>
-<div class="outline-3" id="outline-container-orgafe890b">
-<h3 id="orgafe890b">The Data</h3>
-<div class="outline-text-3" id="text-orgafe890b">
+<div class="outline-2" id="outline-container-org16e1c86">
+<h2 id="org16e1c86">Middle</h2>
+<div class="outline-text-2" id="text-org16e1c86"></div>
+<div class="outline-3" id="outline-container-org6f83718">
+<h3 id="org6f83718">The Data</h3>
+<div class="outline-text-3" id="text-org6f83718">
 <div class="highlight">
 <pre><span></span><span class="n">URL</span> <span class="o">=</span> <span class="s2">"http://jse.amstat.org/v9n3/stanton.html#appendixa"</span>
 
@@ -1147,12 +2457,12 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 </object></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org3179c0f">
-<h2 id="org3179c0f">End</h2>
-<div class="outline-text-2" id="text-org3179c0f"></div>
-<div class="outline-3" id="outline-container-org202913d">
-<h3 id="org202913d">Source</h3>
-<div class="outline-text-3" id="text-org202913d">
+<div class="outline-2" id="outline-container-orgff3d839">
+<h2 id="orgff3d839">End</h2>
+<div class="outline-text-2" id="text-orgff3d839"></div>
+<div class="outline-3" id="outline-container-org33fec38">
+<h3 id="org33fec38">Source</h3>
+<div class="outline-text-3" id="text-org33fec38">
 <ul class="org-ul">
 <li>Stanton JM. Galton, Pearson, and the peas: A brief history of linear regression for statistics instructors. Journal of Statistics Education. 2001 Jan 1;9(3). (<a href="http://jse.amstat.org/v9n3/stanton.html">Link</a>)</li>
 </ul>
@@ -1174,33 +2484,33 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/zip-code-plotting/#org6a035bd">Beginning</a>
+<li><a href="/posts/zip-code-plotting/#org750c18d">Beginning</a>
 <ul>
-<li><a href="/posts/zip-code-plotting/#org228bcb4">Imports</a></li>
-<li><a href="/posts/zip-code-plotting/#org6c3bbe4">Set Up</a></li>
+<li><a href="/posts/zip-code-plotting/#orgb2b913d">Imports</a></li>
+<li><a href="/posts/zip-code-plotting/#org179f37a">Set Up</a></li>
 </ul>
 </li>
-<li><a href="/posts/zip-code-plotting/#org9b88f35">Middle</a>
+<li><a href="/posts/zip-code-plotting/#org42abbed">Middle</a>
 <ul>
-<li><a href="/posts/zip-code-plotting/#org33f98d2">Loading the Data</a></li>
+<li><a href="/posts/zip-code-plotting/#org3d25d75">Loading the Data</a></li>
 </ul>
 </li>
-<li><a href="/posts/zip-code-plotting/#org4515724">End</a>
+<li><a href="/posts/zip-code-plotting/#org31be4f9">End</a>
 <ul>
-<li><a href="/posts/zip-code-plotting/#org0ea6644">Sources</a></li>
+<li><a href="/posts/zip-code-plotting/#orgb5ef35f">Sources</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org6a035bd">
-<h2 id="org6a035bd">Beginning</h2>
-<div class="outline-text-2" id="text-org6a035bd">
+<div class="outline-2" id="outline-container-org750c18d">
+<h2 id="org750c18d">Beginning</h2>
+<div class="outline-text-2" id="text-org750c18d">
 <p>This is a quick test to see if I can plot some GeoJSON that defines a zipcode map for the state of Oregon. I got the file from <a href="https://github.com/OpenDataDE/State-zip-code-GeoJSON">GitHub</a> but the README indicates that the original source (see below) was the the U.S. Census Bureau. The files are from 2010, so they're a little old, but I don't imagine that zip codes update that often anyway. Maybe as a future exercise I'll try to replicated what was done with the <a href="https://www.census.gov/cgi-bin/geo/shapefiles/index.php">2019</a> update.</p>
 </div>
-<div class="outline-3" id="outline-container-org228bcb4">
-<h3 id="org228bcb4">Imports</h3>
-<div class="outline-text-3" id="text-org228bcb4">
+<div class="outline-3" id="outline-container-orgb2b913d">
+<h3 id="orgb2b913d">Imports</h3>
+<div class="outline-text-3" id="text-orgb2b913d">
 <div class="highlight">
 <pre><span></span><span class="c1"># python</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
@@ -1221,9 +2531,9 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org6c3bbe4">
-<h3 id="org6c3bbe4">Set Up</h3>
-<div class="outline-text-3" id="text-org6c3bbe4">
+<div class="outline-3" id="outline-container-org179f37a">
+<h3 id="org179f37a">Set Up</h3>
+<div class="outline-text-3" id="text-org179f37a">
 <div class="highlight">
 <pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"zip-code-plotting"</span>
 <span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"files/posts/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -1231,12 +2541,12 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org9b88f35">
-<h2 id="org9b88f35">Middle</h2>
-<div class="outline-text-2" id="text-org9b88f35"></div>
-<div class="outline-3" id="outline-container-org33f98d2">
-<h3 id="org33f98d2">Loading the Data</h3>
-<div class="outline-text-3" id="text-org33f98d2">
+<div class="outline-2" id="outline-container-org42abbed">
+<h2 id="org42abbed">Middle</h2>
+<div class="outline-text-2" id="text-org42abbed"></div>
+<div class="outline-3" id="outline-container-org3d25d75">
+<h3 id="org3d25d75">Loading the Data</h3>
+<div class="outline-text-3" id="text-org3d25d75">
 <p>This should be pretty straightforward. The documentation for <a href="https://geopandas.org/">GeoPandas</a> indicates that it can handle GeoJSON directly.</p>
 <div class="highlight">
 <pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">"posts/.env"</span><span class="p">)</span>
@@ -1247,7 +2557,7 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 <div class="highlight">
 <pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">geoframe</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </pre></div>
-<pre class="example" id="orgcbb7584">
+<pre class="example">
   STATEFP10 ZCTA5CE10  GEOID10 CLASSFP10 MTFCC10 FUNCSTAT10    ALAND10  \
 0        41     97833  4197833        B5   G6350          S  228152974   
 1        41     97840  4197840        B5   G6350          S  295777905   
@@ -1289,12 +2599,12 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org4515724">
-<h2 id="org4515724">End</h2>
-<div class="outline-text-2" id="text-org4515724"></div>
-<div class="outline-3" id="outline-container-org0ea6644">
-<h3 id="org0ea6644">Sources</h3>
-<div class="outline-text-3" id="text-org0ea6644">
+<div class="outline-2" id="outline-container-org31be4f9">
+<h2 id="org31be4f9">End</h2>
+<div class="outline-text-2" id="text-org31be4f9"></div>
+<div class="outline-3" id="outline-container-orgb5ef35f">
+<h3 id="orgb5ef35f">Sources</h3>
+<div class="outline-text-3" id="text-orgb5ef35f">
 <ul class="org-ul">
 <li>The Zip Code GeoJSON comes from a GitHub repository created by <a href="/posts/state-zip-code-geojson-repository/">OpenDataDE</a>.</li>
 <li><a href="https://geojson.org/">The Official GeoJSON page</a> (I think), not much there.</li>
@@ -1315,239 +2625,12 @@ Confidence Interval = 4.4 +-  2.10 x  0.53
 </div>
 </header>
 <div class="e-content entry-content">
-<div class="outline-2" id="outline-container-orgd4ebb3c">
-<h2 id="orgd4ebb3c">Citation</h2>
-<div class="outline-text-2" id="text-orgd4ebb3c">
+<div class="outline-2" id="outline-container-org5f7cfaf">
+<h2 id="org5f7cfaf">Citation</h2>
+<div class="outline-text-2" id="text-org5f7cfaf">
 <ol class="org-ol">
 <li>GitHub - OpenDataDE/State-zip-code-GeoJSON: Zip code boundaries for each of the 50 states [Internet]. [cited 2020 Nov 20]. Available from: <a href="https://github.com/OpenDataDE/State-zip-code-GeoJSON">https://github.com/OpenDataDE/State-zip-code-GeoJSON</a></li>
 </ol>
-</div>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="/posts/the-geopandas-dataframe-coordinates-example/">The Geopandas DataFrame Coordinates Example</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="/posts/the-geopandas-dataframe-coordinates-example/" rel="bookmark"><time class="published dt-published" datetime="2020-11-18T22:02:55-08:00" itemprop="datePublished" title="2020-11-18 22:02">2020-11-18 22:02</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="/posts/the-geopandas-dataframe-coordinates-example/#orgdc56f0b">Beginning</a>
-<ul>
-<li><a href="/posts/the-geopandas-dataframe-coordinates-example/#org434b659">Imports</a></li>
-<li><a href="/posts/the-geopandas-dataframe-coordinates-example/#org1e2d614">Set Up</a></li>
-</ul>
-</li>
-<li><a href="/posts/the-geopandas-dataframe-coordinates-example/#org2089c80">Middle</a>
-<ul>
-<li><a href="/posts/the-geopandas-dataframe-coordinates-example/#org8b7e943">Longitudes and Latitudes</a></li>
-<li><a href="/posts/the-geopandas-dataframe-coordinates-example/#orgdbb6ffd">Plot It</a></li>
-<li><a href="/posts/the-geopandas-dataframe-coordinates-example/#org9f51ecd">With Holoviews</a></li>
-<li><a href="/posts/the-geopandas-dataframe-coordinates-example/#orgd8b2cfc">Notes</a></li>
-</ul>
-</li>
-<li><a href="/posts/the-geopandas-dataframe-coordinates-example/#orgc2e1360">Links</a></li>
-</ul>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgdc56f0b">
-<h2 id="orgdc56f0b">Beginning</h2>
-<div class="outline-text-2" id="text-orgdc56f0b"></div>
-<div class="outline-3" id="outline-container-org434b659">
-<h3 id="org434b659">Imports</h3>
-<div class="outline-text-3" id="text-org434b659">
-<div class="highlight">
-<pre><span></span><span class="c1"># python</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-
-<span class="c1"># pypi</span>
-<span class="kn">import</span> <span class="nn">geopandas</span>
-<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">pyplot</span>
-<span class="kn">import</span> <span class="nn">pandas</span>
-
-<span class="c1"># my stuff</span>
-<span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span>
-</pre></div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org1e2d614">
-<h3 id="org1e2d614">Set Up</h3>
-<div class="outline-text-3" id="text-org1e2d614">
-<div class="highlight">
-<pre><span></span><span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="s2">"files/posts/the-geopandas-dataframe-coordinates-example"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-org2089c80">
-<h2 id="org2089c80">Middle</h2>
-<div class="outline-text-2" id="text-org2089c80"></div>
-<div class="outline-3" id="outline-container-org8b7e943">
-<h3 id="org8b7e943">Longitudes and Latitudes</h3>
-<div class="outline-text-3" id="text-org8b7e943">
-<div class="highlight">
-<pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-    <span class="p">{</span><span class="s1">'City'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'Buenos Aires'</span><span class="p">,</span> <span class="s1">'Brasilia'</span><span class="p">,</span> <span class="s1">'Santiago'</span><span class="p">,</span> <span class="s1">'Bogota'</span><span class="p">,</span> <span class="s1">'Caracas'</span><span class="p">],</span>
-     <span class="s1">'Country'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'Argentina'</span><span class="p">,</span> <span class="s1">'Brazil'</span><span class="p">,</span> <span class="s1">'Chile'</span><span class="p">,</span> <span class="s1">'Colombia'</span><span class="p">,</span> <span class="s1">'Venezuela'</span><span class="p">],</span>
-     <span class="s1">'Latitude'</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">34.58</span><span class="p">,</span> <span class="o">-</span><span class="mf">15.78</span><span class="p">,</span> <span class="o">-</span><span class="mf">33.45</span><span class="p">,</span> <span class="mf">4.60</span><span class="p">,</span> <span class="mf">10.48</span><span class="p">],</span>
-     <span class="s1">'Longitude'</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">58.66</span><span class="p">,</span> <span class="o">-</span><span class="mf">47.91</span><span class="p">,</span> <span class="o">-</span><span class="mf">70.66</span><span class="p">,</span> <span class="o">-</span><span class="mf">74.08</span><span class="p">,</span> <span class="o">-</span><span class="mf">66.86</span><span class="p">]})</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="n">geoframe</span> <span class="o">=</span> <span class="n">geopandas</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span>
-                                  <span class="n">geometry</span><span class="o">=</span><span class="n">geopandas</span><span class="o">.</span><span class="n">points_from_xy</span><span class="p">(</span>
-                                      <span class="n">data</span><span class="o">.</span><span class="n">Longitude</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">Latitude</span><span class="p">))</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">geoframe</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
-</pre></div>
-<pre class="example">
-           City    Country  Latitude  Longitude                     geometry
-0  Buenos Aires  Argentina    -34.58     -58.66  POINT (-58.66000 -34.58000)
-1      Brasilia     Brazil    -15.78     -47.91  POINT (-47.91000 -15.78000)
-2      Santiago      Chile    -33.45     -70.66  POINT (-70.66000 -33.45000)
-3        Bogota   Colombia      4.60     -74.08    POINT (-74.08000 4.60000)
-4       Caracas  Venezuela     10.48     -66.86   POINT (-66.86000 10.48000)
-</pre></div>
-</div>
-<div class="outline-3" id="outline-container-orgdbb6ffd">
-<h3 id="orgdbb6ffd">Plot It</h3>
-<div class="outline-text-3" id="text-orgdbb6ffd">
-<div class="highlight">
-<pre><span></span><span class="c1"># read in the plotting data</span>
-<span class="n">world</span> <span class="o">=</span> <span class="n">geopandas</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">geopandas</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s1">'naturalearth_lowres'</span><span class="p">))</span>
-
-<span class="c1"># restrict it to South America.</span>
-<span class="n">ax</span> <span class="o">=</span> <span class="n">world</span><span class="p">[</span><span class="n">world</span><span class="o">.</span><span class="n">continent</span> <span class="o">==</span> <span class="s1">'South America'</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-    <span class="n">color</span><span class="o">=</span><span class="s1">'white'</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">'black'</span><span class="p">)</span>
-
-<span class="c1"># We can now plot our ``GeoDataFrame``.</span>
-<span class="n">geoframe</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'red'</span><span class="p">)</span>
-
-<span class="n">pyplot</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"files/posts/the-geopandas-dataframe-coordinates-example/south_america.png"</span><span class="p">)</span>
-</pre></div>
-<div class="figure" id="org9e1d09e">
-<p><img alt="south_america.png" src="/posts/the-geopandas-dataframe-coordinates-example/south_america.png"></p>
-</div>
-</div>
-</div>
-<div class="outline-3" id="outline-container-org9f51ecd">
-<h3 id="org9f51ecd">With Holoviews</h3>
-<div class="outline-text-3" id="text-org9f51ecd">
-<p>Since this is going to be interactive we can add more to the plot.</p>
-<div class="highlight">
-<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">world</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
-</pre></div>
-<pre class="example" id="orgf20e0a7">
-     pop_est      continent                      name iso_a3  gdp_md_est  \
-0     920938        Oceania                      Fiji    FJI      8374.0   
-1   53950935         Africa                  Tanzania    TZA    150600.0   
-2     603253         Africa                 W. Sahara    ESH       906.5   
-3   35623680  North America                    Canada    CAN   1674000.0   
-4  326625791  North America  United States of America    USA  18560000.0   
-
-                                            geometry  
-0  MULTIPOLYGON (((180.00000 -16.06713, 180.00000...  
-1  POLYGON ((33.90371 -0.95000, 34.07262 -1.05982...  
-2  POLYGON ((-8.66559 27.65643, -8.66512 27.58948...  
-3  MULTIPOLYGON (((-122.84000 49.00000, -122.9742...  
-4  MULTIPOLYGON (((-122.84000 49.00000, -120.0000...  
-</pre>
-<p>Let's add the population estimate to the countries and the city to the points.</p>
-<div class="highlight">
-<pre><span></span><span class="n">world_plot</span> <span class="o">=</span> <span class="n">world</span><span class="p">[</span><span class="n">world</span><span class="o">.</span><span class="n">continent</span> <span class="o">==</span> <span class="s2">"South America"</span><span class="p">]</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span>
-    <span class="n">color</span><span class="o">=</span><span class="s2">"white"</span><span class="p">,</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">"Longitude"</span><span class="p">,</span>
-    <span class="n">y</span><span class="o">=</span><span class="s2">"Latitude"</span><span class="p">,</span>
-    <span class="n">legend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">hover_cols</span><span class="o">=</span><span class="p">[</span><span class="s2">"pop_est"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">])</span>
-
-<span class="c1"># NOTE: the overlay uses the pandas.DataFrame, not the GeoDataFrame</span>
-<span class="n">points</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">points</span><span class="p">(</span><span class="s2">"Longitude"</span><span class="p">,</span> <span class="s2">"Latitude"</span><span class="p">,</span> <span class="n">hover_cols</span><span class="o">=</span><span class="p">[</span><span class="s2">"City"</span><span class="p">])</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">world_plot</span> <span class="o">*</span> <span class="n">points</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"South American Cities"</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="mi">890</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">outcome</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"south_america"</span><span class="p">,</span> <span class="n">height_in_pixels</span><span class="o">=</span><span class="mi">1000</span><span class="p">)()</span>
-</pre></div>
-<div class="highlight">
-<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">outcome</span><span class="p">)</span>
-</pre></div>
-<object data="/posts/the-geopandas-dataframe-coordinates-example/south_america.html" height="1000" style="width:100%" type="text/html">
-<p>Figure Missing</p>
-</object>
-<p>This was mostly a check to see if I could get it working so I'll have to think about adding more explanations later.</p>
-</div>
-</div>
-<div class="outline-3" id="outline-container-orgd8b2cfc">
-<h3 id="orgd8b2cfc">Notes</h3>
-<div class="outline-text-3" id="text-orgd8b2cfc">
-<ul class="org-ul">
-<li>To get matplotlib to work I had to install descartes (<code>pip install descartes</code>)</li>
-<li>To get hvplot to work I had to install geoviews (<code>pip install geoviews</code>)</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgc2e1360">
-<h2 id="orgc2e1360">Links</h2>
-<div class="outline-text-2" id="text-orgc2e1360">
-<ul class="org-ul">
-<li><a href="https://geopandas.org/gallery/create_geopandas_from_pandas.html#sphx-glr-gallery-create-geopandas-from-pandas-py">The Geopandas Example</a></li>
-<li><a href="https://coderzcolumn.com/tutorials/data-science/how-to-convert-static-maps-geopandas-to-interactive-maps-hvplot">coderzcolumn example</a> showing hvplot with geopandas</li>
-<li><a href="https://stackoverflow.com/questions/59678780/show-extra-columns-when-hovering-in-a-scatter-plot-with-hvplot">Stack Overflow answer</a> to adding columns to the hover</li>
-</ul>
-</div>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="/posts/secrets-of-mental-math/">Secrets of Mental Math</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="/posts/secrets-of-mental-math/" rel="bookmark"><time class="published dt-published" datetime="2020-11-09T18:07:40-08:00" itemprop="datePublished" title="2020-11-09 18:07">2020-11-09 18:07</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div class="outline-2" id="outline-container-org447d824">
-<h2 id="org447d824">Citation</h2>
-<div class="outline-text-2" id="text-org447d824">
-<ul class="org-ul">
-<li>Benjamin A, Shermer M, Benjamin A, 3M Cloud Library. Secrets of mental math: the mathemagician’s guide to lightning calculation and amazing math tricks [Internet]. Place of publication not identified: Crown Publishing Group; 2006 [cited 2020 Nov 9].</li>
-</ul>
-</div>
-</div>
-</div>
-</article>
-<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
-<header>
-<h1 class="p-name entry-title"><a class="u-url" href="/posts/think-complexity/">Bibliography for Think Complexity</a></h1>
-<div class="metadata">
-<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
-<p class="dateline"><a href="/posts/think-complexity/" rel="bookmark"><time class="published dt-published" datetime="2020-10-23T19:17:59-07:00" itemprop="datePublished" title="2020-10-23 19:17">2020-10-23 19:17</time></a></p>
-</div>
-</header>
-<div class="e-content entry-content">
-<div class="outline-2" id="outline-container-org0a15eee">
-<h2 id="org0a15eee">Citation</h2>
-<div class="outline-text-2" id="text-org0a15eee">
-<ol class="org-ol">
-<li>Downey A. Think complexity: complexity science and computational modeling. Second edition. Beijing ; Boston: O’Reilly; 2018. 185 p.</li>
-</ol>
-</div>
-</div>
-<div class="outline-2" id="outline-container-orgf203eef">
-<h2 id="orgf203eef">Comments</h2>
-<div class="outline-text-2" id="text-orgf203eef">
-<p>This is a creative commons book that is for sale but is also available to read online or as a free PDF from <a href="https://greenteapress.com/wp/think-complexity-2e/">Green Tea Press</a>. There is also a github repository <a href="https://github.com/AllenDowney/ThinkComplexity2">here</a>.</p>
 </div>
 </div>
 </div>

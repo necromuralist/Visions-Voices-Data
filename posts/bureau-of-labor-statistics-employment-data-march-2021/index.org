@@ -1,0 +1,260 @@
+#+BEGIN_COMMENT
+.. title: Bureau of Labor Statistics Employment Data (March 2021)
+.. slug: bureau-of-labor-statistics-employment-data-march-2021
+.. date: 2021-04-02 17:02:47 UTC-07:00
+.. tags: 
+.. category: 
+.. link: 
+.. description: 
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-688c0723-2278-42ef-9301-5ec35631e646-ssh.json
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+* Beginning
+** Imports
+#+begin_src python :results none
+# python
+from collections import namedtuple
+from datetime import datetime
+from functools import partial
+from pathlib import Path
+
+import os
+
+# pypi
+from dotenv import load_dotenv
+from expects import be_true, expect
+from tabulate import tabulate
+
+import hvplot.pandas
+import numpy
+import pandas
+
+# my stuff
+from graeae import EmbedHoloviews
+#+end_src
+** Some Setup
+*** A Table Printer
+#+begin_src python :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", showindex=False, headers="keys")
+#+end_src
+*** The Environment
+#+begin_src python :results none
+env_path = Path("~/.env").expanduser()
+expect(env_path.is_file()).to(be_true)
+load_dotenv(env_path, override=True)
+#+end_src
+*** Plotting
+#+begin_src python :results none
+SLUG = "bureau-of-labor-statistics-employment-data-march-2021"
+Embed = partial(EmbedHoloviews, folder_path=f"files/posts/{SLUG}")
+Plot = namedtuple("Plot", ["width", "height", "fontscale",
+                           "tan", "blue",
+                           "red"])
+PLOT = Plot(
+    width=900,
+    height=750,
+    fontscale=2,
+    tan="#ddb377",
+    blue="#4687b7",
+    red="#ce7b6d",
+ )
+#+end_src
+* Middle
+** The Data
+The data comes from the [[https://www.bls.gov/ces/][U.S. Bureau of Labor Statistics]] Current Employment Statistics (CES) page.
+
+*** Employment
+The first set is the seasonally adjusted employment employment for all employees in the united states.
+#+begin_src python :results none
+employment_path = Path(os.environ["SEASONALLY_ADJUSTED_EMPLOYMENT"]).expanduser()
+expect(employment_path.is_file()).to(be_true)
+employment = pandas.read_csv(employment_path, delim_whitespace=True)
+#+end_src
+
+#+begin_src python :results output :exports both
+rows, columns = employment.shape
+print(f"Rows: {rows:,} Columns: {columns}")
+#+end_src
+
+
+#+RESULTS:
+: Rows: 360,008 Columns: 5
+
+#+begin_src python :results output :exports both
+print(TABLE(employment.iloc[0: 2]))
+#+end_src
+
+#+RESULTS:
+| series_id     |   year | period   |   value |   footnote_codes |
+|---------------+--------+----------+---------+------------------|
+| CES0000000001 |   1939 | M01      |   29923 |              nan |
+| CES0000000001 |   1939 | M02      |   30100 |              nan |
+
+#+begin_src python :results output :exports both
+print(TABLE(employment.iloc[-2:]))
+#+end_src
+
+#+RESULTS:
+| series_id     |   year | period   |   value | footnote_codes   |
+|---------------+--------+----------+---------+------------------|
+| CES9093299901 |   2021 | M01      |   943.3 | nan              |
+| CES9093299901 |   2021 | M02      |   945.3 | P                |
+
+#+begin_src python :results output :exports both
+print(employment.footnote_codes.value_counts())
+#+end_src
+
+#+RESULTS:
+: P    1047
+: Name: footnote_codes, dtype: int64
+
+Our data set runs from january 1939 through February 2021, but looking at the values it seems they must have changed the way that they calculate it, or else there was a lot more employment in 1939. The "series" referred to in the ~series_id~ column is a time series. The ~period~ is the month and the "P" footnote code means preliminary (which seems odd given that there are 1,047).
+
+They provide some files to map the more obscure values to names so I guess I'll take advantage of that.
+
+#+begin_src python :results none
+notes_path = Path(os.environ["CES_FOOTNOTES"]).expanduser()
+expect(notes_path.is_file()).to(be_true)
+with notes_path.open() as reader:
+    # get rid of the header
+    reader.readline()
+
+    # get the map
+    CODE, TEXT = 0, 1
+    lines = (line.split() for line in reader)
+    notes_map = {line[CODE].strip(): line[TEXT].strip() for line in lines}
+
+notes_map[numpy.nan] = "none"
+#+end_src
+
+#+begin_src python :results output :exports both
+employment["notes"] = employment.footnote_codes.map(notes_map)
+print(TABLE(employment.iloc[-2:]))
+#+end_src
+
+#+RESULTS:
+| series_id     |   year | period   |   value | footnote_codes   | notes       |
+|---------------+--------+----------+---------+------------------+-------------|
+| CES9093299901 |   2021 | M01      |   943.3 | nan              | none        |
+| CES9093299901 |   2021 | M02      |   945.3 | P                | preliminary |
+
+#+begin_src python :results none
+del(employment["footnote_codes"])
+#+end_src
+
+#+begin_src python :results none
+period_path = Path(os.environ["CES_PERIODS"]).expanduser()
+expect(period_path.is_file()).to(be_true)
+with period_path.open() as reader:
+    reader.readline()
+    PERIOD, SHORT_MONTH, LONG_MONTH = 0, 1, 2
+    lines = (line.split() for line in reader)
+    period_map = {line[PERIOD].strip(): line[LONG_MONTH].strip() for line in lines}
+#+end_src
+
+#+begin_src python :results output :exports both
+employment["month"] = employment.period.map(period_map)
+print(TABLE(employment[-2:]))
+#+end_src
+
+#+RESULTS:
+| series_id     |   year | period   |   value | notes       | month    |
+|---------------+--------+----------+---------+-------------+----------|
+| CES9093299901 |   2021 | M01      |   943.3 | none        | January  |
+| CES9093299901 |   2021 | M02      |   945.3 | preliminary | February |
+
+Actualy, now that I think about it I want a datetime object, not a string anyway. 
+
+#+begin_src python :results output :exports both
+month_map = {period: index + 1 for index, period in enumerate(sorted(period_map))}
+print(month_map)
+#+end_src
+
+#+RESULTS:
+: {'M01': 1, 'M02': 2, 'M03': 3, 'M04': 4, 'M05': 5, 'M06': 6, 'M07': 7, 'M08': 8, 'M09': 9, 'M10': 10, 'M11': 11, 'M12': 12, 'M13': 13}
+
+
+What's M13?
+
+According to the data element dictionary it means "Annual Average", but this particular data set doesn't have it.
+
+#+begin_src python :results output :exports both
+print(employment.period.unique())
+#+end_src
+
+#+RESULTS:
+: ['M01' 'M02' 'M03' 'M04' 'M05' 'M06' 'M07' 'M08' 'M09' 'M10' 'M11' 'M12']
+
+#+begin_src python :results output :exports both
+APPLY_TO_ROWS = "columns"
+
+employment["date"] = employment.apply(
+    lambda row: datetime(row.year, month_map[row.period], 1), axis=APPLY_TO_ROWS)
+print(TABLE(employment.iloc[-2:]))
+#+end_src
+
+#+RESULTS:
+| series_id     |   year | period   |   value | notes       | month    | date                |
+|---------------+--------+----------+---------+-------------+----------+---------------------|
+| CES9093299901 |   2021 | M01      |   943.3 | none        | January  | 2021-01-01 00:00:00 |
+| CES9093299901 |   2021 | M02      |   945.3 | preliminary | February | 2021-02-01 00:00:00 |
+
+There's a lot of data there, maybe we can start by aggregating by year.
+
+#+begin_src python :results none
+employment = employment.set_index("date")
+#+end_src
+
+#+begin_src python :results output :exports both
+yearly = employment.resample("AS")
+sums = yearly.sum()
+print(TABLE(sums.iloc[-2:], showindex=True))
+#+end_src
+
+#+RESULTS:
+| date                |        year |       value |
+|---------------------+-------------+-------------|
+| 2020-01-01 00:00:00 | 2.1113e+07  | 1.37505e+07 |
+| 2021-01-01 00:00:00 | 3.87628e+06 | 3.28994e+06 |
+
+So the year becomes nonsense, and since I'm using the seasonally adjusted the values might not make sense either, but this is just an exploration so let's see what we have.
+
+#+begin_src python :results none
+limit = datetime(2021, 1, 1)
+sums = sums[sums.index < limit]
+plot = sums.hvplot(y="value", color=PLOT.blue).opts(
+    width=PLOT.width,
+    height=PLOT.height,
+    fontscale=PLOT.fontscale,
+    title="Seasonally Adjusted Yearly Employment Totals")
+output = Embed(plot=plot, file_name="yearly_employment_sums")()
+#+end_src
+
+#+begin_src python :results output html :exports output
+print(output)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="yearly_employment_sums.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+*** Earnings
+#+begin_src python :results none
+path = Path(os.environ["BLS_EARNINGS"]).expanduser()
+expect(path.is_file()).to(be_true)
+earnings = pandas.read_csv(path, delim_whitespace=True)
+#+end_src
+* End
+ - Triggered by listening to a "The Indicator" episode from December 8, 2017: [[https://www.npr.org/2017/12/08/569461387/wheres-my-raise][Where's My Raise?]]

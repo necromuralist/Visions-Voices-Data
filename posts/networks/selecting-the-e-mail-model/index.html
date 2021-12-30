@@ -71,31 +71,31 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#orgce29021">Imports</a></li>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#orgc1f8574">The Data</a>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#orgb1b87a9">Imports</a></li>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#org897fd3c">The Data</a>
 <ul>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#orgaac3352">Department</a></li>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#org413b5d5">Splitting the Data</a></li>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#org5ff1472">Department</a></li>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#org0d690dd">Splitting the Data</a></li>
 </ul>
 </li>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#org6eff6df">Standardizing the Data</a></li>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#org507cba2">Dummy Classifier</a></li>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#org44a9d15">Feature Selection</a></li>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#orgc083e59">Fit and Display</a></li>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#orgac753ce">Logistic Regression</a>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#org66fbdf8">Standardizing the Data</a></li>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#org5995292">Dummy Classifier</a></li>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#orgb98a553">Feature Selection</a></li>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#org2a7f574">Fit and Display</a></li>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#org0477cec">Logistic Regression</a>
 <ul>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#org0afd048">L1 Penalty</a></li>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#org8e8c30d">L1 Penalty</a></li>
 </ul>
 </li>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#org3a3b172">Random Forests</a></li>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#org296c431">K Nearest Neighbors</a></li>
-<li><a href="/posts/networks/selecting-the-e-mail-model/#orgdde293c">Support Vector Classifier (SVC)</a></li>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#org5118313">Random Forests</a></li>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#org5b85d26">K Nearest Neighbors</a></li>
+<li><a href="/posts/networks/selecting-the-e-mail-model/#org42aba54">Support Vector Classifier (SVC)</a></li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgce29021">
-<h2 id="orgce29021">Imports</h2>
-<div class="outline-text-2" id="text-orgce29021">
+<div class="outline-2" id="outline-container-orgb1b87a9">
+<h2 id="orgb1b87a9">Imports</h2>
+<div class="outline-text-2" id="text-orgb1b87a9">
 <div class="highlight">
 <pre><span></span># pypi
 from sklearn.ensemble import (
@@ -129,9 +129,9 @@ seaborn.set_style("whitegrid")
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc1f8574">
-<h2 id="orgc1f8574">The Data</h2>
-<div class="outline-text-2" id="text-orgc1f8574">
+<div class="outline-2" id="outline-container-org897fd3c">
+<h2 id="org897fd3c">The Data</h2>
+<div class="outline-text-2" id="text-org897fd3c">
 <div class="highlight">
 <pre><span></span>data = pandas.read_hdf("email_data.h5", "df")
 cleaned_data = data[pandas.notnull(data.management)]
@@ -140,9 +140,9 @@ cleaned_data = data[pandas.notnull(data.management)]
 <pre><span></span>print(cleaned_data.head())
 </pre></div>
 </div>
-<div class="outline-3" id="outline-container-orgaac3352">
-<h3 id="orgaac3352">Department</h3>
-<div class="outline-text-3" id="text-orgaac3352">
+<div class="outline-3" id="outline-container-org5ff1472">
+<h3 id="org5ff1472">Department</h3>
+<div class="outline-text-3" id="text-org5ff1472">
 <p>Even though I don't think it's going to prove useful, the <code>department</code> feature is actually categorical, despite the use of integers so we'll have to add dummy variables for it.</p>
 <div class="highlight">
 <pre><span></span>cleaned_data = pandas.get_dummies(cleaned_data, columns=["department"])
@@ -150,9 +150,9 @@ print(cleaned_data.head(1))
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org413b5d5">
-<h3 id="org413b5d5">Splitting the Data</h3>
-<div class="outline-text-3" id="text-org413b5d5">
+<div class="outline-3" id="outline-container-org0d690dd">
+<h3 id="org0d690dd">Splitting the Data</h3>
+<div class="outline-text-3" id="text-org0d690dd">
 <p>For evaluation purposes I'll use the traditional train-test split.</p>
 <div class="highlight">
 <pre><span></span>x_data = cleaned_data.loc[:, cleaned_data.columns != "management"]
@@ -181,9 +181,9 @@ print(y_test.shape)
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org6eff6df">
-<h2 id="org6eff6df">Standardizing the Data</h2>
-<div class="outline-text-2" id="text-org6eff6df">
+<div class="outline-2" id="outline-container-org66fbdf8">
+<h2 id="org66fbdf8">Standardizing the Data</h2>
+<div class="outline-text-2" id="text-org66fbdf8">
 <p>The linear models expect the data to be standardized, so to make the comparisons fair I'll standardize the data first. First, a look at the data before scaling.</p>
 <div class="highlight">
 <pre><span></span>print(x_train.describe())
@@ -201,9 +201,9 @@ x_test = scaler.transform(x_test)
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org507cba2">
-<h2 id="org507cba2">Dummy Classifier</h2>
-<div class="outline-text-2" id="text-org507cba2">
+<div class="outline-2" id="outline-container-org5995292">
+<h2 id="org5995292">Dummy Classifier</h2>
+<div class="outline-text-2" id="text-org5995292">
 <p>As a baseline I'll use a <a href="http://scikit-learn.org/stable/modules/model_evaluation.html#dummy-estimators">Dummy Classifier</a> which uses a simple rule rather than the input data to make predictions.</p>
 <div class="highlight">
 <pre><span></span>parameter_grid = dict(strategy=["stratified", 'most_frequent', 'prior', 'uniform'])
@@ -237,9 +237,9 @@ axe.set_ylabel("AUC Score")
 <p>So it looks like all the strategies except <b>stratified</b> did the same - and even the stratified did basically the same if you round it off.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org44a9d15">
-<h2 id="org44a9d15">Feature Selection</h2>
-<div class="outline-text-2" id="text-org44a9d15">
+<div class="outline-2" id="outline-container-orgb98a553">
+<h2 id="orgb98a553">Feature Selection</h2>
+<div class="outline-text-2" id="text-orgb98a553">
 <p>I'm going to need to do some feature reduction, but figuring out what is important and what isn't is something I'm going to have to leave to the machine. I'm going to assume that the features thrown out by logistic regression with l1 penalization are unimportant.</p>
 <div class="highlight">
 <pre><span></span>logistic_model = LogisticRegressionCV(penalty='l1',
@@ -280,9 +280,9 @@ print(eliminator.ranking_)
 <p><b>warning</b> this seem to change every time you run it - the randomness changes it. Only the elimination of the first column seems to do as well as not running it at all.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc083e59">
-<h2 id="orgc083e59">Fit and Display</h2>
-<div class="outline-text-2" id="text-orgc083e59">
+<div class="outline-2" id="outline-container-org2a7f574">
+<h2 id="org2a7f574">Fit and Display</h2>
+<div class="outline-text-2" id="text-org2a7f574">
 <p>This is a convenience function so I can fit and display the scores for the models.</p>
 <div class="highlight">
 <pre><span></span>def fit_and_display(model, identifier):
@@ -308,12 +308,12 @@ print(eliminator.ranking_)
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgac753ce">
-<h2 id="orgac753ce">Logistic Regression</h2>
-<div class="outline-text-2" id="text-orgac753ce"></div>
-<div class="outline-3" id="outline-container-org0afd048">
-<h3 id="org0afd048">L1 Penalty</h3>
-<div class="outline-text-3" id="text-org0afd048">
+<div class="outline-2" id="outline-container-org0477cec">
+<h2 id="org0477cec">Logistic Regression</h2>
+<div class="outline-text-2" id="text-org0477cec"></div>
+<div class="outline-3" id="outline-container-org8e8c30d">
+<h3 id="org8e8c30d">L1 Penalty</h3>
+<div class="outline-text-3" id="text-org8e8c30d">
 <div class="highlight">
 <pre><span></span>model = LogisticRegressionCV(penalty="l1", scoring="roc_auc", solver="liblinear")
 fit_and_display(model, "Logistic Regression L1")
@@ -327,9 +327,9 @@ fit_and_display(model, "LogisticRegression")
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org3a3b172">
-<h2 id="org3a3b172">Random Forests</h2>
-<div class="outline-text-2" id="text-org3a3b172">
+<div class="outline-2" id="outline-container-org5118313">
+<h2 id="org5118313">Random Forests</h2>
+<div class="outline-text-2" id="text-org5118313">
 <p>I'll try a <a href="http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html">Random Forest</a> classifier next.</p>
 <div class="highlight">
 <pre><span></span>parameter_grid = dict(n_estimators=range(10, 100, 10))
@@ -426,9 +426,9 @@ search.fit()
 <p>The test-score for the best estimator is actually a little worse than it was for the previous case, although it's qute a small difference.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org296c431">
-<h2 id="org296c431">K Nearest Neighbors</h2>
-<div class="outline-text-2" id="text-org296c431">
+<div class="outline-2" id="outline-container-org5b85d26">
+<h2 id="org5b85d26">K Nearest Neighbors</h2>
+<div class="outline-text-2" id="text-org5b85d26">
 <div class="highlight">
 <pre><span></span>parameters = dict(n_neighbors=range(10, 20),
                   weights=["uniform", "distance"],
@@ -445,9 +445,9 @@ print(search.best_params_)
 <p>This doesn't seem to do so well, although I'm not as experienced at using it so I might be using bad parameters.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgdde293c">
-<h2 id="orgdde293c">Support Vector Classifier (SVC)</h2>
-<div class="outline-text-2" id="text-orgdde293c">
+<div class="outline-2" id="outline-container-org42aba54">
+<h2 id="org42aba54">Support Vector Classifier (SVC)</h2>
+<div class="outline-text-2" id="text-org42aba54">
 <div class="highlight">
 <pre><span></span>parameters = dict(C=numpy.arange(.1, 1, 0.1), gamma=range(1, 10, 1),
                   kernel=["linear", 'rbf', 'sigmoid'])
