@@ -13,18 +13,17 @@
 #+END_COMMENT
 #+OPTIONS: ^:{}
 #+TOC: headlines 3
-#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-114273e5-2d2e-43cb-84c1-56cf99273ac8-ssh.json
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-8ab95b2a-fef9-42ac-b630-a0789d91c15f-ssh.json
 #+BEGIN_SRC python :results none :exports none
 %load_ext autoreload
 %autoreload 2
 #+END_SRC
 * Prelude: The Lastest GeoPandas Debacle
 
-As I noted in a {{% lancelot "previous post" %}}geopandas-revisited{{% /lancelot %}} you can't just install [[https://geopandas.org/][geopandas]], you also need to install [[https://scitools.org.uk/cartopy/docs/v0.17/index.html][cartopy]], but ~cartopy~ [[https://github.com/SciTools/cartopy/issues/1879][currently requires version 8]] of  [[https://proj.org/][proj]] while the stable versions of ~debian~ and ~ubuntu~ both have version 7.2. I originally tried to download the (unstable) ~.deb~  files and install them, but ~libproj-dev~ is dependent of ~libproj22~ which requires a newer version of the C++ libraries than is currently in debian-stable... and at that point I decided to give up on it and run everything on 
+As I noted in a {{% lancelot "previous post" %}}geopandas-revisited{{% /lancelot %}} you can't just install [[https://geopandas.org/][geopandas]] and [[https://geoviews.org/#][geoviews]] you also need to install [[https://scitools.org.uk/cartopy/docs/v0.17/index.html][cartopy]], but ~cartopy~ [[https://github.com/SciTools/cartopy/issues/1879][currently requires version 8]] of  [[https://proj.org/][proj]] while the stable versions of ~debian~ and ~ubuntu~ both have version 7.2. I originally tried to download the (unstable) ~.deb~  files and install them, but ~libproj-dev~ requires ~libproj22~ which requires a newer version of the C++ libraries than is currently in debian-stable... and at that point I decided to give up on it and run everything on [[https://wiki.debian.org/DebianBookworm][debian bookworm]] (currently in testing) which has the newer versions of the stuff you need for cartopy.
 
 * Beginning
- - [[https://geopandas.org/en/stable/docs/user_guide/io.html][GeoPandas Read File]]
-
+  This is going to be a simple plot of Portland neighborhods using GeoPandas/GeoJSON. I started doing this post to get Portland Crime Data mapped to the neighborhoods, which is what they (the Portland Police Bureau) uses, but it wasn't as straightforward as I though it'd be so I'm pulling it out here to see if I can keep it simpler for future reference.
 ** Imports
 #+begin_src python :results none
 # python
@@ -32,6 +31,7 @@ from functools import partial
 from pathlib import Path
 
 # pypi
+import altair
 import hvplot.pandas
 import geopandas
 import geoviews
@@ -45,16 +45,18 @@ from graeae import EmbedHoloviews
 *** Plotting
 #+begin_src python :results none
 SLUG = "geopandas-and-portland-neighborhoods"
-Embed = partial(EmbedHoloviews, folder_path=f"files/posts/{SLUG}")
+OUTPUT = Path(f"files/posts/{SLUG}")
+Embed = partial(EmbedHoloviews, folder_path=OUTPUT)
 #+end_src
 
 *** Configurations
-
+    This holds were the data files are (or their URLs).
 #+begin_src python :results none
 with open("configurations/data.yaml") as reader:
     configuration = yaml.safe_load(reader)["portland"]["neighborhoods"]
 #+end_src
 * The Neighborhoods
+  Now we can load the data.
 
 #+begin_src python :results none
 path = Path(configuration["folder"]).expanduser()
@@ -66,12 +68,17 @@ if geojson_file.is_file():
     neighborhoods = geopandas.read_file(geojson_file)
 else:
     neighborhoods = geopandas.read_file(configuration["geojson-url"])
+    neighborhoods.to_file(geojson_file, driver="GeoJSON")
 #+end_src
+
+Since I'm going to use the names of the neighborhoods I'll rename the column that holds them to something clearer (to me).
 
 #+begin_src python :results none
 neighborhoods = neighborhoods.rename(columns=dict(MAPLABEL="Neighborhood"))
 #+end_src
 * Plot
+  Now we'll do the actual plot.
+
 #+begin_src python :results none
 plot = neighborhoods.hvplot(hover_cols=["Neighborhood"], legend=False).opts(
     width=800,
@@ -92,14 +99,42 @@ print(output)
   <p>Figure Missing</p>
 </object>
 #+end_export
+** Try Altair
+   This was taken from [[https://stackoverflow.com/questions/55923300/how-can-i-make-a-map-using-geojson-data-in-altair][this Stack Overflow post]].
 
-* Portland Open Data
+#+begin_src python :results none
+data = altair.Data(url=configuration["geojson-url"],
+                   format=altair.DataFormat(property="features", type="json"))
+
+chart = altair.Chart(neighborhoods).mark_geoshape().encode(
+    color="Neighborhood:N"
+ ).project(type="identity", reflectY=True).properties(
+     width=800,
+     height=500,
+     title="Portland Neighborhoods (Altair)",
+ )
+
+chart.save(str(OUTPUT/"portland_neighborhoods_altair.html"))
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="portland_neighborhoods_altair.html" style="width:100%" height=600>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+Looking at [[https://github.com/altair-viz/altair/issues/679][this bug report]] for altair, it appears that vega-lite doesn't support an interactive map so it seems like it'd be better to stick with GeoPandas for now.
+
+* Some Stuff To Check Out
+  I ran into these while looking for the neighborhood data, maybe I'll check them out later.
+
+** Portland Open Data
   To get the boundary information, click on the Boundaries Icon and find the dataset you want in the list that comes up. Once you're on the map, to get the dataset you need to click on a little bar at the bottom-left that says "I want to use this" which will change the user-interface. Click on the "View API Resources" tab and it will bring up two URLs, one of which is a GeoJSON link.
 
  - [[https://gis-pdx.opendata.arcgis.com/][Portland Open Data]]: has the links to different map data.
  - [[https://gis-pdx.opendata.arcgis.com/datasets/PDX::pbot-equity-index/about][Portland Equity Index]]: Has census population, income, and ethnicity information.
 
-* Other Interesting Sites
+** Other Interesting Sites
 
   - [[https://guides.library.pdx.edu/c.php?g=271294&p=1811001][PSU Library's Page With Links]] to Statistical and Census Data
   - [[https://www.pdx.edu/population-research/census-data-oregon][PSU's Population Research Census Data]]
