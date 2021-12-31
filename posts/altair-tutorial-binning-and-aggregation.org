@@ -1,0 +1,342 @@
+#+BEGIN_COMMENT
+.. title: Altair Tutorial: Binning and Aggregation
+.. slug: altair-tutorial-binning-and-aggregation
+.. date: 2021-12-30 15:29:49 UTC-08:00
+.. tags: altair,tutorial,visualization
+.. category: Visualization
+.. link: 
+.. description: A look at the altair binning and aggregation demonstration.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-f2702012-88b1-4f31-8bb9-38e8e9866864-ssh.json
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+
+* Beginning
+  This is a look at the [[https://altair-viz.github.io/altair-tutorial/notebooks/03-Binning-and-aggregation.html][Altair Binning and Aggregation]] demonstration.
+
+** Imports
+
+#+begin_src python :results none
+# python
+from collections import namedtuple
+from functools import partial
+from pathlib import Path
+
+# pypi
+from tabulate import tabulate
+from vega_datasets import data
+
+import altair
+#+end_src
+** Set Up
+*** The Plotting
+#+begin_src python :results none
+SLUG = "altair-tutorial-binning-and-aggregation"
+OUTPUT_PATH = Path(f"files/posts/{SLUG}")
+
+if not OUTPUT_PATH.is_dir():
+    OUTPUT_PATH.mkdir()
+
+PLOT = namedtuple("Plot", ["width", "height"], defaults=[800, 500])()
+#+end_src
+*** The Cars Data
+#+begin_src python :results none
+cars = data.cars()
+cars["Gallons Per Mile"] = 1/cars["Miles_per_Gallon"]
+#+end_src
+*** A Table Printer
+
+#+begin_src python :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", showindex=False, headers="keys")
+
+def print_table(frame): 
+    print(TABLE(frame))
+#+end_src
+
+*** A Plot Output
+
+#+begin_src python :results none
+def save_chart(chart, name: str, height: int=600):
+    name = name if name.endswith(".html") else f"{name}.html"
+    chart.save(str(OUTPUT_PATH/name))
+
+    print(f"""#+begin_export html
+<object type="text/html" data="{name}" style="width:100%" height={height}>
+  <p>Figure Missing</p>
+</object>
+,#+end_export
+""")
+#+end_src
+* A Visual Group-By
+** The Pandas Groupby
+  The pandas ~groupby~ method splits the data using the values in a column you specify, applies whatever operations you run to the separate groups, then combines them back into a single view. Let's group them 
+by where in the world the car is made and find the mean fuel efficience for each region.
+
+#+begin_src python :results output raw :exports both
+grouped = cars.groupby("Origin").mean()
+print_table(grouped["Gallons Per Mile"].reset_index())
+#+end_src
+
+#+RESULTS:
+| Origin   |   Gallons Per Mile |
+|----------+--------------------|
+| Europe   |          0.0378874 |
+| Japan    |          0.03428   |
+| USA      |          0.0546709 |
+
+** Altair Groupby
+
+   You can do the equivalent thing in altair by choosing an aggregate function as one of the dimensions for the encoding.
+
+#+begin_src python :results output raw :exports both :display text/org
+chart = altair.Chart(cars).mark_bar().encode(
+    x="mean(Gallons Per Mile)",
+    y="Origin",
+    tooltip=["Origin",
+             altair.Tooltip("mean(Gallons Per Mile)", format=".2f")],
+    color="Origin",
+).properties(width=PLOT.width, #height=PLOT.height,
+             title="Mean Gallons Per Mile by Origin").interactive()
+
+name = "mean-gallons-per-mile-origin"
+save_chart(chart, name, height=200)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="mean-gallons-per-mile-origin.html" style="width:100%" height=200>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+
+* Histograms
+** The Traditional Spread
+
+  Histograms are created in altair using the ~bin~ argument on the ~X~ axis and the ~count()~ function on the ~Y~ axis.
+
+#+begin_src python :results output raw :exports both :display text/org
+chart = altair.Chart(cars).mark_bar().encode(
+    x=altair.X("Gallons Per Mile", bin=True),
+    y=altair.Y("count()"),
+    tooltip=["Origin",
+             altair.Tooltip("Gallons Per Mile", format=".2f")],
+    color=altair.Color("Origin"),
+).properties(width=PLOT.width, #height=PLOT.height,
+             title="Distribution of Gallons Per Mile by Origin")
+
+name = "histogram-gallons-per-mile-origin"
+save_chart(chart, name, 400)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="histogram-gallons-per-mile-origin.html" style="width:100%" height=400>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+** Counts Within Countries
+
+   Using the same variables but the count and bin to different encodings gives a slightly different view of the histogram. Here's one withou the spread.
+
+#+begin_src python :results output raw :exports both :display text/org
+chart = altair.Chart(cars).mark_bar().encode(
+    color=altair.Color("Gallons Per Mile", bin=True),
+    x="count()",
+    y="Origin",
+    tooltip=["Origin"],
+
+).properties(width=PLOT.width, #height=PLOT.height,
+             title="Distribution of Gallons Per Mile Within Origins")
+
+name = "distribution-within-gallons-per-mile-origin"
+save_chart(chart, name, 200)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="distribution-within-gallons-per-mile-origin.html" style="width:100%" height=200>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+** Proportions
+   You can "normalize" the counts so that they are all scaled from 0 to 1 so that you can make direct comparisons of proportions.
+
+
+#+begin_src python :results output raw :exports both :display text/org
+chart = altair.Chart(cars).mark_bar().encode(
+    color=altair.Color("Gallons Per Mile", bin=True),
+    x=altair.X("count()", stack="normalize"),
+    y="Origin",
+    tooltip=["Origin"],
+
+).properties(width=PLOT.width,
+             title="Distribution of Gallons Per Mile Within Origins")
+
+name = "proportional-distribution-within-gallons-per-mile-origin"
+save_chart(chart, name, 200)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="proportional-distribution-within-gallons-per-mile-origin.html" style="width:100%" height=200>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+** Some Heat
+#+begin_src python :results output raw :exports both :display text/org
+chart = altair.Chart(cars).mark_bar().encode(
+    x=altair.X("Gallons Per Mile", bin=altair.Bin(maxbins=20)),
+    color="count():O",
+    y="Origin",
+    tooltip=["Origin"],
+
+).properties(width=PLOT.width,
+             title="Heatmap of Gallons Per Mile Within Origins")
+
+name = "heatmap-within-gallons-per-mile-origin"
+save_chart(chart, name, 200)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="heatmap-within-gallons-per-mile-origin.html" style="width:100%" height=200>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+* Time Aggregation
+  For the last example we switch to a seattle temperature dataset.
+
+#+begin_src python :results output :exports both :display org/text
+temperatures = data.seattle_temps()
+print_table(temperatures.head())
+#+end_src
+
+#+RESULTS:
+| date                |   temp |
+|---------------------+--------|
+| 2010-01-01 00:00:00 |   39.4 |
+| 2010-01-01 01:00:00 |   39.2 |
+| 2010-01-01 02:00:00 |   39   |
+| 2010-01-01 03:00:00 |   38.9 |
+| 2010-01-01 04:00:00 |   38.8 |
+
+#+begin_src python :results output :exports both
+print(temperatures.shape)
+#+end_src
+
+#+RESULTS:
+: (8759, 2)
+
+This dataset presents a problem in that it's too large and will raise an error if you try to plot it with altair. You can override the error, but they put it in there because altair includes all the data in the JSON for the plot, not just the plot itself, so the bigger your dataset, the more of a burden it's going to place on your browser (and internet connection). They offer a few suggestions on what to do in this case. The first is the most obvious one - do some aggregations in pandas first so that the data you're starting with is already smaller. 
+
+The solution that they say is the fastest is to not put the data in at all and instead use a URL that points to the location of the data on the web. This, of course, will only work if you have it hosted somewhere that you have access to it, but, as it turns out, the seattle dataset is available to us.
+
+#+begin_src python :results output :exports both
+chart = altair.Chart(data.seattle_temps.url).mark_point().encode(
+    x="date:T",
+    y="temp:Q"
+).properties(title="Seattle Daily Temperatures", width=PLOT.width)
+
+save_chart(chart, "seattle-daily-temperatures", height=400)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="seattle-daily-temperatures.html" style="width:100%" height=400>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+
+** Monthly
+   That worked, but it's there's a lot of overlapping of the points so let's aggregate by month.
+
+#+begin_src python :results output :exports both
+chart = altair.Chart(data.seattle_temps.url).mark_point().encode(
+    x="month(date):T",
+    y="temp:Q"
+).properties(title="Seattle Monthly Temperatures", width=PLOT.width)
+
+save_chart(chart, "seattle-monthly-temperatures", 400)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="seattle-monthly-temperatures.html" style="width:100%" height=400>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+Well, what happened was that I only set the X-axis to months, not the Y-axis, so it binned the data to the start of each month but then just bunched the points up. Let's use the median on the Y-axis to get a single point per month.
+
+#+begin_src python :results output :exports both
+chart = altair.Chart(data.seattle_temps.url).mark_point().encode(
+    x="month(date):T",
+    y="median(temp):Q",
+    tooltip=["month(date)", "median(temp):Q"],
+).properties(title="Seattle Median Monthly Temperatures", width=PLOT.width)
+
+save_chart(chart, "seattle-median-monthly-temperatures", 400)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="seattle-median-monthly-temperatures.html" style="width:100%" height=400>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+** Daily By Month
+
+#+begin_src python :results output :exports both
+chart = altair.Chart(data.seattle_temps.url).mark_rect().encode(
+    x="date(date):O",
+    y="month(date):O",
+    color="mean(temp):Q",
+    tooltip=["month(date)", "hours(date)", "mean(temp):Q"],
+).properties(title="Seattle Mean Daily Temperatures", width=PLOT.width)
+
+save_chart(chart, "seattle-mean-daily-temperatures", 400)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="seattle-mean-daily-temperatures.html" style="width:100%" height=400>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+
+** Hourly By Month
+
+#+begin_src python :results output :exports both
+chart = altair.Chart(data.seattle_temps.url).mark_rect().encode(
+    x="hours(date):O",
+    y="month(date):O",
+    color="mean(temp):Q",
+    tooltip=["month(date)", "hours(date)", "mean(temp):Q"],
+).properties(title="Seattle Mean Hourly Temperatures", width=PLOT.width)
+
+save_chart(chart, "seattle-mean-hourly-temperatures", 400)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="seattle-mean-hourly-temperatures.html" style="width:100%" height=400>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
