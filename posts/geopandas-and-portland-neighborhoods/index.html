@@ -25,6 +25,10 @@
 <meta content="Table of Contents Prelude: The Lastest GeoPandas Debacle Beginning Imports Set Up Plotting Configurations The Neighborhoods Plot Try Altair Some Stuff To Check Out Portland Open Data Other" property="og:description">
 <meta content="article" property="og:type">
 <meta content="2021-12-29T12:57:26-08:00" property="article:published_time">
+<meta content="geopandas" property="article:tag">
+<meta content="maps" property="article:tag">
+<meta content="portland" property="article:tag">
+<meta content="visualization" property="article:tag">
 </head>
 <body>
 <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
@@ -66,47 +70,47 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="/posts/geopandas-and-portland-neighborhoods/#orgc5bed39">Prelude: The Lastest GeoPandas Debacle</a></li>
-<li><a href="/posts/geopandas-and-portland-neighborhoods/#org28c903a">Beginning</a>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org35221f7">Prelude: The Lastest GeoPandas Debacle</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#orgb5c63a6">Beginning</a>
 <ul>
-<li><a href="/posts/geopandas-and-portland-neighborhoods/#org82b906d">Imports</a></li>
-<li><a href="/posts/geopandas-and-portland-neighborhoods/#org4decd36">Set Up</a>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org0db4d7e">Imports</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#orgc13b0bf">Set Up</a>
 <ul>
-<li><a href="/posts/geopandas-and-portland-neighborhoods/#org24c9a26">Plotting</a></li>
-<li><a href="/posts/geopandas-and-portland-neighborhoods/#orgdadf6ef">Configurations</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org7920404">Plotting</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org9077ab0">Configurations</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="/posts/geopandas-and-portland-neighborhoods/#org42af186">The Neighborhoods</a></li>
-<li><a href="/posts/geopandas-and-portland-neighborhoods/#orge057bf7">Plot</a>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org1a03a53">The Neighborhoods</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#orgac19796">Plot</a>
 <ul>
-<li><a href="/posts/geopandas-and-portland-neighborhoods/#org9717a84">Try Altair</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org427b3b3">Try Altair</a></li>
 </ul>
 </li>
-<li><a href="/posts/geopandas-and-portland-neighborhoods/#orgf462553">Some Stuff To Check Out</a>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#orgc9c7530">Some Stuff To Check Out</a>
 <ul>
-<li><a href="/posts/geopandas-and-portland-neighborhoods/#org676453f">Portland Open Data</a></li>
-<li><a href="/posts/geopandas-and-portland-neighborhoods/#org57e9d07">Other Interesting Sites</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#org30bffa0">Portland Open Data</a></li>
+<li><a href="/posts/geopandas-and-portland-neighborhoods/#orgc528065">Other Interesting Sites</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgc5bed39">
-<h2 id="orgc5bed39">Prelude: The Lastest GeoPandas Debacle</h2>
-<div class="outline-text-2" id="text-orgc5bed39">
+<div class="outline-2" id="outline-container-org35221f7">
+<h2 id="org35221f7">Prelude: The Lastest GeoPandas Debacle</h2>
+<div class="outline-text-2" id="text-org35221f7">
 <p>As I noted in a <a href="/posts/geopandas-revisited/">previous post</a> you can't just install <a href="https://geopandas.org/">geopandas</a> and <a href="https://geoviews.org/#">geoviews</a> you also need to install <a href="https://scitools.org.uk/cartopy/docs/v0.17/index.html">cartopy</a>, but <code>cartopy</code> <a href="https://github.com/SciTools/cartopy/issues/1879">currently requires version 8</a> of <a href="https://proj.org/">proj</a> while the stable versions of <code>debian</code> and <code>ubuntu</code> both have version 7.2. I originally tried to download the (unstable) <code>.deb</code> files and install them, but <code>libproj-dev</code> requires <code>libproj22</code> which requires a newer version of the C++ libraries than is currently in debian-stable… and at that point I decided to give up on it and run everything on <a href="https://wiki.debian.org/DebianBookworm">debian bookworm</a> (currently in testing) which has the newer versions of the stuff you need for cartopy.</p>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org28c903a">
-<h2 id="org28c903a">Beginning</h2>
-<div class="outline-text-2" id="text-org28c903a">
+<div class="outline-2" id="outline-container-orgb5c63a6">
+<h2 id="orgb5c63a6">Beginning</h2>
+<div class="outline-text-2" id="text-orgb5c63a6">
 <p>This is going to be a simple plot of Portland neighborhods using GeoPandas/GeoJSON. I started doing this post to get Portland Crime Data mapped to the neighborhoods, which is what they (the Portland Police Bureau) uses, but it wasn't as straightforward as I though it'd be so I'm pulling it out here to see if I can keep it simpler for future reference.</p>
 </div>
-<div class="outline-3" id="outline-container-org82b906d">
-<h3 id="org82b906d">Imports</h3>
-<div class="outline-text-3" id="text-org82b906d">
+<div class="outline-3" id="outline-container-org0db4d7e">
+<h3 id="org0db4d7e">Imports</h3>
+<div class="outline-text-3" id="text-org0db4d7e">
 <div class="highlight">
 <pre><span></span><span class="c1"># python</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
@@ -124,12 +128,12 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org4decd36">
-<h3 id="org4decd36">Set Up</h3>
-<div class="outline-text-3" id="text-org4decd36"></div>
-<div class="outline-4" id="outline-container-org24c9a26">
-<h4 id="org24c9a26">Plotting</h4>
-<div class="outline-text-4" id="text-org24c9a26">
+<div class="outline-3" id="outline-container-orgc13b0bf">
+<h3 id="orgc13b0bf">Set Up</h3>
+<div class="outline-text-3" id="text-orgc13b0bf"></div>
+<div class="outline-4" id="outline-container-org7920404">
+<h4 id="org7920404">Plotting</h4>
+<div class="outline-text-4" id="text-org7920404">
 <div class="highlight">
 <pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"geopandas-and-portland-neighborhoods"</span>
 <span class="n">OUTPUT</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">"files/posts/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -137,9 +141,9 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgdadf6ef">
-<h4 id="orgdadf6ef">Configurations</h4>
-<div class="outline-text-4" id="text-orgdadf6ef">
+<div class="outline-4" id="outline-container-org9077ab0">
+<h4 id="org9077ab0">Configurations</h4>
+<div class="outline-text-4" id="text-org9077ab0">
 <p>This holds were the data files are (or their URLs).</p>
 <div class="highlight">
 <pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"configurations/data.yaml"</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
@@ -149,9 +153,9 @@
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org42af186">
-<h2 id="org42af186">The Neighborhoods</h2>
-<div class="outline-text-2" id="text-org42af186">
+<div class="outline-2" id="outline-container-org1a03a53">
+<h2 id="org1a03a53">The Neighborhoods</h2>
+<div class="outline-text-2" id="text-org1a03a53">
 <p>Now we can load the data.</p>
 <div class="highlight">
 <pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">configuration</span><span class="p">[</span><span class="s2">"folder"</span><span class="p">])</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
@@ -171,9 +175,9 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orge057bf7">
-<h2 id="orge057bf7">Plot</h2>
-<div class="outline-text-2" id="text-orge057bf7">
+<div class="outline-2" id="outline-container-orgac19796">
+<h2 id="orgac19796">Plot</h2>
+<div class="outline-text-2" id="text-orgac19796">
 <p>Now we'll do the actual plot.</p>
 <div class="highlight">
 <pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">neighborhoods</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">hover_cols</span><span class="o">=</span><span class="p">[</span><span class="s2">"Neighborhood"</span><span class="p">],</span> <span class="n">legend</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
@@ -187,9 +191,9 @@
 <object data="/posts/geopandas-and-portland-neighborhoods/neighborhood_plot.html" height="800" style="width:100%" type="text/html">
 <p>Figure Missing</p>
 </object></div>
-<div class="outline-3" id="outline-container-org9717a84">
-<h3 id="org9717a84">Try Altair</h3>
-<div class="outline-text-3" id="text-org9717a84">
+<div class="outline-3" id="outline-container-org427b3b3">
+<h3 id="org427b3b3">Try Altair</h3>
+<div class="outline-text-3" id="text-org427b3b3">
 <p>This was taken from <a href="https://stackoverflow.com/questions/55923300/how-can-i-make-a-map-using-geojson-data-in-altair">this Stack Overflow post</a>.</p>
 <div class="highlight">
 <pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">configuration</span><span class="p">[</span><span class="s2">"geojson-url"</span><span class="p">],</span>
@@ -212,24 +216,24 @@
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgf462553">
-<h2 id="orgf462553">Some Stuff To Check Out</h2>
-<div class="outline-text-2" id="text-orgf462553">
+<div class="outline-2" id="outline-container-orgc9c7530">
+<h2 id="orgc9c7530">Some Stuff To Check Out</h2>
+<div class="outline-text-2" id="text-orgc9c7530">
 <p>I ran into these while looking for the neighborhood data, maybe I'll check them out later.</p>
 </div>
-<div class="outline-3" id="outline-container-org676453f">
-<h3 id="org676453f">Portland Open Data</h3>
-<div class="outline-text-3" id="text-org676453f">
+<div class="outline-3" id="outline-container-org30bffa0">
+<h3 id="org30bffa0">Portland Open Data</h3>
+<div class="outline-text-3" id="text-org30bffa0">
 <p>To get the boundary information, click on the Boundaries Icon and find the dataset you want in the list that comes up. Once you're on the map, to get the dataset you need to click on a little bar at the bottom-left that says "I want to use this" which will change the user-interface. Click on the "View API Resources" tab and it will bring up two URLs, one of which is a GeoJSON link.</p>
 <ul class="org-ul">
 <li><a href="https://gis-pdx.opendata.arcgis.com/">Portland Open Data</a>: has the links to different map data.</li>
-<li><a href="https://gis-pdx.opendata.arcgis.com/datasets/PDX::pbot-equity-index/about">Portland Equity Index</a>: Has census population, income, and ethnicity information.</li>
+<li><a href="https://gis-pdx.opendata.arcgis.com/datasets/PDX::pbot-equity-index/about">Portland Equity Index</a>: Has census population, income, and ethnicity information. See the <code>configurations.yaml</code> file for some of the URLs I picked out.</li>
 </ul>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org57e9d07">
-<h3 id="org57e9d07">Other Interesting Sites</h3>
-<div class="outline-text-3" id="text-org57e9d07">
+<div class="outline-3" id="outline-container-orgc528065">
+<h3 id="orgc528065">Other Interesting Sites</h3>
+<div class="outline-text-3" id="text-orgc528065">
 <ul class="org-ul">
 <li><a href="https://guides.library.pdx.edu/c.php?g=271294&amp;p=1811001">PSU Library's Page With Links</a> to Statistical and Census Data</li>
 <li><a href="https://www.pdx.edu/population-research/census-data-oregon">PSU's Population Research Census Data</a></li>
@@ -240,6 +244,12 @@
 </div>
 <aside class="postpromonav">
 <nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="/categories/geopandas/" rel="tag">geopandas</a></li>
+<li><a class="tag p-category" href="/categories/maps/" rel="tag">maps</a></li>
+<li><a class="tag p-category" href="/categories/portland/" rel="tag">portland</a></li>
+<li><a class="tag p-category" href="/categories/visualization/" rel="tag">visualization</a></li>
+</ul>
 <ul class="pager hidden-print">
 <li class="previous"><a href="/posts/looking-at-portland-crime-data/" rel="prev" title="Looking at Portland Crime Data">Previous post</a></li>
 </ul>
