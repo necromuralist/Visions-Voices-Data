@@ -24,7 +24,7 @@ SITE_URL = "https://necromuralist.github.io/Visions-Voices-Data/"
 # This is the URL where Nikola's output will be deployed.
 # If not set, defaults to SITE_URL
 # BASE_URL = "https://necromuralist.github.io/"
-BLOG_EMAIL = "necromuralist@protonmail.com"
+BLOG_EMAIL = "cloisteredmonkey.jmark@slmail.me"
 BLOG_DESCRIPTION = "Adumbrations of data."  # (translatable)
 
 # Nikola is multilingual!
