@@ -1,0 +1,197 @@
+#+BEGIN_COMMENT
+.. title: NYC With GeoPandas
+.. slug: nyc-with-geopandas
+.. date: 2023-04-14 15:59:23 UTC-07:00
+.. tags: geopandas,mapping,how-to
+.. category: Mapping
+.. link: 
+.. description: Checking out using GeoPandas to plot NYC boroughs.
+.. type: text
+.. status: 
+.. updated: 
+
+#+END_COMMENT
+#+OPTIONS: ^:{}
+#+TOC: headlines 3
+
+#+PROPERTY: header-args :session ~/.local/share/jupyter/runtime/kernel-638c400b-8b75-432a-9d5b-a4861d03f7a8-ssh.json
+
+#+BEGIN_SRC python :results none :exports none
+%load_ext autoreload
+%autoreload 2
+#+END_SRC
+
+This is a look at getting a map of the New York City boroughs done using GeoPandas. The GeoPandas examples come from the [[https://geopandas.org/en/stable/getting_started/introduction.html][Introduction To GeoPandas]].
+
+* Setup
+** Imports
+
+**Note:** Using hvplot requires geoviews and scipy on top of geopandas.
+
+#+begin_src python :results none
+# python
+from functools import partial 
+
+import sys
+
+# pypi
+from tabulate import tabulate
+
+import altair
+import geopandas
+import hvplot.pandas
+
+# my stuff
+from graeae import EmbedHoloviews
+from graeae.visualization.altair_helpers import output_path, save_chart
+#+end_src
+
+#+begin_src python :results none
+TABLE = partial(tabulate, tablefmt="orgtbl", showindex=False)
+
+SLUG = "nyc-with-geopandas"
+OUTPUT_FOLDER = f"files/posts/{SLUG}"
+Embed = partial(EmbedHoloviews, folder_path=OUTPUT_FOLDER)
+
+OUTPUT_PATH = output_path(SLUG)
+save_altair = partial(save_chart, output_path=OUTPUT_PATH, height=650)
+#+end_src
+
+** Versions
+#+begin_src python :results output :exports both
+print(sys.version)
+print(altair.__version__)
+#+end_src
+
+#+RESULTS:
+: 3.9.9 (main, Dec 21 2021, 10:03:34) 
+: [GCC 10.2.1 20210110]
+: 5.0.0rc1
+
+I'm using the pre-release version of altair since its interface is different from the 4.x versions.
+
+** The Data
+GeoPandas comes with some built-in datasets (only three, actually) including one for [[https://en.wikipedia.org/wiki/Boroughs_of_New_York_City][the Boroughs of New York City]], which is what we'll load here.
+
+
+Here's the available datasets.
+
+#+begin_src python :results output :exports both
+for dataset in geopandas.datasets.available:
+    print(f" - ~{dataset}~")
+#+end_src
+
+#+RESULTS:
+ - ~naturalearth_cities~
+ - ~naturalearth_lowres~
+ - ~nybb~
+
+We want the last one, the ~nybb~. To load the map data into GeoPandas we give it the path to the source file. In this case, since it comes with the built-in data sets we can use their ~get_path~ method.
+
+#+begin_src python :results output :exports both
+path_to_data = geopandas.datasets.get_path("nybb")
+nyc_data = geopandas.read_file(path_to_data)
+
+print(nyc_data.head(1))
+#+end_src
+
+#+RESULTS:
+:    BoroCode       BoroName     Shape_Leng    Shape_Area  \
+: 0         5  Staten Island  330470.010332  1.623820e+09   
+: 
+:                                             geometry  
+: 0  MULTIPOLYGON (((970217.022 145643.332, 970227....  
+
+The GeoPandas methods will automatically use the ~geometry~ column when we do any mapping so we don't have to do anything special to tell it what to use. Note that although printing the first row makes it look like we have a pandas DataFrame, it's actually a GeoPandas object, so it has both pandas methods and geopandas methods.
+
+* Plotting The Boroughs With HVPlot
+
+#+begin_src python :results none
+plot = nyc_data.hvplot(hover_cols=["BoroName"], legend=False, tools=["hover", "wheel_zoom"],).opts(
+    title="New York City Boroughs",
+    width=800,
+    height=700,
+    fontscale=2,
+    xaxis=None,
+    yaxis=None
+)
+outcome = Embed(plot=plot, file_name="nyc_boroughs")()
+#+end_src
+
+#+begin_src python :results output html :exports both
+print(outcome)
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="nyc_boroughs.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+* Folium Map
+
+The GeoPandas ~explore~ method creates a [[https://python-visualization.github.io/folium/][Folium]] map that will plot the boroughs using the geometry data and put it on top of a street map. To give it something extra we'll add a column for the area of each burough and color the output based on it.
+
+#+begin_src python :results output :exports both
+nyc_data["Area"] = nyc_data.area
+print(nyc_data.Area)
+#+end_src
+
+#+RESULTS:
+: 0    1.623822e+09
+: 1    3.045214e+09
+: 2    1.937478e+09
+: 3    6.364712e+08
+: 4    1.186926e+09
+: Name: Area, dtype: float64
+
+#+begin_src python :results none
+explorer = nyc_data.explore(column="Area", legend=False,
+                            tooltip="BoroName", popup=True)
+explorer.save(f"{OUTPUT_FOLDER}/nyc-explore.html")
+#+end_src
+
+#+begin_export html
+<object type="text/html" data="nyc-explore.html" style="width:100%" height=800>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+- The ~column~ tells geopandas which column to use to color the [[https://en.wikipedia.org/wiki/Choropleth_map?useskin=vector][Choropleth Map]]
+- ~popup~ makes it so that clicking on a borough will show data from all the columns
+
+* An Altair Map
+
+Using altair isn't too far from using hvplot, although it does have (a little) more documentation for mapping. For some reason it doesn't recognize our data as geographic data so we'll have to use the ~project~ method to tell altair to treat the geometry data as x-y data.
+
+#+begin_src python :results output :exports both
+chart = altair.Chart(nyc_data).mark_geoshape().encode(
+    color="Area",
+    tooltip=[altair.Tooltip("BoroName", type="nominal"),
+             altair.Tooltip("Area", type="quantitative", format=".2e")]
+).project(type="identity", reflectY=True).properties(
+    width=800,
+    height=525,
+    title="NYC Borough Areas",
+)
+
+save_altair(chart, "nyc-borough-areas-altair")
+#+end_src
+
+#+RESULTS:
+#+begin_export html
+<object type="text/html" data="nyc-borough-areas-altair.html" style="width:100%" height=650>
+  <p>Figure Missing</p>
+</object>
+#+end_export
+
+* Sources
+ - Introduction to GeoPandas — GeoPandas 0.12.2+0.gefcb367.dirty documentation [Internet]. [cited 2023 Apr 14]. Available from: https://geopandas.org/en/stable/getting_started/introduction.html
+
+ - Interactive mapping — GeoPandas 0.12.2+0.gefcb367.dirty documentation [Internet]. [cited 2023 Apr 15]. Available from: https://geopandas.org/en/stable/docs/user_guide/interactive_mapping.html
+
+ - Geographic Data — hvPlot 0.8.3 documentation [Internet]. [cited 2023 Apr 15]. Available from: https://hvplot.holoviz.org/user_guide/Geographic_Data.html
+
+ - Geoshape — Vega-Altair 5.0.0dev documentation [Internet]. [cited 2023 Apr 15]. Available from: https://altair-viz.github.io/user_guide/marks/geoshape.html
+
