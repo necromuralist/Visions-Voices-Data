@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+<head>
+<meta charset="utf-8">
+<meta content="Checking out using GeoPandas to plot NYC boroughs." name="description">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>NYC With GeoPandas | Visions, Voices, Data</title>
+<link href="../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<meta content="Nikola (getnikola.com)" name="generator">
+<link href="../../rss.xml" hreflang="en" rel="alternate" title="RSS" type="application/rss+xml">
+<link href="https://necromuralist.github.io/Visions-Voices-Data/posts/nyc-with-geopandas/" rel="canonical"><!--[if lt IE 9]><script src="../../assets/js/html5.js"></script><![endif]-->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script><!--
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+</script>
+-->
+<script async src="../../javascript/p5.min.js" type="text/javascript"></script>
+<meta content="Cloistered Monkey" name="author">
+<link href="/posts/geopandas-and-portland-neighborhoods/" rel="prev" title="GeoPandas and Portland Neighborhoods" type="text/html">
+<meta content="Visions, Voices, Data" property="og:site_name">
+<meta content="NYC With GeoPandas" property="og:title">
+<meta content="https://necromuralist.github.io/Visions-Voices-Data/posts/nyc-with-geopandas/" property="og:url">
+<meta content="Checking out using GeoPandas to plot NYC boroughs." property="og:description">
+<meta content="article" property="og:type">
+<meta content="2023-04-14T15:59:23-07:00" property="article:published_time">
+<meta content="geopandas" property="article:tag">
+<meta content="how-to" property="article:tag">
+<meta content="mapping" property="article:tag">
+</head>
+<body>
+<a class="sr-only sr-only-focusable" href="#content">Skip to main content</a> <!-- Menubar -->
+<nav class="navbar navbar-expand-md static-top mb-4 navbar-light bg-light">
+<div class="container"><!-- This keeps the margins nice -->
+ <a class="navbar-brand" href="/"><span id="blog-title">Visions, Voices, Data</span></a> <button aria-controls="bs-navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#bs-navbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="bs-navbar">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link" href="/archive.html">Archive</a></li>
+<li class="nav-item"><a class="nav-link" href="/categories/">Tags</a></li>
+<li class="nav-item"><a class="nav-link" href="/rss.xml">RSS feed</a></li>
+<li class="nav-item dropdown"><a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Pages</a>
+<div class="dropdown-menu"><a class="dropdown-item" href="https://necromuralist.github.io/">Cloistered Monkey</a> <a class="dropdown-item" href="/pages/giss/giss-yearly-anomalies-by-climate-zone">GISS Anomalies</a></div>
+</li>
+</ul>
+<!-- DuckDuckGo custom search -->
+<form action="https://duckduckgo.com/" class="navbar-form pull-left" id="search" method="get" name="search"><input name="sites" type="hidden" value="https://necromuralist.github.io/Visions-Voices-Data/"> <input name="k8" type="hidden" value="#444444"> <input name="k9" type="hidden" value="#D51920"> <input name="kt" type="hidden" value="h"> <input class="span2" maxlength="255" name="q" placeholder="Search…" type="text"> <input style="visibility: hidden;display:none" type="submit" value="DuckDuckGo Search"></form>
+<!-- End of custom search -->
+<ul class="navbar-nav navbar-right">
+<li class="nav-item"><a class="nav-link" href="/posts/nyc-with-geopandas/index.org" id="sourcelink">Source</a></li>
+</ul>
+</div>
+<!-- /.navbar-collapse --></div>
+<!-- /.container --></nav>
+<!-- End of Menubar -->
+<div class="container" id="content" role="main">
+<div class="body-content"><!--Body content-->
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
+<h1 class="p-name entry-title" itemprop="headline name"><a class="u-url" href="/posts/nyc-with-geopandas/">NYC With GeoPandas</a></h1>
+<div class="metadata">
+<p class="byline author vcard p-author h-card"><span class="byline-name fn p-name" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/nyc-with-geopandas/" rel="bookmark"><time class="published dt-published" datetime="2023-04-14T15:59:23-07:00" itemprop="datePublished" title="2023-04-14 15:59">2023-04-14 15:59</time></a></p>
+<p class="sourceline"><a class="sourcelink" href="/posts/nyc-with-geopandas/index.org">Source</a></p>
+</div>
+</header>
+<div class="e-content entry-content" itemprop="articleBody text">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="/posts/nyc-with-geopandas/#orgfbbbebf">Setup</a>
+<ul>
+<li><a href="/posts/nyc-with-geopandas/#org102be94">Imports</a></li>
+<li><a href="/posts/nyc-with-geopandas/#org10c7fb2">Versions</a></li>
+<li><a href="/posts/nyc-with-geopandas/#org489f842">The Data</a></li>
+</ul>
+</li>
+<li><a href="/posts/nyc-with-geopandas/#org9e24312">Plotting The Boroughs With HVPlot</a></li>
+<li><a href="/posts/nyc-with-geopandas/#orgad65eac">Folium Map</a></li>
+<li><a href="/posts/nyc-with-geopandas/#orga072787">An Altair Map</a></li>
+<li><a href="/posts/nyc-with-geopandas/#org76f6d54">Sources</a></li>
+</ul>
+</div>
+</div>
+<p>This is a look at getting a map of the New York City boroughs done using GeoPandas. The GeoPandas examples come from the <a href="https://geopandas.org/en/stable/getting_started/introduction.html">Introduction To GeoPandas</a>.</p>
+<div class="outline-2" id="outline-container-orgfbbbebf">
+<h2 id="orgfbbbebf">Setup</h2>
+<div class="outline-text-2" id="text-orgfbbbebf"></div>
+<div class="outline-3" id="outline-container-org102be94">
+<h3 id="org102be94">Imports</h3>
+<div class="outline-text-3" id="text-org102be94">
+<p><b>Note:</b> Using hvplot requires geoviews and scipy on top of geopandas.</p>
+<div class="highlight">
+<pre><span></span><span class="c1"># python</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span> 
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="c1"># pypi</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+
+<span class="kn">import</span> <span class="nn">altair</span>
+<span class="kn">import</span> <span class="nn">geopandas</span>
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+
+<span class="c1"># my stuff</span>
+<span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span>
+<span class="kn">from</span> <span class="nn">graeae.visualization.altair_helpers</span> <span class="kn">import</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">save_chart</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">TABLE</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">tabulate</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"nyc-with-geopandas"</span>
+<span class="n">OUTPUT_FOLDER</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"files/posts/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">"</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="n">OUTPUT_FOLDER</span><span class="p">)</span>
+
+<span class="n">OUTPUT_PATH</span> <span class="o">=</span> <span class="n">output_path</span><span class="p">(</span><span class="n">SLUG</span><span class="p">)</span>
+<span class="n">save_altair</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">save_chart</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">OUTPUT_PATH</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">650</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org10c7fb2">
+<h3 id="org10c7fb2">Versions</h3>
+<div class="outline-text-3" id="text-org10c7fb2">
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">altair</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+3.9.9 (main, Dec 21 2021, 10:03:34) 
+[GCC 10.2.1 20210110]
+5.0.0rc1
+</pre>
+<p>I'm using the pre-release version of altair since its interface is different from the 4.x versions.</p>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org489f842">
+<h3 id="org489f842">The Data</h3>
+<div class="outline-text-3" id="text-org489f842">
+<p>GeoPandas comes with some built-in datasets (only three, actually) including one for <a href="https://en.wikipedia.org/wiki/Boroughs_of_New_York_City">the Boroughs of New York City</a>, which is what we'll load here.</p>
+<p>Here's the available datasets.</p>
+<div class="highlight">
+<pre><span></span><span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">geopandas</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">available</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">" - ~</span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">~"</span><span class="p">)</span>
+</pre></div>
+<ul class="org-ul">
+<li><code>naturalearth_cities</code></li>
+<li><code>naturalearth_lowres</code></li>
+<li><code>nybb</code></li>
+</ul>
+<p>We want the last one, the <code>nybb</code>. To load the map data into GeoPandas we give it the path to the source file. In this case, since it comes with the built-in data sets we can use their <code>get_path</code> method.</p>
+<div class="highlight">
+<pre><span></span><span class="n">path_to_data</span> <span class="o">=</span> <span class="n">geopandas</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s2">"nybb"</span><span class="p">)</span>
+<span class="n">nyc_data</span> <span class="o">=</span> <span class="n">geopandas</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">path_to_data</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">nyc_data</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+<pre class="example">
+   BoroCode       BoroName     Shape_Leng    Shape_Area  \
+0         5  Staten Island  330470.010332  1.623820e+09   
+
+                                            geometry  
+0  MULTIPOLYGON (((970217.022 145643.332, 970227....  
+</pre>
+<p>The GeoPandas methods will automatically use the <code>geometry</code> column when we do any mapping so we don't have to do anything special to tell it what to use. Note that although printing the first row makes it look like we have a pandas DataFrame, it's actually a GeoPandas object, so it has both pandas methods and geopandas methods.</p>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-org9e24312">
+<h2 id="org9e24312">Plotting The Boroughs With HVPlot</h2>
+<div class="outline-text-2" id="text-org9e24312">
+<div class="highlight">
+<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">nyc_data</span><span class="o">.</span><span class="n">hvplot</span><span class="p">(</span><span class="n">hover_cols</span><span class="o">=</span><span class="p">[</span><span class="s2">"BoroName"</span><span class="p">],</span> <span class="n">legend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="s2">"hover"</span><span class="p">,</span> <span class="s2">"wheel_zoom"</span><span class="p">],)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"New York City Boroughs"</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">xaxis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">yaxis</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">)</span>
+<span class="n">outcome</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"nyc_boroughs"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">outcome</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/nyc-with-geopandas/nyc_boroughs.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-2" id="outline-container-orgad65eac">
+<h2 id="orgad65eac">Folium Map</h2>
+<div class="outline-text-2" id="text-orgad65eac">
+<p>The GeoPandas <code>explore</code> method creates a <a href="https://python-visualization.github.io/folium/">Folium</a> map that will plot the boroughs using the geometry data and put it on top of a street map. To give it something extra we'll add a column for the area of each burough and color the output based on it.</p>
+<div class="highlight">
+<pre><span></span><span class="n">nyc_data</span><span class="p">[</span><span class="s2">"Area"</span><span class="p">]</span> <span class="o">=</span> <span class="n">nyc_data</span><span class="o">.</span><span class="n">area</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">nyc_data</span><span class="o">.</span><span class="n">Area</span><span class="p">)</span>
+</pre></div>
+<pre class="example">
+0    1.623822e+09
+1    3.045214e+09
+2    1.937478e+09
+3    6.364712e+08
+4    1.186926e+09
+Name: Area, dtype: float64
+</pre>
+<div class="highlight">
+<pre><span></span><span class="n">explorer</span> <span class="o">=</span> <span class="n">nyc_data</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="s2">"Area"</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">tooltip</span><span class="o">=</span><span class="s2">"BoroName"</span><span class="p">,</span> <span class="n">popup</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">explorer</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">OUTPUT_FOLDER</span><span class="si">}</span><span class="s2">/nyc-explore.html"</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/nyc-with-geopandas/nyc-explore.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<ul class="org-ul">
+<li>The <code>column</code> tells geopandas which column to use to color the <a href="https://en.wikipedia.org/wiki/Choropleth_map?useskin=vector">Choropleth Map</a></li>
+<li><code>popup</code> makes it so that clicking on a borough will show data from all the columns</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orga072787">
+<h2 id="orga072787">An Altair Map</h2>
+<div class="outline-text-2" id="text-orga072787">
+<p>Using altair isn't too far from using hvplot, although it does have (a little) more documentation for mapping. For some reason it doesn't recognize our data as geographic data so we'll have to use the <code>project</code> method to tell altair to treat the geometry data as x-y data.</p>
+<div class="highlight">
+<pre><span></span><span class="n">chart</span> <span class="o">=</span> <span class="n">altair</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">nyc_data</span><span class="p">)</span><span class="o">.</span><span class="n">mark_geoshape</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"Area"</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="n">altair</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">"BoroName"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">"nominal"</span><span class="p">),</span>
+             <span class="n">altair</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">"Area"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">"quantitative"</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">".2e"</span><span class="p">)]</span>
+<span class="p">)</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"identity"</span><span class="p">,</span> <span class="n">reflectY</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">525</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"NYC Borough Areas"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">save_altair</span><span class="p">(</span><span class="n">chart</span><span class="p">,</span> <span class="s2">"nyc-borough-areas-altair"</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/nyc-with-geopandas/nyc-borough-areas-altair.html" height="650" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+<div class="outline-2" id="outline-container-org76f6d54">
+<h2 id="org76f6d54">Sources</h2>
+<div class="outline-text-2" id="text-org76f6d54">
+<ul class="org-ul">
+<li>Introduction to GeoPandas — GeoPandas 0.12.2+0.gefcb367.dirty documentation [Internet]. [cited 2023 Apr 14]. Available from: <a href="https://geopandas.org/en/stable/getting_started/introduction.html">https://geopandas.org/en/stable/getting_started/introduction.html</a></li>
+<li>Interactive mapping — GeoPandas 0.12.2+0.gefcb367.dirty documentation [Internet]. [cited 2023 Apr 15]. Available from: <a href="https://geopandas.org/en/stable/docs/user_guide/interactive_mapping.html">https://geopandas.org/en/stable/docs/user_guide/interactive_mapping.html</a></li>
+<li>Geographic Data — hvPlot 0.8.3 documentation [Internet]. [cited 2023 Apr 15]. Available from: <a href="https://hvplot.holoviz.org/user_guide/Geographic_Data.html">https://hvplot.holoviz.org/user_guide/Geographic_Data.html</a></li>
+<li>Geoshape — Vega-Altair 5.0.0dev documentation [Internet]. [cited 2023 Apr 15]. Available from: <a href="https://altair-viz.github.io/user_guide/marks/geoshape.html">https://altair-viz.github.io/user_guide/marks/geoshape.html</a></li>
+</ul>
+</div>
+</div>
+</div>
+<aside class="postpromonav">
+<nav>
+<ul class="tags" itemprop="keywords">
+<li><a class="tag p-category" href="/categories/geopandas/" rel="tag">geopandas</a></li>
+<li><a class="tag p-category" href="/categories/how-to/" rel="tag">how-to</a></li>
+<li><a class="tag p-category" href="/categories/mapping/" rel="tag">mapping</a></li>
+</ul>
+<ul class="pager hidden-print">
+<li class="previous"><a href="/posts/geopandas-and-portland-neighborhoods/" rel="prev" title="GeoPandas and Portland Neighborhoods">Previous post</a></li>
+</ul>
+</nav>
+</aside>
+</article>
+<!--End of body content-->
+<footer id="footer">Contents © 2023 <a href="mailto:cloisteredmonkey.jmark@slmail.me">Cloistered Monkey</a> - Powered by <a href="https://getnikola.com" rel="nofollow">Nikola</a></footer>
+</div>
+</div>
+<script src="/assets/js/all-nocdn.js"></script>
+<script>
+
+    baguetteBox.run('div#content', {
+        ignoreClass: 'islink',
+        captions: function(element){var i=element.getElementsByTagName('img')[0];return i===undefined?'':i.alt;}});
+</script> 
+</body>
+</html>
