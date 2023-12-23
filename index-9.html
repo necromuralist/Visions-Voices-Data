@@ -48,6 +48,458 @@
 <div class="postindex">
 <article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
 <header>
+<h1 class="p-name entry-title"><a class="u-url" href="/posts/galtons-sweet-pea-data/">Galton's Sweet Pea Data</a></h1>
+<div class="metadata">
+<p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
+<p class="dateline"><a href="/posts/galtons-sweet-pea-data/" rel="bookmark"><time class="published dt-published" datetime="2021-02-24T13:47:33-08:00" itemprop="datePublished" title="2021-02-24 13:47">2021-02-24 13:47</time></a></p>
+</div>
+</header>
+<div class="e-content entry-content">
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="/posts/galtons-sweet-pea-data/#orga135907">Beginning</a>
+<ul>
+<li><a href="/posts/galtons-sweet-pea-data/#org37ae0ab">Imports</a></li>
+<li><a href="/posts/galtons-sweet-pea-data/#org4be5453">Set Up</a></li>
+</ul>
+</li>
+<li><a href="/posts/galtons-sweet-pea-data/#orgebbd0a8">Middle</a>
+<ul>
+<li><a href="/posts/galtons-sweet-pea-data/#orgfbf19c1">The Data</a></li>
+</ul>
+</li>
+<li><a href="/posts/galtons-sweet-pea-data/#orgaf3626a">End</a>
+<ul>
+<li><a href="/posts/galtons-sweet-pea-data/#org55055b9">Source</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orga135907">
+<h2 id="orga135907">Beginning</h2>
+<div class="outline-text-2" id="text-orga135907"></div>
+<div class="outline-3" id="outline-container-org37ae0ab">
+<h3 id="org37ae0ab">Imports</h3>
+<div class="outline-text-3" id="text-org37ae0ab">
+<div class="highlight">
+<pre><span></span><span class="c1"># python</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="c1"># pypi</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+
+<span class="kn">import</span> <span class="nn">holoviews</span>
+<span class="kn">import</span> <span class="nn">hvplot.pandas</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+
+<span class="c1"># my stuff</span>
+<span class="kn">from</span> <span class="nn">graeae</span> <span class="kn">import</span> <span class="n">EmbedHoloviews</span>
+</pre></div>
+</div>
+</div>
+<div class="outline-3" id="outline-container-org4be5453">
+<h3 id="org4be5453">Set Up</h3>
+<div class="outline-text-3" id="text-org4be5453">
+<div class="highlight">
+<pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"galtons-sweet-pea-data"</span>
+<span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"files/posts/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="n">Plot</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">"Plot"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"width"</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">,</span> <span class="s2">"fontscale"</span><span class="p">,</span>
+                           <span class="s2">"tan"</span><span class="p">,</span> <span class="s2">"blue"</span><span class="p">,</span>
+                           <span class="s2">"red"</span><span class="p">])</span>
+<span class="n">PLOT</span> <span class="o">=</span> <span class="n">Plot</span><span class="p">(</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">750</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">tan</span><span class="o">=</span><span class="s2">"#ddb377"</span><span class="p">,</span>
+    <span class="n">blue</span><span class="o">=</span><span class="s2">"#4687b7"</span><span class="p">,</span>
+    <span class="n">red</span><span class="o">=</span><span class="s2">"#ce7b6d"</span><span class="p">,</span>
+ <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgebbd0a8">
+<h2 id="orgebbd0a8">Middle</h2>
+<div class="outline-text-2" id="text-orgebbd0a8"></div>
+<div class="outline-3" id="outline-container-orgfbf19c1">
+<h3 id="orgfbf19c1">The Data</h3>
+<div class="outline-text-3" id="text-orgfbf19c1">
+<div class="highlight">
+<pre><span></span><span class="n">URL</span> <span class="o">=</span> <span class="s2">"http://jse.amstat.org/v9n3/stanton.html#appendixa"</span>
+
+<span class="n">frames</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+<p>There are two tables on the page, we want the second one.</p>
+<div class="highlight">
+<pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">frames</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">"orgtbl"</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">"keys"</span><span class="p">,</span> <span class="n">showindex</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+</pre></div>
+<table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups">
+<colgroup>
+<col class="org-right">
+<col class="org-right">
+<col class="org-right"></colgroup>
+<thead>
+<tr>
+<th class="org-right" scope="col">Diameter of Parent Seed(0.01 inch)</th>
+<th class="org-right" scope="col">Diameter of Daughter Seed(0.01 inch)</th>
+<th class="org-right" scope="col">Frequency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">14.67</td>
+<td class="org-right">22</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">15.67</td>
+<td class="org-right">8</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">16.67</td>
+<td class="org-right">10</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">17.67</td>
+<td class="org-right">18</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">18.67</td>
+<td class="org-right">21</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">19.67</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">20.67</td>
+<td class="org-right">6</td>
+</tr>
+<tr>
+<td class="org-right">21</td>
+<td class="org-right">22.67</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">14.66</td>
+<td class="org-right">23</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">15.66</td>
+<td class="org-right">10</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">16.66</td>
+<td class="org-right">12</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">17.66</td>
+<td class="org-right">17</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">18.66</td>
+<td class="org-right">20</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">19.66</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">20.66</td>
+<td class="org-right">3</td>
+</tr>
+<tr>
+<td class="org-right">20</td>
+<td class="org-right">22.66</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">14.07</td>
+<td class="org-right">35</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">15.07</td>
+<td class="org-right">16</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">16.07</td>
+<td class="org-right">12</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">17.07</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">18.07</td>
+<td class="org-right">11</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">19.07</td>
+<td class="org-right">10</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">20.07</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-right">19</td>
+<td class="org-right">22.07</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">14.35</td>
+<td class="org-right">34</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">15.35</td>
+<td class="org-right">12</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">16.35</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">17.35</td>
+<td class="org-right">17</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">18.35</td>
+<td class="org-right">16</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">19.35</td>
+<td class="org-right">6</td>
+</tr>
+<tr>
+<td class="org-right">18</td>
+<td class="org-right">20.35</td>
+<td class="org-right">2</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">13.92</td>
+<td class="org-right">37</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">14.92</td>
+<td class="org-right">16</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">15.92</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">16.92</td>
+<td class="org-right">16</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">17.92</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">18.92</td>
+<td class="org-right">4</td>
+</tr>
+<tr>
+<td class="org-right">17</td>
+<td class="org-right">19.92</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">14.28</td>
+<td class="org-right">34</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">15.28</td>
+<td class="org-right">15</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">16.28</td>
+<td class="org-right">18</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">17.28</td>
+<td class="org-right">16</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">18.28</td>
+<td class="org-right">13</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">19.28</td>
+<td class="org-right">3</td>
+</tr>
+<tr>
+<td class="org-right">16</td>
+<td class="org-right">20.28</td>
+<td class="org-right">1</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">13.77</td>
+<td class="org-right">46</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">14.77</td>
+<td class="org-right">14</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">15.77</td>
+<td class="org-right">9</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">16.77</td>
+<td class="org-right">11</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">17.77</td>
+<td class="org-right">14</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">18.77</td>
+<td class="org-right">4</td>
+</tr>
+<tr>
+<td class="org-right">15</td>
+<td class="org-right">19.77</td>
+<td class="org-right">2</td>
+</tr>
+</tbody>
+</table>
+<p>Note that the data is somewhat aggregated - the last column is the number of times that the parent/daughter diameter pairs occured in the original data.</p>
+<div class="highlight">
+<pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Parent"</span><span class="p">,</span> <span class="s2">"Daughter"</span><span class="p">,</span> <span class="s2">"Frequency"</span><span class="p">]</span>
+<span class="n">plot</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Parent"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Daughter"</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">Frequency</span><span class="p">,</span>
+                           <span class="n">c</span><span class="o">=</span><span class="s2">"Frequency"</span><span class="p">,</span>
+                           <span class="n">color</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">red</span><span class="p">,</span>
+                           <span class="n">title</span><span class="o">=</span><span class="s2">"Sweet Pea Diameter (0.01 Inch)"</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+                               <span class="n">height</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+                               <span class="n">width</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+                               <span class="n">fontscale</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">fontscale</span><span class="p">,</span>
+                           <span class="p">)</span>
+<span class="n">embedder</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"scatter_plot"</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">embedder</span><span class="p">()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/galtons-sweet-pea-data/scatter_plot.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span><span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+    <span class="n">rows</span><span class="o">.</span><span class="n">extend</span><span class="p">([[</span><span class="n">row</span><span class="o">.</span><span class="n">Parent</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">Daughter</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">Frequency</span><span class="p">)])</span>
+
+<span class="n">frame</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">"Parent Daughter"</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">"Diameter Distribution"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">fontscale</span><span class="p">,</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s2">"Diameter"</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Count"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"histogram"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/galtons-sweet-pea-data/histogram.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object>
+<div class="highlight">
+<pre><span></span><span class="n">parent_min</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">Parent</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+<span class="n">parent_max</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">Parent</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="n">y_1</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="n">frame</span><span class="o">.</span><span class="n">Parent</span><span class="o">==</span><span class="n">parent_min</span><span class="p">]</span><span class="o">.</span><span class="n">Daughter</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">y_2</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="n">frame</span><span class="o">.</span><span class="n">Parent</span><span class="o">==</span><span class="n">parent_max</span><span class="p">]</span><span class="o">.</span><span class="n">Daughter</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="n">dots</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">hvplot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">"Parent"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Daughter"</span><span class="p">,</span>
+                           <span class="n">color</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">red</span><span class="p">,</span>
+                           <span class="n">title</span><span class="o">=</span><span class="s2">"Sweet Pea Diameter (0.01 Inch)"</span><span class="p">)</span>
+<span class="n">line</span> <span class="o">=</span> <span class="n">holoviews</span><span class="o">.</span><span class="n">Curve</span><span class="p">([(</span><span class="n">parent_min</span><span class="p">,</span> <span class="n">y_1</span><span class="p">),</span> <span class="p">(</span><span class="n">parent_max</span><span class="p">,</span> <span class="n">y_2</span><span class="p">)])</span>
+
+<span class="n">plot</span> <span class="o">=</span> <span class="p">(</span><span class="n">dots</span> <span class="o">*</span> <span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+    <span class="n">fontscale</span><span class="o">=</span><span class="n">PLOT</span><span class="o">.</span><span class="n">fontscale</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">output</span> <span class="o">=</span> <span class="n">Embed</span><span class="p">(</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s2">"scatter_plot_with_means"</span><span class="p">)()</span>
+</pre></div>
+<div class="highlight">
+<pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+<object data="/posts/galtons-sweet-pea-data/scatter_plot_with_means.html" height="800" style="width:100%" type="text/html">
+<p>Figure Missing</p>
+</object></div>
+</div>
+</div>
+<div class="outline-2" id="outline-container-orgaf3626a">
+<h2 id="orgaf3626a">End</h2>
+<div class="outline-text-2" id="text-orgaf3626a"></div>
+<div class="outline-3" id="outline-container-org55055b9">
+<h3 id="org55055b9">Source</h3>
+<div class="outline-text-3" id="text-org55055b9">
+<ul class="org-ul">
+<li>Stanton JM. Galton, Pearson, and the peas: A brief history of linear regression for statistics instructors. Journal of Statistics Education. 2001 Jan 1;9(3). (<a href="http://jse.amstat.org/v9n3/stanton.html">Link</a>)</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</article>
+<article class="h-entry post-text" itemscope="itemscope" itemtype="http://schema.org/Article">
+<header>
 <h1 class="p-name entry-title"><a class="u-url" href="/posts/zip-code-plotting/">Zip Code Plotting</a></h1>
 <div class="metadata">
 <p class="byline author vcard"><span class="byline-name fn" itemprop="author">Cloistered Monkey</span></p>
@@ -55,37 +507,37 @@
 </div>
 </header>
 <div class="e-content entry-content">
-<div id="table-of-contents">
+<div id="table-of-contents" role="doc-toc">
 <h2>Table of Contents</h2>
-<div id="text-table-of-contents">
+<div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="/posts/zip-code-plotting/#org9ccb87a">Beginning</a>
+<li><a href="/posts/zip-code-plotting/#org04a2476">Beginning</a>
 <ul>
-<li><a href="/posts/zip-code-plotting/#orgd5d4ef1">Imports</a></li>
-<li><a href="/posts/zip-code-plotting/#org74458d8">Set Up</a></li>
+<li><a href="/posts/zip-code-plotting/#orgaf18d2e">Imports</a></li>
+<li><a href="/posts/zip-code-plotting/#orgcb8c5e5">Set Up</a></li>
 </ul>
 </li>
-<li><a href="/posts/zip-code-plotting/#org3cd74f3">Middle</a>
+<li><a href="/posts/zip-code-plotting/#org4535e52">Middle</a>
 <ul>
-<li><a href="/posts/zip-code-plotting/#org398e350">Loading the Data</a></li>
+<li><a href="/posts/zip-code-plotting/#org097415d">Loading the Data</a></li>
 </ul>
 </li>
-<li><a href="/posts/zip-code-plotting/#orgb726e7b">End</a>
+<li><a href="/posts/zip-code-plotting/#org5840e9a">End</a>
 <ul>
-<li><a href="/posts/zip-code-plotting/#orgcd52172">Sources</a></li>
+<li><a href="/posts/zip-code-plotting/#org5440eb3">Sources</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org9ccb87a">
-<h2 id="org9ccb87a">Beginning</h2>
-<div class="outline-text-2" id="text-org9ccb87a">
+<div class="outline-2" id="outline-container-org04a2476">
+<h2 id="org04a2476">Beginning</h2>
+<div class="outline-text-2" id="text-org04a2476">
 <p>This is a quick test to see if I can plot some GeoJSON that defines a zipcode map for the state of Oregon. I got the file from <a href="https://github.com/OpenDataDE/State-zip-code-GeoJSON">GitHub</a> but the README indicates that the original source (see below) was the the U.S. Census Bureau. The files are from 2010, so they're a little old, but I don't imagine that zip codes update that often anyway. Maybe as a future exercise I'll try to replicated what was done with the <a href="https://www.census.gov/cgi-bin/geo/shapefiles/index.php">2019</a> update.</p>
 </div>
-<div class="outline-3" id="outline-container-orgd5d4ef1">
-<h3 id="orgd5d4ef1">Imports</h3>
-<div class="outline-text-3" id="text-orgd5d4ef1">
+<div class="outline-3" id="outline-container-orgaf18d2e">
+<h3 id="orgaf18d2e">Imports</h3>
+<div class="outline-text-3" id="text-orgaf18d2e">
 <div class="highlight">
 <pre><span></span><span class="c1"># python</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
@@ -106,9 +558,9 @@
 </pre></div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org74458d8">
-<h3 id="org74458d8">Set Up</h3>
-<div class="outline-text-3" id="text-org74458d8">
+<div class="outline-3" id="outline-container-orgcb8c5e5">
+<h3 id="orgcb8c5e5">Set Up</h3>
+<div class="outline-text-3" id="text-orgcb8c5e5">
 <div class="highlight">
 <pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">"zip-code-plotting"</span>
 <span class="n">Embed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">EmbedHoloviews</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"files/posts/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -116,12 +568,12 @@
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org3cd74f3">
-<h2 id="org3cd74f3">Middle</h2>
-<div class="outline-text-2" id="text-org3cd74f3"></div>
-<div class="outline-3" id="outline-container-org398e350">
-<h3 id="org398e350">Loading the Data</h3>
-<div class="outline-text-3" id="text-org398e350">
+<div class="outline-2" id="outline-container-org4535e52">
+<h2 id="org4535e52">Middle</h2>
+<div class="outline-text-2" id="text-org4535e52"></div>
+<div class="outline-3" id="outline-container-org097415d">
+<h3 id="org097415d">Loading the Data</h3>
+<div class="outline-text-3" id="text-org097415d">
 <p>This should be pretty straightforward. The documentation for <a href="https://geopandas.org/">GeoPandas</a> indicates that it can handle GeoJSON directly.</p>
 <div class="highlight">
 <pre><span></span><span class="n">load_dotenv</span><span class="p">(</span><span class="s2">"posts/.env"</span><span class="p">)</span>
@@ -132,7 +584,7 @@
 <div class="highlight">
 <pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">geoframe</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </pre></div>
-<pre class="example">
+<pre class="example" id="orge89051a">
   STATEFP10 ZCTA5CE10  GEOID10 CLASSFP10 MTFCC10 FUNCSTAT10    ALAND10  \
 0        41     97833  4197833        B5   G6350          S  228152974   
 1        41     97840  4197840        B5   G6350          S  295777905   
@@ -174,12 +626,12 @@
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-orgb726e7b">
-<h2 id="orgb726e7b">End</h2>
-<div class="outline-text-2" id="text-orgb726e7b"></div>
-<div class="outline-3" id="outline-container-orgcd52172">
-<h3 id="orgcd52172">Sources</h3>
-<div class="outline-text-3" id="text-orgcd52172">
+<div class="outline-2" id="outline-container-org5840e9a">
+<h2 id="org5840e9a">End</h2>
+<div class="outline-text-2" id="text-org5840e9a"></div>
+<div class="outline-3" id="outline-container-org5440eb3">
+<h3 id="org5440eb3">Sources</h3>
+<div class="outline-text-3" id="text-org5440eb3">
 <ul class="org-ul">
 <li>The Zip Code GeoJSON comes from a GitHub repository created by <a href="/posts/state-zip-code-geojson-repository/">OpenDataDE</a>.</li>
 <li><a href="https://geojson.org/">The Official GeoJSON page</a> (I think), not much there.</li>

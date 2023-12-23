@@ -65,34 +65,34 @@
 </div>
 </header>
 <div class="e-content entry-content" itemprop="articleBody text">
-<div id="table-of-contents">
+<div id="table-of-contents" role="doc-toc">
 <h2>Table of Contents</h2>
-<div id="text-table-of-contents">
+<div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="/posts/machine-learning/decision-trees/#org2d2523f">Beginning</a>
+<li><a href="/posts/machine-learning/decision-trees/#orgbebec5b">Beginning</a>
 <ul>
-<li><a href="/posts/machine-learning/decision-trees/#orgc5dd786">Imports</a></li>
-<li><a href="/posts/machine-learning/decision-trees/#org0ed927c">Set Up</a></li>
+<li><a href="/posts/machine-learning/decision-trees/#orge6d48fe">Imports</a></li>
+<li><a href="/posts/machine-learning/decision-trees/#orgbfe7532">Set Up</a></li>
 </ul>
 </li>
-<li><a href="/posts/machine-learning/decision-trees/#org7ec9c0d">Splitting A Node</a>
+<li><a href="/posts/machine-learning/decision-trees/#org57e41e0">Splitting A Node</a>
 <ul>
-<li><a href="/posts/machine-learning/decision-trees/#orgf2f3254">Entropy</a></li>
-<li><a href="/posts/machine-learning/decision-trees/#org528e904">Binary Splitting of Qualitative Attributes Using the Gini Index</a></li>
+<li><a href="/posts/machine-learning/decision-trees/#org097dee2">Entropy</a></li>
+<li><a href="/posts/machine-learning/decision-trees/#org4ef10c3">Binary Splitting of Qualitative Attributes Using the Gini Index</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org2d2523f">
-<h2 id="org2d2523f">Beginning</h2>
-<div class="outline-text-2" id="text-org2d2523f"></div>
-<div class="outline-3" id="outline-container-orgc5dd786">
-<h3 id="orgc5dd786">Imports</h3>
-<div class="outline-text-3" id="text-orgc5dd786"></div>
-<div class="outline-4" id="outline-container-org7f4bc38">
-<h4 id="org7f4bc38">Python</h4>
-<div class="outline-text-4" id="text-org7f4bc38">
+<div class="outline-2" id="outline-container-orgbebec5b">
+<h2 id="orgbebec5b">Beginning</h2>
+<div class="outline-text-2" id="text-orgbebec5b"></div>
+<div class="outline-3" id="outline-container-orge6d48fe">
+<h3 id="orge6d48fe">Imports</h3>
+<div class="outline-text-3" id="text-orge6d48fe"></div>
+<div class="outline-4" id="outline-container-org45afe78">
+<h4 id="org45afe78">Python</h4>
+<div class="outline-text-4" id="text-org45afe78">
 <div class="highlight">
 <pre><span></span>from functools import partial
 from typing import Any
@@ -100,9 +100,9 @@ from math import log2
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org0b027cf">
-<h4 id="org0b027cf">PyPi</h4>
-<div class="outline-text-4" id="text-org0b027cf">
+<div class="outline-4" id="outline-container-org963e69f">
+<h4 id="org963e69f">PyPi</h4>
+<div class="outline-text-4" id="text-org963e69f">
 <div class="highlight">
 <pre><span></span>from expects import (
     be_within,
@@ -115,28 +115,28 @@ import pandas
 </div>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org0ed927c">
-<h3 id="org0ed927c">Set Up</h3>
-<div class="outline-text-3" id="text-org0ed927c">
+<div class="outline-3" id="outline-container-orgbfe7532">
+<h3 id="orgbfe7532">Set Up</h3>
+<div class="outline-text-3" id="text-orgbfe7532">
 <div class="highlight">
 <pre><span></span>TABLE = partial(tabulate, headers="keys", tablefmt="orgtbl")
 </pre></div>
 </div>
 </div>
 </div>
-<div class="outline-2" id="outline-container-org7ec9c0d">
-<h2 id="org7ec9c0d">Splitting A Node</h2>
-<div class="outline-text-2" id="text-org7ec9c0d">
+<div class="outline-2" id="outline-container-org57e41e0">
+<h2 id="org57e41e0">Splitting A Node</h2>
+<div class="outline-text-2" id="text-org57e41e0">
 <p>We choose which is the next node to split by checking the amount of information we would gain for each candidate node and picking the one that gives us the highest gain. We do this by measuring the <b>impurity</b> of the nodes, which is a measurement of how dissimilar the class labels are for a node.</p>
 </div>
-<div class="outline-3" id="outline-container-orgf2f3254">
-<h3 id="orgf2f3254">Entropy</h3>
-<div class="outline-text-3" id="text-orgf2f3254">
+<div class="outline-3" id="outline-container-org097dee2">
+<h3 id="org097dee2">Entropy</h3>
+<div class="outline-text-3" id="text-org097dee2">
 <p>One measure of "impurity" is <a href="https://www.wikiwand.com/en/Entropy_(information_theory)">entropy</a>, a measurement of the information associated with our nodes.</p>
 </div>
-<div class="outline-4" id="outline-container-org086d048">
-<h4 id="org086d048">Node Entropy</h4>
-<div class="outline-text-4" id="text-org086d048">
+<div class="outline-4" id="outline-container-org23cb5fa">
+<h4 id="org23cb5fa">Node Entropy</h4>
+<div class="outline-text-4" id="text-org23cb5fa">
 <p>Here's where we'll calculate the entropy for a node.</p>
 <p>\[ Entropy = - \sum_{i=0}^{c-1} p_i(t)log_2 p_i(t) \]</p>
 <p>Where \(p_1(t)\) is the fraction of training data (<i>t</i>) that has the classification <i>i</i>. We can translate that to a python function.</p>
@@ -166,9 +166,9 @@ import pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orgf4b7374">
-<h4 id="orgf4b7374">Entropy of a Node's Children</h4>
-<div class="outline-text-4" id="text-orgf4b7374">
+<div class="outline-4" id="outline-container-org83ea376">
+<h4 id="org83ea376">Entropy of a Node's Children</h4>
+<div class="outline-text-4" id="text-org83ea376">
 <p>We'll use the entropy formula to get the entropy for an indivdual node but to get the total contribution from the possible splits we'll take a weighted sum of the node entropies.</p>
 <p>\[ I(children) = \sum_{j=1}^k \frac{N(v_j)}{N} I(v_j) \]</p>
 <p>Where \(\frac{N(v_j)}{N}\) is the fraction of the child data in node <i>j</i> and \(I(v_j)\) is the entropy (Impurity) of node <i>j</i>.</p>
@@ -205,9 +205,9 @@ import pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-org7b70104">
-<h4 id="org7b70104">Information Gain</h4>
-<div class="outline-text-4" id="text-org7b70104">
+<div class="outline-4" id="outline-container-org25a46fd">
+<h4 id="org25a46fd">Information Gain</h4>
+<div class="outline-text-4" id="text-org25a46fd">
 <p>The measurement of how much is gained is the difference between a parent node and its children. \[ \Delta = I(parent) - I(children) \]</p>
 <div class="highlight">
 <pre><span></span> def information_gain(data: pandas.Series, column: str, target: str,
@@ -225,9 +225,9 @@ import pandas
 </pre></div>
 </div>
 </div>
-<div class="outline-4" id="outline-container-orga97330f">
-<h4 id="orga97330f">Home Loans</h4>
-<div class="outline-text-4" id="text-orga97330f">
+<div class="outline-4" id="outline-container-org19f0951">
+<h4 id="org19f0951">Home Loans</h4>
+<div class="outline-text-4" id="text-org19f0951">
 <p>To make this concrete we can look at a small dataset of people applying for a loan. We want to know if they are likely to default and we need to decide if we want our first split to be on whether they own a home or are married (we'll ignore income for this check because it's meant to illustrate splitting qualitative data).</p>
 <div class="highlight">
 <pre><span></span> @attr.s(auto_attribs=True, slots=True, frozen=True)
@@ -350,8 +350,8 @@ I_parent: 0.881
 <p>The next step is to figure out which of our two chosen attributes gives us the most information gain- whether the person was a Home Owner or their Marital Status. We could just look at which has a lower entropy, but the problem is stated so that we want to find the greatest difference between the class' entropy and the parent entropy instead.</p>
 </div>
 <ul class="org-ul">
-<li><a id="org5b5a210"></a>Home Owners<br>
-<div class="outline-text-5" id="text-org5b5a210">
+<li><a id="orgbaa8f59"></a>Home Owners<br>
+<div class="outline-text-5" id="text-orgbaa8f59">
 <p>We have two child nodes - one for homeowners and one for non-homeowners.</p>
 <div class="highlight">
 <pre><span></span> print(loans[loans[LOANS.owner]][LOANS.defaulted].value_counts())
@@ -392,8 +392,8 @@ Delta Home-Owner:  0.192
 <p>I seem to have precision differences with the book…</p>
 </div>
 </li>
-<li><a id="org1dc82fe"></a>Married Applicants<br>
-<div class="outline-text-5" id="text-org1dc82fe">
+<li><a id="orgb968d6e"></a>Married Applicants<br>
+<div class="outline-text-5" id="text-orgb968d6e">
 <div class="highlight">
 <pre><span></span> gain_married = information_gain(loans, LOANS.married, LOANS.defaulted, debug=True)
  print(f"Delta Married: {gain_married: 0.3f}")
@@ -402,7 +402,7 @@ Delta Home-Owner:  0.192
                (gain_married, LOANS.married)))
  print(f"Next Node: {choice}")
 </pre></div>
-<pre class="example">
+<pre class="example" id="orgfbfb9c9">
 calculating node-entropy
         class: False, p: 0.7 entropy: -0.3602012209808308
         class: True, p: 0.3 entropy: -0.5210896782498619
@@ -421,9 +421,9 @@ Next Node: (0.19581560200335835, 'Marital Status')
 </ul>
 </div>
 </div>
-<div class="outline-3" id="outline-container-org528e904">
-<h3 id="org528e904">Binary Splitting of Qualitative Attributes Using the Gini Index</h3>
-<div class="outline-text-3" id="text-org528e904">
+<div class="outline-3" id="outline-container-org4ef10c3">
+<h3 id="org4ef10c3">Binary Splitting of Qualitative Attributes Using the Gini Index</h3>
+<div class="outline-text-3" id="text-org4ef10c3">
 <p>\[ \textit{Gini Index} = 1 - \sum_{i=0}^{c - 1} \]</p>
 <div class="highlight">
 <pre><span></span>def gini(data: pandas.Series) -&gt; float:
@@ -435,9 +435,9 @@ Next Node: (0.19581560200335835, 'Marital Status')
     return 1 - accumulator
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org592b5f4">
-<h4 id="org592b5f4">Parent Impurity</h4>
-<div class="outline-text-4" id="text-org592b5f4">
+<div class="outline-4" id="outline-container-org2b4e279">
+<h4 id="org2b4e279">Parent Impurity</h4>
+<div class="outline-text-4" id="text-org2b4e279">
 <p>First we get the gini index for the overall data.</p>
 <div class="highlight">
 <pre><span></span>parent_gini = gini(loans[LOANS.defaulted])
@@ -448,9 +448,9 @@ expect(parent_gini).to(be_within(0.420, 0.421))
 I_parent =  0.420
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org3153bab">
-<h4 id="org3153bab">Home Owner Impurity</h4>
-<div class="outline-text-4" id="text-org3153bab">
+<div class="outline-4" id="outline-container-org2cc2727">
+<h4 id="org2cc2727">Home Owner Impurity</h4>
+<div class="outline-text-4" id="text-org2cc2727">
 <p>Now the homeowner attribute.</p>
 <div class="highlight">
 <pre><span></span>homeowner_gini = children_impurity(loans, LOANS.owner, LOANS.defaulted, gini, debug=True)
@@ -463,9 +463,9 @@ Calculating entropy for child nodes
 Child node entropy: 0.3428571428571429
 </pre></div>
 </div>
-<div class="outline-4" id="outline-container-org4f4ef05">
-<h4 id="org4f4ef05">Married Impurity</h4>
-<div class="outline-text-4" id="text-org4f4ef05">
+<div class="outline-4" id="outline-container-org8412872">
+<h4 id="org8412872">Married Impurity</h4>
+<div class="outline-text-4" id="text-org8412872">
 <p>This is different from the entropy case because we want to do binary splits but the marital status attribute has three values (<i>Single</i>, <i>Married</i>, and <i>Divorced</i>) so we need to use a different function that does each attribute against the other (or we could add columns which turn the marital status into a binary attribute, but this seems simpler).</p>
 <div class="highlight">
 <pre><span></span>def binary_gini(data: pandas.Series, column: str, target: str,
@@ -511,7 +511,7 @@ expect(i_single).to(be_within(0.39, 0.41))
 expect(i_divorced).to(be_within(0.39, 0.41))
 expect(i_married).to(be_within(0.342, 0.344))
 </pre></div>
-<pre class="example">
+<pre class="example" id="org9fe34c7">
 N(Single/N) I(Single) = 0.240
 N(!Single/N) I!(Single) = 0.160
 I(Single) = 0.400
